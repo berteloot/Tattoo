@@ -1,0 +1,77 @@
+import axios from 'axios'
+
+// Create axios instance
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// Request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// Response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem('token')
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
+
+// API functions
+export const authAPI = {
+  login: (credentials) => api.post('/auth/login', credentials),
+  register: (userData) => api.post('/auth/register', userData),
+  logout: () => api.post('/auth/logout'),
+  getProfile: () => api.get('/auth/me'),
+  updateProfile: (profileData) => api.put('/auth/profile', profileData),
+}
+
+export const artistsAPI = {
+  getAll: (params) => api.get('/artists', { params }),
+  getById: (id) => api.get(`/artists/${id}`),
+  createProfile: (profileData) => api.post('/artists', profileData),
+  updateProfile: (id, profileData) => api.put(`/artists/${id}`, profileData),
+}
+
+export const flashAPI = {
+  getAll: (params) => api.get('/flash', { params }),
+  getById: (id) => api.get(`/flash/${id}`),
+  create: (flashData) => api.post('/flash', flashData),
+  update: (id, flashData) => api.put(`/flash/${id}`, flashData),
+  delete: (id) => api.delete(`/flash/${id}`),
+}
+
+export const reviewsAPI = {
+  getAll: (params) => api.get('/reviews', { params }),
+  create: (reviewData) => api.post('/reviews', reviewData),
+  update: (id, reviewData) => api.put(`/reviews/${id}`, reviewData),
+  delete: (id) => api.delete(`/reviews/${id}`),
+}
+
+export const specialtiesAPI = {
+  getAll: () => api.get('/specialties'),
+}
+
+export const servicesAPI = {
+  getAll: () => api.get('/services'),
+} 

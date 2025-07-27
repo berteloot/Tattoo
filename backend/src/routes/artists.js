@@ -1,0 +1,637 @@
+const express = require('express');
+const { body, query, validationResult } = require('express-validator');
+const { PrismaClient } = require('@prisma/client');
+const { protect, authorize, optionalAuth } = require('../middleware/auth');
+
+const router = express.Router();
+const prisma = new PrismaClient();
+
+/**
+ * @route   GET /api/artists
+ * @desc    Get all artists with filtering and pagination
+ * @access  Public
+ */
+router.get('/', optionalAuth, [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1 and 100'),
+  query('specialty')
+    .optional()
+    .isString()
+    .withMessage('Specialty must be a string'),
+  query('city')
+    .optional()
+    .isString()
+    .withMessage('City must be a string'),
+  query('minRating')
+    .optional()
+    .isFloat({ min: 0, max: 5 })
+    .withMessage('Min rating must be between 0 and 5'),
+  query('maxPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Max price must be a positive number'),
+  query('lat')
+    .optional()
+    .isFloat()
+    .withMessage('Latitude must be a number'),
+  query('lng')
+    .optional()
+    .isFloat()
+    .withMessage('Longitude must be a number'),
+  query('radius')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Radius must be a positive number')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const {
+      page = 1,
+      limit = 10,
+      specialty,
+      city,
+      minRating,
+      maxPrice,
+      lat,
+      lng,
+      radius
+    } = req.query;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Build where clause
+    const where = {
+      user: {
+        role: 'ARTIST',
+        isActive: true
+      },
+      isVerified: true
+    };
+
+    if (specialty) {
+      where.specialties = {
+        some: {
+          name: {
+            contains: specialty,
+            mode: 'insensitive'
+          }
+        }
+      };
+    }
+
+    if (city) {
+      where.city = {
+        contains: city,
+        mode: 'insensitive'
+      };
+    }
+
+    if (maxPrice) {
+      where.OR = [
+        { maxPrice: { lte: parseFloat(maxPrice) } },
+        { hourlyRate: { lte: parseFloat(maxPrice) } }
+      ];
+    }
+
+    // Get artists with their basic info and average rating
+    const artists = await prisma.artistProfile.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        },
+        specialties: {
+          select: {
+            id: true,
+            name: true,
+            icon: true
+          }
+        },
+        services: {
+          select: {
+            id: true,
+            name: true,
+            price: true
+          }
+        },
+        _count: {
+          select: {
+            flash: true,
+            reviewsReceived: true
+          }
+        }
+      },
+      skip,
+      take: parseInt(limit),
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // Calculate average ratings for each artist
+    const artistsWithRatings = await Promise.all(
+      artists.map(async (artist) => {
+        const reviews = await prisma.review.findMany({
+          where: {
+            recipientId: artist.user.id,
+            isHidden: false
+          },
+          select: {
+            rating: true
+          }
+        });
+
+        const averageRating = reviews.length > 0
+          ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+          : 0;
+
+        return {
+          ...artist,
+          averageRating: Math.round(averageRating * 10) / 10,
+          reviewCount: reviews.length
+        };
+      })
+    );
+
+    // Filter by minimum rating if specified
+    const filteredArtists = minRating
+      ? artistsWithRatings.filter(artist => artist.averageRating >= parseFloat(minRating))
+      : artistsWithRatings;
+
+    // Get total count for pagination
+    const total = await prisma.artistProfile.count({ where });
+
+    res.json({
+      success: true,
+      data: {
+        artists: filteredArtists,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / parseInt(limit))
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get artists error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while fetching artists'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/artists/:id
+ * @desc    Get artist by ID with full profile
+ * @access  Public
+ */
+router.get('/:id', optionalAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const artist = await prisma.artistProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            avatar: true,
+            createdAt: true
+          }
+        },
+        specialties: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            icon: true
+          }
+        },
+        services: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            duration: true
+          }
+        },
+        flash: {
+          where: { isAvailable: true },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            imageUrl: true,
+            price: true,
+            tags: true,
+            createdAt: true
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 20
+        },
+        _count: {
+          select: {
+            flash: true,
+            reviewsReceived: true
+          }
+        }
+      }
+    });
+
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist not found'
+      });
+    }
+
+    // Get reviews
+    const reviews = await prisma.review.findMany({
+      where: {
+        recipientId: artist.user.id,
+        isHidden: false
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    });
+
+    // Calculate average rating
+    const averageRating = reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : 0;
+
+    res.json({
+      success: true,
+      data: {
+        artist: {
+          ...artist,
+          averageRating: Math.round(averageRating * 10) / 10,
+          reviewCount: reviews.length
+        },
+        reviews
+      }
+    });
+  } catch (error) {
+    console.error('Get artist error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while fetching artist'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/artists
+ * @desc    Create artist profile
+ * @access  Private (ARTIST role)
+ */
+router.post('/', protect, authorize('ARTIST'), [
+  body('bio')
+    .optional()
+    .isLength({ max: 1000 })
+    .withMessage('Bio must be less than 1000 characters'),
+  body('studioName')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Studio name must be less than 100 characters'),
+  body('website')
+    .optional()
+    .isURL()
+    .withMessage('Website must be a valid URL'),
+  body('instagram')
+    .optional()
+    .trim()
+    .isLength({ max: 50 })
+    .withMessage('Instagram handle must be less than 50 characters'),
+  body('address')
+    .optional()
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage('Address must be less than 200 characters'),
+  body('city')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('City must be less than 100 characters'),
+  body('state')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('State must be less than 100 characters'),
+  body('zipCode')
+    .optional()
+    .trim()
+    .isLength({ max: 20 })
+    .withMessage('Zip code must be less than 20 characters'),
+  body('country')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Country must be less than 100 characters'),
+  body('latitude')
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Latitude must be between -90 and 90'),
+  body('longitude')
+    .optional()
+    .isFloat({ min: -180, max: 180 })
+    .withMessage('Longitude must be between -180 and 180'),
+  body('hourlyRate')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Hourly rate must be a positive number'),
+  body('minPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Minimum price must be a positive number'),
+  body('maxPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Maximum price must be a positive number')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    // Check if artist profile already exists
+    const existingProfile = await prisma.artistProfile.findUnique({
+      where: { userId: req.user.id }
+    });
+
+    if (existingProfile) {
+      return res.status(400).json({
+        success: false,
+        error: 'Artist profile already exists'
+      });
+    }
+
+    const {
+      bio,
+      studioName,
+      website,
+      instagram,
+      address,
+      city,
+      state,
+      zipCode,
+      country,
+      latitude,
+      longitude,
+      hourlyRate,
+      minPrice,
+      maxPrice
+    } = req.body;
+
+    const artistProfile = await prisma.artistProfile.create({
+      data: {
+        userId: req.user.id,
+        bio,
+        studioName,
+        website,
+        instagram,
+        address,
+        city,
+        state,
+        zipCode,
+        country,
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
+        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
+        minPrice: minPrice ? parseFloat(minPrice) : null,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : null
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Artist profile created successfully',
+      data: { artistProfile }
+    });
+  } catch (error) {
+    console.error('Create artist profile error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while creating artist profile'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/artists/:id
+ * @desc    Update artist profile
+ * @access  Private (ARTIST role, owner only)
+ */
+router.put('/:id', protect, authorize('ARTIST'), [
+  body('bio')
+    .optional()
+    .isLength({ max: 1000 })
+    .withMessage('Bio must be less than 1000 characters'),
+  body('studioName')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Studio name must be less than 100 characters'),
+  body('website')
+    .optional()
+    .isURL()
+    .withMessage('Website must be a valid URL'),
+  body('instagram')
+    .optional()
+    .trim()
+    .isLength({ max: 50 })
+    .withMessage('Instagram handle must be less than 50 characters'),
+  body('address')
+    .optional()
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage('Address must be less than 200 characters'),
+  body('city')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('City must be less than 100 characters'),
+  body('state')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('State must be less than 100 characters'),
+  body('zipCode')
+    .optional()
+    .trim()
+    .isLength({ max: 20 })
+    .withMessage('Zip code must be less than 20 characters'),
+  body('country')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Country must be less than 100 characters'),
+  body('latitude')
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Latitude must be between -90 and 90'),
+  body('longitude')
+    .optional()
+    .isFloat({ min: -180, max: 180 })
+    .withMessage('Longitude must be between -180 and 180'),
+  body('hourlyRate')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Hourly rate must be a positive number'),
+  body('minPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Minimum price must be a positive number'),
+  body('maxPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Maximum price must be a positive number')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+
+    // Check if artist profile exists and belongs to user
+    const existingProfile = await prisma.artistProfile.findUnique({
+      where: { id }
+    });
+
+    if (!existingProfile) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist profile not found'
+      });
+    }
+
+    if (existingProfile.userId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized to update this profile'
+      });
+    }
+
+    const {
+      bio,
+      studioName,
+      website,
+      instagram,
+      address,
+      city,
+      state,
+      zipCode,
+      country,
+      latitude,
+      longitude,
+      hourlyRate,
+      minPrice,
+      maxPrice
+    } = req.body;
+
+    const updatedProfile = await prisma.artistProfile.update({
+      where: { id },
+      data: {
+        ...(bio !== undefined && { bio }),
+        ...(studioName !== undefined && { studioName }),
+        ...(website !== undefined && { website }),
+        ...(instagram !== undefined && { instagram }),
+        ...(address !== undefined && { address }),
+        ...(city !== undefined && { city }),
+        ...(state !== undefined && { state }),
+        ...(zipCode !== undefined && { zipCode }),
+        ...(country !== undefined && { country }),
+        ...(latitude !== undefined && { latitude: parseFloat(latitude) }),
+        ...(longitude !== undefined && { longitude: parseFloat(longitude) }),
+        ...(hourlyRate !== undefined && { hourlyRate: parseFloat(hourlyRate) }),
+        ...(minPrice !== undefined && { minPrice: parseFloat(minPrice) }),
+        ...(maxPrice !== undefined && { maxPrice: parseFloat(maxPrice) })
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Artist profile updated successfully',
+      data: { artistProfile: updatedProfile }
+    });
+  } catch (error) {
+    console.error('Update artist profile error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while updating artist profile'
+    });
+  }
+});
+
+module.exports = router; 

@@ -1,0 +1,114 @@
+# Cursor Rules for Tattoo Artist Locator App
+
+## Project Context
+- **App Type**: Tattoo Artist Locator - Connect clients with tattoo artists based on location, style, and specialty
+- **User**: Non-developer who needs complete coding assistance
+- **Hosting**: Render.com for deployment
+- **Environment**: Uses .env files for configuration (not accessible to Cursor)
+
+## Tech Stack
+### Frontend
+- React + Vite for fast development
+- @react-google-maps/api for Google Maps integration
+- Axios for API communication
+- React Router for navigation
+- Tailwind CSS for styling
+
+### Backend
+- Node.js + Express for RESTful API
+- Prisma ORM for database interactions
+- JWT authentication
+- File uploads via Cloudinary/S3
+
+### Database
+- PostgreSQL for data storage
+- PostGIS for spatial queries (optional)
+
+## Environment Configuration
+⚠️ **IMPORTANT**: Environment variables are stored in `.env` files which are NOT accessible to Cursor. Always:
+- Create `.env.example` files with placeholder values
+- Document required environment variables in README
+- Use process.env.VARIABLE_NAME in code
+- Never commit actual API keys or secrets
+
+## Core Features to Implement
+
+### Client Features
+- Browse artists on interactive map
+- Filter by specialty, rating, style
+- View artist profiles (bio, services, specialties, flash, reviews)
+- Leave comments and ratings (login required)
+
+### Artist Features
+- Sign up and create public profile
+- Add specialties, services, pricing, location
+- Upload flash with tags
+- Edit profile and respond to reviews
+- Dashboard with profile stats
+
+### Admin Features (Optional)
+- Manage user accounts
+- Moderate reviews and content
+- Approve artist registrations
+
+## Development Guidelines
+
+### Code Organization
+- Separate frontend and backend into distinct directories
+- Use clear, descriptive file and folder names
+- Implement proper error handling
+- Add comprehensive comments for non-developer understanding
+
+### Database Design
+- Users table (clients, artists, admins)
+- Artist profiles with location data
+- Flash/portfolio items
+- Reviews and ratings
+- Sessions/tokens
+
+### API Structure
+- RESTful endpoints
+- Proper HTTP status codes
+- Input validation
+- Error responses with meaningful messages
+
+### Security Considerations
+- JWT token management
+- Input sanitization
+- File upload validation
+- Rate limiting
+- CORS configuration
+
+## Deployment Considerations
+- Render.com hosting configuration
+- Environment variable setup on Render
+- Database connection strings
+- Static file serving
+- Build and start scripts
+
+## File Structure
+```
+tattoo-app/
+├── frontend/          # React + Vite app
+├── backend/           # Node.js + Express API
+├── database/          # Prisma schema and migrations
+├── docs/             # Documentation
+├── .env.example      # Environment template
+├── render.yaml       # Render deployment config
+└── README.md         # Setup instructions
+```
+
+## Development Workflow
+1. Always create environment templates
+2. Document all API endpoints
+3. Include setup instructions for non-developers
+4. Test all features before deployment
+5. Provide clear error messages
+6. Use TypeScript for better code quality (optional)
+
+## Notes for Non-Developer
+- All code will be written with detailed comments
+- Setup instructions will be step-by-step
+- Environment configuration will be clearly documented
+- Error handling will be user-friendly
+- Deployment process will be automated where possible 

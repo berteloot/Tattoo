@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - handles both clients and artists
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(CLIENT)
+  firstName String
+  lastName  String
+  phone     String?
+  avatar    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Artist-specific fields
+  artistProfile ArtistProfile?
+  
+  // Reviews written by this user
+  reviewsGiven Review[] @relation("ReviewAuthor")
+  
+  // Reviews received (for artists)
+  reviewsReceived Review[] @relation("ReviewRecipient")
+
+  @@map("users")
+}
+
+// Artist profile - extends user information for artists
+model ArtistProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Basic info
+  bio         String?
+  studioName  String?
+  website     String?
+  instagram   String?
+  
+  // Location
+  latitude    Float?
+  longitude   Float?
+  address     String?
+  city        String?
+  state       String?
+  zipCode     String?
+  country     String?
+  
+  // Services and specialties
+  specialties Specialty[]
+  services    Service[]
+  
+  // Portfolio
+  flash       Flash[]
+  
+  // Business info
+  hourlyRate  Float?
+  minPrice    Float?
+  maxPrice    Float?
+  isVerified  Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("artist_profiles")
+}
+
+// Artist specialties (e.g., Traditional, Japanese, Black & Grey, etc.)
+model Specialty {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  icon        String?
+  
+  // Many-to-many with artists
+  artists     ArtistProfile[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("specialties")
+}
+
+// Artist services (e.g., Custom Design, Cover-up, Touch-up, etc.)
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float?
+  duration    Int? // in minutes
+  
+  // Many-to-many with artists
+  artists     ArtistProfile[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("services")
+}
+
+// Flash/Portfolio items
+model Flash {
+  id          String   @id @default(cuid())
+  artistId    String
+  artist      ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String?
+  imageUrl    String
+  price       Float?
+  isAvailable Boolean  @default(true)
+  tags        String[] // Array of tags
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("flash")
+}
+
+// Reviews and ratings
+model Review {
+  id          String   @id @default(cuid())
+  authorId    String
+  author      User     @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  recipientId String
+  recipient   User     @relation("ReviewRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  
+  rating      Int      @default(5) // 1-5 stars
+  title       String?
+  comment     String?
+  images      String[] // Array of image URLs
+  
+  isVerified  Boolean  @default(false)
+  isHidden    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([authorId, recipientId])
+  @@map("reviews")
+}
+
+// User roles enum
+enum UserRole {
+  CLIENT
+  ARTIST
+  ADMIN
+} 
