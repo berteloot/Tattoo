@@ -1,23 +1,62 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Eye, EyeOff } from 'lucide-react'
+import { useToast } from '../contexts/ToastContext'
+import { Input, Button, LoadingSpinner } from '../components/UXComponents'
 
 export const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  })
+  const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
+  const { success, error: showError } = useToast()
+  const navigate = useNavigate()
+
+  const validateForm = () => {
+    const newErrors = {}
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required'
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address'
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }))
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (!validateForm()) {
+      return
+    }
+    
     setLoading(true)
     
     try {
-      await login(email, password)
+      await login(formData.email, formData.password)
+      success('Welcome back!', 'You have successfully signed in.')
+      navigate('/')
     } catch (error) {
       console.error('Login error:', error)
+      showError('Login failed', error.message || 'Please check your credentials and try again.')
     } finally {
       setLoading(false)
     }
@@ -36,65 +75,50 @@ export const Login = () => {
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input mt-1"
-                placeholder="Enter your email"
-              />
-            </div>
+            <Input
+              label="Email address"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              error={errors.email}
+              placeholder="Enter your email"
+              required
+              autoComplete="email"
+            />
             
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="relative mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input pr-10"
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
-              </div>
-            </div>
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              error={errors.password}
+              placeholder="Enter your password"
+              required
+              autoComplete="current-password"
+            />
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary w-full"
+          <div className="flex items-center justify-between">
+            <Link 
+              to="/forgot-password" 
+              className="text-sm text-primary-600 hover:text-primary-500"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
+              Forgot your password?
+            </Link>
           </div>
+
+          <Button
+            type="submit"
+            loading={loading}
+            className="w-full"
+            size="lg"
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </Button>
         </form>
       </div>
     </div>

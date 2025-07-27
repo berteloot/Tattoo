@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { MapPin, User, LogOut, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import { SkipToMainContent } from './UXComponents'
 
 export const Layout = ({ children }) => {
   const { user, isAuthenticated, logout } = useAuth()
@@ -18,6 +19,7 @@ export const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SkipToMainContent />
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -177,7 +179,7 @@ export const Layout = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
 
@@ -185,7 +187,7 @@ export const Layout = ({ children }) => {
       <footer className="bg-white border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-gray-600">
-            <p>&copy; 2024 Tattoo Artist Locator. All rights reserved.</p>
+            <p>&copy; 2025 Tattoo Artist Locator. All rights reserved.</p>
           </div>
         </div>
       </footer>
