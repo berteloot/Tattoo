@@ -40,7 +40,6 @@ services:
   - type: web
     name: tattoo-app-frontend
     env: static
-    plan: starter
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     envVars:
@@ -54,4 +53,4 @@ databases:
   - name: tattoo-app-db
     databaseName: tattoo_app
     user: tattoo_app_user
-    plan: starter 
+    plan: free 
