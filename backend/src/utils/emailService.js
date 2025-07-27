@@ -1,7 +1,11 @@
 const sgMail = require('@sendgrid/mail')
 
 // Configure SendGrid
-sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+} else {
+  console.warn('⚠️ SENDGRID_API_KEY not found. Email functionality will be disabled.')
+}
 
 class EmailService {
   constructor() {
@@ -10,6 +14,12 @@ class EmailService {
   }
 
   async sendEmail(to, subject, htmlContent, textContent = '') {
+    // Check if SendGrid is configured
+    if (!process.env.SENDGRID_API_KEY) {
+      console.log('📧 Email not sent - SendGrid not configured:', { to, subject })
+      return { success: false, error: 'Email service not configured' }
+    }
+
     try {
       const msg = {
         to,

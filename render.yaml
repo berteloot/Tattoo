@@ -35,6 +35,12 @@ services:
         value: 900000
       - key: RATE_LIMIT_MAX_REQUESTS
         value: 100
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        value: noreply@tattoolocator.com
+      - key: FRONTEND_URL
+        value: https://tattoo-app-frontend.onrender.com
 
   # Frontend Service
   - type: web

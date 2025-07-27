@@ -323,7 +323,7 @@ async function main() {
   // Create some demo flash items
   const flashItems = [
     {
-      artistId: (await prisma.artistProfile.findFirst({ where: { studioName: 'Ink & Soul Studio' } })).id,
+      studioName: 'Ink & Soul Studio',
       title: 'Traditional Rose',
       description: 'Classic red rose with green leaves',
       imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
@@ -331,7 +331,7 @@ async function main() {
       tags: ['traditional', 'rose', 'red']
     },
     {
-      artistId: (await prisma.artistProfile.findFirst({ where: { studioName: 'Black Canvas Tattoo' } })).id,
+      studioName: 'Black Canvas Tattoo',
       title: 'Portrait Sketch',
       description: 'Realistic black and grey portrait',
       imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
@@ -339,7 +339,7 @@ async function main() {
       tags: ['portrait', 'black-grey', 'realistic']
     },
     {
-      artistId: (await prisma.artistProfile.findFirst({ where: { studioName: 'Simple Lines Studio' } })).id,
+      studioName: 'Simple Lines Studio',
       title: 'Minimalist Mountain',
       description: 'Simple line art mountain range',
       imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
@@ -349,26 +349,43 @@ async function main() {
   ];
 
   for (const flashData of flashItems) {
-    await prisma.flash.create({
-      data: flashData
+    const artist = await prisma.artistProfile.findFirst({ 
+      where: { studioName: flashData.studioName } 
     });
+    
+    if (artist) {
+      await prisma.flash.create({
+        data: {
+          artistId: artist.id,
+          title: flashData.title,
+          description: flashData.description,
+          imageUrl: flashData.imageUrl,
+          price: flashData.price,
+          tags: flashData.tags
+        }
+      });
+    } else {
+      console.log(`⚠️ Artist not found for flash item: ${flashData.title}`);
+    }
   }
+
+
 
   console.log('✅ Flash items created');
 
   // Create some demo reviews
-  const reviews = [
+  const reviewData = [
     {
-      authorId: (await prisma.user.findFirst({ where: { email: 'sarah.traditional@example.com' } })).id,
-      recipientId: (await prisma.user.findFirst({ where: { email: 'marcus.blackgrey@example.com' } })).id,
+      authorEmail: 'sarah.traditional@example.com',
+      recipientEmail: 'marcus.blackgrey@example.com',
       rating: 5,
       title: 'Amazing portrait work!',
       comment: 'Marcus did an incredible job on my portrait tattoo. The detail is unbelievable and it healed perfectly.',
       isVerified: true
     },
     {
-      authorId: (await prisma.user.findFirst({ where: { email: 'marcus.blackgrey@example.com' } })).id,
-      recipientId: (await prisma.user.findFirst({ where: { email: 'emma.minimalist@example.com' } })).id,
+      authorEmail: 'marcus.blackgrey@example.com',
+      recipientEmail: 'emma.minimalist@example.com',
       rating: 5,
       title: 'Perfect first tattoo experience',
       comment: 'Emma made my first tattoo experience so comfortable. Her minimalist style is exactly what I wanted.',
@@ -376,10 +393,24 @@ async function main() {
     }
   ];
 
-  for (const reviewData of reviews) {
-    await prisma.review.create({
-      data: reviewData
-    });
+  for (const review of reviewData) {
+    const author = await prisma.user.findFirst({ where: { email: review.authorEmail } });
+    const recipient = await prisma.user.findFirst({ where: { email: review.recipientEmail } });
+    
+    if (author && recipient) {
+      await prisma.review.create({
+        data: {
+          authorId: author.id,
+          recipientId: recipient.id,
+          rating: review.rating,
+          title: review.title,
+          comment: review.comment,
+          isVerified: review.isVerified
+        }
+      });
+    } else {
+      console.log(`⚠️ Users not found for review: ${review.title}`);
+    }
   }
 
   console.log('✅ Reviews created');
