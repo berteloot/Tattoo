@@ -2,6 +2,7 @@ const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const { PrismaClient } = require('@prisma/client');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
+const emailService = require('../utils/emailService');
 
 const router = express.Router();
 const prisma = new PrismaClient();
