@@ -137,8 +137,7 @@ router.get('/', optionalAuth, [
         },
         _count: {
           select: {
-            flash: true,
-            reviewsReceived: true
+            flash: true
           }
         }
       },
@@ -259,8 +258,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
         },
         _count: {
           select: {
-            flash: true,
-            reviewsReceived: true
+            flash: true
           }
         }
       }

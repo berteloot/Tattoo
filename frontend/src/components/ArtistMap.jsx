@@ -44,9 +44,54 @@ export const ArtistMap = () => {
     )
   }
 
+  // Check if Google Maps API key is available
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+
+  if (!googleMapsApiKey) {
+    return (
+      <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-gray-500 mb-4">
+            <MapPin className="w-16 h-16 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Interactive Map</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Google Maps integration requires an API key to be configured.
+            </p>
+            <div className="bg-white p-4 rounded-lg border">
+              <h4 className="font-medium mb-2">Available Artists ({artists.length})</h4>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {artists.map((artist) => (
+                  <div key={artist.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                      <span className="text-primary-600 font-semibold text-sm">
+                        {artist.user.firstName[0]}{artist.user.lastName[0]}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h5 className="font-medium text-sm">
+                        {artist.user.firstName} {artist.user.lastName}
+                      </h5>
+                      <p className="text-xs text-gray-600">{artist.studioName}</p>
+                    </div>
+                    <button
+                      onClick={() => window.location.href = `/artists/${artist.id}`}
+                      className="px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700"
+                    >
+                      View
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full">
-      <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+      <LoadScript googleMapsApiKey={googleMapsApiKey}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={center}
