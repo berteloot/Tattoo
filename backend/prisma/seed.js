@@ -398,8 +398,20 @@ async function main() {
     const recipient = await prisma.user.findFirst({ where: { email: review.recipientEmail } });
     
     if (author && recipient) {
-      await prisma.review.create({
-        data: {
+      await prisma.review.upsert({
+        where: {
+          authorId_recipientId: {
+            authorId: author.id,
+            recipientId: recipient.id
+          }
+        },
+        update: {
+          rating: review.rating,
+          title: review.title,
+          comment: review.comment,
+          isVerified: review.isVerified
+        },
+        create: {
           authorId: author.id,
           recipientId: recipient.id,
           rating: review.rating,
