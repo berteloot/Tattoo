@@ -52,7 +52,7 @@ services:
       - key: VITE_API_URL
         value: https://tattoo-app-backend.onrender.com
       - key: VITE_GOOGLE_MAPS_API_KEY
-        sync: false
+        value: "YOUR_ACTUAL_GOOGLE_MAPS_API_KEY_HERE"
 
 databases:
   # PostgreSQL Database

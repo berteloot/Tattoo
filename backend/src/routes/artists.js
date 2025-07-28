@@ -1,11 +1,10 @@
 const express = require('express');
 const { body, query, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
 const emailService = require('../utils/emailService');
+const prisma = require('../utils/prisma');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 /**
  * @route   GET /api/artists
@@ -74,6 +73,17 @@ router.get('/', optionalAuth, [
     } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Test database connection
+    try {
+      await prisma.$connect();
+    } catch (dbError) {
+      console.error('Database connection error:', dbError);
+      return res.status(500).json({
+        success: false,
+        error: 'Database connection failed'
+      });
+    }
 
     // Build where clause
     const where = {
@@ -195,6 +205,12 @@ router.get('/', optionalAuth, [
     });
   } catch (error) {
     console.error('Get artists error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta
+    });
     res.status(500).json({
       success: false,
       error: 'Server error while fetching artists'
