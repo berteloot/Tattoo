@@ -47,6 +47,10 @@ export const ArtistMap = () => {
   // Check if Google Maps API key is available
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
+  // Debug logging
+  console.log('Google Maps API Key:', googleMapsApiKey ? 'Present' : 'Missing');
+  console.log('Environment variables:', import.meta.env);
+
   if (!googleMapsApiKey) {
     return (
       <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
