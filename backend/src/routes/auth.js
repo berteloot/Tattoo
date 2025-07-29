@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
-const prisma = require('../utils/prisma');
+const { prisma } = require('../utils/prisma');
 const { protect } = require('../middleware/auth');
 const emailService = require('../utils/emailService');
 
@@ -242,24 +242,22 @@ router.get('/me', protect, async (req, res) => {
             services: true
           }
         }
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        phone: true,
-        avatar: true,
-        isActive: true,
-        createdAt: true,
-        artistProfile: true
       }
     });
 
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user;
+
     res.json({
       success: true,
-      data: { user }
+      data: { user: userWithoutPassword }
     });
   } catch (error) {
     console.error('Get profile error:', error);

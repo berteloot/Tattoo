@@ -6,7 +6,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 // Import database client
-const prisma = require('./utils/prisma');
+const { prisma, testConnection } = require('./utils/prisma');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -109,14 +109,18 @@ app.use(errorHandler);
 async function startServer() {
   try {
     // Test database connection
-    await prisma.$connect();
-    console.log('✅ Database connection established');
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+      console.error('❌ Failed to connect to database');
+      process.exit(1);
+    }
     
     // Start server
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+      console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

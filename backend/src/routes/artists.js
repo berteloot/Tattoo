@@ -2,7 +2,7 @@ const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
 const emailService = require('../utils/emailService');
-const prisma = require('../utils/prisma');
+const { prisma } = require('../utils/prisma');
 
 const router = express.Router();
 
@@ -400,7 +400,15 @@ router.post('/', protect, authorize('ARTIST'), [
   body('maxPrice')
     .optional()
     .isFloat({ min: 0 })
-    .withMessage('Maximum price must be a positive number')
+    .withMessage('Maximum price must be a positive number'),
+  body('specialtyIds')
+    .optional()
+    .isArray()
+    .withMessage('Specialty IDs must be an array'),
+  body('serviceIds')
+    .optional()
+    .isArray()
+    .withMessage('Service IDs must be an array')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -439,7 +447,9 @@ router.post('/', protect, authorize('ARTIST'), [
       longitude,
       hourlyRate,
       minPrice,
-      maxPrice
+      maxPrice,
+      specialtyIds = [],
+      serviceIds = []
     } = req.body;
 
     const artistProfile = await prisma.artistProfile.create({
@@ -458,7 +468,13 @@ router.post('/', protect, authorize('ARTIST'), [
         longitude: longitude ? parseFloat(longitude) : null,
         hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
         minPrice: minPrice ? parseFloat(minPrice) : null,
-        maxPrice: maxPrice ? parseFloat(maxPrice) : null
+        maxPrice: maxPrice ? parseFloat(maxPrice) : null,
+        specialties: {
+          connect: specialtyIds.map(id => ({ id }))
+        },
+        services: {
+          connect: serviceIds.map(id => ({ id }))
+        }
       },
       include: {
         user: {
@@ -467,6 +483,23 @@ router.post('/', protect, authorize('ARTIST'), [
             firstName: true,
             lastName: true,
             email: true
+          }
+        },
+        specialties: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            icon: true
+          }
+        },
+        services: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            duration: true
           }
         }
       }
@@ -554,7 +587,15 @@ router.put('/:id', protect, authorize('ARTIST'), [
   body('maxPrice')
     .optional()
     .isFloat({ min: 0 })
-    .withMessage('Maximum price must be a positive number')
+    .withMessage('Maximum price must be a positive number'),
+  body('specialtyIds')
+    .optional()
+    .isArray()
+    .withMessage('Specialty IDs must be an array'),
+  body('serviceIds')
+    .optional()
+    .isArray()
+    .withMessage('Service IDs must be an array')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -602,7 +643,9 @@ router.put('/:id', protect, authorize('ARTIST'), [
       longitude,
       hourlyRate,
       minPrice,
-      maxPrice
+      maxPrice,
+      specialtyIds,
+      serviceIds
     } = req.body;
 
     const updatedProfile = await prisma.artistProfile.update({
@@ -621,7 +664,17 @@ router.put('/:id', protect, authorize('ARTIST'), [
         ...(longitude !== undefined && { longitude: parseFloat(longitude) }),
         ...(hourlyRate !== undefined && { hourlyRate: parseFloat(hourlyRate) }),
         ...(minPrice !== undefined && { minPrice: parseFloat(minPrice) }),
-        ...(maxPrice !== undefined && { maxPrice: parseFloat(maxPrice) })
+        ...(maxPrice !== undefined && { maxPrice: parseFloat(maxPrice) }),
+        ...(specialtyIds !== undefined && {
+          specialties: {
+            set: specialtyIds.map(id => ({ id }))
+          }
+        }),
+        ...(serviceIds !== undefined && {
+          services: {
+            set: serviceIds.map(id => ({ id }))
+          }
+        })
       },
       include: {
         user: {
@@ -631,7 +684,9 @@ router.put('/:id', protect, authorize('ARTIST'), [
             lastName: true,
             email: true
           }
-        }
+        },
+        specialties: true,
+        services: true
       }
     });
 
