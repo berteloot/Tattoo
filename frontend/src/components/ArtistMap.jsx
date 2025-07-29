@@ -47,7 +47,8 @@ export const ArtistMap = () => {
   // Check if Google Maps API key is available
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
-  if (!googleMapsApiKey) {
+  // If no API key or Google Maps is not loaded, show fallback
+  if (!googleMapsApiKey || !window.google?.maps) {
     return (
       <div className="w-full">
         {/* Map Placeholder */}
@@ -149,7 +150,12 @@ export const ArtistMap = () => {
 
   return (
     <div className="w-full">
-      <LoadScript googleMapsApiKey={googleMapsApiKey}>
+      <LoadScript 
+        googleMapsApiKey={googleMapsApiKey}
+        onError={(error) => {
+          console.error('Google Maps failed to load:', error)
+        }}
+      >
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={center}
@@ -184,8 +190,8 @@ export const ArtistMap = () => {
                       <circle cx="16" cy="16" r="8" fill="#DC2626"/>
                     </svg>
                   `),
-                  scaledSize: new window.google.maps.Size(32, 32),
-                  anchor: new window.google.maps.Point(16, 16)
+                  scaledSize: window.google?.maps ? new window.google.maps.Size(32, 32) : undefined,
+                  anchor: window.google?.maps ? new window.google.maps.Point(16, 16) : undefined
                 }}
               />
             );
