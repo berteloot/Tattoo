@@ -7,6 +7,7 @@ import { Layout } from './components/Layout'
 import { Home } from './pages/Home'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
+import { Artists } from './pages/Artists'
 import { ArtistProfile } from './pages/ArtistProfile'
 import { ArtistDashboard } from './pages/ArtistDashboard'
 import { FlashGallery } from './pages/FlashGallery'
@@ -23,6 +24,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/artists" element={<Artists />} />
               <Route path="/artists/:id" element={<ArtistProfile />} />
               <Route path="/flash" element={<FlashGallery />} />
               
