@@ -1,8 +1,30 @@
 import { Link } from 'react-router-dom'
 import { MapPin, Users, Star, Palette, Search, Filter } from 'lucide-react'
 import { ArtistMap } from '../components/ArtistMap'
+import { useState, useEffect } from 'react'
+import { api } from '../services/api'
 
 export const Home = () => {
+  const [featuredArtists, setFeaturedArtists] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchFeaturedArtists = async () => {
+      try {
+        const response = await api.get('/api/artists?featured=true&limit=3')
+        if (response.data.success) {
+          setFeaturedArtists(response.data.data.artists || [])
+        }
+      } catch (error) {
+        console.error('Error fetching featured artists:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchFeaturedArtists()
+  }, [])
+
   return (
     <div className="space-y-16">
       {/* Hero Section */}
@@ -110,99 +132,72 @@ export const Home = () => {
       <section className="py-16">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Featured Artists</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Sarah Chen - Traditional */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="h-48 bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center">
-                <span className="text-white text-6xl">🎨</span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Sarah Chen</h3>
-                <p className="text-gray-600 mb-3">Ink & Soul Studio</p>
-                <div className="flex items-center space-x-2 mb-3">
-                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                  <span className="text-sm text-gray-600">5.0 (24 reviews)</span>
+          
+          {loading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                  <div className="h-48 bg-gray-200"></div>
+                  <div className="p-6">
+                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">Traditional</span>
-                  <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">Japanese</span>
-                </div>
-                <p className="text-gray-600 text-sm mb-4">
-                  Award-winning traditional tattoo artist with 8 years of experience.
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-primary-600 font-semibold">$120/hr</span>
-                  <Link
-                    to="/artists/1"
-                    className="text-primary-600 hover:text-primary-700 font-medium text-sm"
-                  >
-                    View Profile →
-                  </Link>
-                </div>
-              </div>
+              ))}
             </div>
-
-            {/* Marcus Rodriguez - Black & Grey */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="h-48 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                <span className="text-white text-6xl">⚫</span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Marcus Rodriguez</h3>
-                <p className="text-gray-600 mb-3">Black Canvas Tattoo</p>
-                <div className="flex items-center space-x-2 mb-3">
-                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                  <span className="text-sm text-gray-600">5.0 (18 reviews)</span>
+          ) : featuredArtists.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredArtists.map((artist) => (
+                <div key={artist.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                  <div className="h-48 bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+                    <span className="text-white text-6xl">🎨</span>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold mb-2">
+                      {artist.user.firstName} {artist.user.lastName}
+                    </h3>
+                    <p className="text-gray-600 mb-3">{artist.studioName}</p>
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      <span className="text-sm text-gray-600">
+                        {artist.averageRating ? `${artist.averageRating.toFixed(1)}` : 'New'} 
+                        ({artist.reviewCount || 0} reviews)
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {artist.specialties?.slice(0, 2).map((specialty) => (
+                        <span key={specialty.id} className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full">
+                          {specialty.name}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      {artist.bio}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-primary-600 font-semibold">${artist.hourlyRate}/hr</span>
+                      <Link
+                        to={`/artists/${artist.id}`}
+                        className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+                      >
+                        View Profile →
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">Black & Grey</span>
-                </div>
-                <p className="text-gray-600 text-sm mb-4">
-                  Master of black and grey realism. Creating stunning portraits and detailed artwork.
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-primary-600 font-semibold">$150/hr</span>
-                  <Link
-                    to="/artists/2"
-                    className="text-primary-600 hover:text-primary-700 font-medium text-sm"
-                  >
-                    View Profile →
-                  </Link>
-                </div>
-              </div>
+              ))}
             </div>
-
-            {/* Emma Thompson - Minimalist */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                <span className="text-white text-6xl">📐</span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Emma Thompson</h3>
-                <p className="text-gray-600 mb-3">Simple Lines Studio</p>
-                <div className="flex items-center space-x-2 mb-3">
-                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                  <span className="text-sm text-gray-600">5.0 (31 reviews)</span>
-                </div>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Minimalist</span>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Neo-Traditional</span>
-                </div>
-                <p className="text-gray-600 text-sm mb-4">
-                  Minimalist tattoo specialist creating elegant, simple designs that speak volumes.
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-primary-600 font-semibold">$100/hr</span>
-                  <Link
-                    to="/artists/3"
-                    className="text-primary-600 hover:text-primary-700 font-medium text-sm"
-                  >
-                    View Profile →
-                  </Link>
-                </div>
-              </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600 mb-4">No featured artists available at the moment.</p>
+              <Link to="/artists" className="btn btn-primary">
+                Browse All Artists
+              </Link>
             </div>
-          </div>
+          )}
         </div>
       </section>
 

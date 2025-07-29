@@ -47,7 +47,11 @@ router.get('/', optionalAuth, [
   query('radius')
     .optional()
     .isFloat({ min: 0 })
-    .withMessage('Radius must be a positive number')
+    .withMessage('Radius must be a positive number'),
+  query('featured')
+    .optional()
+    .isBoolean()
+    .withMessage('Featured must be a boolean')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -69,7 +73,8 @@ router.get('/', optionalAuth, [
       maxPrice,
       lat,
       lng,
-      radius
+      radius,
+      featured
     } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -117,6 +122,10 @@ router.get('/', optionalAuth, [
         { maxPrice: { lte: parseFloat(maxPrice) } },
         { hourlyRate: { lte: parseFloat(maxPrice) } }
       ];
+    }
+
+    if (featured === 'true') {
+      where.isFeatured = true;
     }
 
     // Get artists with their basic info and average rating
