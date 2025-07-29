@@ -28,8 +28,6 @@ export const ArtistDashboard = () => {
     state: '',
     zipCode: '',
     country: '',
-    latitude: '',
-    longitude: '',
     hourlyRate: '',
     minPrice: '',
     maxPrice: '',
@@ -37,9 +35,7 @@ export const ArtistDashboard = () => {
     serviceIds: []
   })
 
-  // Map state
-  const [mapCenter, setMapCenter] = useState({ lat: 40.7128, lng: -74.0060 })
-  const [selectedLocation, setSelectedLocation] = useState(null)
+
 
   // Analytics state
   const [analytics, setAnalytics] = useState({
@@ -75,26 +71,12 @@ export const ArtistDashboard = () => {
             state: profileResponse.data.data.artist.state || '',
             zipCode: profileResponse.data.data.artist.zipCode || '',
             country: profileResponse.data.data.artist.country || '',
-            latitude: profileResponse.data.data.artist.latitude || '',
-            longitude: profileResponse.data.data.artist.longitude || '',
             hourlyRate: profileResponse.data.data.artist.hourlyRate || '',
             minPrice: profileResponse.data.data.artist.minPrice || '',
             maxPrice: profileResponse.data.data.artist.maxPrice || '',
             specialtyIds: profileResponse.data.data.artist.specialties?.map(s => s.id) || [],
             serviceIds: profileResponse.data.data.artist.services?.map(s => s.id) || []
           })
-
-          // Set map center if location exists
-          if (profileResponse.data.data.artist.latitude && profileResponse.data.data.artist.longitude) {
-            setMapCenter({
-              lat: profileResponse.data.data.artist.latitude,
-              lng: profileResponse.data.data.artist.longitude
-            })
-            setSelectedLocation({
-              lat: profileResponse.data.data.artist.latitude,
-              lng: profileResponse.data.data.artist.longitude
-            })
-          }
         } catch (profileError) {
           console.error('Error loading artist profile:', profileError)
           // Profile might not exist, continue with empty form
@@ -178,16 +160,7 @@ export const ArtistDashboard = () => {
     }))
   }
 
-  const handleMapClick = (event) => {
-    const lat = event.latLng.lat()
-    const lng = event.latLng.lng()
-    setSelectedLocation({ lat, lng })
-    setFormData(prev => ({
-      ...prev,
-      latitude: lat.toString(),
-      longitude: lng.toString()
-    }))
-  }
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -216,14 +189,6 @@ export const ArtistDashboard = () => {
       
       setProfile(response.data.data.artistProfile || response.data.data.artist)
       setEditing(false)
-      
-      // Update map center
-      if (formData.latitude && formData.longitude) {
-        setMapCenter({
-          lat: parseFloat(formData.latitude),
-          lng: parseFloat(formData.longitude)
-        })
-      }
     } catch (error) {
       console.error('Error saving profile:', error)
       const errorMessage = error.response?.data?.error || 'Error saving profile'
@@ -233,10 +198,7 @@ export const ArtistDashboard = () => {
     }
   }
 
-  const mapContainerStyle = {
-    width: '100%',
-    height: '400px'
-  }
+
 
   if (loading) {
     return (
