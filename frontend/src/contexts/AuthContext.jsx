@@ -42,8 +42,10 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error fetching user:', error)
+      // Clear invalid token and user data
       localStorage.removeItem('token')
       delete api.defaults.headers.common['Authorization']
+      setUser(null)
     } finally {
       setLoading(false)
     }
@@ -53,7 +55,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login({ email, password })
       
-      // Check if response has the expected structure
+      // Check if login was successful
       if (response.data && response.data.success && response.data.data) {
         const { token, user } = response.data.data
         
@@ -65,7 +67,13 @@ export const AuthProvider = ({ children }) => {
         navigate('/')
         
         return { success: true }
+      } else if (response.data && !response.data.success) {
+        // Login failed with error message from server
+        const message = response.data.error || 'Login failed'
+        toast.error('Error', message)
+        return { success: false, error: message }
       } else {
+        // Invalid response format
         throw new Error('Invalid response format from server')
       }
     } catch (error) {
@@ -80,7 +88,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.register(userData)
       
-      // Check if response has the expected structure
+      // Check if registration was successful
       if (response.data && response.data.success && response.data.data) {
         const { token, user } = response.data.data
         
@@ -92,7 +100,13 @@ export const AuthProvider = ({ children }) => {
         navigate('/')
         
         return { success: true }
+      } else if (response.data && !response.data.success) {
+        // Registration failed with error message from server
+        const message = response.data.error || 'Registration failed'
+        toast.error('Error', message)
+        return { success: false, error: message }
       } else {
+        // Invalid response format
         throw new Error('Invalid response format from server')
       }
     } catch (error) {
@@ -115,12 +129,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.updateProfile(profileData)
       
-      // Check if response has the expected structure
+      // Check if update was successful
       if (response.data && response.data.success && response.data.data) {
         setUser(response.data.data.user)
         toast.success('Success', 'Profile updated successfully!')
         return { success: true }
+      } else if (response.data && !response.data.success) {
+        // Update failed with error message from server
+        const message = response.data.error || 'Profile update failed'
+        toast.error('Error', message)
+        return { success: false, error: message }
       } else {
+        // Invalid response format
         throw new Error('Invalid response format from server')
       }
     } catch (error) {

@@ -52,15 +52,17 @@ export const Login = () => {
     
     try {
       const result = await login(formData.email, formData.password)
-      if (result.success) {
+      if (result && result.success) {
         success('Welcome back!', 'You have successfully signed in.')
         navigate('/')
       } else {
-        showError('Login failed', result.error || 'Please check your credentials and try again.')
+        const errorMessage = result?.error || 'Please check your credentials and try again.'
+        showError('Login failed', errorMessage)
       }
     } catch (error) {
       console.error('Login error:', error)
-      showError('Login failed', error.message || 'Please check your credentials and try again.')
+      const errorMessage = error?.message || 'Please check your credentials and try again.'
+      showError('Login failed', errorMessage)
     } finally {
       setLoading(false)
     }
