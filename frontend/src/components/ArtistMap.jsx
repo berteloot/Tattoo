@@ -46,9 +46,15 @@ export const ArtistMap = () => {
 
   // Check if Google Maps API key is available
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+  
+  // Debug: Log API key status (without exposing the actual key)
+  console.log('Google Maps API Key available:', !!googleMapsApiKey)
+  console.log('API Key length:', googleMapsApiKey?.length || 0)
+  console.log('Environment:', import.meta.env.MODE)
+  console.log('API URL:', import.meta.env.VITE_API_URL)
 
-  // If no API key or Google Maps is not loaded, show fallback
-  if (!googleMapsApiKey || !window.google?.maps) {
+  // If no API key, show fallback
+  if (!googleMapsApiKey) {
     return (
       <div className="w-full">
         {/* Map Placeholder */}
@@ -154,6 +160,9 @@ export const ArtistMap = () => {
         googleMapsApiKey={googleMapsApiKey}
         onError={(error) => {
           console.error('Google Maps failed to load:', error)
+        }}
+        onLoad={() => {
+          console.log('Google Maps loaded successfully')
         }}
       >
         <GoogleMap
