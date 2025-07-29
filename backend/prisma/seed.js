@@ -459,43 +459,135 @@ async function main() {
   ]);
   console.log('✅ Additional artists connected to specialties and services');
 
-  // Create some flash items for the artist
-  const flashItems = await Promise.all([
-    prisma.flash.create({
-      data: {
-        artistId: artistProfile.id,
-        title: 'Traditional Rose',
-        description: 'Classic traditional rose design',
-        imageUrl: 'https://example.com/flash1.jpg',
-        price: 150.00,
-        isAvailable: true,
-        tags: ['traditional', 'rose', 'flower']
-      }
-    }),
-    prisma.flash.create({
-      data: {
-        artistId: artistProfile.id,
-        title: 'Japanese Dragon',
-        description: 'Traditional Japanese dragon design',
-        imageUrl: 'https://example.com/flash2.jpg',
-        price: 300.00,
-        isAvailable: true,
-        tags: ['japanese', 'dragon', 'mythical']
-      }
-    }),
-    prisma.flash.create({
-      data: {
-        artistId: artistProfile.id,
-        title: 'Black & Grey Skull',
-        description: 'Realistic black and grey skull',
-        imageUrl: 'https://example.com/flash3.jpg',
-        price: 200.00,
-        isAvailable: true,
-        tags: ['black-grey', 'skull', 'realism']
-      }
+  // Create flash items
+  console.log('🌱 Creating flash items...')
+
+  const flashItems = [
+    {
+      title: 'Traditional Rose',
+      description: 'Classic American traditional rose design with bold colors and clean lines.',
+      imageUrl: 'https://images.unsplash.com/photo-1611657365908-2c9162724b1c?w=400&h=400&fit=crop',
+      price: 150,
+      tags: ['Traditional', 'Rose', 'Color'],
+      isAvailable: true
+    },
+    {
+      title: 'Japanese Dragon',
+      description: 'Traditional Japanese Irezumi dragon design with intricate details.',
+      imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
+      price: 300,
+      tags: ['Japanese', 'Dragon', 'Traditional'],
+      isAvailable: true
+    },
+    {
+      title: 'Minimalist Arrow',
+      description: 'Simple and elegant arrow design perfect for first-time clients.',
+      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
+      price: 80,
+      tags: ['Minimalist', 'Arrow', 'Simple'],
+      isAvailable: true
+    },
+    {
+      title: 'Watercolor Butterfly',
+      description: 'Beautiful watercolor-style butterfly with soft, flowing colors.',
+      imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
+      price: 200,
+      tags: ['Watercolor', 'Butterfly', 'Colorful'],
+      isAvailable: true
+    },
+    {
+      title: 'Black & Grey Skull',
+      description: 'Detailed black and grey skull design with realistic shading.',
+      imageUrl: 'https://images.unsplash.com/photo-1611657365908-2c9162724b1c?w=400&h=400&fit=crop',
+      price: 180,
+      tags: ['Black & Grey', 'Skull', 'Realistic'],
+      isAvailable: true
+    },
+    {
+      title: 'Neo-Traditional Wolf',
+      description: 'Modern take on traditional wolf design with vibrant colors.',
+      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
+      price: 250,
+      tags: ['Neo-Traditional', 'Wolf', 'Colorful'],
+      isAvailable: true
+    },
+    {
+      title: 'Geometric Compass',
+      description: 'Clean geometric compass design with precise lines.',
+      imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
+      price: 120,
+      tags: ['Geometric', 'Compass', 'Precision'],
+      isAvailable: true
+    },
+    {
+      title: 'Floral Mandala',
+      description: 'Intricate floral mandala design with symmetrical patterns.',
+      imageUrl: 'https://images.unsplash.com/photo-1611657365908-2c9162724b1c?w=400&h=400&fit=crop',
+      price: 280,
+      tags: ['Mandala', 'Floral', 'Symmetrical'],
+      isAvailable: true
+    },
+    {
+      title: 'Tribal Sun',
+      description: 'Bold tribal sun design with strong black lines.',
+      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
+      price: 160,
+      tags: ['Tribal', 'Sun', 'Bold'],
+      isAvailable: true
+    },
+    {
+      title: 'Realistic Portrait',
+      description: 'Detailed realistic portrait tattoo with fine shading.',
+      imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
+      price: 400,
+      tags: ['Realistic', 'Portrait', 'Detailed'],
+      isAvailable: true
+    },
+    {
+      title: 'Abstract Wave',
+      description: 'Modern abstract wave design with flowing lines.',
+      imageUrl: 'https://images.unsplash.com/photo-1611657365908-2c9162724b1c?w=400&h=400&fit=crop',
+      price: 140,
+      tags: ['Abstract', 'Wave', 'Modern'],
+      isAvailable: true
+    },
+    {
+      title: 'Vintage Anchor',
+      description: 'Classic vintage anchor design with aged appearance.',
+      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
+      price: 130,
+      tags: ['Vintage', 'Anchor', 'Classic'],
+      isAvailable: true
+    }
+  ]
+
+  // Create flash items for all artists
+  console.log('🌱 Creating flash items...')
+  
+  // Get all artist profiles to distribute flash items
+  const allArtistProfiles = [artistProfile, ...additionalArtistProfiles]
+  
+  const createdFlashItems = await Promise.all(
+    flashItems.map(async (flashItem, index) => {
+      // Distribute flash items among different artists
+      const artistIndex = index % allArtistProfiles.length
+      const artistProfile = allArtistProfiles[artistIndex]
+      
+      return prisma.flash.create({
+        data: {
+          artistId: artistProfile.id,
+          title: flashItem.title,
+          description: flashItem.description,
+          imageUrl: flashItem.imageUrl,
+          price: flashItem.price,
+          tags: flashItem.tags,
+          isAvailable: flashItem.isAvailable
+        }
+      })
     })
-  ]);
-  console.log('✅ Flash items created:', flashItems.length);
+  )
+  
+  console.log('✅ Flash items created:', createdFlashItems.length)
 
   // Create some reviews for all artists
   const reviews = await Promise.all([
