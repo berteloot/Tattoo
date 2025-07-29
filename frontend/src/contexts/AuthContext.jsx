@@ -33,7 +33,13 @@ export const AuthProvider = ({ children }) => {
   const fetchUser = async () => {
     try {
       const response = await authAPI.getProfile()
-      setUser(response.data.data.user)
+      
+      // Check if response has the expected structure
+      if (response.data && response.data.success && response.data.data) {
+        setUser(response.data.data.user)
+      } else {
+        throw new Error('Invalid response format from server')
+      }
     } catch (error) {
       console.error('Error fetching user:', error)
       localStorage.removeItem('token')
@@ -46,16 +52,22 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await authAPI.login({ email, password })
-      const { token, user } = response.data.data
       
-      localStorage.setItem('token', token)
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      setUser(user)
-      
-      toast.success('Success', 'Login successful!')
-      navigate('/')
-      
-      return { success: true }
+      // Check if response has the expected structure
+      if (response.data && response.data.success && response.data.data) {
+        const { token, user } = response.data.data
+        
+        localStorage.setItem('token', token)
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+        setUser(user)
+        
+        toast.success('Success', 'Login successful!')
+        navigate('/')
+        
+        return { success: true }
+      } else {
+        throw new Error('Invalid response format from server')
+      }
     } catch (error) {
       console.error('Login error details:', error)
       const message = error.response?.data?.error || error.response?.data?.message || error.message || 'Login failed'
@@ -67,16 +79,22 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authAPI.register(userData)
-      const { token, user } = response.data.data
       
-      localStorage.setItem('token', token)
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      setUser(user)
-      
-      toast.success('Success', 'Registration successful!')
-      navigate('/')
-      
-      return { success: true }
+      // Check if response has the expected structure
+      if (response.data && response.data.success && response.data.data) {
+        const { token, user } = response.data.data
+        
+        localStorage.setItem('token', token)
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+        setUser(user)
+        
+        toast.success('Success', 'Registration successful!')
+        navigate('/')
+        
+        return { success: true }
+      } else {
+        throw new Error('Invalid response format from server')
+      }
     } catch (error) {
       console.error('Registration error details:', error)
       const message = error.response?.data?.error || error.response?.data?.message || error.message || 'Registration failed'
@@ -96,9 +114,15 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (profileData) => {
     try {
       const response = await authAPI.updateProfile(profileData)
-      setUser(response.data.data.user)
-      toast.success('Success', 'Profile updated successfully!')
-      return { success: true }
+      
+      // Check if response has the expected structure
+      if (response.data && response.data.success && response.data.data) {
+        setUser(response.data.data.user)
+        toast.success('Success', 'Profile updated successfully!')
+        return { success: true }
+      } else {
+        throw new Error('Invalid response format from server')
+      }
     } catch (error) {
       const message = error.response?.data?.error || 'Profile update failed'
       toast.error('Error', message)
