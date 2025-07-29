@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const prisma = require('../utils/prisma');
+const { prisma } = require('../utils/prisma');
 const { protect, adminOnly, requireOwnership } = require('../middleware/auth');
 
 const router = express.Router();

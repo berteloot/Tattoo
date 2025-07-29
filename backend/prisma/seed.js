@@ -70,13 +70,13 @@ async function main() {
       studioName: 'Ink & Soul Studio',
       website: 'https://inkandsoul.com',
       instagram: '@sarahartist',
-      latitude: 40.7128,
-      longitude: -74.0060,
-      address: '123 Tattoo Street',
-      city: 'New York',
-      state: 'NY',
-      zipCode: '10001',
-      country: 'USA',
+      latitude: 45.5017,
+      longitude: -73.5673,
+      address: '123 Saint Catherine Street',
+      city: 'Montreal',
+      state: 'Quebec',
+      zipCode: 'H2X 1K4',
+      country: 'Canada',
       hourlyRate: 150.00,
       minPrice: 50.00,
       maxPrice: 500.00,
@@ -88,6 +88,180 @@ async function main() {
     }
   });
   console.log('✅ Artist profile created for:', artist.email);
+
+  // Create additional artists for better map demonstration
+  const additionalArtists = await Promise.all([
+    // Lisa Tanaka - Japanese specialist
+    prisma.user.upsert({
+      where: { email: 'lisa@example.com' },
+      update: {},
+      create: {
+        email: 'lisa@example.com',
+        password: await bcrypt.hash('artist123', 10),
+        firstName: 'Lisa',
+        lastName: 'Tanaka',
+        role: 'ARTIST',
+        isActive: true,
+        isVerified: true,
+        phone: '+1234567894'
+      }
+    }),
+    // David Kim - Black & Grey specialist
+    prisma.user.upsert({
+      where: { email: 'david@example.com' },
+      update: {},
+      create: {
+        email: 'david@example.com',
+        password: await bcrypt.hash('artist123', 10),
+        firstName: 'David',
+        lastName: 'Kim',
+        role: 'ARTIST',
+        isActive: true,
+        isVerified: true,
+        phone: '+1234567895'
+      }
+    }),
+    // Emma Thompson - Minimalist specialist
+    prisma.user.upsert({
+      where: { email: 'emma@example.com' },
+      update: {},
+      create: {
+        email: 'emma@example.com',
+        password: await bcrypt.hash('artist123', 10),
+        firstName: 'Emma',
+        lastName: 'Thompson',
+        role: 'ARTIST',
+        isActive: true,
+        isVerified: true,
+        phone: '+1234567896'
+      }
+    }),
+    // Marcus Rodriguez - Color Realism specialist
+    prisma.user.upsert({
+      where: { email: 'marcus@example.com' },
+      update: {},
+      create: {
+        email: 'marcus@example.com',
+        password: await bcrypt.hash('artist123', 10),
+        firstName: 'Marcus',
+        lastName: 'Rodriguez',
+        role: 'ARTIST',
+        isActive: true,
+        isVerified: true,
+        phone: '+1234567897'
+      }
+    })
+  ]);
+
+  // Create artist profiles for additional artists
+  const additionalArtistProfiles = await Promise.all([
+    prisma.artistProfile.upsert({
+      where: { userId: additionalArtists[0].id },
+      update: {},
+      create: {
+        userId: additionalArtists[0].id,
+        bio: 'Japanese tattoo specialist with deep knowledge of traditional Irezumi techniques.',
+        studioName: 'Dragon\'s Den Tattoo',
+        website: 'https://dragonsden.com',
+        instagram: '@lisatanaka',
+        latitude: 45.5088,
+        longitude: -73.5617,
+        address: '456 Sherbrooke Street',
+        city: 'Montreal',
+        state: 'Quebec',
+        zipCode: 'H3A 1E7',
+        country: 'Canada',
+        hourlyRate: 180.00,
+        minPrice: 80.00,
+        maxPrice: 600.00,
+        isVerified: true,
+        isFeatured: true,
+        verificationStatus: 'APPROVED',
+        verifiedAt: new Date(),
+        verifiedBy: admin.id
+      }
+    }),
+    prisma.artistProfile.upsert({
+      where: { userId: additionalArtists[1].id },
+      update: {},
+      create: {
+        userId: additionalArtists[1].id,
+        bio: 'Master of black and grey realism, creating stunning portraits and detailed artwork.',
+        studioName: 'Color Flow Tattoo',
+        website: 'https://colorflow.com',
+        instagram: '@davidkim',
+        latitude: 45.5048,
+        longitude: -73.5732,
+        address: '789 Peel Street',
+        city: 'Montreal',
+        state: 'Quebec',
+        zipCode: 'H3C 2G8',
+        country: 'Canada',
+        hourlyRate: 200.00,
+        minPrice: 100.00,
+        maxPrice: 800.00,
+        isVerified: true,
+        isFeatured: false,
+        verificationStatus: 'APPROVED',
+        verifiedAt: new Date(),
+        verifiedBy: admin.id
+      }
+    }),
+    prisma.artistProfile.upsert({
+      where: { userId: additionalArtists[2].id },
+      update: {},
+      create: {
+        userId: additionalArtists[2].id,
+        bio: 'Minimalist tattoo specialist creating elegant, simple designs that speak volumes.',
+        studioName: 'Simple Lines Studio',
+        website: 'https://simplelines.com',
+        instagram: '@emmathompson',
+        latitude: 45.4972,
+        longitude: -73.5784,
+        address: '321 Crescent Street',
+        city: 'Montreal',
+        state: 'Quebec',
+        zipCode: 'H3G 2B1',
+        country: 'Canada',
+        hourlyRate: 120.00,
+        minPrice: 60.00,
+        maxPrice: 400.00,
+        isVerified: true,
+        isFeatured: false,
+        verificationStatus: 'APPROVED',
+        verifiedAt: new Date(),
+        verifiedBy: admin.id
+      }
+    }),
+    prisma.artistProfile.upsert({
+      where: { userId: additionalArtists[3].id },
+      update: {},
+      create: {
+        userId: additionalArtists[3].id,
+        bio: 'Color realism expert specializing in vibrant, lifelike portraits and nature scenes.',
+        studioName: 'Black Canvas Tattoo',
+        website: 'https://blackcanvas.com',
+        instagram: '@marcusrodriguez',
+        latitude: 45.5122,
+        longitude: -73.5544,
+        address: '654 Saint Denis Street',
+        city: 'Montreal',
+        state: 'Quebec',
+        zipCode: 'H2S 2S3',
+        country: 'Canada',
+        hourlyRate: 160.00,
+        minPrice: 75.00,
+        maxPrice: 500.00,
+        isVerified: true,
+        isFeatured: false,
+        verificationStatus: 'APPROVED',
+        verifiedAt: new Date(),
+        verifiedBy: admin.id
+      }
+    })
+  ]);
+
+  console.log('✅ Additional artists created:', additionalArtists.length);
 
   // Create specialties
   const specialties = await Promise.all([
@@ -207,6 +381,84 @@ async function main() {
   });
   console.log('✅ Artist connected to specialties and services');
 
+  // Connect additional artists to specialties and services
+  await Promise.all([
+    // Lisa Tanaka - Japanese specialist
+    prisma.artistProfile.update({
+      where: { id: additionalArtistProfiles[0].id },
+      data: {
+        specialties: {
+          connect: [
+            { name: 'Japanese' },
+            { name: 'Traditional' }
+          ]
+        },
+        services: {
+          connect: [
+            { name: 'Custom Design' },
+            { name: 'Consultation' }
+          ]
+        }
+      }
+    }),
+    // David Kim - Black & Grey specialist
+    prisma.artistProfile.update({
+      where: { id: additionalArtistProfiles[1].id },
+      data: {
+        specialties: {
+          connect: [
+            { name: 'Black & Grey' },
+            { name: 'Color Realism' }
+          ]
+        },
+        services: {
+          connect: [
+            { name: 'Custom Design' },
+            { name: 'Cover-up' },
+            { name: 'Touch-up' }
+          ]
+        }
+      }
+    }),
+    // Emma Thompson - Minimalist specialist
+    prisma.artistProfile.update({
+      where: { id: additionalArtistProfiles[2].id },
+      data: {
+        specialties: {
+          connect: [
+            { name: 'Neo-Traditional' }
+          ]
+        },
+        services: {
+          connect: [
+            { name: 'Custom Design' },
+            { name: 'Consultation' }
+          ]
+        }
+      }
+    }),
+    // Marcus Rodriguez - Color Realism specialist
+    prisma.artistProfile.update({
+      where: { id: additionalArtistProfiles[3].id },
+      data: {
+        specialties: {
+          connect: [
+            { name: 'Color Realism' },
+            { name: 'Black & Grey' }
+          ]
+        },
+        services: {
+          connect: [
+            { name: 'Custom Design' },
+            { name: 'Cover-up' },
+            { name: 'Touch-up' }
+          ]
+        }
+      }
+    })
+  ]);
+  console.log('✅ Additional artists connected to specialties and services');
+
   // Create some flash items for the artist
   const flashItems = await Promise.all([
     prisma.flash.create({
@@ -245,8 +497,9 @@ async function main() {
   ]);
   console.log('✅ Flash items created:', flashItems.length);
 
-  // Create some reviews (using different authors to avoid unique constraint)
+  // Create some reviews for all artists
   const reviews = await Promise.all([
+    // Sarah Artist review
     prisma.review.upsert({
       where: {
         authorId_recipientId: {
@@ -267,6 +520,106 @@ async function main() {
         rating: 5,
         title: 'Amazing work!',
         comment: 'Sarah did an incredible job on my traditional rose tattoo. Highly recommended!',
+        isVerified: true,
+        isApproved: true
+      }
+    }),
+    // Lisa Tanaka review
+    prisma.review.upsert({
+      where: {
+        authorId_recipientId: {
+          authorId: client.id,
+          recipientId: additionalArtists[0].id
+        }
+      },
+      update: {
+        rating: 5,
+        title: 'Beautiful Japanese work!',
+        comment: 'Lisa\'s Japanese dragon tattoo is absolutely stunning. Perfect attention to detail.',
+        isVerified: true,
+        isApproved: true
+      },
+      create: {
+        authorId: client.id,
+        recipientId: additionalArtists[0].id,
+        rating: 5,
+        title: 'Beautiful Japanese work!',
+        comment: 'Lisa\'s Japanese dragon tattoo is absolutely stunning. Perfect attention to detail.',
+        isVerified: true,
+        isApproved: true
+      }
+    }),
+    // David Kim review
+    prisma.review.upsert({
+      where: {
+        authorId_recipientId: {
+          authorId: client.id,
+          recipientId: additionalArtists[1].id
+        }
+      },
+      update: {
+        rating: 4,
+        title: 'Great black and grey work',
+        comment: 'David\'s black and grey portrait work is exceptional. Very professional.',
+        isVerified: true,
+        isApproved: true
+      },
+      create: {
+        authorId: client.id,
+        recipientId: additionalArtists[1].id,
+        rating: 4,
+        title: 'Great black and grey work',
+        comment: 'David\'s black and grey portrait work is exceptional. Very professional.',
+        isVerified: true,
+        isApproved: true
+      }
+    }),
+    // Emma Thompson review
+    prisma.review.upsert({
+      where: {
+        authorId_recipientId: {
+          authorId: client.id,
+          recipientId: additionalArtists[2].id
+        }
+      },
+      update: {
+        rating: 5,
+        title: 'Perfect minimalist design',
+        comment: 'Emma created the perfect minimalist tattoo for me. Clean lines and beautiful execution.',
+        isVerified: true,
+        isApproved: true
+      },
+      create: {
+        authorId: client.id,
+        recipientId: additionalArtists[2].id,
+        rating: 5,
+        title: 'Perfect minimalist design',
+        comment: 'Emma created the perfect minimalist tattoo for me. Clean lines and beautiful execution.',
+        isVerified: true,
+        isApproved: true
+      }
+    }),
+    // Marcus Rodriguez review
+    prisma.review.upsert({
+      where: {
+        authorId_recipientId: {
+          authorId: client.id,
+          recipientId: additionalArtists[3].id
+        }
+      },
+      update: {
+        rating: 4,
+        title: 'Vibrant color work',
+        comment: 'Marcus did an amazing job with my color realism tattoo. The colors are so vibrant!',
+        isVerified: true,
+        isApproved: true
+      },
+      create: {
+        authorId: client.id,
+        recipientId: additionalArtists[3].id,
+        rating: 4,
+        title: 'Vibrant color work',
+        comment: 'Marcus did an amazing job with my color realism tattoo. The colors are so vibrant!',
         isVerified: true,
         isApproved: true
       }
@@ -300,13 +653,13 @@ async function main() {
       studioName: 'Minimal Ink Studio',
       website: 'https://minimalink.com',
       instagram: '@mikepending',
-      latitude: 40.7589,
-      longitude: -73.9851,
+      latitude: 45.5152,
+      longitude: -73.5624,
       address: '456 Art Street',
-      city: 'New York',
-      state: 'NY',
-      zipCode: '10002',
-      country: 'USA',
+      city: 'Montreal',
+      state: 'Quebec',
+      zipCode: 'H2V 1A1',
+      country: 'Canada',
       hourlyRate: 80.00,
       minPrice: 30.00,
       maxPrice: 200.00,
