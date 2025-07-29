@@ -21,18 +21,14 @@ const protect = async (req, res, next) => {
       // Get user from token
       const user = await prisma.user.findUnique({
         where: { id: decoded.id },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-          isActive: true,
+        include: {
           artistProfile: {
             select: {
               id: true,
               studioName: true,
-              isVerified: true
+              isVerified: true,
+              verificationStatus: true,
+              isFeatured: true
             }
           }
         }
@@ -95,6 +91,146 @@ const authorize = (...roles) => {
 };
 
 /**
+ * Role-specific middleware functions
+ */
+
+// CLIENT permissions
+const clientOnly = authorize('CLIENT');
+const clientOrArtist = authorize('CLIENT', 'ARTIST');
+const clientOrAdmin = authorize('CLIENT', 'ADMIN');
+
+// ARTIST permissions
+const artistOnly = authorize('ARTIST');
+const artistOrAdmin = authorize('ARTIST', 'ADMIN');
+
+// ADMIN permissions
+const adminOnly = authorize('ADMIN');
+
+/**
+ * Artist verification middleware
+ */
+const requireArtistVerification = async (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Not authorized, no user found'
+    });
+  }
+
+  if (req.user.role !== 'ARTIST') {
+    return res.status(403).json({
+      success: false,
+      error: 'Only artists can access this resource'
+    });
+  }
+
+  if (!req.user.artistProfile) {
+    return res.status(403).json({
+      success: false,
+      error: 'Artist profile not found'
+    });
+  }
+
+  if (req.user.artistProfile.verificationStatus !== 'APPROVED') {
+    return res.status(403).json({
+      success: false,
+      error: 'Artist account not verified. Please wait for admin approval.'
+    });
+  }
+
+  next();
+};
+
+/**
+ * Resource ownership middleware
+ */
+const requireOwnership = (resourceType) => {
+  return async (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authorized, no user found'
+      });
+    }
+
+    const resourceId = req.params.id || req.params.artistId || req.params.flashId || req.params.reviewId;
+    
+    if (!resourceId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Resource ID is required'
+      });
+    }
+
+    try {
+      let resource;
+      let isOwner = false;
+
+      switch (resourceType) {
+        case 'artistProfile':
+          resource = await prisma.artistProfile.findUnique({
+            where: { id: resourceId },
+            include: { user: true }
+          });
+          isOwner = resource && resource.userId === req.user.id;
+          break;
+
+        case 'flash':
+          resource = await prisma.flash.findUnique({
+            where: { id: resourceId },
+            include: { artist: { include: { user: true } } }
+          });
+          isOwner = resource && resource.artist.userId === req.user.id;
+          break;
+
+        case 'review':
+          resource = await prisma.review.findUnique({
+            where: { id: resourceId }
+          });
+          isOwner = resource && resource.authorId === req.user.id;
+          break;
+
+        case 'user':
+          resource = await prisma.user.findUnique({
+            where: { id: resourceId }
+          });
+          isOwner = resource && resource.id === req.user.id;
+          break;
+
+        default:
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid resource type'
+          });
+      }
+
+      if (!resource) {
+        return res.status(404).json({
+          success: false,
+          error: 'Resource not found'
+        });
+      }
+
+      if (!isOwner && req.user.role !== 'ADMIN') {
+        return res.status(403).json({
+          success: false,
+          error: 'You can only modify your own resources'
+        });
+      }
+
+      req.resource = resource;
+      next();
+    } catch (error) {
+      console.error('Ownership check error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Error checking resource ownership'
+      });
+    }
+  };
+};
+
+/**
  * Optional auth - verify token if present, but don't require it
  */
 const optionalAuth = async (req, res, next) => {
@@ -129,8 +265,58 @@ const optionalAuth = async (req, res, next) => {
   next();
 };
 
+/**
+ * Rate limiting for sensitive operations
+ */
+const rateLimit = {
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    error: 'Too many requests from this IP, please try again later.'
+  }
+};
+
+/**
+ * Permission-based middleware
+ */
+const permissions = {
+  // CLIENT permissions
+  canViewArtists: clientOrArtist,
+  canViewFlash: clientOrArtist,
+  canCreateReview: clientOrArtist,
+  canEditOwnReview: requireOwnership('review'),
+  canViewOwnProfile: requireOwnership('user'),
+
+  // ARTIST permissions
+  canCreateArtistProfile: artistOnly,
+  canEditOwnArtistProfile: requireOwnership('artistProfile'),
+  canCreateFlash: requireArtistVerification,
+  canEditOwnFlash: requireOwnership('flash'),
+  canViewOwnReviews: artistOrAdmin,
+
+  // ADMIN permissions
+  canManageUsers: adminOnly,
+  canVerifyArtists: adminOnly,
+  canModerateContent: adminOnly,
+  canFeatureArtists: adminOnly,
+  canViewAdminActions: adminOnly,
+  canManageSpecialties: adminOnly,
+  canManageServices: adminOnly
+};
+
 module.exports = {
   protect,
   authorize,
-  optionalAuth
+  clientOnly,
+  clientOrArtist,
+  clientOrAdmin,
+  artistOnly,
+  artistOrAdmin,
+  adminOnly,
+  requireArtistVerification,
+  requireOwnership,
+  optionalAuth,
+  rateLimit,
+  permissions
 }; 

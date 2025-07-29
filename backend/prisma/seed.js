@@ -4,7 +4,90 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting database seed...');
+  console.log('🌱 Starting database seeding...');
+
+  // Create admin user
+  const adminPassword = await bcrypt.hash('admin123', 10);
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@tattoolocator.com' },
+    update: {},
+    create: {
+      email: 'admin@tattoolocator.com',
+      password: adminPassword,
+      firstName: 'Admin',
+      lastName: 'User',
+      role: 'ADMIN',
+      isActive: true,
+      isVerified: true,
+      phone: '+1234567890'
+    }
+  });
+  console.log('✅ Admin user created:', admin.email);
+
+  // Create test client user
+  const clientPassword = await bcrypt.hash('client123', 10);
+  const client = await prisma.user.upsert({
+    where: { email: 'client@example.com' },
+    update: {},
+    create: {
+      email: 'client@example.com',
+      password: clientPassword,
+      firstName: 'John',
+      lastName: 'Client',
+      role: 'CLIENT',
+      isActive: true,
+      isVerified: true,
+      phone: '+1234567891'
+    }
+  });
+  console.log('✅ Test client created:', client.email);
+
+  // Create test artist user
+  const artistPassword = await bcrypt.hash('artist123', 10);
+  const artist = await prisma.user.upsert({
+    where: { email: 'artist@example.com' },
+    update: {},
+    create: {
+      email: 'artist@example.com',
+      password: artistPassword,
+      firstName: 'Sarah',
+      lastName: 'Artist',
+      role: 'ARTIST',
+      isActive: true,
+      isVerified: true,
+      phone: '+1234567892'
+    }
+  });
+  console.log('✅ Test artist created:', artist.email);
+
+  // Create artist profile for test artist
+  const artistProfile = await prisma.artistProfile.upsert({
+    where: { userId: artist.id },
+    update: {},
+    create: {
+      userId: artist.id,
+      bio: 'Professional tattoo artist with 10+ years of experience specializing in traditional and Japanese styles.',
+      studioName: 'Ink & Soul Studio',
+      website: 'https://inkandsoul.com',
+      instagram: '@sarahartist',
+      latitude: 40.7128,
+      longitude: -74.0060,
+      address: '123 Tattoo Street',
+      city: 'New York',
+      state: 'NY',
+      zipCode: '10001',
+      country: 'USA',
+      hourlyRate: 150.00,
+      minPrice: 50.00,
+      maxPrice: 500.00,
+      isVerified: true,
+      isFeatured: true,
+      verificationStatus: 'APPROVED',
+      verifiedAt: new Date(),
+      verifiedBy: admin.id
+    }
+  });
+  console.log('✅ Artist profile created for:', artist.email);
 
   // Create specialties
   const specialties = await Promise.all([
@@ -13,8 +96,8 @@ async function main() {
       update: {},
       create: {
         name: 'Traditional',
-        description: 'Classic American traditional tattoo style',
-        icon: '🎨'
+        description: 'American Traditional tattoo style',
+        icon: 'traditional-icon'
       }
     }),
     prisma.specialty.upsert({
@@ -22,8 +105,8 @@ async function main() {
       update: {},
       create: {
         name: 'Japanese',
-        description: 'Traditional Japanese Irezumi style',
-        icon: '🐉'
+        description: 'Japanese Irezumi style',
+        icon: 'japanese-icon'
       }
     }),
     prisma.specialty.upsert({
@@ -31,8 +114,17 @@ async function main() {
       update: {},
       create: {
         name: 'Black & Grey',
-        description: 'Realistic black and grey tattoos',
-        icon: '⚫'
+        description: 'Black and grey realism',
+        icon: 'black-grey-icon'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Color Realism' },
+      update: {},
+      create: {
+        name: 'Color Realism',
+        description: 'Color realistic tattoos',
+        icon: 'color-realism-icon'
       }
     }),
     prisma.specialty.upsert({
@@ -40,31 +132,12 @@ async function main() {
       update: {},
       create: {
         name: 'Neo-Traditional',
-        description: 'Modern take on traditional styles',
-        icon: '🌟'
-      }
-    }),
-    prisma.specialty.upsert({
-      where: { name: 'Minimalist' },
-      update: {},
-      create: {
-        name: 'Minimalist',
-        description: 'Simple, clean line work',
-        icon: '📐'
-      }
-    }),
-    prisma.specialty.upsert({
-      where: { name: 'Watercolor' },
-      update: {},
-      create: {
-        name: 'Watercolor',
-        description: 'Soft, painterly tattoo style',
-        icon: '🎨'
+        description: 'Modern take on traditional style',
+        icon: 'neo-traditional-icon'
       }
     })
   ]);
-
-  console.log('✅ Specialties created');
+  console.log('✅ Specialties created:', specialties.length);
 
   // Create services
   const services = await Promise.all([
@@ -73,8 +146,8 @@ async function main() {
       update: {},
       create: {
         name: 'Custom Design',
-        description: 'Original artwork designed specifically for you',
-        price: 150,
+        description: 'Custom tattoo design creation',
+        price: 100.00,
         duration: 120
       }
     }),
@@ -83,8 +156,8 @@ async function main() {
       update: {},
       create: {
         name: 'Cover-up',
-        description: 'Transform existing tattoos',
-        price: 200,
+        description: 'Cover-up existing tattoos',
+        price: 200.00,
         duration: 180
       }
     }),
@@ -93,346 +166,191 @@ async function main() {
       update: {},
       create: {
         name: 'Touch-up',
-        description: 'Refresh and enhance existing tattoos',
-        price: 80,
+        description: 'Touch-up existing tattoos',
+        price: 50.00,
         duration: 60
       }
     }),
     prisma.service.upsert({
-      where: { name: 'Flash' },
+      where: { name: 'Consultation' },
       update: {},
       create: {
-        name: 'Flash',
-        description: 'Pre-designed artwork from our collection',
-        price: 100,
-        duration: 90
+        name: 'Consultation',
+        description: 'Initial consultation session',
+        price: 25.00,
+        duration: 30
       }
     })
   ]);
+  console.log('✅ Services created:', services.length);
 
-  console.log('✅ Services created');
-
-  // Create demo artists
-  const demoArtists = [
-    {
-      user: {
-        email: 'sarah.traditional@example.com',
-        password: 'password123',
-        firstName: 'Sarah',
-        lastName: 'Chen',
-        role: 'ARTIST',
-        phone: '+1-514-555-0101'
+  // Connect artist to specialties and services
+  await prisma.artistProfile.update({
+    where: { id: artistProfile.id },
+    data: {
+      specialties: {
+        connect: [
+          { name: 'Traditional' },
+          { name: 'Japanese' },
+          { name: 'Black & Grey' }
+        ]
       },
-      profile: {
-        bio: 'Award-winning traditional tattoo artist with 8 years of experience. Specializing in classic American traditional and Japanese styles. Located in the heart of Montreal\'s Plateau district.',
-        studioName: 'Ink & Soul Studio',
-        website: 'https://inkandsoulmontreal.com',
-        instagram: '@sarahchen_tattoos',
-        address: '456 St-Laurent Blvd',
-        city: 'Montreal',
-        state: 'Quebec',
-        zipCode: 'H2W 1Z1',
-        country: 'Canada',
-        latitude: 45.5155,
-        longitude: -73.5703,
-        hourlyRate: 120,
-        minPrice: 80,
-        maxPrice: 300,
-        isVerified: true
-      },
-      specialties: ['Traditional', 'Japanese'],
-      services: ['Custom Design', 'Cover-up', 'Flash']
-    },
-    {
-      user: {
-        email: 'marcus.blackgrey@example.com',
-        password: 'password123',
-        firstName: 'Marcus',
-        lastName: 'Rodriguez',
-        role: 'ARTIST',
-        phone: '+1-514-555-0102'
-      },
-      profile: {
-        bio: 'Master of black and grey realism. Creating stunning portraits and detailed artwork that tells your story. Based in Old Montreal with a focus on custom pieces.',
-        studioName: 'Black Canvas Tattoo',
-        website: 'https://blackcanvasmtl.com',
-        instagram: '@marcus_blackgrey',
-        address: '789 Notre-Dame St W',
-        city: 'Montreal',
-        state: 'Quebec',
-        zipCode: 'H3C 1K9',
-        country: 'Canada',
-        latitude: 45.5017,
-        longitude: -73.5673,
-        hourlyRate: 150,
-        minPrice: 100,
-        maxPrice: 500,
-        isVerified: true
-      },
-      specialties: ['Black & Grey'],
-      services: ['Custom Design', 'Cover-up', 'Touch-up']
-    },
-    {
-      user: {
-        email: 'emma.minimalist@example.com',
-        password: 'password123',
-        firstName: 'Emma',
-        lastName: 'Thompson',
-        role: 'ARTIST',
-        phone: '+1-514-555-0103'
-      },
-      profile: {
-        bio: 'Minimalist tattoo specialist creating elegant, simple designs that speak volumes. Perfect for first-time clients and those who appreciate clean, meaningful artwork.',
-        studioName: 'Simple Lines Studio',
-        website: 'https://simplelinesmtl.com',
-        instagram: '@emma_minimalist',
-        address: '321 Sherbrooke St W',
-        city: 'Montreal',
-        state: 'Quebec',
-        zipCode: 'H3A 1E7',
-        country: 'Canada',
-        latitude: 45.5048,
-        longitude: -73.5772,
-        hourlyRate: 100,
-        minPrice: 60,
-        maxPrice: 200,
-        isVerified: true
-      },
-      specialties: ['Minimalist', 'Neo-Traditional'],
-      services: ['Custom Design', 'Flash']
-    },
-    {
-      user: {
-        email: 'david.watercolor@example.com',
-        password: 'password123',
-        firstName: 'David',
-        lastName: 'Kim',
-        role: 'ARTIST',
-        phone: '+1-514-555-0104'
-      },
-      profile: {
-        bio: 'Watercolor tattoo artist bringing paintings to life on skin. Specializing in vibrant, flowing designs that look like they were painted with watercolors.',
-        studioName: 'Color Flow Tattoo',
-        website: 'https://colorflowmtl.com',
-        instagram: '@david_watercolor',
-        address: '654 St-Catherine St W',
-        city: 'Montreal',
-        state: 'Quebec',
-        zipCode: 'H3B 1B8',
-        country: 'Canada',
-        latitude: 45.5017,
-        longitude: -73.5673,
-        hourlyRate: 130,
-        minPrice: 90,
-        maxPrice: 400,
-        isVerified: true
-      },
-      specialties: ['Watercolor', 'Neo-Traditional'],
-      services: ['Custom Design', 'Cover-up']
-    },
-    {
-      user: {
-        email: 'lisa.japanese@example.com',
-        password: 'password123',
-        firstName: 'Lisa',
-        lastName: 'Tanaka',
-        role: 'ARTIST',
-        phone: '+1-514-555-0105'
-      },
-      profile: {
-        bio: 'Japanese tattoo specialist trained in traditional Irezumi techniques. Creating authentic Japanese-style tattoos with deep cultural respect and modern precision.',
-        studioName: 'Dragon\'s Den Tattoo',
-        website: 'https://dragonsdenmtl.com',
-        instagram: '@lisa_japanese',
-        address: '987 St-Denis St',
-        city: 'Montreal',
-        state: 'Quebec',
-        zipCode: 'H2X 3K4',
-        country: 'Canada',
-        latitude: 45.5155,
-        longitude: -73.5703,
-        hourlyRate: 140,
-        minPrice: 120,
-        maxPrice: 600,
-        isVerified: true
-      },
-      specialties: ['Japanese', 'Traditional'],
-      services: ['Custom Design', 'Cover-up', 'Touch-up']
-    }
-  ];
-
-  // Create artists and their profiles
-  for (const artistData of demoArtists) {
-    const hashedPassword = await bcrypt.hash(artistData.user.password, 10);
-    
-    const user = await prisma.user.upsert({
-      where: { email: artistData.user.email },
-      update: {},
-      create: {
-        ...artistData.user,
-        password: hashedPassword
-      }
-    });
-
-    const artistProfile = await prisma.artistProfile.upsert({
-      where: { userId: user.id },
-      update: {},
-      create: {
-        userId: user.id,
-        ...artistData.profile
-      }
-    });
-
-    // Connect specialties
-    for (const specialtyName of artistData.specialties) {
-      const specialty = await prisma.specialty.findUnique({
-        where: { name: specialtyName }
-      });
-      if (specialty) {
-        await prisma.artistProfile.update({
-          where: { id: artistProfile.id },
-          data: {
-            specialties: {
-              connect: { id: specialty.id }
-            }
-          }
-        });
+      services: {
+        connect: [
+          { name: 'Custom Design' },
+          { name: 'Cover-up' },
+          { name: 'Touch-up' },
+          { name: 'Consultation' }
+        ]
       }
     }
+  });
+  console.log('✅ Artist connected to specialties and services');
 
-    // Connect services
-    for (const serviceName of artistData.services) {
-      const service = await prisma.service.findUnique({
-        where: { name: serviceName }
-      });
-      if (service) {
-        await prisma.artistProfile.update({
-          where: { id: artistProfile.id },
-          data: {
-            services: {
-              connect: { id: service.id }
-            }
-          }
-        });
+  // Create some flash items for the artist
+  const flashItems = await Promise.all([
+    prisma.flash.create({
+      data: {
+        artistId: artistProfile.id,
+        title: 'Traditional Rose',
+        description: 'Classic traditional rose design',
+        imageUrl: 'https://example.com/flash1.jpg',
+        price: 150.00,
+        isAvailable: true,
+        tags: ['traditional', 'rose', 'flower']
       }
-    }
+    }),
+    prisma.flash.create({
+      data: {
+        artistId: artistProfile.id,
+        title: 'Japanese Dragon',
+        description: 'Traditional Japanese dragon design',
+        imageUrl: 'https://example.com/flash2.jpg',
+        price: 300.00,
+        isAvailable: true,
+        tags: ['japanese', 'dragon', 'mythical']
+      }
+    }),
+    prisma.flash.create({
+      data: {
+        artistId: artistProfile.id,
+        title: 'Black & Grey Skull',
+        description: 'Realistic black and grey skull',
+        imageUrl: 'https://example.com/flash3.jpg',
+        price: 200.00,
+        isAvailable: true,
+        tags: ['black-grey', 'skull', 'realism']
+      }
+    })
+  ]);
+  console.log('✅ Flash items created:', flashItems.length);
 
-    console.log(`✅ Created artist: ${user.firstName} ${user.lastName}`);
-  }
-
-  // Create some demo flash items
-  const flashItems = [
-    {
-      studioName: 'Ink & Soul Studio',
-      title: 'Traditional Rose',
-      description: 'Classic red rose with green leaves',
-      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
-      price: 120,
-      tags: ['traditional', 'rose', 'red']
-    },
-    {
-      studioName: 'Black Canvas Tattoo',
-      title: 'Portrait Sketch',
-      description: 'Realistic black and grey portrait',
-      imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
-      price: 300,
-      tags: ['portrait', 'black-grey', 'realistic']
-    },
-    {
-      studioName: 'Simple Lines Studio',
-      title: 'Minimalist Mountain',
-      description: 'Simple line art mountain range',
-      imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
-      price: 80,
-      tags: ['minimalist', 'mountain', 'nature']
-    }
-  ];
-
-  for (const flashData of flashItems) {
-    const artist = await prisma.artistProfile.findFirst({ 
-      where: { studioName: flashData.studioName } 
-    });
-    
-    if (artist) {
-      await prisma.flash.create({
-        data: {
-          artistId: artist.id,
-          title: flashData.title,
-          description: flashData.description,
-          imageUrl: flashData.imageUrl,
-          price: flashData.price,
-          tags: flashData.tags
+  // Create some reviews (using different authors to avoid unique constraint)
+  const reviews = await Promise.all([
+    prisma.review.upsert({
+      where: {
+        authorId_recipientId: {
+          authorId: client.id,
+          recipientId: artist.id
         }
-      });
-    } else {
-      console.log(`⚠️ Artist not found for flash item: ${flashData.title}`);
+      },
+      update: {
+        rating: 5,
+        title: 'Amazing work!',
+        comment: 'Sarah did an incredible job on my traditional rose tattoo. Highly recommended!',
+        isVerified: true,
+        isApproved: true
+      },
+      create: {
+        authorId: client.id,
+        recipientId: artist.id,
+        rating: 5,
+        title: 'Amazing work!',
+        comment: 'Sarah did an incredible job on my traditional rose tattoo. Highly recommended!',
+        isVerified: true,
+        isApproved: true
+      }
+    })
+  ]);
+  console.log('✅ Reviews created:', reviews.length);
+
+  // Create a pending artist for testing verification
+  const pendingArtistPassword = await bcrypt.hash('pending123', 10);
+  const pendingArtist = await prisma.user.upsert({
+    where: { email: 'pending@example.com' },
+    update: {},
+    create: {
+      email: 'pending@example.com',
+      password: pendingArtistPassword,
+      firstName: 'Mike',
+      lastName: 'Pending',
+      role: 'ARTIST',
+      isActive: true,
+      isVerified: false,
+      phone: '+1234567893'
     }
-  }
+  });
 
-
-
-  console.log('✅ Flash items created');
-
-  // Create some demo reviews
-  const reviewData = [
-    {
-      authorEmail: 'sarah.traditional@example.com',
-      recipientEmail: 'marcus.blackgrey@example.com',
-      rating: 5,
-      title: 'Amazing portrait work!',
-      comment: 'Marcus did an incredible job on my portrait tattoo. The detail is unbelievable and it healed perfectly.',
-      isVerified: true
-    },
-    {
-      authorEmail: 'marcus.blackgrey@example.com',
-      recipientEmail: 'emma.minimalist@example.com',
-      rating: 5,
-      title: 'Perfect first tattoo experience',
-      comment: 'Emma made my first tattoo experience so comfortable. Her minimalist style is exactly what I wanted.',
-      isVerified: true
+  const pendingArtistProfile = await prisma.artistProfile.upsert({
+    where: { userId: pendingArtist.id },
+    update: {},
+    create: {
+      userId: pendingArtist.id,
+      bio: 'New artist looking to build portfolio. Specializing in minimalist designs.',
+      studioName: 'Minimal Ink Studio',
+      website: 'https://minimalink.com',
+      instagram: '@mikepending',
+      latitude: 40.7589,
+      longitude: -73.9851,
+      address: '456 Art Street',
+      city: 'New York',
+      state: 'NY',
+      zipCode: '10002',
+      country: 'USA',
+      hourlyRate: 80.00,
+      minPrice: 30.00,
+      maxPrice: 200.00,
+      isVerified: false,
+      isFeatured: false,
+      verificationStatus: 'PENDING'
     }
-  ];
+  });
+  console.log('✅ Pending artist created:', pendingArtist.email);
 
-  for (const review of reviewData) {
-    const author = await prisma.user.findFirst({ where: { email: review.authorEmail } });
-    const recipient = await prisma.user.findFirst({ where: { email: review.recipientEmail } });
-    
-    if (author && recipient) {
-      await prisma.review.upsert({
-        where: {
-          authorId_recipientId: {
-            authorId: author.id,
-            recipientId: recipient.id
-          }
-        },
-        update: {
-          rating: review.rating,
-          title: review.title,
-          comment: review.comment,
-          isVerified: review.isVerified
-        },
-        create: {
-          authorId: author.id,
-          recipientId: recipient.id,
-          rating: review.rating,
-          title: review.title,
-          comment: review.comment,
-          isVerified: review.isVerified
-        }
-      });
-    } else {
-      console.log(`⚠️ Users not found for review: ${review.title}`);
-    }
-  }
-
-  console.log('✅ Reviews created');
+  // Log some admin actions
+  const adminActions = await Promise.all([
+    prisma.adminAction.create({
+      data: {
+        adminId: admin.id,
+        action: 'VERIFY_ARTIST',
+        targetType: 'ARTIST',
+        targetId: artistProfile.id,
+        details: 'Initial verification of test artist account'
+      }
+    }),
+    prisma.adminAction.create({
+      data: {
+        adminId: admin.id,
+        action: 'FEATURE_ARTIST',
+        targetType: 'ARTIST',
+        targetId: artistProfile.id,
+        details: 'Featured test artist for demonstration'
+      }
+    })
+  ]);
+  console.log('✅ Admin actions logged:', adminActions.length);
 
   console.log('🎉 Database seeding completed successfully!');
+  console.log('\n📋 Test Accounts:');
+  console.log('Admin: admin@tattoolocator.com / admin123');
+  console.log('Client: client@example.com / client123');
+  console.log('Artist: artist@example.com / artist123');
+  console.log('Pending Artist: pending@example.com / pending123');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error seeding database:', e);
+    console.error('❌ Seeding error:', e);
     process.exit(1);
   })
   .finally(async () => {
