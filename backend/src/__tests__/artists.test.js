@@ -1,6 +1,6 @@
 const request = require('supertest')
 const jwt = require('jsonwebtoken')
-const app = require('../../server')
+const app = require('../server')
 
 describe('Artist Endpoints', () => {
   beforeEach(async () => {

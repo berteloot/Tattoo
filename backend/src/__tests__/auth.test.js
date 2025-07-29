@@ -1,7 +1,7 @@
 const request = require('supertest')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const app = require('../../server')
+const app = require('../server')
 
 describe('Authentication Endpoints', () => {
   beforeEach(async () => {

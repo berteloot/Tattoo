@@ -51,9 +51,13 @@ export const Login = () => {
     setLoading(true)
     
     try {
-      await login(formData.email, formData.password)
-      success('Welcome back!', 'You have successfully signed in.')
-      navigate('/')
+      const result = await login(formData.email, formData.password)
+      if (result.success) {
+        success('Welcome back!', 'You have successfully signed in.')
+        navigate('/')
+      } else {
+        showError('Login failed', result.error || 'Please check your credentials and try again.')
+      }
     } catch (error) {
       console.error('Login error:', error)
       showError('Login failed', error.message || 'Please check your credentials and try again.')

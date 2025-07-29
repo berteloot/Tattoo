@@ -122,7 +122,10 @@ async function startServer() {
   }
 }
 
-startServer();
+// Only start server if this file is run directly (not imported for testing)
+if (require.main === module) {
+  startServer();
+}
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {

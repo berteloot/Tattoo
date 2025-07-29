@@ -27,7 +27,10 @@ export const Register = () => {
     setLoading(true)
     
     try {
-      await register(formData)
+      const result = await register(formData)
+      if (!result.success) {
+        console.error('Registration failed:', result.error)
+      }
     } catch (error) {
       console.error('Registration error:', error)
     } finally {
