@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.login({ email, password })
       
       // Check if login was successful
-      if (response.data && response.data.success && response.data.data) {
+      if (response && response.data && response.data.success && response.data.data) {
         const { token, user } = response.data.data
         
         localStorage.setItem('token', token)
@@ -67,13 +67,14 @@ export const AuthProvider = ({ children }) => {
         navigate('/')
         
         return { success: true }
-      } else if (response.data && !response.data.success) {
+      } else if (response && response.data && !response.data.success) {
         // Login failed with error message from server
         const message = response.data.error || 'Login failed'
         toast.error('Error', message)
         return { success: false, error: message }
       } else {
         // Invalid response format
+        console.error('Invalid response format:', response)
         throw new Error('Invalid response format from server')
       }
     } catch (error) {
@@ -89,7 +90,7 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.register(userData)
       
       // Check if registration was successful
-      if (response.data && response.data.success && response.data.data) {
+      if (response && response.data && response.data.success && response.data.data) {
         const { token, user } = response.data.data
         
         localStorage.setItem('token', token)
@@ -100,13 +101,14 @@ export const AuthProvider = ({ children }) => {
         navigate('/')
         
         return { success: true }
-      } else if (response.data && !response.data.success) {
+      } else if (response && response.data && !response.data.success) {
         // Registration failed with error message from server
         const message = response.data.error || 'Registration failed'
         toast.error('Error', message)
         return { success: false, error: message }
       } else {
         // Invalid response format
+        console.error('Invalid response format:', response)
         throw new Error('Invalid response format from server')
       }
     } catch (error) {
