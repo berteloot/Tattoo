@@ -60,49 +60,68 @@ export const ArtistDashboard = () => {
       
       // Load artist profile
       if (user?.artistProfile?.id) {
-        const profileResponse = await artistsAPI.getById(user.artistProfile.id)
-        setProfile(profileResponse.data.data.artist)
-        
-        // Set form data
-        setFormData({
-          bio: profileResponse.data.data.artist.bio || '',
-          studioName: profileResponse.data.data.artist.studioName || '',
-          website: profileResponse.data.data.artist.website || '',
-          instagram: profileResponse.data.data.artist.instagram || '',
-          address: profileResponse.data.data.artist.address || '',
-          city: profileResponse.data.data.artist.city || '',
-          state: profileResponse.data.data.artist.state || '',
-          zipCode: profileResponse.data.data.artist.zipCode || '',
-          country: profileResponse.data.data.artist.country || '',
-          latitude: profileResponse.data.data.artist.latitude || '',
-          longitude: profileResponse.data.data.artist.longitude || '',
-          hourlyRate: profileResponse.data.data.artist.hourlyRate || '',
-          minPrice: profileResponse.data.data.artist.minPrice || '',
-          maxPrice: profileResponse.data.data.artist.maxPrice || '',
-          specialtyIds: profileResponse.data.data.artist.specialties?.map(s => s.id) || [],
-          serviceIds: profileResponse.data.data.artist.services?.map(s => s.id) || []
-        })
+        try {
+          const profileResponse = await artistsAPI.getById(user.artistProfile.id)
+          setProfile(profileResponse.data.data.artist)
+          
+          // Set form data
+          setFormData({
+            bio: profileResponse.data.data.artist.bio || '',
+            studioName: profileResponse.data.data.artist.studioName || '',
+            website: profileResponse.data.data.artist.website || '',
+            instagram: profileResponse.data.data.artist.instagram || '',
+            address: profileResponse.data.data.artist.address || '',
+            city: profileResponse.data.data.artist.city || '',
+            state: profileResponse.data.data.artist.state || '',
+            zipCode: profileResponse.data.data.artist.zipCode || '',
+            country: profileResponse.data.data.artist.country || '',
+            latitude: profileResponse.data.data.artist.latitude || '',
+            longitude: profileResponse.data.data.artist.longitude || '',
+            hourlyRate: profileResponse.data.data.artist.hourlyRate || '',
+            minPrice: profileResponse.data.data.artist.minPrice || '',
+            maxPrice: profileResponse.data.data.artist.maxPrice || '',
+            specialtyIds: profileResponse.data.data.artist.specialties?.map(s => s.id) || [],
+            serviceIds: profileResponse.data.data.artist.services?.map(s => s.id) || []
+          })
 
-        // Set map center if location exists
-        if (profileResponse.data.data.artist.latitude && profileResponse.data.data.artist.longitude) {
-          setMapCenter({
-            lat: profileResponse.data.data.artist.latitude,
-            lng: profileResponse.data.data.artist.longitude
-          })
-          setSelectedLocation({
-            lat: profileResponse.data.data.artist.latitude,
-            lng: profileResponse.data.data.artist.longitude
-          })
+          // Set map center if location exists
+          if (profileResponse.data.data.artist.latitude && profileResponse.data.data.artist.longitude) {
+            setMapCenter({
+              lat: profileResponse.data.data.artist.latitude,
+              lng: profileResponse.data.data.artist.longitude
+            })
+            setSelectedLocation({
+              lat: profileResponse.data.data.artist.latitude,
+              lng: profileResponse.data.data.artist.longitude
+            })
+          }
+        } catch (profileError) {
+          console.error('Error loading artist profile:', profileError)
+          // Profile might not exist, continue with empty form
         }
       }
 
-      // Load flash items
-      const flashResponse = await flashAPI.getAll({ artistId: user?.artistProfile?.id })
-      setFlash(flashResponse.data.data.flash)
+      // Load flash items (only if artist profile exists)
+      if (user?.artistProfile?.id) {
+        try {
+          const flashResponse = await flashAPI.getAll({ artistId: user.artistProfile.id })
+          setFlash(flashResponse.data.data.flash)
+        } catch (flashError) {
+          console.error('Error loading flash items:', flashError)
+          setFlash([])
+        }
+      } else {
+        setFlash([])
+      }
 
       // Load reviews
-      const reviewsResponse = await reviewsAPI.getAll({ recipientId: user?.id })
-      setReviews(reviewsResponse.data.data.reviews)
+      try {
+        const reviewsResponse = await reviewsAPI.getAll({ recipientId: user?.id })
+        setReviews(reviewsResponse.data.data.reviews)
+      } catch (reviewsError) {
+        console.error('Error loading reviews:', reviewsError)
+        setReviews([])
+      }
 
       // Load specialties and services
       const [specialtiesResponse, servicesResponse] = await Promise.all([
@@ -175,10 +194,28 @@ export const ArtistDashboard = () => {
     try {
       setLoading(true)
       
-      const response = await artistsAPI.updateProfile(user.artistProfile.id, formData)
-      setProfile(response.data.data.artistProfile)
+      let response
+      
+      // Check if artist profile exists
+      if (user?.artistProfile?.id) {
+        // Update existing profile
+        response = await artistsAPI.updateProfile(user.artistProfile.id, formData)
+        showToast('Profile updated successfully!', 'success')
+      } else {
+        // Create new profile
+        response = await artistsAPI.createProfile(formData)
+        showToast('Profile created successfully!', 'success')
+        
+        // Refresh user data to get the new profile ID
+        const userResponse = await api.get('/api/auth/me')
+        if (userResponse.data.success) {
+          // Update the user context with the new profile
+          window.location.reload() // Simple refresh to get updated user data
+        }
+      }
+      
+      setProfile(response.data.data.artistProfile || response.data.data.artist)
       setEditing(false)
-      showToast('Profile updated successfully!', 'success')
       
       // Update map center
       if (formData.latitude && formData.longitude) {
@@ -188,8 +225,9 @@ export const ArtistDashboard = () => {
         })
       }
     } catch (error) {
-      console.error('Error updating profile:', error)
-      showToast('Error updating profile', 'error')
+      console.error('Error saving profile:', error)
+      const errorMessage = error.response?.data?.error || 'Error saving profile'
+      showToast(errorMessage, 'error')
     } finally {
       setLoading(false)
     }
