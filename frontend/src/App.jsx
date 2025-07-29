@@ -15,8 +15,8 @@ import { UserProfile } from './pages/UserProfile'
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <ToastProvider>
+      <ToastProvider>
+        <AuthProvider>
           <Layout>
             <Routes>
               {/* Public routes */}
@@ -39,8 +39,8 @@ function App() {
               } />
             </Routes>
           </Layout>
-        </ToastProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </ToastProvider>
     </ErrorBoundary>
   )
 }
