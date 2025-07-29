@@ -2,12 +2,11 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../utils/prisma');
 const { protect } = require('../middleware/auth');
 const emailService = require('../utils/emailService');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 /**
  * @route   POST /api/auth/register
@@ -86,6 +85,15 @@ router.post('/register', [
       }
     });
 
+    // Check if JWT_SECRET is configured
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not configured');
+      return res.status(500).json({
+        success: false,
+        error: 'Server configuration error'
+      });
+    }
+
     // Generate JWT token
     const token = jwt.sign(
       { id: user.id },
@@ -95,7 +103,10 @@ router.post('/register', [
 
     // Send welcome email (non-blocking)
     try {
-      await emailService.sendWelcomeEmail(user);
+      const emailResult = await emailService.sendWelcomeEmail(user);
+      if (!emailResult.success) {
+        console.log('Welcome email not sent:', emailResult.error);
+      }
     } catch (emailError) {
       console.error('Failed to send welcome email:', emailError);
       // Don't fail the registration if email fails
@@ -111,9 +122,15 @@ router.post('/register', [
     });
   } catch (error) {
     console.error('Registration error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     res.status(500).json({
       success: false,
-      error: 'Server error during registration'
+      error: 'Server error during registration',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

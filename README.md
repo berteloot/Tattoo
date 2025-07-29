@@ -109,6 +109,25 @@ NODE_ENV=development
 VITE_API_URL="http://localhost:3001"
 ```
 
+## Troubleshooting
+
+### Registration Issues
+If you encounter a 500 error when trying to register an account:
+
+1. **Check Environment Variables**: Ensure `DATABASE_URL` and `JWT_SECRET` are properly configured
+2. **Database Connection**: Verify your PostgreSQL database is running and accessible
+3. **API Endpoints**: The frontend should call `/api/auth/register` (not `/auth/register`)
+
+### Common Issues
+- **500 Internal Server Error**: Usually indicates missing environment variables or database connection issues
+- **CORS Errors**: Ensure `CORS_ORIGIN` is set to your frontend URL
+- **JWT Errors**: Verify `JWT_SECRET` is set and not empty
+
+### Development vs Production
+- **Development**: Uses localhost URLs and development database
+- **Production**: Uses Render.com URLs and production database
+- **Environment Variables**: Must be configured separately for each environment
+
 ## Project Structure
 
 ```

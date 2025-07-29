@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { api } from '../services/api'
+import { api, authAPI } from '../services/api'
+import { useToast } from './ToastContext'
 
 const AuthContext = createContext()
 
@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const { toast } = useToast()
 
   // Check if user is logged in on app start
   useEffect(() => {
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await api.get('/auth/me')
+      const response = await authAPI.getProfile()
       setUser(response.data.data.user)
     } catch (error) {
       console.error('Error fetching user:', error)
@@ -44,40 +45,40 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await api.post('/auth/login', { email, password })
+      const response = await authAPI.login({ email, password })
       const { token, user } = response.data.data
       
       localStorage.setItem('token', token)
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setUser(user)
       
-      toast.success('Login successful!')
+      toast.success('Success', 'Login successful!')
       navigate('/')
       
       return { success: true }
     } catch (error) {
       const message = error.response?.data?.error || 'Login failed'
-      toast.error(message)
+      toast.error('Error', message)
       return { success: false, error: message }
     }
   }
 
   const register = async (userData) => {
     try {
-      const response = await api.post('/auth/register', userData)
+      const response = await authAPI.register(userData)
       const { token, user } = response.data.data
       
       localStorage.setItem('token', token)
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setUser(user)
       
-      toast.success('Registration successful!')
+      toast.success('Success', 'Registration successful!')
       navigate('/')
       
       return { success: true }
     } catch (error) {
       const message = error.response?.data?.error || 'Registration failed'
-      toast.error(message)
+      toast.error('Error', message)
       return { success: false, error: message }
     }
   }
@@ -86,19 +87,19 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token')
     delete api.defaults.headers.common['Authorization']
     setUser(null)
-    toast.success('Logged out successfully')
+    toast.success('Success', 'Logged out successfully')
     navigate('/')
   }
 
   const updateProfile = async (profileData) => {
     try {
-      const response = await api.put('/auth/profile', profileData)
+      const response = await authAPI.updateProfile(profileData)
       setUser(response.data.data.user)
-      toast.success('Profile updated successfully!')
+      toast.success('Success', 'Profile updated successfully!')
       return { success: true }
     } catch (error) {
       const message = error.response?.data?.error || 'Profile update failed'
-      toast.error(message)
+      toast.error('Error', message)
       return { success: false, error: message }
     }
   }

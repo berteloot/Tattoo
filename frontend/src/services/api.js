@@ -39,39 +39,39 @@ api.interceptors.response.use(
 
 // API functions
 export const authAPI = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
-  logout: () => api.post('/auth/logout'),
-  getProfile: () => api.get('/auth/me'),
-  updateProfile: (profileData) => api.put('/auth/profile', profileData),
+  login: (credentials) => api.post('/api/auth/login', credentials),
+  register: (userData) => api.post('/api/auth/register', userData),
+  logout: () => api.post('/api/auth/logout'),
+  getProfile: () => api.get('/api/auth/me'),
+  updateProfile: (profileData) => api.put('/api/auth/profile', profileData),
 }
 
 export const artistsAPI = {
-  getAll: (params) => api.get('/artists', { params }),
-  getById: (id) => api.get(`/artists/${id}`),
-  createProfile: (profileData) => api.post('/artists', profileData),
-  updateProfile: (id, profileData) => api.put(`/artists/${id}`, profileData),
+  getAll: (params) => api.get('/api/artists', { params }),
+  getById: (id) => api.get(`/api/artists/${id}`),
+  createProfile: (profileData) => api.post('/api/artists', profileData),
+  updateProfile: (id, profileData) => api.put(`/api/artists/${id}`, profileData),
 }
 
 export const flashAPI = {
-  getAll: (params) => api.get('/flash', { params }),
-  getById: (id) => api.get(`/flash/${id}`),
-  create: (flashData) => api.post('/flash', flashData),
-  update: (id, flashData) => api.put(`/flash/${id}`, flashData),
-  delete: (id) => api.delete(`/flash/${id}`),
+  getAll: (params) => api.get('/api/flash', { params }),
+  getById: (id) => api.get(`/api/flash/${id}`),
+  create: (flashData) => api.post('/api/flash', flashData),
+  update: (id, flashData) => api.put(`/api/flash/${id}`, flashData),
+  delete: (id) => api.delete(`/api/flash/${id}`),
 }
 
 export const reviewsAPI = {
-  getAll: (params) => api.get('/reviews', { params }),
-  create: (reviewData) => api.post('/reviews', reviewData),
-  update: (id, reviewData) => api.put(`/reviews/${id}`, reviewData),
-  delete: (id) => api.delete(`/reviews/${id}`),
+  getAll: (params) => api.get('/api/reviews', { params }),
+  create: (reviewData) => api.post('/api/reviews', reviewData),
+  update: (id, reviewData) => api.put(`/api/reviews/${id}`, reviewData),
+  delete: (id) => api.delete(`/api/reviews/${id}`),
 }
 
 export const specialtiesAPI = {
-  getAll: () => api.get('/specialties'),
+  getAll: () => api.get('/api/specialties'),
 }
 
 export const servicesAPI = {
-  getAll: () => api.get('/services'),
+  getAll: () => api.get('/api/services'),
 } 

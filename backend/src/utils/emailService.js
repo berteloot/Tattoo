@@ -37,6 +37,7 @@ class EmailService {
       return { success: true, messageId: response[0].headers['x-message-id'] }
     } catch (error) {
       console.error('Error sending email:', error)
+      // Don't throw the error, just return failure
       return { success: false, error: error.message }
     }
   }
@@ -47,56 +48,61 @@ class EmailService {
 
   // Welcome email for new users
   async sendWelcomeEmail(user) {
-    const subject = 'Welcome to Tattoo Locator! 🎨'
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
-          <h1 style="margin: 0; font-size: 28px;">Welcome to Tattoo Locator!</h1>
-          <p style="margin: 10px 0 0 0; opacity: 0.9;">Your journey to finding the perfect tattoo artist starts here</p>
-        </div>
-        
-        <div style="padding: 40px; background: white;">
-          <h2 style="color: #333; margin-bottom: 20px;">Hi ${user.firstName}!</h2>
-          
-          <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            Thank you for joining Tattoo Locator! We're excited to help you connect with amazing tattoo artists in Montreal.
-          </p>
-          
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">What you can do now:</h3>
-            <ul style="color: #666; line-height: 1.8;">
-              <li>🔍 Browse artists by specialty and location</li>
-              <li>⭐ Read reviews and view portfolios</li>
-              <li>📅 Book consultations with your favorite artists</li>
-              <li>💬 Leave reviews after your sessions</li>
-            </ul>
+    try {
+      const subject = 'Welcome to Tattoo Locator! 🎨'
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 28px;">Welcome to Tattoo Locator!</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Your journey to finding the perfect tattoo artist starts here</p>
           </div>
           
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || 'https://tattoo-app-frontend.onrender.com'}/artists" 
-               style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              Start Exploring Artists
-            </a>
+          <div style="padding: 40px; background: white;">
+            <h2 style="color: #333; margin-bottom: 20px;">Hi ${user.firstName}!</h2>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              Thank you for joining Tattoo Locator! We're excited to help you connect with amazing tattoo artists in Montreal.
+            </p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">What you can do now:</h3>
+              <ul style="color: #666; line-height: 1.8;">
+                <li>🔍 Browse artists by specialty and location</li>
+                <li>⭐ Read reviews and view portfolios</li>
+                <li>📅 Book consultations with your favorite artists</li>
+                <li>💬 Leave reviews after your sessions</li>
+              </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'https://tattoo-app-frontend.onrender.com'}/artists" 
+                 style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Start Exploring Artists
+              </a>
+            </div>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              If you have any questions or need help finding the right artist, don't hesitate to reach out to our support team.
+            </p>
+            
+            <p style="color: #666; line-height: 1.6;">
+              Happy inking!<br>
+              The Tattoo Locator Team
+            </p>
           </div>
           
-          <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            If you have any questions or need help finding the right artist, don't hesitate to reach out to our support team.
-          </p>
-          
-          <p style="color: #666; line-height: 1.6;">
-            Happy inking!<br>
-            The Tattoo Locator Team
-          </p>
+          <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px;">
+            <p>© 2025 Tattoo Locator. All rights reserved.</p>
+            <p>This email was sent to ${user.email}</p>
+          </div>
         </div>
-        
-        <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px;">
-          <p>© 2025 Tattoo Locator. All rights reserved.</p>
-          <p>This email was sent to ${user.email}</p>
-        </div>
-      </div>
-    `
+      `
 
-    return this.sendEmail(user.email, subject, htmlContent)
+      return await this.sendEmail(user.email, subject, htmlContent)
+    } catch (error) {
+      console.error('Error in sendWelcomeEmail:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   // Artist profile verification email
