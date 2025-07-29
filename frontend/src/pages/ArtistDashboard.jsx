@@ -64,6 +64,9 @@ export const ArtistDashboard = () => {
     try {
       setLoading(true)
       
+      let reviewsData = []
+      let flashData = []
+      
       // Load artist profile
       if (user?.artistProfile?.id) {
         try {
@@ -97,7 +100,8 @@ export const ArtistDashboard = () => {
       if (user?.artistProfile?.id) {
         try {
           const flashResponse = await flashAPI.getAll({ artistId: user.artistProfile.id })
-          setFlash(flashResponse.data.data.flash)
+          flashData = flashResponse.data.data.flash
+          setFlash(flashData)
         } catch (flashError) {
           console.error('Error loading flash items:', flashError)
           setFlash([])
@@ -109,7 +113,8 @@ export const ArtistDashboard = () => {
       // Load reviews
       try {
         const reviewsResponse = await reviewsAPI.getAll({ recipientId: user?.id })
-        setReviews(reviewsResponse.data.data.reviews)
+        reviewsData = reviewsResponse.data.data.reviews
+        setReviews(reviewsData)
       } catch (reviewsError) {
         console.error('Error loading reviews:', reviewsError)
         setReviews([])
@@ -124,15 +129,15 @@ export const ArtistDashboard = () => {
       setServices(servicesResponse.data.data.services)
 
       // Calculate analytics
-      const avgRating = reviewsResponse.data.data.reviews.length > 0
-        ? reviewsResponse.data.data.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewsResponse.data.data.reviews.length
+      const avgRating = reviewsData.length > 0
+        ? reviewsData.reduce((sum, review) => sum + review.rating, 0) / reviewsData.length
         : 0
 
       setAnalytics({
         profileViews: Math.floor(Math.random() * 100) + 50, // Mock data for now
-        totalReviews: reviewsResponse.data.data.reviews.length,
+        totalReviews: reviewsData.length,
         averageRating: Math.round(avgRating * 10) / 10,
-        totalFlash: flashResponse.data.data.flash.length,
+        totalFlash: flashData.length,
         monthlyEarnings: Math.floor(Math.random() * 5000) + 1000 // Mock data for now
       })
 
