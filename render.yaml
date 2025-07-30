@@ -1,12 +1,15 @@
-# Render deployment configuration - Version 2.0
-# Updated to use Node.js for frontend to support SPA routing
+# Render deployment configuration - Version 4.0
+# Single full-stack service for simplicity and reliability
 services:
-  # Backend API Service
+  # Full-Stack Application (API + Frontend)
   - type: web
-    name: tattooed-world-backend
+    name: tattooed-world-app
     env: node
     plan: starter
-    buildCommand: cd backend && npm install && npm run build
+    buildCommand: |
+      npm install
+      cd backend && npm install && npx prisma generate
+      cd ../frontend && npm install && npm run build
     startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
@@ -19,43 +22,31 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
-      - key: GOOGLE_MAPS_API_KEY
-        sync: false
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-      - key: CLOUDINARY_API_KEY
-        sync: false
-      - key: CLOUDINARY_API_SECRET
-        sync: false
-      - key: CORS_ORIGIN
-        value: https://tattooed-world-frontend.onrender.com
-      - key: MAX_FILE_SIZE
-        value: 5242880
-      - key: ALLOWED_FILE_TYPES
-        value: image/jpeg,image/png,image/webp
+      - key: PORT
+        value: 10000
       - key: RATE_LIMIT_WINDOW_MS
         value: 900000
       - key: RATE_LIMIT_MAX_REQUESTS
         value: 100
-      - key: SENDGRID_API_KEY
-        sync: false
-      - key: FROM_EMAIL
-        value: noreply@tattooedworld.com
+      - key: MAX_FILE_SIZE
+        value: 5242880
+      - key: ALLOWED_FILE_TYPES
+        value: image/jpeg,image/png,image/webp
       - key: FRONTEND_URL
-        value: https://tattooed-world-frontend.onrender.com
-
-  # Frontend Service - Updated to Node.js for proper SPA routing
-  - type: web
-    name: tattooed-world-frontend
-    env: node
-    plan: starter
-    buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npm run preview -- --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: VITE_API_URL
-        value: https://tattooed-world-backend.onrender.com
-      - key: VITE_GOOGLE_MAPS_API_KEY
-        sync: false
+        value: https://tattooed-world-app.onrender.com
+    # Optional environment variables (can be set later)
+    - key: GOOGLE_MAPS_API_KEY
+      sync: false
+    - key: CLOUDINARY_CLOUD_NAME
+      sync: false
+    - key: CLOUDINARY_API_KEY
+      sync: false
+    - key: CLOUDINARY_API_SECRET
+      sync: false
+    - key: SENDGRID_API_KEY
+      sync: false
+    - key: FROM_EMAIL
+      value: noreply@tattooedworld.com
 
 databases:
   # PostgreSQL Database

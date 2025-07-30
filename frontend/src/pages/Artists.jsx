@@ -26,7 +26,7 @@ export const Artists = () => {
   const fetchArtists = async () => {
     try {
       console.log('Fetching artists from API...')
-      console.log('API URL:', import.meta.env.VITE_API_URL || 'http://localhost:3001')
+      console.log('API URL:', import.meta.env.VITE_API_URL || '/api')
       
       const result = await apiCallWithFallback(
         () => artistsAPI.getAll({ limit: 20 }),

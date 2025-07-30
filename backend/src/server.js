@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 // Import database client
@@ -41,11 +42,22 @@ if (missingEnvVars.length > 0) {
 console.log('✅ All required environment variables are configured');
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      connectSrc: ["'self'", "https://maps.googleapis.com", "wss:", "ws:"],
+    },
+  },
+}));
 
-// CORS configuration
+// CORS configuration - simplified since everything is on same domain
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: process.env.CORS_ORIGIN || true,
   credentials: true
 }));
 
@@ -111,7 +123,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
-            message: 'Tattooed World API is running',
+    message: 'Tattooed World API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV
   });
@@ -127,9 +139,9 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Root endpoint
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.json({
-            message: 'Welcome to Tattooed World API',
+    message: 'Welcome to Tattooed World API',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',
@@ -142,6 +154,21 @@ app.get('/', (req, res) => {
   });
 });
 
+// Serve static files from the React app build directory
+const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendBuildPath));
+
+// Handle React routing, return all requests to React app
+app.get('*', (req, res) => {
+  // Don't serve React app for API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  // Serve React app for all other routes (SPA routing)
+  res.sendFile(path.join(frontendBuildPath, 'index.html'));
+});
+
 // Error handling middleware
 app.use(notFound);
 app.use(errorHandler);
@@ -151,8 +178,8 @@ async function startServer() {
   try {
     console.log('🔄 Starting server initialization...');
     console.log(`📊 Environment: ${process.env.NODE_ENV}`);
-    console.log(`🔗 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
     console.log(`🌐 Trust Proxy: ${app.get('trust proxy')}`);
+    console.log(`📁 Frontend build path: ${frontendBuildPath}`);
     
     // Test database connection
     console.log('🔄 Testing database connection...');
@@ -165,10 +192,11 @@ async function startServer() {
     
     // Start server
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🚀 Full-stack server running on port ${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-      console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+      console.log(`🌐 API base: http://localhost:${PORT}/api`);
+      console.log(`🎨 Frontend: http://localhost:${PORT}`);
       console.log(`🛡️ Rate limiting: ${process.env.RATE_LIMIT_MAX_REQUESTS || 100} requests per ${process.env.RATE_LIMIT_WINDOW_MS || 900000}ms`);
     });
   } catch (error) {
