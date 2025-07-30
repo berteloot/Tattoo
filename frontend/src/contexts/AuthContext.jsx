@@ -53,7 +53,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('Attempting login for:', email)
       const response = await authAPI.login({ email, password })
+      console.log('Login API response:', response)
       
       // Check if login was successful
       if (response && response.data && response.data.success && response.data.data) {
@@ -70,15 +72,23 @@ export const AuthProvider = ({ children }) => {
       } else if (response && response.data && !response.data.success) {
         // Login failed with error message from server
         const message = response.data.error || 'Login failed'
+        console.log('Login failed with server error:', message)
         toast.error('Error', message)
         return { success: false, error: message }
       } else {
         // Invalid response format
         console.error('Invalid response format:', response)
+        console.error('Response structure:', {
+          hasResponse: !!response,
+          hasData: !!(response && response.data),
+          hasSuccess: !!(response && response.data && response.data.success),
+          hasDataData: !!(response && response.data && response.data.data)
+        })
         throw new Error('Invalid response format from server')
       }
     } catch (error) {
       console.error('Login error details:', error)
+      console.error('Error response:', error.response)
       
       // Handle different error response structures
       let message = 'Login failed'
@@ -86,9 +96,11 @@ export const AuthProvider = ({ children }) => {
       if (error.response && error.response.data) {
         // Server returned an error response
         message = error.response.data.error || error.response.data.message || 'Login failed'
+        console.log('Server error response:', error.response.data)
       } else if (error.message) {
         // Network or other error
         message = error.message
+        console.log('Network/other error:', error.message)
       }
       
       toast.error('Error', message)
