@@ -42,13 +42,13 @@ services:
       - key: FRONTEND_URL
         value: https://tattooed-world-frontend.onrender.com
 
-  # Frontend Service
+  # Frontend Service - Updated to Node.js for proper SPA routing
   - type: web
     name: tattooed-world-frontend
     env: node
     plan: starter
     buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npm run preview
+    startCommand: cd frontend && npm run preview -- --host 0.0.0.0 --port $PORT
     envVars:
       - key: VITE_API_URL
         value: https://tattooed-world-backend.onrender.com
