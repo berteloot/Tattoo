@@ -3,6 +3,7 @@ import axios from 'axios'
 // Create axios instance - use relative URLs for same-domain deployment
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 console.log('API URL configured as:', API_URL)
+console.log('Environment VITE_API_URL:', import.meta.env.VITE_API_URL)
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -18,6 +19,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    console.log('API Request:', config.method?.toUpperCase(), config.url)
     return config
   },
   (error) => {
