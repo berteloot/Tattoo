@@ -35,11 +35,17 @@ const AdminDashboard = () => {
         api.get('/admin/actions?limit=5')
       ]);
       
-      setStats(statsResponse.data.statistics);
-      setRecentActions(actionsResponse.data.actions);
+      console.log('Dashboard stats response:', statsResponse.data);
+      console.log('Actions response:', actionsResponse.data);
+      
+      setStats(statsResponse.data?.data?.statistics || statsResponse.data?.statistics || {});
+      setRecentActions(actionsResponse.data?.data?.actions || actionsResponse.data?.actions || []);
     } catch (error) {
-      showToast('Error fetching dashboard data', 'error');
       console.error('Error fetching dashboard data:', error);
+      showToast('Error fetching dashboard data', 'error');
+      // Set default values on error
+      setStats({});
+      setRecentActions([]);
     } finally {
       setLoading(false);
     }
@@ -242,8 +248,8 @@ const AdminDashboard = () => {
             <h2 className="text-xl font-semibold text-gray-900">Recent Admin Actions</h2>
           </div>
           <div className="divide-y divide-gray-200">
-            {recentActions.length > 0 ? (
-              recentActions.map((action) => (
+            {(recentActions || []).length > 0 ? (
+              (recentActions || []).map((action) => (
                 <div key={action.id} className={`px-6 py-4 ${getActionColor(action)}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
@@ -273,7 +279,7 @@ const AdminDashboard = () => {
               </div>
             )}
           </div>
-          {recentActions.length > 0 && (
+          {(recentActions || []).length > 0 && (
             <div className="px-6 py-4 border-t border-gray-200">
               <Link
                 to="/admin/actions"
