@@ -1,4 +1,4 @@
-# Render deployment configuration - Version 4.5
+# Render deployment configuration - Version 4.6
 # Single full-stack service for simplicity and reliability
 services:
   # Full-Stack Application (API + Frontend)
@@ -31,6 +31,8 @@ services:
         value: image/jpeg,image/png,image/webp
       - key: FRONTEND_URL
         value: https://tattooed-world-backend.onrender.com
+      - key: VITE_API_URL
+        value: /api
     # Optional environment variables (can be set later)
     - key: GOOGLE_MAPS_API_KEY
       sync: false
