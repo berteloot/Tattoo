@@ -1,4 +1,4 @@
-# Tattoo Artist Locator
+# Tattooed World
 
 A web application that connects clients with tattoo artists based on location, style, and specialty. Built with React, Node.js, and PostgreSQL.
 

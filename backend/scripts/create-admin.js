@@ -6,7 +6,7 @@ async function createAdminUser() {
     console.log('🔧 Creating admin user...');
     
     const email = 'berteloot@gmail.com';
-    const password = 'admin123'; // You can change this password
+    const password = '@222888?'; // Using your existing password
     const hashedPassword = await bcrypt.hash(password, 12);
     
     // Check if user already exists
@@ -60,7 +60,7 @@ async function createAdminUser() {
     console.log('\n🎉 Admin user setup complete!');
     console.log('📧 Email:', email);
     console.log('🔑 Password:', password);
-    console.log('⚠️  Please change the password after first login');
+    console.log('✅ Using your existing password');
     
   } catch (error) {
     console.error('❌ Error creating admin user:', error);

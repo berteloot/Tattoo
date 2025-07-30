@@ -25,7 +25,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Trust proxy for rate limiting behind load balancers (Render, Heroku, etc.)
-app.set('trust proxy', 1);
+// This is crucial for proper IP detection behind proxies
+app.set('trust proxy', true);
 
 // Check required environment variables
 const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
@@ -48,12 +49,41 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting
+// Rate limiting with proper proxy handling for Render.com
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
   message: {
     error: 'Too many requests from this IP, please try again later.'
+  },
+  // Handle proxy headers properly for Render.com
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Trust proxy and use X-Forwarded-For header
+  skipSuccessfulRequests: false,
+  skipFailedRequests: false,
+  // Key generator that works with proxy
+  keyGenerator: (req) => {
+    try {
+      // Use X-Forwarded-For if available, otherwise use remote address
+      const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || req.connection.remoteAddress;
+      // Clean the IP address (remove any whitespace or invalid characters)
+      const cleanIP = clientIP?.trim() || 'unknown';
+      console.log(`Rate limit key generated for IP: ${cleanIP}`);
+      return cleanIP;
+    } catch (error) {
+      console.error('Error generating rate limit key:', error);
+      return 'unknown';
+    }
+  },
+  // Add handler for rate limit errors
+  handler: (req, res) => {
+    const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || req.connection.remoteAddress;
+    console.log(`Rate limit exceeded for IP: ${clientIP}`);
+    res.status(429).json({
+      success: false,
+      error: 'Too many requests from this IP, please try again later.'
+    });
   }
 });
 app.use('/api/', limiter);
@@ -62,7 +92,15 @@ app.use('/api/', limiter);
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 } else {
-  app.use(morgan('combined'));
+  // Enhanced logging for production
+  app.use(morgan('combined', {
+    skip: (req, res) => res.statusCode < 400, // Only log errors in production
+    stream: {
+      write: (message) => {
+        console.log(message.trim());
+      }
+    }
+  }));
 }
 
 // Body parsing middleware
@@ -111,12 +149,19 @@ app.use(errorHandler);
 // Test database connection and start server
 async function startServer() {
   try {
+    console.log('🔄 Starting server initialization...');
+    console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+    console.log(`🔗 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+    console.log(`🌐 Trust Proxy: ${app.get('trust proxy')}`);
+    
     // Test database connection
+    console.log('🔄 Testing database connection...');
     const dbConnected = await testConnection();
     if (!dbConnected) {
       console.error('❌ Failed to connect to database');
       process.exit(1);
     }
+    console.log('✅ Database connection successful');
     
     // Start server
     app.listen(PORT, () => {
@@ -124,6 +169,7 @@ async function startServer() {
       console.log(`📊 Environment: ${process.env.NODE_ENV}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/health`);
       console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+      console.log(`🛡️ Rate limiting: ${process.env.RATE_LIMIT_MAX_REQUESTS || 100} requests per ${process.env.RATE_LIMIT_WINDOW_MS || 900000}ms`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

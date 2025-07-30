@@ -8,7 +8,7 @@ describe('Basic API Functionality', () => {
       .expect(200)
 
     expect(response.body.status).toBe('OK')
-    expect(response.body.message).toBe('Tattoo Artist Locator API is running')
+    expect(response.body.message).toBe('Tattooed World API is running')
   })
 
   it('should have a root endpoint', async () => {
@@ -16,7 +16,7 @@ describe('Basic API Functionality', () => {
       .get('/')
       .expect(200)
 
-    expect(response.body.message).toBe('Welcome to Tattoo Artist Locator API')
+    expect(response.body.message).toBe('Welcome to Tattooed World API')
     expect(response.body.endpoints).toBeDefined()
     expect(response.body.endpoints.auth).toBe('/api/auth')
     expect(response.body.endpoints.artists).toBe('/api/artists')

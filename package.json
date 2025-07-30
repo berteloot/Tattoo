@@ -20,7 +20,9 @@
     "db:migrate": "cd backend && npx prisma migrate dev",
     "db:seed": "cd backend && npx prisma db seed",
     "db:studio": "cd backend && npx prisma studio",
-    "db:reset": "cd backend && npx prisma migrate reset"
+    "db:reset": "cd backend && npx prisma migrate reset",
+    "test:rate-limiter": "node test-rate-limiter.js",
+    "verify:deployment": "node verify-deployment.js"
   },
   "keywords": [
     "tattoo",
@@ -32,7 +34,7 @@
     "prisma",
     "postgresql"
   ],
-  "author": "Tattoo Artist Locator Team",
+  "author": "Tattooed World Team",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"

@@ -1,7 +1,7 @@
 services:
   # Backend API Service
   - type: web
-    name: tattoo-app-backend
+    name: tattooed-world-backend
     env: node
     plan: starter
     buildCommand: cd backend && npm install && npm run build
@@ -38,7 +38,7 @@ services:
       - key: SENDGRID_API_KEY
         sync: false
       - key: FROM_EMAIL
-        value: noreply@tattoolocator.com
+        value: noreply@tattooedworld.com
       - key: FRONTEND_URL
         value: https://tattoo-app-frontend.onrender.com
 
