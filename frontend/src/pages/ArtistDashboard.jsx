@@ -239,7 +239,7 @@ export const ArtistDashboard = () => {
         
         // Refresh user data to get the new profile ID
         try {
-          const userResponse = await api.get('/api/auth/me')
+          const userResponse = await api.get('/auth/me')
           if (userResponse.data.success) {
             // Update the user context with the new profile
             window.location.reload() // Simple refresh to get updated user data

@@ -147,9 +147,13 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.logout()
       console.log('Logout API response:', response)
       
-      // Check if the response is valid
-      if (response && response.data && response.data.success) {
-        console.log('Logout successful:', response.data.message)
+      // Check if the response is valid - handle different response structures
+      if (response && response.data) {
+        if (response.data.success) {
+          console.log('Logout successful:', response.data.message || 'Logout successful')
+        } else {
+          console.warn('Logout response indicates failure:', response.data)
+        }
       } else {
         console.warn('Logout response format unexpected:', response)
       }
