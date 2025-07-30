@@ -142,21 +142,21 @@ export const Artists = () => {
   console.log('Search term:', searchTerm)
   console.log('Selected specialty:', selectedSpecialty)
   
-  const filteredAndSortedArtists = artists
+  const filteredAndSortedArtists = (artists || [])
     .filter(artist => {
+      if (!artist || !artist.user) return false
+      
       const matchesSearch = !searchTerm || 
-                           artist.user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           artist.user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           artist.user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           artist.user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            artist.studioName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           artist.city.toLowerCase().includes(searchTerm.toLowerCase())
+                           artist.city?.toLowerCase().includes(searchTerm.toLowerCase())
       
       const matchesSpecialty = !selectedSpecialty || 
                               artist.specialties?.some(s => s.name === selectedSpecialty)
       
       return matchesSearch && matchesSpecialty
     })
-    
-  console.log('Filtered artists:', filteredAndSortedArtists)
     .sort((a, b) => {
       switch (sortBy) {
         case 'rating':
@@ -164,11 +164,13 @@ export const Artists = () => {
         case 'price':
           return (a.hourlyRate || 0) - (b.hourlyRate || 0)
         case 'name':
-          return `${a.user.firstName} ${a.user.lastName}`.localeCompare(`${b.user.firstName} ${b.user.lastName}`)
+          return `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.localeCompare(`${b.user?.firstName || ''} ${b.user?.lastName || ''}`)
         default:
           return 0
       }
     })
+    
+  console.log('Filtered artists:', filteredAndSortedArtists)
 
   if (loading) {
     return (
@@ -235,7 +237,7 @@ export const Artists = () => {
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
               >
                 <option value="">All Specialties</option>
-                {specialties.map((specialty) => (
+                {(specialties || []).map((specialty) => (
                   <option key={specialty.id} value={specialty.name}>
                     {specialty.icon} {specialty.name}
                   </option>

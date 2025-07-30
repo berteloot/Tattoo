@@ -217,10 +217,12 @@ export const FlashGallery = () => {
   console.log('Selected style:', selectedStyle)
   console.log('Price range:', priceRange)
   
-  const filteredAndSortedItems = flashItems
+  const filteredAndSortedItems = (flashItems || [])
     .filter(item => {
+      if (!item) return false
+      
       const matchesSearch = !searchTerm || 
-                           item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       
@@ -234,20 +236,20 @@ export const FlashGallery = () => {
       
       return matchesSearch && matchesArtist && matchesStyle && matchesPrice
     })
-    
-  console.log('Filtered flash items:', filteredAndSortedItems)
     .sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.createdAt) - new Date(a.createdAt)
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
         case 'price':
-          return a.price - b.price
+          return (a.price || 0) - (b.price || 0)
         case 'popular':
-          return b.likes - a.likes
+          return (b.likes || 0) - (a.likes || 0)
         default:
           return 0
       }
     })
+    
+  console.log('Filtered flash items:', filteredAndSortedItems)
 
   if (loading) {
     return (
@@ -314,9 +316,9 @@ export const FlashGallery = () => {
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
               >
                 <option value="">All Artists</option>
-                {artists.map((artist) => (
+                {(artists || []).map((artist) => (
                   <option key={artist.id} value={artist.id}>
-                    {artist.user.firstName} {artist.user.lastName}
+                    {artist.user?.firstName} {artist.user?.lastName}
                   </option>
                 ))}
               </select>
