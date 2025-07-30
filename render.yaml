@@ -1,4 +1,4 @@
-# Render deployment configuration - Version 4.2
+# Render deployment configuration - Version 4.3
 # Single full-stack service for simplicity and reliability
 services:
   # Full-Stack Application (API + Frontend)
@@ -8,26 +8,10 @@ services:
     plan: starter
     buildCommand: |
       echo "🚀 Starting build process..."
-      echo "📁 Current directory: $(pwd)"
-      echo "📁 Directory contents:"
-      ls -la
-      
-      echo "📦 Installing root dependencies..."
       npm install
-      
-      echo "📦 Installing backend dependencies..."
       cd backend && npm install && npx prisma generate
-      
-      echo "📦 Installing frontend dependencies..."
-      cd ../frontend && npm install
-      
-      echo "🔨 Building frontend..."
-      npm run build
-      
-      echo "🔍 Checking frontend build output..."
-      ls -la dist/
-      
-      echo "✅ Build completed successfully!"
+      cd ../frontend && npm install && npm run build
+      echo "✅ Build completed!"
     startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
@@ -51,7 +35,7 @@ services:
       - key: ALLOWED_FILE_TYPES
         value: image/jpeg,image/png,image/webp
       - key: FRONTEND_URL
-        value: https://tattooed-world-app.onrender.com
+        value: https://tattooed-world-backend.onrender.com
     # Optional environment variables (can be set later)
     - key: GOOGLE_MAPS_API_KEY
       sync: false
