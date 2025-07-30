@@ -4,6 +4,7 @@ import { Search, Filter, Heart, Eye, DollarSign, Tag, Calendar, Star, MapPin, In
 import { flashAPI, artistsAPI } from '../services/api'
 
 export const FlashGallery = () => {
+  console.log('FlashGallery component rendering')
   const [flashItems, setFlashItems] = useState([])
   const [artists, setArtists] = useState([])
   const [loading, setLoading] = useState(true)

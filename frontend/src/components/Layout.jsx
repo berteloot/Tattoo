@@ -36,6 +36,7 @@ export const Layout = ({ children }) => {
                 <Link
                   key={item.name}
                   to={item.href}
+                  onClick={() => console.log(`Navigating to: ${item.href}`)}
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive(item.href)
                       ? 'text-primary-600 bg-primary-50'
@@ -121,7 +122,10 @@ export const Layout = ({ children }) => {
                       ? 'text-primary-600 bg-primary-50'
                       : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
                   }`}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => {
+                    console.log(`Mobile navigating to: ${item.href}`)
+                    setMobileMenuOpen(false)
+                  }}
                 >
                   {item.name}
                 </Link>

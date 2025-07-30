@@ -4,6 +4,7 @@ import { Star, MapPin, Filter, Search, DollarSign, Heart, Eye, Calendar, Award, 
 import { artistsAPI, specialtiesAPI } from '../services/api'
 
 export const Artists = () => {
+  console.log('Artists component rendering')
   const [artists, setArtists] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
