@@ -371,45 +371,23 @@ router.get('/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
+    // First, try to get basic user info
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
         artistProfile: {
-          include: {
-            specialties: true,
-            services: true,
-            flash: true,
-            reviewsReceived: {
-              include: {
-                author: {
-                  select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    email: true
-                  }
-                }
-              }
-            }
-          }
-        },
-        reviewsGiven: {
-          include: {
-            recipient: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true
-              }
-            }
+          select: {
+            id: true,
+            studioName: true,
+            verificationStatus: true,
+            isVerified: true,
+            isFeatured: true
           }
         },
         _count: {
           select: {
             reviewsGiven: true,
-            reviewsReceived: true,
-            adminActions: true
+            reviewsReceived: true
           }
         }
       }
@@ -460,14 +438,6 @@ router.get('/artists/pending', async (req, res) => {
               email: true,
               phone: true,
               createdAt: true
-            }
-          },
-          specialties: true,
-          services: true,
-          _count: {
-            select: {
-              flash: true,
-              reviewsReceived: true
             }
           }
         }
