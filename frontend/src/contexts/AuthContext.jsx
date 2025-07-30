@@ -56,6 +56,8 @@ export const AuthProvider = ({ children }) => {
       console.log('Attempting login for:', email)
       const response = await authAPI.login({ email, password })
       console.log('Login API response:', response)
+      console.log('Response data:', response.data)
+      console.log('Response data keys:', Object.keys(response.data || {}))
       
       // Check if login was successful
       if (response && response.data && response.data.success && response.data.data) {
