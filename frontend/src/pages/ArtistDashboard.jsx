@@ -70,25 +70,28 @@ export const ArtistDashboard = () => {
       if (user?.artistProfile?.id) {
         try {
           const profileResponse = await artistsAPI.getById(user.artistProfile.id)
-          setProfile(profileResponse.data.data.artist)
-          
-          // Set form data
-          setFormData({
-            bio: profileResponse.data.data.artist.bio || '',
-            studioName: profileResponse.data.data.artist.studioName || '',
-            website: profileResponse.data.data.artist.website || '',
-            instagram: profileResponse.data.data.artist.instagram || '',
-            address: profileResponse.data.data.artist.address || '',
-            city: profileResponse.data.data.artist.city || '',
-            state: profileResponse.data.data.artist.state || '',
-            zipCode: profileResponse.data.data.artist.zipCode || '',
-            country: profileResponse.data.data.artist.country || '',
-            hourlyRate: profileResponse.data.data.artist.hourlyRate || '',
-            minPrice: profileResponse.data.data.artist.minPrice || '',
-            maxPrice: profileResponse.data.data.artist.maxPrice || '',
-            specialtyIds: profileResponse.data.data.artist.specialties?.map(s => s.id) || [],
-            serviceIds: profileResponse.data.data.artist.services?.map(s => s.id) || []
-          })
+          if (profileResponse?.data?.data?.artist) {
+            const artist = profileResponse.data.data.artist
+            setProfile(artist)
+            
+            // Set form data with safety checks
+            setFormData({
+              bio: artist.bio || '',
+              studioName: artist.studioName || '',
+              website: artist.website || '',
+              instagram: artist.instagram || '',
+              address: artist.address || '',
+              city: artist.city || '',
+              state: artist.state || '',
+              zipCode: artist.zipCode || '',
+              country: artist.country || '',
+              hourlyRate: artist.hourlyRate || '',
+              minPrice: artist.minPrice || '',
+              maxPrice: artist.maxPrice || '',
+              specialtyIds: artist.specialties?.map(s => s.id) || [],
+              serviceIds: artist.services?.map(s => s.id) || []
+            })
+          }
         } catch (profileError) {
           console.error('Error loading artist profile:', profileError)
           // Profile might not exist, continue with empty form
@@ -99,7 +102,7 @@ export const ArtistDashboard = () => {
       if (user?.artistProfile?.id) {
         try {
           const flashResponse = await flashAPI.getAll({ artistId: user.artistProfile.id })
-          flashData = flashResponse.data.data.flash
+          flashData = flashResponse?.data?.data?.flash || []
           setFlash(flashData)
         } catch (flashError) {
           console.error('Error loading flash items:', flashError)
@@ -112,24 +115,31 @@ export const ArtistDashboard = () => {
       // Load reviews
       try {
         const reviewsResponse = await reviewsAPI.getAll({ recipientId: user?.id })
-        reviewsData = reviewsResponse.data.data.reviews
+        reviewsData = reviewsResponse?.data?.data?.reviews || []
         setReviews(reviewsData)
       } catch (reviewsError) {
         console.error('Error loading reviews:', reviewsError)
         setReviews([])
       }
 
-      // Load specialties and services
-      const [specialtiesResponse, servicesResponse] = await Promise.all([
-        specialtiesAPI.getAll(),
-        servicesAPI.getAll()
-      ])
-      setSpecialties(specialtiesResponse.data.data.specialties)
-      setServices(servicesResponse.data.data.services)
+      // Load specialties and services with error handling
+      try {
+        const [specialtiesResponse, servicesResponse] = await Promise.all([
+          specialtiesAPI.getAll(),
+          servicesAPI.getAll()
+        ])
+        
+        setSpecialties(specialtiesResponse?.data?.data?.specialties || [])
+        setServices(servicesResponse?.data?.data?.services || [])
+      } catch (apiError) {
+        console.error('Error loading specialties/services:', apiError)
+        setSpecialties([])
+        setServices([])
+      }
 
-      // Calculate analytics
+      // Calculate analytics with safety checks
       const avgRating = reviewsData.length > 0
-        ? reviewsData.reduce((sum, review) => sum + review.rating, 0) / reviewsData.length
+        ? reviewsData.reduce((sum, review) => sum + (review.rating || 0), 0) / reviewsData.length
         : 0
 
       setAnalytics({
@@ -471,7 +481,7 @@ export const ArtistDashboard = () => {
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Specialties</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {specialties.map((specialty) => (
+                      {(specialties || []).map((specialty) => (
                         <label key={specialty.id} className="flex items-center">
                           <input
                             type="checkbox"
@@ -489,7 +499,7 @@ export const ArtistDashboard = () => {
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Services</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {services.map((service) => (
+                      {(services || []).map((service) => (
                         <label key={service.id} className="flex items-center">
                           <input
                             type="checkbox"
@@ -732,7 +742,7 @@ export const ArtistDashboard = () => {
             <h2 className="text-xl font-semibold text-gray-900">Recent Reviews</h2>
           </div>
           <div className="p-6">
-            {reviews.length > 0 ? (
+            {(reviews || []).length > 0 ? (
               <div className="space-y-4">
                 {reviews.slice(0, 5).map((review) => (
                   <div key={review.id} className="border-b border-gray-200 pb-4 last:border-b-0">
@@ -741,31 +751,31 @@ export const ArtistDashboard = () => {
                         <div className="flex-shrink-0">
                           <img
                             className="h-10 w-10 rounded-full"
-                            src={review.author.avatar || `https://ui-avatars.com/api/?name=${review.author.firstName}+${review.author.lastName}`}
-                            alt={`${review.author.firstName} ${review.author.lastName}`}
+                            src={review.author?.avatar || `https://ui-avatars.com/api/?name=${review.author?.firstName || 'User'}+${review.author?.lastName || ''}`}
+                            alt={`${review.author?.firstName || 'User'} ${review.author?.lastName || ''}`}
                           />
                         </div>
                         <div className="ml-4">
                           <p className="text-sm font-medium text-gray-900">
-                            {review.author.firstName} {review.author.lastName}
+                            {review.author?.firstName || 'User'} {review.author?.lastName || ''}
                           </p>
                           <div className="flex items-center">
                             {[...Array(5)].map((_, i) => (
                               <svg
                                 key={i}
-                                className={`h-4 w-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                                className={`h-4 w-4 ${i < (review.rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`}
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                               </svg>
                             ))}
-                            <span className="ml-2 text-sm text-gray-500">{review.rating}/5</span>
+                            <span className="ml-2 text-sm text-gray-500">{review.rating || 0}/5</span>
                           </div>
                         </div>
                       </div>
                       <span className="text-sm text-gray-500">
-                        {new Date(review.createdAt).toLocaleDateString()}
+                        {new Date(review.createdAt || Date.now()).toLocaleDateString()}
                       </span>
                     </div>
                     {review.title && (
@@ -797,17 +807,17 @@ export const ArtistDashboard = () => {
             </div>
           </div>
           <div className="p-6">
-            {flash.length > 0 ? (
+            {(flash || []).length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {flash.slice(0, 6).map((item) => (
                   <div key={item.id} className="bg-gray-50 rounded-lg overflow-hidden">
                     <img
-                      src={item.imageUrl}
-                      alt={item.title}
+                      src={item.imageUrl || 'https://via.placeholder.com/400x300?text=No+Image'}
+                      alt={item.title || 'Flash Item'}
                       className="w-full h-48 object-cover"
                     />
                     <div className="p-4">
-                      <h3 className="text-lg font-medium text-gray-900">{item.title}</h3>
+                      <h3 className="text-lg font-medium text-gray-900">{item.title || 'Untitled'}</h3>
                       {item.description && (
                         <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                       )}
