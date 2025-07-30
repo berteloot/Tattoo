@@ -60,6 +60,14 @@ export const AuthProvider = ({ children }) => {
       console.log('Response data keys:', Object.keys(response.data || {}))
       console.log('Response data.data:', response.data?.data)
       console.log('Response data.data keys:', Object.keys(response.data?.data || {}))
+      console.log('Condition check:', {
+        hasResponse: !!response,
+        hasData: !!(response && response.data),
+        hasSuccess: !!(response && response.data && response.data.success),
+        hasDataData: !!(response && response.data && response.data.data),
+        successValue: response?.data?.success,
+        dataValue: response?.data?.data
+      })
       
       // Check if login was successful
       if (response && response.data && response.data.success && response.data.data) {
