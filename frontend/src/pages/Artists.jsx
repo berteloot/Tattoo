@@ -14,21 +14,34 @@ export const Artists = () => {
   const [sortBy, setSortBy] = useState('rating') // 'rating', 'price', 'name'
 
   useEffect(() => {
+    console.log('Artists component mounted, fetching data...')
     fetchArtists()
     fetchSpecialties()
   }, [])
 
   const fetchArtists = async () => {
     try {
+      console.log('Fetching artists from API...')
+      console.log('API URL:', import.meta.env.VITE_API_URL || 'http://localhost:3001')
+      
       const response = await artistsAPI.getAll({ limit: 20 })
-      console.log('Artists API response:', response.data)
-      if (response.data.success) {
+      console.log('Artists API response:', response?.data)
+      if (response?.data?.success) {
         const artistsData = response.data.data.artists || []
-        console.log('Setting artists:', artistsData)
+        console.log('Setting artists from API:', artistsData)
         setArtists(artistsData)
+      } else {
+        console.log('API response not successful, using fallback data')
+        throw new Error('API response not successful')
       }
     } catch (error) {
       console.error('Error fetching artists:', error)
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        url: error.config?.url
+      })
       // Fallback to dummy data for demo
       const dummyArtists = getDummyArtists()
       console.log('Using dummy artists:', dummyArtists)
@@ -40,14 +53,23 @@ export const Artists = () => {
 
   const fetchSpecialties = async () => {
     try {
+      console.log('Fetching specialties from API...')
       const response = await specialtiesAPI.getAll()
-      if (response.data.success) {
-        setSpecialties(response.data.data.specialties || [])
+      console.log('Specialties API response:', response?.data)
+      if (response?.data?.success) {
+        const specialtiesData = response.data.data.specialties || []
+        console.log('Setting specialties from API:', specialtiesData)
+        setSpecialties(specialtiesData)
+      } else {
+        console.log('Specialties API response not successful, using fallback data')
+        throw new Error('Specialties API response not successful')
       }
     } catch (error) {
       console.error('Error fetching specialties:', error)
       // Fallback to dummy data
-      setSpecialties(getDummySpecialties())
+      const dummySpecialties = getDummySpecialties()
+      console.log('Using dummy specialties:', dummySpecialties)
+      setSpecialties(dummySpecialties)
     }
   }
 
@@ -178,6 +200,7 @@ export const Artists = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Discovering amazing artists...</p>
+          <p className="text-sm text-gray-500 mt-2">Loading from API...</p>
         </div>
       </div>
     )
