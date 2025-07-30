@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Star, MapPin, Clock, DollarSign, Phone, Globe, Instagram, ArrowLeft } from 'lucide-react'
 import { LoadingSpinner } from '../components/UXComponents'
+import { artistsAPI } from '../services/api'
 
 export const ArtistProfile = () => {
   const { id } = useParams()
@@ -17,21 +18,16 @@ export const ArtistProfile = () => {
   const fetchArtistProfile = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/artists/${id}`)
+      const response = await artistsAPI.getById(id)
       
-      if (!response.ok) {
-        throw new Error('Artist not found')
-      }
-      
-      const data = await response.json()
-      if (data.success) {
-        setArtist(data.data.artist)
-        setReviews(data.data.reviews || [])
+      if (response.data.success) {
+        setArtist(response.data.data.artist)
+        setReviews(response.data.data.reviews || [])
       } else {
-        throw new Error(data.error || 'Failed to fetch artist')
+        throw new Error(response.data.error || 'Failed to fetch artist')
       }
     } catch (err) {
-      setError(err.message)
+      setError(err.response?.data?.error || err.message || 'Failed to fetch artist')
     } finally {
       setLoading(false)
     }

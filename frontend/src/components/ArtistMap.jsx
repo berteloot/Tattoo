@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api'
 import { MapPin, Star, Clock, DollarSign, Users, Map } from 'lucide-react'
+import { artistsAPI } from '../services/api'
 
 const mapContainerStyle = {
   width: '100%',
@@ -23,11 +24,10 @@ export const ArtistMap = () => {
 
   const fetchArtists = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/artists?limit=10`)
-      const data = await response.json()
+      const response = await artistsAPI.getAll({ limit: 10 })
       
-      if (data.success) {
-        setArtists(data.data.artists)
+      if (response.data.success) {
+        setArtists(response.data.data.artists)
       }
     } catch (error) {
       console.error('Error fetching artists:', error)
