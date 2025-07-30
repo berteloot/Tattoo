@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Star, MapPin, Filter, Search, DollarSign, Heart, Eye, Calendar, Award, Instagram, Globe } from 'lucide-react'
 import { artistsAPI, specialtiesAPI } from '../services/api'
+import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
 export const Artists = () => {
   console.log('Artists component rendering')
@@ -15,8 +16,11 @@ export const Artists = () => {
 
   useEffect(() => {
     console.log('Artists component mounted, fetching data...')
-    fetchArtists()
-    fetchSpecialties()
+    // Check API health first
+    checkApiHealth().then(() => {
+      fetchArtists()
+      fetchSpecialties()
+    })
   }, [])
 
   const fetchArtists = async () => {
@@ -24,27 +28,21 @@ export const Artists = () => {
       console.log('Fetching artists from API...')
       console.log('API URL:', import.meta.env.VITE_API_URL || 'http://localhost:3001')
       
-      const response = await artistsAPI.getAll({ limit: 20 })
-      console.log('Artists API response:', response?.data)
-      if (response?.data?.success) {
-        const artistsData = response.data.data.artists || []
-        console.log('Setting artists from API:', artistsData)
-        setArtists(artistsData)
+      const result = await apiCallWithFallback(
+        () => artistsAPI.getAll({ limit: 20 }),
+        { artists: getDummyArtists() }
+      )
+      
+      if (result.isFallback) {
+        console.log('Using fallback artists data')
+        setArtists(result.data.artists)
       } else {
-        console.log('API response not successful, using fallback data')
-        throw new Error('API response not successful')
+        console.log('Using API artists data')
+        setArtists(result.data.data.artists || [])
       }
     } catch (error) {
-      console.error('Error fetching artists:', error)
-      console.error('Error details:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        url: error.config?.url
-      })
-      // Fallback to dummy data for demo
+      console.error('Unexpected error in fetchArtists:', error)
       const dummyArtists = getDummyArtists()
-      console.log('Using dummy artists:', dummyArtists)
       setArtists(dummyArtists)
     } finally {
       setLoading(false)
@@ -54,21 +52,22 @@ export const Artists = () => {
   const fetchSpecialties = async () => {
     try {
       console.log('Fetching specialties from API...')
-      const response = await specialtiesAPI.getAll()
-      console.log('Specialties API response:', response?.data)
-      if (response?.data?.success) {
-        const specialtiesData = response.data.data.specialties || []
-        console.log('Setting specialties from API:', specialtiesData)
-        setSpecialties(specialtiesData)
+      
+      const result = await apiCallWithFallback(
+        () => specialtiesAPI.getAll(),
+        { specialties: getDummySpecialties() }
+      )
+      
+      if (result.isFallback) {
+        console.log('Using fallback specialties data')
+        setSpecialties(result.data.specialties)
       } else {
-        console.log('Specialties API response not successful, using fallback data')
-        throw new Error('Specialties API response not successful')
+        console.log('Using API specialties data')
+        setSpecialties(result.data.data.specialties || [])
       }
     } catch (error) {
-      console.error('Error fetching specialties:', error)
-      // Fallback to dummy data
+      console.error('Unexpected error in fetchSpecialties:', error)
       const dummySpecialties = getDummySpecialties()
-      console.log('Using dummy specialties:', dummySpecialties)
       setSpecialties(dummySpecialties)
     }
   }

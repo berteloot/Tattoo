@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Filter, Heart, Eye, DollarSign, Tag, Calendar, Star, MapPin, Instagram } from 'lucide-react'
 import { flashAPI, artistsAPI } from '../services/api'
+import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
 export const FlashGallery = () => {
   console.log('FlashGallery component rendering')
@@ -16,24 +17,33 @@ export const FlashGallery = () => {
   const [sortBy, setSortBy] = useState('newest') // 'newest', 'price', 'popular'
 
   useEffect(() => {
-    fetchFlashItems()
-    fetchArtists()
+    console.log('FlashGallery component mounted, fetching data...')
+    // Check API health first
+    checkApiHealth().then(() => {
+      fetchFlashItems()
+      fetchArtists()
+    })
   }, [])
 
   const fetchFlashItems = async () => {
     try {
-      const response = await flashAPI.getAll({ limit: 50 })
-      console.log('Flash API response:', response.data)
-      if (response.data.success) {
-        const flashData = response.data.data.flash || []
-        console.log('Setting flash items:', flashData)
-        setFlashItems(flashData)
+      console.log('Fetching flash items from API...')
+      
+      const result = await apiCallWithFallback(
+        () => flashAPI.getAll({ limit: 50 }),
+        { flash: getDummyFlashItems() }
+      )
+      
+      if (result.isFallback) {
+        console.log('Using fallback flash items data')
+        setFlashItems(result.data.flash)
+      } else {
+        console.log('Using API flash items data')
+        setFlashItems(result.data.data.flash || [])
       }
     } catch (error) {
-      console.error('Error fetching flash items:', error)
-      // Fallback to dummy data for demo
+      console.error('Unexpected error in fetchFlashItems:', error)
       const dummyFlash = getDummyFlashItems()
-      console.log('Using dummy flash items:', dummyFlash)
       setFlashItems(dummyFlash)
     } finally {
       setLoading(false)
@@ -42,12 +52,22 @@ export const FlashGallery = () => {
 
   const fetchArtists = async () => {
     try {
-      const response = await artistsAPI.getAll({ limit: 20 })
-      if (response.data.success) {
-        setArtists(response.data.data.artists || [])
+      console.log('Fetching artists for flash gallery...')
+      
+      const result = await apiCallWithFallback(
+        () => artistsAPI.getAll({ limit: 20 }),
+        { artists: [] }
+      )
+      
+      if (result.isFallback) {
+        console.log('Using fallback artists data for flash gallery')
+        setArtists(result.data.artists)
+      } else {
+        console.log('Using API artists data for flash gallery')
+        setArtists(result.data.data.artists || [])
       }
     } catch (error) {
-      console.error('Error fetching artists:', error)
+      console.error('Unexpected error in fetchArtists:', error)
       setArtists([])
     }
   }
