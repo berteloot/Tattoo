@@ -1,23 +1,8 @@
 import axios from 'axios'
 
-// Create axios instance - use relative URLs for same-domain deployment
-// For production on Render, we're serving from the same domain, so use relative URLs
-let API_URL = import.meta.env.VITE_API_URL || '/api'
-
-// If environment variable is undefined, detect based on current location
-if (!import.meta.env.VITE_API_URL) {
-  const currentUrl = window.location.href
-  if (currentUrl.includes('onrender.com')) {
-    // Production on Render - use relative URLs since frontend and backend are on same domain
-    API_URL = '/api'
-  } else if (currentUrl.includes('localhost')) {
-    // Development - use the proxy configuration
-    API_URL = '/api'
-  } else {
-    // Fallback
-    API_URL = '/api'
-  }
-}
+// Create axios instance - always use relative URLs for same-domain deployment
+// Since we're serving frontend and backend from the same domain on Render, use relative URLs
+const API_URL = '/api'
 
 console.log('API URL configured as:', API_URL)
 console.log('Environment VITE_API_URL:', import.meta.env.VITE_API_URL)
