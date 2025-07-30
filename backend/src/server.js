@@ -17,7 +17,6 @@ const reviewRoutes = require('./routes/reviews');
 const specialtyRoutes = require('./routes/specialties');
 const serviceRoutes = require('./routes/services');
 const adminRoutes = require('./routes/admin');
-const setupRoutes = require('./routes/setup');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorHandler');
@@ -139,7 +138,6 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/specialties', specialtyRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/setup', setupRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {
