@@ -206,9 +206,9 @@ export const Home = () => {
                 </div>
               ))}
             </div>
-          ) : featuredArtists.length > 0 ? (
+          ) : (featuredArtists || []).length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredArtists.map((artist) => (
+              {(featuredArtists || []).map((artist) => (
                 <div key={artist.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                   <div className="h-48 bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
                     <span className="text-white text-6xl">🎨</span>

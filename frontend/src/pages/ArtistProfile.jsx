@@ -209,9 +209,9 @@ export const ArtistProfile = () => {
             {/* Reviews */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Reviews</h2>
-              {reviews.length > 0 ? (
+              {(reviews || []).length > 0 ? (
                 <div className="space-y-4">
-                  {reviews.map((review) => (
+                  {(reviews || []).map((review) => (
                     <div key={review.id} className="border-b border-gray-100 pb-4 last:border-b-0">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">

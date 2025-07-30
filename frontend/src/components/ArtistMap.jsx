@@ -119,7 +119,7 @@ export const ArtistMap = () => {
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Unavailable</h3>
           <p className="text-gray-500 mb-4">Google Maps API key not configured</p>
           <div className="space-y-2">
-            {artists.map((artist) => (
+            {(artists || []).map((artist) => (
               <div key={artist.id} className="bg-white p-3 rounded border">
                 <h4 className="font-medium">{artist.user.firstName} {artist.user.lastName}</h4>
                 <p className="text-sm text-gray-600">{artist.studioName}</p>
@@ -158,7 +158,7 @@ export const ArtistMap = () => {
               <p className="text-gray-500 mb-4">Google Maps failed to load</p>
               <p className="text-sm text-gray-400">Domain may need to be authorized in Google Cloud Console</p>
               <div className="mt-4 space-y-2">
-                {artists.map((artist) => (
+                {(artists || []).map((artist) => (
                   <div key={artist.id} className="bg-white p-3 rounded border">
                     <h4 className="font-medium">{artist.user.firstName} {artist.user.lastName}</h4>
                     <p className="text-sm text-gray-600">{artist.studioName}</p>
@@ -187,7 +187,7 @@ export const ArtistMap = () => {
               ]
             }}
           >
-          {artists.map((artist) => {
+          {(artists || []).map((artist) => {
             // Only show artists with coordinates
             if (!artist.latitude || !artist.longitude) return null;
             

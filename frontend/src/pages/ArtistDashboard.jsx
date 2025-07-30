@@ -138,15 +138,15 @@ export const ArtistDashboard = () => {
       }
 
       // Calculate analytics with safety checks
-      const avgRating = reviewsData.length > 0
-        ? reviewsData.reduce((sum, review) => sum + (review.rating || 0), 0) / reviewsData.length
+      const avgRating = (reviewsData || []).length > 0
+        ? (reviewsData || []).reduce((sum, review) => sum + (review.rating || 0), 0) / (reviewsData || []).length
         : 0
 
       setAnalytics({
         profileViews: Math.floor(Math.random() * 100) + 50, // Mock data for now
-        totalReviews: reviewsData.length,
+        totalReviews: (reviewsData || []).length,
         averageRating: Math.round(avgRating * 10) / 10,
-        totalFlash: flashData.length,
+        totalFlash: (flashData || []).length,
         monthlyEarnings: Math.floor(Math.random() * 5000) + 1000 // Mock data for now
       })
 
