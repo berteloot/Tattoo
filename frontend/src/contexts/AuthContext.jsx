@@ -79,7 +79,18 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Login error details:', error)
-      const message = error.response?.data?.error || error.response?.data?.message || error.message || 'Login failed'
+      
+      // Handle different error response structures
+      let message = 'Login failed'
+      
+      if (error.response && error.response.data) {
+        // Server returned an error response
+        message = error.response.data.error || error.response.data.message || 'Login failed'
+      } else if (error.message) {
+        // Network or other error
+        message = error.message
+      }
+      
       toast.error('Error', message)
       return { success: false, error: message }
     }
@@ -113,7 +124,18 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Registration error details:', error)
-      const message = error.response?.data?.error || error.response?.data?.message || error.message || 'Registration failed'
+      
+      // Handle different error response structures
+      let message = 'Registration failed'
+      
+      if (error.response && error.response.data) {
+        // Server returned an error response
+        message = error.response.data.error || error.response.data.message || 'Registration failed'
+      } else if (error.message) {
+        // Network or other error
+        message = error.message
+      }
+      
       toast.error('Error', message)
       return { success: false, error: message }
     }
