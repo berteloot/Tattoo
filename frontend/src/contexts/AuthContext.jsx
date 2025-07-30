@@ -184,6 +184,9 @@ export const AuthProvider = ({ children }) => {
       toast.success('Success', 'Logged out successfully')
       navigate('/')
     }
+    
+    // Always return a success value
+    return { success: true }
   }
 
   const updateProfile = async (profileData) => {
