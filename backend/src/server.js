@@ -24,6 +24,9 @@ const { notFound } = require('./middleware/notFound');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust proxy for rate limiting behind load balancers (Render, Heroku, etc.)
+app.set('trust proxy', 1);
+
 // Check required environment variables
 const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
@@ -70,7 +73,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
-    message: 'Tattoo Artist Locator API is running',
+            message: 'Tattooed World API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV
   });
@@ -88,7 +91,7 @@ app.use('/api/admin', adminRoutes);
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'Welcome to Tattoo Artist Locator API',
+            message: 'Welcome to Tattooed World API',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',

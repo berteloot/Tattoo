@@ -1,7 +1,7 @@
 {
   "name": "tattoo-app-backend",
   "version": "1.0.0",
-  "description": "Backend API for Tattoo Artist Locator",
+  "description": "Backend API for Tattooed World",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

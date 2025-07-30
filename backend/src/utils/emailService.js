@@ -209,7 +209,7 @@ class EmailService {
         </div>
         
         <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px;">
-          <p>© 2025 Tattoo Locator. All rights reserved.</p>
+          <p>© 2025 Tattooed World. All rights reserved.</p>
           <p>This email was sent to ${user.email}</p>
         </div>
       </div>
@@ -260,7 +260,7 @@ class EmailService {
         </div>
         
         <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px;">
-          <p>© 2025 Tattoo Locator. All rights reserved.</p>
+          <p>© 2025 Tattooed World. All rights reserved.</p>
           <p>This email was sent to ${artist.user.email}</p>
         </div>
       </div>
@@ -322,7 +322,7 @@ class EmailService {
         </div>
         
         <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px;">
-          <p>© 2025 Tattoo Locator. All rights reserved.</p>
+          <p>© 2025 Tattooed World. All rights reserved.</p>
           <p>This email was sent to ${client.email}</p>
         </div>
       </div>
