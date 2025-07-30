@@ -1,4 +1,4 @@
-# Render deployment configuration - Version 5.0
+# Render deployment configuration - Version 5.1
 # Single full-stack service for simplicity and reliability
 services:
   # Full-Stack Application (API + Frontend)
@@ -6,18 +6,7 @@ services:
     name: tattooed-world-app
     env: node
     plan: starter
-    buildCommand: |
-      echo "🚀 Starting build process..."
-      echo "📁 Current directory: $(pwd)"
-      echo "📁 Directory contents:"
-      ls -la
-      echo "📦 Installing root dependencies..."
-      npm install
-      echo "🔨 Building backend..."
-      cd backend && npm install && npx prisma generate
-      echo "🎨 Building frontend..."
-      cd ../frontend && npm install && npm run build
-      echo "✅ Build completed!"
+    buildCommand: npm install && cd backend && npm install && npx prisma generate && cd ../frontend && npm install && npm run build
     startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
