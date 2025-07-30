@@ -20,13 +20,18 @@ export const Artists = () => {
   const fetchArtists = async () => {
     try {
       const response = await artistsAPI.getAll({ limit: 20 })
+      console.log('Artists API response:', response.data)
       if (response.data.success) {
-        setArtists(response.data.data.artists || [])
+        const artistsData = response.data.data.artists || []
+        console.log('Setting artists:', artistsData)
+        setArtists(artistsData)
       }
     } catch (error) {
       console.error('Error fetching artists:', error)
       // Fallback to dummy data for demo
-      setArtists(getDummyArtists())
+      const dummyArtists = getDummyArtists()
+      console.log('Using dummy artists:', dummyArtists)
+      setArtists(dummyArtists)
     } finally {
       setLoading(false)
     }
@@ -36,7 +41,7 @@ export const Artists = () => {
     try {
       const response = await specialtiesAPI.getAll()
       if (response.data.success) {
-        setSpecialties(response.data.data || [])
+        setSpecialties(response.data.data.specialties || [])
       }
     } catch (error) {
       console.error('Error fetching specialties:', error)
@@ -132,11 +137,16 @@ export const Artists = () => {
     { id: '6', name: 'Watercolor', icon: '🎨' }
   ]
 
+  console.log('Current artists state:', artists)
+  console.log('Search term:', searchTerm)
+  console.log('Selected specialty:', selectedSpecialty)
+  
   const filteredAndSortedArtists = artists
     .filter(artist => {
-      const matchesSearch = artist.user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch = !searchTerm || 
+                           artist.user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            artist.user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           artist.studioName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           artist.studioName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            artist.city.toLowerCase().includes(searchTerm.toLowerCase())
       
       const matchesSpecialty = !selectedSpecialty || 
@@ -144,6 +154,8 @@ export const Artists = () => {
       
       return matchesSearch && matchesSpecialty
     })
+    
+  console.log('Filtered artists:', filteredAndSortedArtists)
     .sort((a, b) => {
       switch (sortBy) {
         case 'rating':
