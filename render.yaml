@@ -1,4 +1,4 @@
-# Render deployment configuration - Version 4.8
+# Render deployment configuration - Version 4.9
 # Single full-stack service for simplicity and reliability
 services:
   # Full-Stack Application (API + Frontend)
@@ -8,9 +8,19 @@ services:
     plan: starter
     buildCommand: |
       echo "🚀 Starting build process..."
+      echo "📁 Current directory: $(pwd)"
+      echo "📁 Directory contents:"
+      ls -la
+      
+      echo "📦 Installing root dependencies..."
       npm install
+      
+      echo "🔨 Building backend..."
       cd backend && npm install && npx prisma generate
+      
+      echo "🎨 Building frontend..."
       cd ../frontend && npm install && npm run build
+      
       echo "✅ Build completed!"
     startCommand: cd backend && npm run start:prod
     envVars:
