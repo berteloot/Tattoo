@@ -45,9 +45,10 @@ services:
   # Frontend Service
   - type: web
     name: tattooed-world-frontend
-    env: static
+    env: node
+    plan: starter
     buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/dist
+    startCommand: cd frontend && npm run preview
     envVars:
       - key: VITE_API_URL
         value: https://tattooed-world-backend.onrender.com
