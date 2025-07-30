@@ -11,7 +11,7 @@ services:
         value: production
       - key: DATABASE_URL
         fromDatabase:
-          name: tattoo-app-db
+          name: tattooed-world-db
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
@@ -26,7 +26,7 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
       - key: CORS_ORIGIN
-        value: https://tattoo-app-frontend.onrender.com
+        value: https://tattooed-world-frontend.onrender.com
       - key: MAX_FILE_SIZE
         value: 5242880
       - key: ALLOWED_FILE_TYPES
@@ -40,23 +40,23 @@ services:
       - key: FROM_EMAIL
         value: noreply@tattooedworld.com
       - key: FRONTEND_URL
-        value: https://tattoo-app-frontend.onrender.com
+        value: https://tattooed-world-frontend.onrender.com
 
   # Frontend Service
   - type: web
-    name: tattoo-app-frontend
+    name: tattooed-world-frontend
     env: static
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
-        value: https://tattoo-app-backend.onrender.com
+        value: https://tattooed-world-backend.onrender.com
       - key: VITE_GOOGLE_MAPS_API_KEY
         sync: false
 
 databases:
   # PostgreSQL Database
-  - name: tattoo-app-db
+  - name: tattooed-world-db
     databaseName: tattoo_app
     user: tattoo_app_user
     plan: free 
