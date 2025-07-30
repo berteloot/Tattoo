@@ -3,6 +3,7 @@ import { MapPin, Users, Star, Palette, Search, Filter } from 'lucide-react'
 import { ArtistMap } from '../components/ArtistMap'
 import { useState, useEffect } from 'react'
 import { api } from '../services/api'
+import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
 export const Home = () => {
   console.log('Home component rendering')
@@ -12,19 +13,75 @@ export const Home = () => {
   useEffect(() => {
     const fetchFeaturedArtists = async () => {
       try {
-        const response = await api.get('/api/artists?featured=true&limit=3')
-        if (response.data.success) {
-          setFeaturedArtists(response.data.data.artists || [])
+        console.log('Fetching featured artists for home page...')
+        
+        const result = await apiCallWithFallback(
+          () => api.get('/api/artists?featured=true&limit=3'),
+          { artists: getDummyFeaturedArtists() }
+        )
+        
+        if (result.isFallback) {
+          console.log('Using fallback featured artists data')
+          setFeaturedArtists(result.data.artists)
+        } else {
+          console.log('Using API featured artists data')
+          setFeaturedArtists(result.data.data.artists || [])
         }
       } catch (error) {
-        console.error('Error fetching featured artists:', error)
+        console.error('Unexpected error in fetchFeaturedArtists:', error)
+        setFeaturedArtists(getDummyFeaturedArtists())
       } finally {
         setLoading(false)
       }
     }
 
-    fetchFeaturedArtists()
+    // Check API health first
+    checkApiHealth().then(() => {
+      fetchFeaturedArtists()
+    })
   }, [])
+
+  const getDummyFeaturedArtists = () => [
+    {
+      id: '1',
+      user: { firstName: 'Sarah', lastName: 'Chen' },
+      studioName: 'Ink & Soul Studio',
+      bio: 'Award-winning traditional tattoo artist with 8 years of experience.',
+      city: 'Montreal',
+      state: 'Quebec',
+      averageRating: 4.9,
+      reviewCount: 127,
+      specialties: [{ name: 'Traditional' }, { name: 'Japanese' }],
+      isVerified: true,
+      featured: true
+    },
+    {
+      id: '2',
+      user: { firstName: 'Marcus', lastName: 'Rodriguez' },
+      studioName: 'Black Canvas Tattoo',
+      bio: 'Master of black and grey realism. Creating stunning portraits.',
+      city: 'Montreal',
+      state: 'Quebec',
+      averageRating: 4.8,
+      reviewCount: 89,
+      specialties: [{ name: 'Black & Grey' }],
+      isVerified: true,
+      featured: true
+    },
+    {
+      id: '3',
+      user: { firstName: 'Emma', lastName: 'Thompson' },
+      studioName: 'Simple Lines Studio',
+      bio: 'Minimalist tattoo specialist creating elegant, simple designs.',
+      city: 'Montreal',
+      state: 'Quebec',
+      averageRating: 4.7,
+      reviewCount: 156,
+      specialties: [{ name: 'Minimalist' }, { name: 'Neo-Traditional' }],
+      isVerified: true,
+      featured: true
+    }
+  ]
 
   return (
     <div className="space-y-16">

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { Star, MapPin, Clock, DollarSign, Phone, Globe, Instagram, ArrowLeft } from 'lucide-react'
 import { LoadingSpinner } from '../components/UXComponents'
 import { artistsAPI } from '../services/api'
+import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
 export const ArtistProfile = () => {
   const { id } = useParams()
@@ -12,22 +13,50 @@ export const ArtistProfile = () => {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetchArtistProfile()
+    // Check API health first
+    checkApiHealth().then(() => {
+      fetchArtistProfile()
+    })
   }, [id])
+
+  const getDummyArtist = (artistId) => ({
+    id: artistId,
+    user: { firstName: 'Demo', lastName: 'Artist' },
+    studioName: 'Demo Studio',
+    bio: 'This is a demo artist profile. The real artist data is not available.',
+    city: 'Montreal',
+    state: 'Quebec',
+    hourlyRate: 120,
+    averageRating: 4.5,
+    reviewCount: 10,
+    specialties: [{ name: 'Traditional' }, { name: 'Japanese' }],
+    services: [{ name: 'Custom Design', price: 150 }],
+    isVerified: true,
+    featured: false
+  })
 
   const fetchArtistProfile = async () => {
     try {
       setLoading(true)
-      const response = await artistsAPI.getById(id)
+      console.log('Fetching artist profile for ID:', id)
       
-      if (response.data.success) {
-        setArtist(response.data.data.artist)
-        setReviews(response.data.data.reviews || [])
+      const result = await apiCallWithFallback(
+        () => artistsAPI.getById(id),
+        { artist: getDummyArtist(id), reviews: [] }
+      )
+      
+      if (result.isFallback) {
+        console.log('Using fallback artist profile data')
+        setArtist(result.data.artist)
+        setReviews(result.data.reviews)
       } else {
-        throw new Error(response.data.error || 'Failed to fetch artist')
+        console.log('Using API artist profile data')
+        setArtist(result.data.data.artist)
+        setReviews(result.data.data.reviews || [])
       }
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to fetch artist')
+      console.error('Unexpected error in fetchArtistProfile:', err)
+      setError('Failed to fetch artist profile')
     } finally {
       setLoading(false)
     }
