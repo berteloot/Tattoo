@@ -58,6 +58,8 @@ export const AuthProvider = ({ children }) => {
       console.log('Login API response:', response)
       console.log('Response data:', response.data)
       console.log('Response data keys:', Object.keys(response.data || {}))
+      console.log('Response data.data:', response.data?.data)
+      console.log('Response data.data keys:', Object.keys(response.data?.data || {}))
       
       // Check if login was successful
       if (response && response.data && response.data.success && response.data.data) {
