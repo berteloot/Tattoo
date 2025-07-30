@@ -10,7 +10,7 @@ let apiHealthStatus = {
 // Check if API is healthy
 export const checkApiHealth = async () => {
   try {
-    const response = await api.get('/api/artists?limit=1')
+    const response = await api.get('/artists?limit=1')
     apiHealthStatus = {
       isHealthy: true,
       lastCheck: Date.now(),

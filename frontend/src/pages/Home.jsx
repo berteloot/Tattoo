@@ -16,7 +16,7 @@ export const Home = () => {
         console.log('Fetching featured artists for home page...')
         
         const result = await apiCallWithFallback(
-          () => api.get('/api/artists?featured=true&limit=3'),
+          () => api.get('/artists?featured=true&limit=3'),
           { artists: getDummyFeaturedArtists() }
         )
         
