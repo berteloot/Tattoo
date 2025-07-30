@@ -18,6 +18,7 @@ export const ArtistMap = () => {
   const [artists, setArtists] = useState([])
   const [selectedArtist, setSelectedArtist] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [mapError, setMapError] = useState(false)
 
   useEffect(() => {
     // Check API health first
@@ -107,103 +108,28 @@ export const ArtistMap = () => {
   console.log('Google Maps API Key available:', !!googleMapsApiKey)
   console.log('API Key length:', googleMapsApiKey?.length || 0)
   console.log('Environment:', import.meta.env.MODE)
-  console.log('API URL:', import.meta.env.VITE_API_URL)
+  console.log('API URL:', '/api') // Hardcode since env var not working in production
 
   // If no API key, show fallback
   if (!googleMapsApiKey) {
     return (
-      <div className="w-full">
-        {/* Map Placeholder */}
-        <div className="h-96 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg border-2 border-dashed border-blue-300 flex items-center justify-center mb-6">
-          <div className="text-center">
-            <Map className="w-16 h-16 mx-auto mb-4 text-blue-400" />
-            <h3 className="text-lg font-semibold mb-2 text-gray-700">Interactive Map</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Google Maps integration requires an API key to be configured.
-            </p>
-            <div className="bg-white px-4 py-2 rounded-lg border inline-block">
-              <span className="text-sm text-gray-600">
-                {artists.length} artists available in your area
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Artists Grid */}
-        <div className="bg-white rounded-lg border">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Available Artists ({artists.length})
-              </h3>
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Users className="w-4 h-4" />
-                <span>All verified artists</span>
+      <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="text-center">
+          <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Unavailable</h3>
+          <p className="text-gray-500 mb-4">Google Maps API key not configured</p>
+          <div className="space-y-2">
+            {artists.map((artist) => (
+              <div key={artist.id} className="bg-white p-3 rounded border">
+                <h4 className="font-medium">{artist.user.firstName} {artist.user.lastName}</h4>
+                <p className="text-sm text-gray-600">{artist.studioName}</p>
+                {artist.latitude && artist.longitude && (
+                  <p className="text-xs text-gray-500">
+                    📍 {artist.latitude}, {artist.longitude}
+                  </p>
+                )}
               </div>
-            </div>
-          </div>
-          
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {artists.map((artist) => (
-                <div 
-                  key={artist.id} 
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => window.location.href = `/artists/${artist.id}`}
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-primary-600 font-semibold text-sm">
-                        {artist.user.firstName[0]}{artist.user.lastName[0]}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 truncate">
-                        {artist.user.firstName} {artist.user.lastName}
-                      </h4>
-                      <p className="text-sm text-gray-600 truncate">{artist.studioName}</p>
-                      
-                      {/* Rating */}
-                      <div className="flex items-center space-x-1 mt-1">
-                        <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                        <span className="text-xs text-gray-600">
-                          {artist.averageRating ? `${artist.averageRating.toFixed(1)} (${artist.reviewCount} reviews)` : 'No reviews yet'}
-                        </span>
-                      </div>
-
-                      {/* Specialties */}
-                      {artist.specialties && artist.specialties.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {artist.specialties.slice(0, 2).map((specialty) => (
-                            <span 
-                              key={specialty.id}
-                              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
-                            >
-                              {specialty.name}
-                            </span>
-                          ))}
-                          {artist.specialties.length > 2 && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                              +{artist.specialties.length - 2} more
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Pricing */}
-                      {artist.hourlyRate && (
-                        <div className="flex items-center space-x-1 mt-2">
-                          <DollarSign className="w-3 h-3 text-green-600" />
-                          <span className="text-xs text-gray-600">
-                            ${artist.hourlyRate}/hr
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -216,25 +142,51 @@ export const ArtistMap = () => {
         googleMapsApiKey={googleMapsApiKey}
         onError={(error) => {
           console.error('Google Maps failed to load:', error)
+          // Show fallback when Google Maps fails
+          setMapError(true)
         }}
         onLoad={() => {
           console.log('Google Maps loaded successfully')
+          setMapError(false)
         }}
       >
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={center}
-          zoom={12}
-          options={{
-            styles: [
-              {
-                featureType: 'poi',
-                elementType: 'labels',
-                stylers: [{ visibility: 'off' }]
-              }
-            ]
-          }}
-        >
+        {mapError ? (
+          <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Unavailable</h3>
+              <p className="text-gray-500 mb-4">Google Maps failed to load</p>
+              <p className="text-sm text-gray-400">Domain may need to be authorized in Google Cloud Console</p>
+              <div className="mt-4 space-y-2">
+                {artists.map((artist) => (
+                  <div key={artist.id} className="bg-white p-3 rounded border">
+                    <h4 className="font-medium">{artist.user.firstName} {artist.user.lastName}</h4>
+                    <p className="text-sm text-gray-600">{artist.studioName}</p>
+                    {artist.latitude && artist.longitude && (
+                      <p className="text-xs text-gray-500">
+                        📍 {artist.latitude}, {artist.longitude}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            center={center}
+            zoom={12}
+            options={{
+              styles: [
+                {
+                  featureType: 'poi',
+                  elementType: 'labels',
+                  stylers: [{ visibility: 'off' }]
+                }
+              ]
+            }}
+          >
           {artists.map((artist) => {
             // Only show artists with coordinates
             if (!artist.latitude || !artist.longitude) return null;
@@ -318,6 +270,7 @@ export const ArtistMap = () => {
             </InfoWindow>
           )}
         </GoogleMap>
+        )}
       </LoadScript>
     </div>
   )
