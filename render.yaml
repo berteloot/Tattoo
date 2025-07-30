@@ -1,3 +1,5 @@
+# Render deployment configuration - Version 2.0
+# Updated to use Node.js for frontend to support SPA routing
 services:
   # Backend API Service
   - type: web
