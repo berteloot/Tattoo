@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
 
 export const ArtistDashboard = () => {
   const { user } = useAuth()
@@ -602,31 +601,6 @@ export const ArtistDashboard = () => {
             <div className="p-6">
               {editing ? (
                 <div className="space-y-4">
-                  <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
-                    <GoogleMap
-                      mapContainerStyle={mapContainerStyle}
-                      center={mapCenter}
-                      zoom={13}
-                      onClick={handleMapClick}
-                    >
-                      {selectedLocation && (
-                        <Marker
-                          position={selectedLocation}
-                          draggable={true}
-                          onDragEnd={(e) => {
-                            const lat = e.latLng.lat()
-                            const lng = e.latLng.lng()
-                            setSelectedLocation({ lat, lng })
-                            setFormData(prev => ({
-                              ...prev,
-                              latitude: lat.toString(),
-                              longitude: lng.toString()
-                            }))
-                          }}
-                        />
-                      )}
-                    </GoogleMap>
-                  </LoadScript>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -732,21 +706,9 @@ export const ArtistDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {profile?.latitude && profile?.longitude ? (
-                    <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
-                      <GoogleMap
-                        mapContainerStyle={mapContainerStyle}
-                        center={{ lat: profile.latitude, lng: profile.longitude }}
-                        zoom={15}
-                      >
-                        <Marker position={{ lat: profile.latitude, lng: profile.longitude }} />
-                      </GoogleMap>
-                    </LoadScript>
-                  ) : (
-                    <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <p className="text-gray-500">No location set. Click Edit to add your studio location.</p>
-                    </div>
-                  )}
+                  <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <p className="text-gray-500">Location information will be displayed here.</p>
+                  </div>
 
                   {profile?.address && (
                     <div className="space-y-2">
