@@ -135,7 +135,8 @@ router.get('/users', async (req, res) => {
 router.put('/users/:id', [
   body('isActive').optional().isBoolean(),
   body('role').optional().isIn(['CLIENT', 'ARTIST', 'ADMIN']),
-  body('isVerified').optional().isBoolean()
+  body('isVerified').optional().isBoolean(),
+  body('reason').optional().isString()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -148,7 +149,7 @@ router.put('/users/:id', [
     }
 
     const { id } = req.params;
-    const { isActive, role, isVerified } = req.body;
+    const { isActive, role, isVerified, reason } = req.body;
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -198,7 +199,7 @@ router.put('/users/:id', [
         action: 'UPDATE_USER',
         targetType: 'USER',
         targetId: id,
-        details: `Updated user: ${JSON.stringify(updateData)}`
+        details: `Updated user: ${JSON.stringify(updateData)}${reason ? ` - Reason: ${reason}` : ''}`
       }
     });
 
@@ -212,6 +213,224 @@ router.put('/users/:id', [
     res.status(500).json({
       success: false,
       error: 'Error updating user'
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/users/:id
+ * @desc    Permanently delete a user (soft delete by setting isActive to false)
+ * @access  Admin only
+ */
+router.delete('/users/:id', [
+  body('reason').optional().isString()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: { artistProfile: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Prevent admin from deleting themselves
+    if (user.id === req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot delete your own account'
+      });
+    }
+
+    // Soft delete by setting isActive to false
+    const deletedUser = await prisma.user.update({
+      where: { id },
+      data: { isActive: false },
+      include: {
+        artistProfile: {
+          select: {
+            id: true,
+            studioName: true,
+            verificationStatus: true,
+            isVerified: true,
+            isFeatured: true
+          }
+        }
+      }
+    });
+
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'DELETE_USER',
+        targetType: 'USER',
+        targetId: id,
+        details: `User deactivated${reason ? ` - Reason: ${reason}` : ''}`
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'User deactivated successfully',
+      data: { user: deletedUser }
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error deleting user'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/users/:id/restore
+ * @desc    Restore a deactivated user
+ * @access  Admin only
+ */
+router.post('/users/:id/restore', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: { artistProfile: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    const restoredUser = await prisma.user.update({
+      where: { id },
+      data: { isActive: true },
+      include: {
+        artistProfile: {
+          select: {
+            id: true,
+            studioName: true,
+            verificationStatus: true,
+            isVerified: true,
+            isFeatured: true
+          }
+        }
+      }
+    });
+
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'RESTORE_USER',
+        targetType: 'USER',
+        targetId: id,
+        details: 'User account restored'
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'User restored successfully',
+      data: { user: restoredUser }
+    });
+  } catch (error) {
+    console.error('Restore user error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error restoring user'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/users/:id
+ * @desc    Get detailed user information
+ * @access  Admin only
+ */
+router.get('/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        artistProfile: {
+          include: {
+            specialties: true,
+            services: true,
+            flash: true,
+            reviewsReceived: {
+              include: {
+                author: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        reviewsGiven: {
+          include: {
+            recipient: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            reviewsGiven: true,
+            reviewsReceived: true,
+            adminActions: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { user }
+    });
+  } catch (error) {
+    console.error('Get user details error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching user details'
     });
   }
 });

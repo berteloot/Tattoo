@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api'
 import { MapPin, Star, Clock, DollarSign, Users, Map } from 'lucide-react'
 import { artistsAPI } from '../services/api'
+import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
 const mapContainerStyle = {
   width: '100%',
@@ -19,18 +20,73 @@ export const ArtistMap = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchArtists()
+    // Check API health first
+    checkApiHealth().then(() => {
+      fetchArtists()
+    })
   }, [])
+
+  const getDummyArtists = () => [
+    {
+      id: '1',
+      user: { firstName: 'Sarah', lastName: 'Chen' },
+      studioName: 'Ink & Soul Studio',
+      city: 'Montreal',
+      state: 'Quebec',
+      latitude: 45.5017,
+      longitude: -73.5673,
+      averageRating: 4.9,
+      reviewCount: 127,
+      specialties: [{ name: 'Traditional' }, { name: 'Japanese' }],
+      isVerified: true
+    },
+    {
+      id: '2',
+      user: { firstName: 'Marcus', lastName: 'Rodriguez' },
+      studioName: 'Black Canvas Tattoo',
+      city: 'Montreal',
+      state: 'Quebec',
+      latitude: 45.5048,
+      longitude: -73.5732,
+      averageRating: 4.8,
+      reviewCount: 89,
+      specialties: [{ name: 'Black & Grey' }],
+      isVerified: true
+    },
+    {
+      id: '3',
+      user: { firstName: 'Emma', lastName: 'Thompson' },
+      studioName: 'Simple Lines Studio',
+      city: 'Montreal',
+      state: 'Quebec',
+      latitude: 45.4972,
+      longitude: -73.5784,
+      averageRating: 4.7,
+      reviewCount: 156,
+      specialties: [{ name: 'Minimalist' }, { name: 'Neo-Traditional' }],
+      isVerified: true
+    }
+  ]
 
   const fetchArtists = async () => {
     try {
-      const response = await artistsAPI.getAll({ limit: 10 })
+      console.log('Fetching artists for map...')
       
-      if (response.data.success) {
-        setArtists(response.data.data.artists)
+      const result = await apiCallWithFallback(
+        () => artistsAPI.getAll({ limit: 10 }),
+        { artists: getDummyArtists() }
+      )
+      
+      if (result.isFallback) {
+        console.log('Using fallback artists data for map')
+        setArtists(result.data.artists)
+      } else {
+        console.log('Using API artists data for map')
+        setArtists(result.data.data.artists || [])
       }
     } catch (error) {
-      console.error('Error fetching artists:', error)
+      console.error('Unexpected error in fetchArtists for map:', error)
+      setArtists(getDummyArtists())
     } finally {
       setLoading(false)
     }

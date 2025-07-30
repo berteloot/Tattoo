@@ -238,10 +238,15 @@ export const ArtistDashboard = () => {
         showToast('Profile created successfully!', 'success')
         
         // Refresh user data to get the new profile ID
-        const userResponse = await api.get('/api/auth/me')
-        if (userResponse.data.success) {
-          // Update the user context with the new profile
-          window.location.reload() // Simple refresh to get updated user data
+        try {
+          const userResponse = await api.get('/api/auth/me')
+          if (userResponse.data.success) {
+            // Update the user context with the new profile
+            window.location.reload() // Simple refresh to get updated user data
+          }
+        } catch (error) {
+          console.error('Error refreshing user data:', error)
+          // Continue anyway, the profile was created successfully
         }
       }
       

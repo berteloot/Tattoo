@@ -17,6 +17,9 @@ export const Layout = ({ children }) => {
 
   const isActive = (path) => location.pathname === path
 
+  // Get current year for copyright
+  const currentYear = new Date().getFullYear()
+
   return (
     <div className="min-h-screen bg-gray-50">
       <SkipToMainContent />
@@ -27,7 +30,7 @@ export const Layout = ({ children }) => {
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
               <MapPin className="h-8 w-8 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900">Tattoo Locator</span>
+              <span className="text-xl font-bold text-gray-900">Tattooed World</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -65,6 +68,14 @@ export const Layout = ({ children }) => {
                       className="px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
                     >
                       Dashboard
+                    </Link>
+                  )}
+                  {user?.role === 'ADMIN' && (
+                    <Link
+                      to="/admin"
+                      className="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+                    >
+                      Admin Panel
                     </Link>
                   )}
                   <button
@@ -149,6 +160,15 @@ export const Layout = ({ children }) => {
                       Dashboard
                     </Link>
                   )}
+                  {user?.role === 'ADMIN' && (
+                    <Link
+                      to="/admin"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-white bg-red-600 hover:bg-red-700"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
                   <button
                     onClick={() => {
                       logout()
@@ -189,9 +209,99 @@ export const Layout = ({ children }) => {
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-600">
-            <p>&copy; 2025 Tattoo Artist Locator. All rights reserved.</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Company Info */}
+            <div className="col-span-1 md:col-span-2">
+              <div className="flex items-center space-x-2 mb-4">
+                <MapPin className="h-6 w-6 text-primary-600" />
+                <span className="text-lg font-bold text-gray-900">Tattooed World</span>
+              </div>
+              <p className="text-gray-600 mb-4 max-w-md">
+                Connect with talented tattoo artists in your area. Find your perfect match for custom designs, traditional styles, and everything in between.
+              </p>
+              <p className="text-sm text-gray-500">
+                © {currentYear} Tattooed World. All rights reserved.
+              </p>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Quick Links</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link to="/" className="text-sm text-gray-600 hover:text-primary-600">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/artists" className="text-sm text-gray-600 hover:text-primary-600">
+                    Find Artists
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/flash" className="text-sm text-gray-600 hover:text-primary-600">
+                    Flash Gallery
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/register" className="text-sm text-gray-600 hover:text-primary-600">
+                    Join as Artist
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Legal</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link to="/privacy" className="text-sm text-gray-600 hover:text-primary-600">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/terms" className="text-sm text-gray-600 hover:text-primary-600">
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/cookies" className="text-sm text-gray-600 hover:text-primary-600">
+                    Cookie Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="text-sm text-gray-600 hover:text-primary-600">
+                    Contact Us
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Legal Disclaimer */}
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <div className="text-xs text-gray-500 space-y-2">
+              <p>
+                <strong>Disclaimer:</strong> Tattooed World is a platform that connects clients with tattoo artists. 
+                We do not provide tattoo services directly. All artists are independent professionals responsible for 
+                their own work, licensing, and compliance with local regulations.
+              </p>
+              <p>
+                <strong>Health & Safety:</strong> Tattooing involves health risks. Always ensure your chosen artist 
+                follows proper sterilization and safety protocols. Consult with healthcare professionals if you have 
+                concerns about medical conditions or allergies.
+              </p>
+              <p>
+                <strong>Age Verification:</strong> You must be 18 years or older to use this platform. Some jurisdictions 
+                may require parental consent for individuals under 18.
+              </p>
+              <p>
+                <strong>Content:</strong> User-generated content reflects individual opinions and experiences. 
+                Tattooed World does not endorse or verify the accuracy of reviews or artist claims.
+              </p>
+            </div>
           </div>
         </div>
       </footer>

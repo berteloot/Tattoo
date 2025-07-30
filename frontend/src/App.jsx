@@ -12,6 +12,8 @@ import { ArtistProfile } from './pages/ArtistProfile'
 import { ArtistDashboard } from './pages/ArtistDashboard'
 import { FlashGallery } from './pages/FlashGallery'
 import { UserProfile } from './pages/UserProfile'
+import AdminUserManagement from './pages/AdminUserManagement'
+import AdminDashboard from './pages/AdminDashboard'
 
 function App() {
   return (
@@ -37,6 +39,16 @@ function App() {
               <Route path="/dashboard" element={
                 <ProtectedRoute requiredRole="ARTIST">
                   <ArtistDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminUserManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminDashboard />
                 </ProtectedRoute>
               } />
             </Routes>
