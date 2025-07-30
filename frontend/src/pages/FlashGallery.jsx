@@ -22,13 +22,18 @@ export const FlashGallery = () => {
   const fetchFlashItems = async () => {
     try {
       const response = await flashAPI.getAll({ limit: 50 })
+      console.log('Flash API response:', response.data)
       if (response.data.success) {
-        setFlashItems(response.data.data || [])
+        const flashData = response.data.data.flash || []
+        console.log('Setting flash items:', flashData)
+        setFlashItems(flashData)
       }
     } catch (error) {
       console.error('Error fetching flash items:', error)
       // Fallback to dummy data for demo
-      setFlashItems(getDummyFlashItems())
+      const dummyFlash = getDummyFlashItems()
+      console.log('Using dummy flash items:', dummyFlash)
+      setFlashItems(dummyFlash)
     } finally {
       setLoading(false)
     }
@@ -205,13 +210,20 @@ export const FlashGallery = () => {
     'Traditional', 'Japanese', 'Black & Grey', 'Minimalist', 'Watercolor', 'Neo-Traditional'
   ]
 
+  console.log('Current flash items state:', flashItems)
+  console.log('Search term:', searchTerm)
+  console.log('Selected artist:', selectedArtist)
+  console.log('Selected style:', selectedStyle)
+  console.log('Price range:', priceRange)
+  
   const filteredAndSortedItems = flashItems
     .filter(item => {
-      const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      const matchesSearch = !searchTerm || 
+                           item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       
-      const matchesArtist = !selectedArtist || item.artist.id === selectedArtist
+      const matchesArtist = !selectedArtist || item.artist?.id === selectedArtist
       const matchesStyle = !selectedStyle || item.style === selectedStyle
       
       const matchesPrice = priceRange === 'all' || 
@@ -221,6 +233,8 @@ export const FlashGallery = () => {
       
       return matchesSearch && matchesArtist && matchesStyle && matchesPrice
     })
+    
+  console.log('Filtered flash items:', filteredAndSortedItems)
     .sort((a, b) => {
       switch (sortBy) {
         case 'newest':
