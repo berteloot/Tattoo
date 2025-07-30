@@ -119,12 +119,29 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const logout = () => {
-    localStorage.removeItem('token')
-    delete api.defaults.headers.common['Authorization']
-    setUser(null)
-    toast.success('Success', 'Logged out successfully')
-    navigate('/')
+  const logout = async () => {
+    try {
+      // Call the logout API endpoint
+      const response = await authAPI.logout()
+      console.log('Logout API response:', response)
+      
+      // Check if the response is valid
+      if (response && response.data && response.data.success) {
+        console.log('Logout successful:', response.data.message)
+      } else {
+        console.warn('Logout response format unexpected:', response)
+      }
+    } catch (error) {
+      // Even if the API call fails, we still want to logout locally
+      console.warn('Logout API call failed, but proceeding with local logout:', error)
+    } finally {
+      // Always perform local cleanup
+      localStorage.removeItem('token')
+      delete api.defaults.headers.common['Authorization']
+      setUser(null)
+      toast.success('Success', 'Logged out successfully')
+      navigate('/')
+    }
   }
 
   const updateProfile = async (profileData) => {

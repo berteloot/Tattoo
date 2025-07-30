@@ -79,7 +79,7 @@ export const Layout = ({ children }) => {
                     </Link>
                   )}
                   <button
-                    onClick={logout}
+                    onClick={async () => await logout()}
                     className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
                   >
                     <LogOut className="h-4 w-4" />
@@ -170,8 +170,8 @@ export const Layout = ({ children }) => {
                     </Link>
                   )}
                   <button
-                    onClick={() => {
-                      logout()
+                    onClick={async () => {
+                      await logout()
                       setMobileMenuOpen(false)
                     }}
                     className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
