@@ -5,7 +5,17 @@ import { api } from '../services/api';
 
 const AdminUserManagement = () => {
   const { user } = useAuth();
-  const { success, error } = useToast();
+  const toast = useToast();
+  
+  // Add debugging to check if toast functions exist
+  console.log('Toast functions available:', {
+    success: typeof toast.success,
+    error: typeof toast.error,
+    warning: typeof toast.warning,
+    info: typeof toast.info
+  });
+  
+  const { success, error } = toast;
   
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
