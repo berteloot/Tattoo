@@ -27,12 +27,14 @@ export const Register = () => {
     setLoading(true)
     
     try {
+      console.log('Submitting registration form with data:', formData)
       const result = await register(formData)
+      console.log('Registration result:', result)
       if (!result.success) {
         console.error('Registration failed:', result.error)
       }
     } catch (error) {
-      console.error('Registration error:', error)
+      console.error('Registration error in component:', error)
     } finally {
       setLoading(false)
     }

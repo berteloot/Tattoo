@@ -122,7 +122,9 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
+      console.log('Starting registration with data:', userData)
       const response = await authAPI.register(userData)
+      console.log('Registration response:', response)
       
       // Check if registration was successful
       if (response && response.data && response.data.success && response.data.data) {
@@ -148,16 +150,25 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Registration error details:', error)
+      console.error('Error type:', typeof error)
+      console.error('Error response:', error.response)
+      console.error('Error message:', error.message)
       
       // Handle different error response structures
       let message = 'Registration failed'
       
-      if (error.response && error.response.data) {
+      if (error && error.response && error.response.data) {
         // Server returned an error response
         message = error.response.data.error || error.response.data.message || 'Registration failed'
-      } else if (error.message) {
+      } else if (error && error.message) {
         // Network or other error
         message = error.message
+      } else if (error && typeof error === 'string') {
+        // Error is a string
+        message = error
+      } else {
+        // Unknown error type
+        message = 'An unexpected error occurred during registration'
       }
       
       toast.error('Error', message)
@@ -193,8 +204,8 @@ export const AuthProvider = ({ children }) => {
       navigate('/')
     }
     
-    // Always return a success value
-    return { success: true }
+    // Always return a success value to prevent errors
+    return { success: true, message: 'Logout completed' }
   }
 
   const updateProfile = async (profileData) => {
