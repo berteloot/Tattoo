@@ -306,6 +306,22 @@ const AdminUserManagement = () => {
                             >
                               View
                             </button>
+                            {user.role !== 'ADMIN' && (
+                              <button
+                                onClick={() => {
+                                  // Quick promote to admin
+                                  const updateData = {
+                                    role: 'ADMIN',
+                                    reason: 'Promoted to admin by administrator'
+                                  };
+                                  updateUser(user.id, updateData);
+                                }}
+                                className="text-purple-600 hover:text-purple-900"
+                                title="Promote to Admin"
+                              >
+                                Promote to Admin
+                              </button>
+                            )}
                             {user.isActive ? (
                               <button
                                 onClick={() => {
@@ -503,11 +519,23 @@ const UserDetailsForm = ({ user, onUpdate, onCancel }) => {
     isVerified: user.isVerified
   });
   const [reason, setReason] = useState('');
+  const [showRoleWarning, setShowRoleWarning] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const updateData = { ...formData, reason };
     onUpdate(user.id, updateData);
+  };
+
+  const handleRoleChange = (newRole) => {
+    setFormData(prev => ({ ...prev, role: newRole }));
+    
+    // Show warning when promoting to admin
+    if (newRole === 'ADMIN' && user.role !== 'ADMIN') {
+      setShowRoleWarning(true);
+    } else {
+      setShowRoleWarning(false);
+    }
   };
 
   return (
@@ -557,16 +585,30 @@ const UserDetailsForm = ({ user, onUpdate, onCancel }) => {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Role
+            {user.role === 'ADMIN' && (
+              <span className="ml-2 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                Current Admin
+              </span>
+            )}
+          </label>
           <select
             value={formData.role}
-            onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => handleRoleChange(e.target.value)}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              formData.role === 'ADMIN' ? 'border-red-300 bg-red-50' : 'border-gray-300'
+            }`}
           >
             <option value="CLIENT">Client</option>
             <option value="ARTIST">Artist</option>
             <option value="ADMIN">Admin</option>
           </select>
+          {formData.role === 'ADMIN' && (
+            <p className="mt-1 text-sm text-red-600">
+              ⚠️ Admin users have full system access
+            </p>
+          )}
         </div>
         
         <div>
@@ -593,6 +635,40 @@ const UserDetailsForm = ({ user, onUpdate, onCancel }) => {
           </div>
         </div>
       </div>
+
+      {/* Role Change Warning */}
+      {showRoleWarning && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">
+                Promoting to Admin Role
+              </h3>
+              <div className="mt-2 text-sm text-yellow-700">
+                <p>
+                  You are about to promote <strong>{user.firstName} {user.lastName}</strong> to Admin role. 
+                  This will give them full access to:
+                </p>
+                <ul className="list-disc list-inside mt-1 ml-4">
+                  <li>User management and role changes</li>
+                  <li>Artist verification</li>
+                  <li>Review moderation</li>
+                  <li>System settings and audit logs</li>
+                  <li>All administrative functions</li>
+                </ul>
+                <p className="mt-2 font-medium">
+                  Please ensure this user is trusted and qualified for admin privileges.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Changes (Optional)</label>
@@ -615,9 +691,13 @@ const UserDetailsForm = ({ user, onUpdate, onCancel }) => {
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className={`px-4 py-2 text-white rounded-md hover:opacity-90 ${
+            formData.role === 'ADMIN' && user.role !== 'ADMIN'
+              ? 'bg-red-600 hover:bg-red-700'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
         >
-          Update User
+          {formData.role === 'ADMIN' && user.role !== 'ADMIN' ? 'Promote to Admin' : 'Update User'}
         </button>
       </div>
     </form>
