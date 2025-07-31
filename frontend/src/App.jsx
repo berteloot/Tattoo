@@ -14,6 +14,9 @@ import { FlashGallery } from './pages/FlashGallery'
 import { UserProfile } from './pages/UserProfile'
 import AdminUserManagement from './pages/AdminUserManagement'
 import AdminDashboard from './pages/AdminDashboard'
+import AdminArtistVerification from './pages/AdminArtistVerification'
+import AdminReviewModeration from './pages/AdminReviewModeration'
+import AdminAuditLog from './pages/AdminAuditLog'
 
 function App() {
   return (
@@ -44,6 +47,21 @@ function App() {
               <Route path="/admin/users" element={
                 <ProtectedRoute requiredRole="ADMIN">
                   <AdminUserManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/artists/pending" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminArtistVerification />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/reviews" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminReviewModeration />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/actions" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminAuditLog />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={
