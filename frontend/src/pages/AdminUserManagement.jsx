@@ -43,8 +43,9 @@ const AdminUserManagement = () => {
       });
       
       const response = await api.get(`/admin/users?${params}`);
-      setUsers(response.data.users);
-      setPagination(response.data.pagination);
+      console.log('Users API response:', response.data);
+      setUsers(response.data.data.users);
+      setPagination(response.data.data.pagination);
     } catch (error) {
       showToast('Error fetching users', 'error');
       console.error('Error fetching users:', error);
