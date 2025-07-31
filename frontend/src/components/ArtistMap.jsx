@@ -44,9 +44,11 @@ export const ArtistMap = () => {
         suppressMarkers: true, // We'll handle our own markers
         polylineOptions: {
           strokeColor: '#DC2626',
-          strokeWeight: 4,
-          strokeOpacity: 0.8
-        }
+          strokeWeight: 6,
+          strokeOpacity: 0.9
+        },
+        suppressInfoWindows: false,
+        suppressMarkers: true // We'll handle our own markers
       })
       directionsRenderer.current.setMap(map)
       
@@ -160,6 +162,14 @@ export const ArtistMap = () => {
         startAddress: leg.start_address,
         endAddress: leg.end_address
       })
+
+      // Display the route on the map
+      if (directionsRenderer.current) {
+        console.log('🎯 Displaying route on map:', result)
+        directionsRenderer.current.setDirections(result)
+      } else {
+        console.error('❌ DirectionsRenderer not available')
+      }
 
       // Fit map to show entire route
       const bounds = new window.google.maps.LatLngBounds()
