@@ -174,6 +174,8 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = async () => {
+    let result = { success: true, message: 'Logout completed' }
+    
     try {
       // Call the logout API endpoint
       const response = await authAPI.logout()
@@ -183,8 +185,11 @@ export const AuthProvider = ({ children }) => {
       if (response && response.data) {
         if (response.data.success) {
           console.log('Logout successful:', response.data.message || 'Logout successful')
+          result.message = response.data.message || 'Logout successful'
         } else {
           console.warn('Logout response indicates failure:', response.data)
+          result.success = false
+          result.error = response.data.error || 'Logout failed'
         }
       } else {
         console.warn('Logout response format unexpected:', response)
@@ -192,6 +197,8 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       // Even if the API call fails, we still want to logout locally
       console.warn('Logout API call failed, but proceeding with local logout:', error)
+      result.success = false
+      result.error = 'Logout API call failed, but local logout completed'
     } finally {
       // Always perform local cleanup
       localStorage.removeItem('token')
@@ -201,8 +208,8 @@ export const AuthProvider = ({ children }) => {
       navigate('/')
     }
     
-    // Always return a success value to prevent errors
-    return { success: true, message: 'Logout completed' }
+    // Always return a result object
+    return result
   }
 
   const updateProfile = async (profileData) => {
