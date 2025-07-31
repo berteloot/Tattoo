@@ -154,9 +154,19 @@ export const AuthProvider = ({ children }) => {
       // Handle different error response structures
       let message = 'Registration failed'
       
-      if (error && error.response && error.response.data) {
+      if (error && error.response) {
         // Server returned an error response
-        message = error.response.data.error || error.response.data.message || 'Registration failed'
+        if (error.response.status === 400) {
+          // Bad request - likely validation error or user already exists
+          message = error.response.data?.error || 'Invalid registration data'
+        } else if (error.response.status === 409) {
+          // Conflict - user already exists
+          message = error.response.data?.error || 'User already exists'
+        } else if (error.response.data) {
+          message = error.response.data.error || error.response.data.message || 'Registration failed'
+        } else {
+          message = `Server error (${error.response.status})`
+        }
       } else if (error && error.message) {
         // Network or other error
         message = error.message

@@ -5,7 +5,7 @@ import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } fr
 
 export const ArtistDashboard = () => {
   const { user } = useAuth()
-  const { showToast } = useToast()
+  const { success, error } = useToast()
   
   // State management
   const [profile, setProfile] = useState(null)
@@ -152,7 +152,7 @@ export const ArtistDashboard = () => {
 
     } catch (error) {
       console.error('Error loading dashboard data:', error)
-      showToast('Error loading dashboard data', 'error')
+      error('Error loading dashboard data')
     } finally {
       setLoading(false)
     }
@@ -208,11 +208,11 @@ export const ArtistDashboard = () => {
         isAvailable: true
       })
       setShowFlashForm(false)
-      showToast('Flash item created successfully!', 'success')
+      success('Flash item created successfully!')
     } catch (error) {
       console.error('Error creating flash item:', error)
       const errorMessage = error.response?.data?.error || 'Error creating flash item'
-      showToast(errorMessage, 'error')
+      error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -231,11 +231,11 @@ export const ArtistDashboard = () => {
       if (user?.artistProfile?.id) {
         // Update existing profile
         response = await artistsAPI.updateProfile(user.artistProfile.id, formData)
-        showToast('Profile updated successfully!', 'success')
+        success('Profile updated successfully!')
       } else {
         // Create new profile
         response = await artistsAPI.createProfile(formData)
-        showToast('Profile created successfully!', 'success')
+        success('Profile created successfully!')
         
         // Refresh user data to get the new profile ID
         try {
@@ -255,7 +255,7 @@ export const ArtistDashboard = () => {
     } catch (error) {
       console.error('Error saving profile:', error)
       const errorMessage = error.response?.data?.error || 'Error saving profile'
-      showToast(errorMessage, 'error')
+      error(errorMessage)
     } finally {
       setLoading(false)
     }
