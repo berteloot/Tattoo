@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
       })
       
       // Check if login was successful
-      if (response && response.data && response.data.success && response.data.data) {
+      if (response && response.data && response.data.success && response.data.data && response.data.data.token && response.data.data.user) {
         const { token, user } = response.data.data
         
         localStorage.setItem('token', token)
@@ -94,7 +94,9 @@ export const AuthProvider = ({ children }) => {
           hasResponse: !!response,
           hasData: !!(response && response.data),
           hasSuccess: !!(response && response.data && response.data.success),
-          hasDataData: !!(response && response.data && response.data.data)
+          hasDataData: !!(response && response.data && response.data.data),
+          hasToken: !!(response && response.data && response.data.data && response.data.data.token),
+          hasUser: !!(response && response.data && response.data.data && response.data.data.user)
         })
         throw new Error('Invalid response format from server')
       }
