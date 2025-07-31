@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { MapPin, Menu, X, LogOut } from 'lucide-react'
+import { MapPin, Menu, X, LogOut, User } from 'lucide-react'
 import { SkipToMainContent } from './UXComponents'
 
 export const Layout = ({ children }) => {
@@ -58,7 +58,7 @@ export const Layout = ({ children }) => {
                     className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
                   >
                     <User className="h-4 w-4" />
-                    <span>{user?.firstName}</span>
+                    <span>{user?.firstName || user?.name || 'Profile'}</span>
                   </Link>
                   {isArtist && (
                     <Link

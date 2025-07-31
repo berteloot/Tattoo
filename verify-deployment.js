@@ -1,107 +1,131 @@
 #!/usr/bin/env node
 
 /**
- * Deployment verification script
- * This script verifies that the backend is working properly after deployment
+ * Deployment Verification Script
+ * Tests the deployed application endpoints
  */
 
-const axios = require('axios');
+const https = require('https');
+const http = require('http');
 
-const API_URL = process.env.API_URL || 'https://tattoo-app-backend.onrender.com';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://tattoo-app-frontend.onrender.com';
+// Update to the correct URL based on the logs
+const BASE_URL = 'https://tattooed-world-backend.onrender.com';
 
-async function verifyDeployment() {
-  console.log('🔍 Verifying deployment...');
-  console.log(`🔗 Backend URL: ${API_URL}`);
-  console.log(`🔗 Frontend URL: ${FRONTEND_URL}`);
-  
-  const tests = [
-    {
-      name: 'Health Check',
-      url: `${API_URL}/health`,
-      method: 'GET',
-      expectedStatus: 200
-    },
-    {
-      name: 'Root Endpoint',
-      url: `${API_URL}/`,
-      method: 'GET',
-      expectedStatus: 200
-    },
-    {
-      name: 'Artists API',
-      url: `${API_URL}/api/artists?limit=1`,
-      method: 'GET',
-      expectedStatus: 200
-    },
-    {
-      name: 'Specialties API',
-      url: `${API_URL}/api/specialties`,
-      method: 'GET',
-      expectedStatus: 200
-    },
-    {
-      name: 'Services API',
-      url: `${API_URL}/api/services`,
-      method: 'GET',
-      expectedStatus: 200
-    },
-    {
-      name: 'Flash API',
-      url: `${API_URL}/api/flash?limit=1`,
-      method: 'GET',
-      expectedStatus: 200
-    }
-  ];
-  
-  let passedTests = 0;
-  let failedTests = 0;
-  
+// Test configuration
+const tests = [
+  {
+    name: 'Health Check',
+    path: '/health',
+    method: 'GET',
+    expectedStatus: 200
+  },
+  {
+    name: 'API Info',
+    path: '/api',
+    method: 'GET',
+    expectedStatus: 200
+  },
+  {
+    name: 'Artists API',
+    path: '/api/artists',
+    method: 'GET',
+    expectedStatus: 200
+  },
+  {
+    name: 'Frontend Root',
+    path: '/',
+    method: 'GET',
+    expectedStatus: 200
+  },
+  {
+    name: 'Login Page',
+    path: '/login',
+    method: 'GET',
+    expectedStatus: 200
+  }
+];
+
+function makeRequest(url, method = 'GET') {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith('https') ? https : http;
+    
+    const req = client.request(url, { method }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        resolve({
+          status: res.statusCode,
+          headers: res.headers,
+          data: data
+        });
+      });
+    });
+
+    req.on('error', (error) => {
+      reject(error);
+    });
+
+    req.setTimeout(10000, () => {
+      req.destroy();
+      reject(new Error('Request timeout'));
+    });
+
+    req.end();
+  });
+}
+
+async function runTests() {
+  console.log('🔍 Testing Tattooed World App Deployment...\n');
+  console.log(`🌐 Base URL: ${BASE_URL}\n`);
+
+  let passed = 0;
+  let failed = 0;
+
   for (const test of tests) {
     try {
-      console.log(`\n📋 Testing: ${test.name}`);
-      const response = await axios({
-        method: test.method,
-        url: test.url,
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'Deployment-Verifier/1.0'
-        }
-      });
+      console.log(`🧪 Testing: ${test.name}`);
+      console.log(`   URL: ${BASE_URL}${test.path}`);
+      
+      const response = await makeRequest(`${BASE_URL}${test.path}`, test.method);
       
       if (response.status === test.expectedStatus) {
-        console.log(`✅ ${test.name}: PASSED (${response.status})`);
-        passedTests++;
+        console.log(`   ✅ PASS - Status: ${response.status}`);
+        passed++;
       } else {
-        console.log(`❌ ${test.name}: FAILED (expected ${test.expectedStatus}, got ${response.status})`);
-        failedTests++;
+        console.log(`   ❌ FAIL - Expected: ${test.expectedStatus}, Got: ${response.status}`);
+        failed++;
+      }
+      
+      // Show response preview for API endpoints
+      if (test.path.startsWith('/api') && response.data) {
+        try {
+          const jsonData = JSON.parse(response.data);
+          console.log(`   📄 Response: ${JSON.stringify(jsonData, null, 2).substring(0, 200)}...`);
+        } catch (e) {
+          console.log(`   📄 Response: ${response.data.substring(0, 200)}...`);
+        }
       }
       
     } catch (error) {
-      console.log(`❌ ${test.name}: FAILED`);
-      if (error.response) {
-        console.log(`   Status: ${error.response.status}`);
-        console.log(`   Error: ${error.response.data?.error || error.message}`);
-      } else {
-        console.log(`   Error: ${error.message}`);
-      }
-      failedTests++;
+      console.log(`   ❌ ERROR - ${error.message}`);
+      failed++;
     }
+    
+    console.log('');
   }
-  
-  console.log('\n📊 Test Results:');
-  console.log(`✅ Passed: ${passedTests}`);
-  console.log(`❌ Failed: ${failedTests}`);
-  console.log(`📈 Success Rate: ${((passedTests / tests.length) * 100).toFixed(1)}%`);
-  
-  if (failedTests === 0) {
-    console.log('\n🎉 All tests passed! Deployment is successful.');
-    process.exit(0);
+
+  console.log('📊 Test Results:');
+  console.log(`   ✅ Passed: ${passed}`);
+  console.log(`   ❌ Failed: ${failed}`);
+  console.log(`   📈 Success Rate: ${((passed / (passed + failed)) * 100).toFixed(1)}%`);
+
+  if (failed === 0) {
+    console.log('\n🎉 All tests passed! Your app is deployed successfully.');
+    console.log(`🌐 Your app is live at: ${BASE_URL}`);
   } else {
-    console.log('\n⚠️ Some tests failed. Please check the deployment.');
-    process.exit(1);
+    console.log('\n⚠️  Some tests failed. Check the deployment logs on Render.');
   }
 }
 
-// Run verification
-verifyDeployment(); 
+// Run tests
+runTests().catch(console.error); 

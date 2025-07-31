@@ -52,17 +52,16 @@ export const Login = () => {
     
     try {
       const result = await login(formData.email, formData.password)
-      if (result && result.success) {
+      
+      if (result.success) {
         success('Welcome back!', 'You have successfully signed in.')
-        navigate('/')
+        // Navigation is handled in AuthContext
       } else {
-        const errorMessage = result?.error || 'Please check your credentials and try again.'
-        showError('Login failed', errorMessage)
+        showError('Login failed', result.error || 'Please check your credentials and try again.')
       }
     } catch (error) {
       console.error('Login error:', error)
-      const errorMessage = error?.message || 'Please check your credentials and try again.'
-      showError('Login failed', errorMessage)
+      showError('Login failed', 'An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)
     }

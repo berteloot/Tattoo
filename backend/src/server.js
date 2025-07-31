@@ -59,7 +59,9 @@ app.use(helmet({
 // CORS configuration - simplified since everything is on same domain
 app.use(cors({
   origin: process.env.CORS_ORIGIN || true,
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Rate limiting with proper proxy handling for Render.com
@@ -197,10 +199,21 @@ if (!frontendExists) {
   });
 } else {
   console.log('✅ Frontend build found at:', frontendBuildPath);
-  app.use(express.static(frontendBuildPath));
+  
+  // Serve static files from the React build directory
+  app.use(express.static(frontendBuildPath, {
+    maxAge: '1y', // Cache static assets for 1 year
+    etag: true,
+    lastModified: true
+  }));
 
   // Handle React routing, return all requests to React app (except API routes)
   app.get('*', (req, res) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
     // Check if index.html exists
     if (!require('fs').existsSync(indexHtmlPath)) {
       console.error('❌ index.html not found at:', indexHtmlPath);
@@ -223,6 +236,7 @@ async function startServer() {
     console.log(`📊 Environment: ${process.env.NODE_ENV}`);
     console.log(`🌐 Trust Proxy: ${app.get('trust proxy')}`);
     console.log(`📁 Frontend build path: ${frontendBuildPath}`);
+    console.log(`🔗 CORS Origin: ${process.env.CORS_ORIGIN || 'true'}`);
     
     // Test database connection
     console.log('🔄 Testing database connection...');

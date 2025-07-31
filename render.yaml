@@ -1,12 +1,16 @@
-# Render deployment configuration - Version 5.1
-# Single full-stack service for simplicity and reliability
+# Render deployment configuration - Version 5.3
+# Single full-stack service - Frontend and Backend served from same URL
 services:
   # Full-Stack Application (API + Frontend)
   - type: web
     name: tattooed-world-app
     env: node
     plan: starter
-    buildCommand: npm install && cd backend && npm install && npx prisma generate && cd ../frontend && npm install && npm run build
+    buildCommand: |
+      npm install
+      cd backend && npm install && npx prisma generate
+      cd ../frontend && npm install && npm run build
+      cd ..
     startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
@@ -21,6 +25,8 @@ services:
         value: 7d
       - key: PORT
         value: 10000
+      - key: CORS_ORIGIN
+        value: https://tattooed-world-app.onrender.com
       - key: RATE_LIMIT_WINDOW_MS
         value: 900000
       - key: RATE_LIMIT_MAX_REQUESTS
@@ -31,8 +37,6 @@ services:
         value: image/jpeg,image/png,image/webp
       - key: FRONTEND_URL
         value: https://tattooed-world-app.onrender.com
-      - key: VITE_API_URL
-        value: /api
       # Optional environment variables (can be set later)
       - key: GOOGLE_MAPS_API_KEY
         sync: false

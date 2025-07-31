@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-// Create axios instance - always use relative URLs for same-domain deployment
-// Since we're serving frontend and backend from the same domain on Render, use relative URLs
+// Create axios instance - use relative URLs for same-domain deployment
+// Frontend and backend are served from the same domain on Render
 const API_URL = '/api'
 
 export const api = axios.create({
@@ -9,6 +9,8 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Ensure credentials are sent with requests
+  withCredentials: true,
 })
 
 // Request interceptor to add auth token
