@@ -58,7 +58,8 @@ const AdminUserManagement = () => {
   const fetchUserDetails = async (userId) => {
     try {
       const response = await api.get(`/admin/users/${userId}`);
-      setSelectedUser(response.data.user);
+      console.log('User details response:', response.data);
+      setSelectedUser(response.data.data.user);
       setShowUserModal(true);
     } catch (error) {
       error('Error fetching user details');
