@@ -5,7 +5,7 @@ import { api } from '../services/api';
 
 const AdminUserManagement = () => {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { success, error } = useToast();
   
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +47,7 @@ const AdminUserManagement = () => {
       setUsers(response.data.data.users);
       setPagination(response.data.data.pagination);
     } catch (error) {
-      showToast('Error fetching users', 'error');
+      error('Error fetching users');
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
@@ -61,7 +61,7 @@ const AdminUserManagement = () => {
       setSelectedUser(response.data.user);
       setShowUserModal(true);
     } catch (error) {
-      showToast('Error fetching user details', 'error');
+      error('Error fetching user details');
       console.error('Error fetching user details:', error);
     }
   };
@@ -70,12 +70,12 @@ const AdminUserManagement = () => {
   const updateUser = async (userId, updateData) => {
     try {
       const response = await api.put(`/admin/users/${userId}`, updateData);
-      showToast('User updated successfully', 'success');
+      success('User updated successfully');
       fetchUsers();
       setShowUserModal(false);
       setSelectedUser(null);
     } catch (error) {
-      showToast(error.response?.data?.error || 'Error updating user', 'error');
+      error(error.response?.data?.error || 'Error updating user');
       console.error('Error updating user:', error);
     }
   };
@@ -86,13 +86,13 @@ const AdminUserManagement = () => {
       await api.delete(`/admin/users/${userToDelete.id}`, {
         data: { reason: deleteReason }
       });
-      showToast('User deactivated successfully', 'success');
+      success('User deactivated successfully');
       setShowDeleteModal(false);
       setUserToDelete(null);
       setDeleteReason('');
       fetchUsers();
     } catch (error) {
-      showToast(error.response?.data?.error || 'Error deactivating user', 'error');
+      error(error.response?.data?.error || 'Error deactivating user');
       console.error('Error deleting user:', error);
     }
   };
@@ -101,13 +101,13 @@ const AdminUserManagement = () => {
   const restoreUser = async () => {
     try {
       await api.post(`/admin/users/${userToRestore.id}/restore`);
-      showToast('User restored successfully', 'success');
+      success('User restored successfully');
       setShowRestoreModal(false);
       setUserToRestore(null);
       setRestoreReason('');
       fetchUsers();
     } catch (error) {
-      showToast(error.response?.data?.error || 'Error restoring user', 'error');
+      error(error.response?.data?.error || 'Error restoring user');
       console.error('Error restoring user:', error);
     }
   };

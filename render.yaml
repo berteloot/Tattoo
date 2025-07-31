@@ -30,22 +30,22 @@ services:
       - key: ALLOWED_FILE_TYPES
         value: image/jpeg,image/png,image/webp
       - key: FRONTEND_URL
-        value: https://tattooed-world-backend.onrender.com
+        value: https://tattooed-world-app.onrender.com
       - key: VITE_API_URL
         value: /api
-    # Optional environment variables (can be set later)
-    - key: GOOGLE_MAPS_API_KEY
-      sync: false
-    - key: CLOUDINARY_CLOUD_NAME
-      sync: false
-    - key: CLOUDINARY_API_KEY
-      sync: false
-    - key: CLOUDINARY_API_SECRET
-      sync: false
-    - key: SENDGRID_API_KEY
-      sync: false
-    - key: FROM_EMAIL
-      value: noreply@tattooedworld.com
+      # Optional environment variables (can be set later)
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        value: noreply@tattooedworld.com
 
 databases:
   # PostgreSQL Database

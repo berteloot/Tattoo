@@ -27,9 +27,7 @@ export const Register = () => {
     setLoading(true)
     
     try {
-      console.log('Submitting registration form with data:', formData)
       const result = await register(formData)
-      console.log('Registration result:', result)
       if (!result.success) {
         console.error('Registration failed:', result.error)
       }

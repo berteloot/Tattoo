@@ -166,12 +166,8 @@ if (!frontendExists) {
   console.warn('⚠️ Frontend build not found at:', frontendBuildPath);
   console.warn('⚠️ This might be a development environment or build issue');
   
-  // Serve a simple fallback page
+  // Serve a simple fallback page for non-API routes
   app.get('*', (req, res) => {
-    if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ error: 'API endpoint not found' });
-    }
-    
     res.status(200).send(`
       <!DOCTYPE html>
       <html>
@@ -203,20 +199,15 @@ if (!frontendExists) {
   console.log('✅ Frontend build found at:', frontendBuildPath);
   app.use(express.static(frontendBuildPath));
 
-  // Handle React routing, return all requests to React app
+  // Handle React routing, return all requests to React app (except API routes)
   app.get('*', (req, res) => {
-    // Don't serve React app for API routes
-    if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ error: 'API endpoint not found' });
-    }
-    
     // Check if index.html exists
     if (!require('fs').existsSync(indexHtmlPath)) {
       console.error('❌ index.html not found at:', indexHtmlPath);
       return res.status(500).json({ error: 'Frontend build incomplete' });
     }
     
-    // Serve React app for all other routes (SPA routing)
+    // Serve React app for all non-API routes (SPA routing)
     res.sendFile(indexHtmlPath);
   });
 }

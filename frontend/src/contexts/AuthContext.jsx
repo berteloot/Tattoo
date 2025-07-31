@@ -124,9 +124,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      console.log('Starting registration with data:', userData)
       const response = await authAPI.register(userData)
-      console.log('Registration response:', response)
       
       // Check if registration was successful
       if (response && response.data && response.data.success && response.data.data) {
@@ -152,9 +150,6 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Registration error details:', error)
-      console.error('Error type:', typeof error)
-      console.error('Error response:', error.response)
-      console.error('Error message:', error.message)
       
       // Handle different error response structures
       let message = 'Registration failed'
