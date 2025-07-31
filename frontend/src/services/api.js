@@ -47,6 +47,8 @@ export const authAPI = {
   logout: () => api.post('/auth/logout'),
   getProfile: () => api.get('/auth/me'),
   updateProfile: (profileData) => api.put('/auth/profile', profileData),
+  changePassword: (passwordData) => api.put('/auth/change-password', passwordData),
+  changeEmail: (emailData) => api.put('/auth/change-email', emailData),
 }
 
 export const artistsAPI = {

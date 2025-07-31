@@ -269,6 +269,177 @@ router.get('/me', protect, async (req, res) => {
 });
 
 /**
+ * @route   PUT /api/auth/change-password
+ * @desc    Change user password
+ * @access  Private
+ */
+router.put('/change-password', protect, [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('New password must be at least 6 characters long')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    // Get user with password
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        password: true,
+        email: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        error: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { password: hashedPassword }
+    });
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while changing password'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/auth/change-email
+ * @desc    Change user email
+ * @access  Private
+ */
+router.put('/change-email', protect, [
+  body('newEmail')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required to change email')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { newEmail, password } = req.body;
+
+    // Get user with password
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        password: true,
+        email: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Verify password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password is incorrect'
+      });
+    }
+
+    // Check if new email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: newEmail }
+    });
+
+    if (existingUser && existingUser.id !== req.user.id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email already in use'
+      });
+    }
+
+    // Update email
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { email: newEmail },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        phone: true,
+        avatar: true,
+        isActive: true,
+        updatedAt: true
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Email changed successfully',
+      data: { user: updatedUser }
+    });
+  } catch (error) {
+    console.error('Change email error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while changing email'
+    });
+  }
+});
+
+/**
  * @route   PUT /api/auth/profile
  * @desc    Update user profile
  * @access  Private

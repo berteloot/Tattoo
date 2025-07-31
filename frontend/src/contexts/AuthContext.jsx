@@ -230,6 +230,14 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  const updateUser = (updates) => {
+    // Update user state with new data (for email changes)
+    setUser(prevUser => ({
+      ...prevUser,
+      ...updates
+    }))
+  }
+
   const value = {
     user,
     loading,
@@ -237,6 +245,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateProfile,
+    updateUser,
     isAuthenticated: !!user,
     isArtist: user?.role === 'ARTIST',
     isClient: user?.role === 'CLIENT',
