@@ -191,6 +191,7 @@ enum UserRole {
   CLIENT
   ARTIST
   ADMIN
+  ARTIST_ADMIN
 }
 
 // Artist verification status

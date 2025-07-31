@@ -96,15 +96,15 @@ const authorize = (...roles) => {
 
 // CLIENT permissions
 const clientOnly = authorize('CLIENT');
-const clientOrArtist = authorize('CLIENT', 'ARTIST');
-const clientOrAdmin = authorize('CLIENT', 'ADMIN');
+const clientOrArtist = authorize('CLIENT', 'ARTIST', 'ARTIST_ADMIN');
+const clientOrAdmin = authorize('CLIENT', 'ADMIN', 'ARTIST_ADMIN');
 
 // ARTIST permissions
-const artistOnly = authorize('ARTIST');
-const artistOrAdmin = authorize('ARTIST', 'ADMIN');
+const artistOnly = authorize('ARTIST', 'ARTIST_ADMIN');
+const artistOrAdmin = authorize('ARTIST', 'ADMIN', 'ARTIST_ADMIN');
 
 // ADMIN permissions
-const adminOnly = authorize('ADMIN');
+const adminOnly = authorize('ADMIN', 'ARTIST_ADMIN');
 
 /**
  * Artist verification middleware
@@ -117,7 +117,7 @@ const requireArtistVerification = async (req, res, next) => {
     });
   }
 
-  if (req.user.role !== 'ARTIST') {
+  if (req.user.role !== 'ARTIST' && req.user.role !== 'ARTIST_ADMIN') {
     return res.status(403).json({
       success: false,
       error: 'Only artists can access this resource'
@@ -211,7 +211,7 @@ const requireOwnership = (resourceType) => {
         });
       }
 
-      if (!isOwner && req.user.role !== 'ADMIN') {
+      if (!isOwner && req.user.role !== 'ADMIN' && req.user.role !== 'ARTIST_ADMIN') {
         return res.status(403).json({
           success: false,
           error: 'You can only modify your own resources'

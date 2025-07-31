@@ -134,7 +134,9 @@ export const AuthProvider = ({ children }) => {
       } else {
         // Invalid response format
         console.error('Invalid response format:', response)
-        throw new Error('Invalid response format from server')
+        const message = 'Invalid response from server'
+        toast.error('Error', message)
+        return { success: false, error: message }
       }
     } catch (error) {
       console.error('Registration error details:', error)
