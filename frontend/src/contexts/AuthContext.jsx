@@ -57,21 +57,17 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.login({ email, password })
       console.log('Login API response:', response)
       console.log('Response data:', response.data)
-      console.log('Response data keys:', Object.keys(response.data || {}))
-      console.log('Response data.data:', response.data?.data)
-      console.log('Response data.data keys:', Object.keys(response.data?.data || {}))
-      console.log('Condition check:', {
-        hasResponse: !!response,
-        hasData: !!(response && response.data),
-        hasSuccess: !!(response && response.data && response.data.success),
-        hasDataData: !!(response && response.data && response.data.data),
-        successValue: response?.data?.success,
-        dataValue: response?.data?.data
-      })
       
       // Check if login was successful
-      if (response && response.data && response.data.success && response.data.data && response.data.data.token && response.data.data.user) {
+      if (response && response.data && response.data.success && response.data.data) {
         const { token, user } = response.data.data
+        
+        // Validate that we have the required data
+        if (!token || !user) {
+          console.error('Missing token or user in response:', response.data.data)
+          toast.error('Error', 'Invalid response from server')
+          return { success: false, error: 'Invalid response from server' }
+        }
         
         localStorage.setItem('token', token)
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`
@@ -90,19 +86,11 @@ export const AuthProvider = ({ children }) => {
       } else {
         // Invalid response format
         console.error('Invalid response format:', response)
-        console.error('Response structure:', {
-          hasResponse: !!response,
-          hasData: !!(response && response.data),
-          hasSuccess: !!(response && response.data && response.data.success),
-          hasDataData: !!(response && response.data && response.data.data),
-          hasToken: !!(response && response.data && response.data.data && response.data.data.token),
-          hasUser: !!(response && response.data && response.data.data && response.data.data.user)
-        })
-        throw new Error('Invalid response format from server')
+        toast.error('Error', 'Invalid response from server')
+        return { success: false, error: 'Invalid response from server' }
       }
     } catch (error) {
       console.error('Login error details:', error)
-      console.error('Error response:', error.response)
       
       // Handle different error response structures
       let message = 'Login failed'
