@@ -530,8 +530,8 @@ const UserDetailsForm = ({ user, onUpdate, onCancel }) => {
   const handleRoleChange = (newRole) => {
     setFormData(prev => ({ ...prev, role: newRole }));
     
-    // Show warning when promoting to admin
-    if (newRole === 'ADMIN' && user.role !== 'ADMIN') {
+    // Show warning when promoting to admin roles
+    if ((newRole === 'ADMIN' || newRole === 'ARTIST_ADMIN') && user.role !== 'ADMIN' && user.role !== 'ARTIST_ADMIN') {
       setShowRoleWarning(true);
     } else {
       setShowRoleWarning(false);
@@ -587,7 +587,7 @@ const UserDetailsForm = ({ user, onUpdate, onCancel }) => {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Role
-            {user.role === 'ADMIN' && (
+            {(user.role === 'ADMIN' || user.role === 'ARTIST_ADMIN') && (
               <span className="ml-2 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
                 Current Admin
               </span>
@@ -597,16 +597,22 @@ const UserDetailsForm = ({ user, onUpdate, onCancel }) => {
             value={formData.role}
             onChange={(e) => handleRoleChange(e.target.value)}
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              formData.role === 'ADMIN' ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              (formData.role === 'ADMIN' || formData.role === 'ARTIST_ADMIN') ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
           >
             <option value="CLIENT">Client</option>
             <option value="ARTIST">Artist</option>
             <option value="ADMIN">Admin</option>
+            <option value="ARTIST_ADMIN">Artist & Admin</option>
           </select>
-          {formData.role === 'ADMIN' && (
+          {(formData.role === 'ADMIN' || formData.role === 'ARTIST_ADMIN') && (
             <p className="mt-1 text-sm text-red-600">
               ⚠️ Admin users have full system access
+            </p>
+          )}
+          {formData.role === 'ARTIST_ADMIN' && (
+            <p className="mt-1 text-sm text-blue-600">
+              🎨 This user can both create artist profiles and manage the system
             </p>
           )}
         </div>
@@ -692,12 +698,12 @@ const UserDetailsForm = ({ user, onUpdate, onCancel }) => {
         <button
           type="submit"
           className={`px-4 py-2 text-white rounded-md hover:opacity-90 ${
-            formData.role === 'ADMIN' && user.role !== 'ADMIN'
+            (formData.role === 'ADMIN' || formData.role === 'ARTIST_ADMIN') && user.role !== 'ADMIN' && user.role !== 'ARTIST_ADMIN'
               ? 'bg-red-600 hover:bg-red-700'
               : 'bg-blue-600 hover:bg-blue-700'
           }`}
         >
-          {formData.role === 'ADMIN' && user.role !== 'ADMIN' ? 'Promote to Admin' : 'Update User'}
+          {formData.role === 'ADMIN' || formData.role === 'ARTIST_ADMIN' ? 'Promote to Admin' : 'Update User'}
         </button>
       </div>
     </form>

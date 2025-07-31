@@ -271,9 +271,10 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     updateUser,
     isAuthenticated: !!user,
-    isArtist: user?.role === 'ARTIST',
+    isArtist: user?.role === 'ARTIST' || user?.role === 'ARTIST_ADMIN',
     isClient: user?.role === 'CLIENT',
-    isAdmin: user?.role === 'ADMIN'
+    isAdmin: user?.role === 'ADMIN' || user?.role === 'ARTIST_ADMIN',
+    isArtistAdmin: user?.role === 'ARTIST_ADMIN'
   }
 
   return (

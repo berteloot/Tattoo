@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { GoogleMap, LoadScript, Marker, InfoWindow, DirectionsRenderer } from '@react-google-maps/api'
-import { MapPin, Star, Clock, DollarSign, Users, Map, Navigation, X } from 'lucide-react'
+import { MapPin, Star, Clock, DollarSign, Users, Map, Navigation, X, Search } from 'lucide-react'
 import { artistsAPI } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
@@ -23,6 +23,9 @@ export const ArtistMap = () => {
   const [userLocation, setUserLocation] = useState(null)
   const [isGettingDirections, setIsGettingDirections] = useState(false)
   const [directionsInfo, setDirectionsInfo] = useState(null)
+  const [showDirectionsForm, setShowDirectionsForm] = useState(false)
+  const [fromAddress, setFromAddress] = useState('')
+  const [geocoder, setGeocoder] = useState(null)
   const directionsService = useRef(null)
   const directionsRenderer = useRef(null)
 
@@ -33,7 +36,7 @@ export const ArtistMap = () => {
     })
   }, [])
 
-  // Initialize directions service when map loads
+  // Initialize directions service and geocoder when map loads
   const onMapLoad = (map) => {
     if (window.google) {
       directionsService.current = new window.google.maps.DirectionsService()
@@ -46,40 +49,61 @@ export const ArtistMap = () => {
         }
       })
       directionsRenderer.current.setMap(map)
+      
+      // Initialize geocoder for address lookup
+      setGeocoder(new window.google.maps.Geocoder())
     }
   }
 
-  // Get user's current location
+  // Get user's current location (optional)
   const getUserLocation = () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by this browser.')
-      return
+      return null
     }
 
-    setIsGettingDirections(true)
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const location = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          }
+          setUserLocation(location)
+          resolve(location)
+        },
+        (error) => {
+          console.error('Error getting location:', error)
+          reject(error)
         }
-        setUserLocation(location)
-        return location
-      },
-      (error) => {
-        console.error('Error getting location:', error)
-        alert('Unable to get your location. Please check your browser settings.')
-        setIsGettingDirections(false)
-      }
-    )
+      )
+    })
+  }
+
+  // Geocode address to coordinates
+  const geocodeAddress = async (address) => {
+    if (!geocoder) return null
+
+    return new Promise((resolve, reject) => {
+      geocoder.geocode({ address }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          const location = results[0].geometry.location
+          resolve({
+            lat: location.lat(),
+            lng: location.lng()
+          })
+        } else {
+          reject(new Error(`Geocoding failed: ${status}`))
+        }
+      })
+    })
   }
 
   // Get directions to selected artist
-  const getDirections = async (artist) => {
-    if (!directionsService.current || !userLocation) {
-      // If no user location, get it first
-      const location = await getUserLocation()
-      if (!location) return
+  const getDirections = async (artist, originAddress = null) => {
+    if (!directionsService.current) {
+      alert('Directions service not available')
+      return
     }
 
     if (!artist.latitude || !artist.longitude) {
@@ -89,16 +113,40 @@ export const ArtistMap = () => {
 
     setIsGettingDirections(true)
 
-    const request = {
-      origin: userLocation,
-      destination: {
-        lat: parseFloat(artist.latitude),
-        lng: parseFloat(artist.longitude)
-      },
-      travelMode: window.google.maps.TravelMode.DRIVING
-    }
-
     try {
+      let origin
+      
+      if (originAddress) {
+        // Use provided address
+        origin = await geocodeAddress(originAddress)
+        if (!origin) {
+          alert('Could not find the address you entered. Please check the spelling and try again.')
+          setIsGettingDirections(false)
+          return
+        }
+        setUserLocation(origin)
+      } else if (userLocation) {
+        // Use current user location
+        origin = userLocation
+      } else {
+        // Try to get current location
+        origin = await getUserLocation()
+        if (!origin) {
+          alert('Please enter a starting address or allow location access.')
+          setIsGettingDirections(false)
+          return
+        }
+      }
+
+      const request = {
+        origin: origin,
+        destination: {
+          lat: parseFloat(artist.latitude),
+          lng: parseFloat(artist.longitude)
+        },
+        travelMode: window.google.maps.TravelMode.DRIVING
+      }
+
       const result = await directionsService.current.route(request)
       setDirections(result)
       
@@ -115,7 +163,7 @@ export const ArtistMap = () => {
 
       // Fit map to show entire route
       const bounds = new window.google.maps.LatLngBounds()
-      bounds.extend(userLocation)
+      bounds.extend(origin)
       bounds.extend({
         lat: parseFloat(artist.latitude),
         lng: parseFloat(artist.longitude)
@@ -127,9 +175,10 @@ export const ArtistMap = () => {
       }
     } catch (error) {
       console.error('Error getting directions:', error)
-      alert('Unable to get directions. Please try again.')
+      alert('Unable to get directions. Please check your address and try again.')
     } finally {
       setIsGettingDirections(false)
+      setShowDirectionsForm(false)
     }
   }
 
@@ -137,9 +186,21 @@ export const ArtistMap = () => {
   const clearDirections = () => {
     setDirections(null)
     setDirectionsInfo(null)
+    setShowDirectionsForm(false)
+    setFromAddress('')
     if (directionsRenderer.current) {
       directionsRenderer.current.setDirections({ routes: [] })
     }
+  }
+
+  // Handle directions form submission
+  const handleDirectionsSubmit = (e) => {
+    e.preventDefault()
+    if (!fromAddress.trim()) {
+      alert('Please enter a starting address')
+      return
+    }
+    getDirections(selectedArtist, fromAddress.trim())
   }
 
   const getDummyArtists = () => [
@@ -289,6 +350,77 @@ export const ArtistMap = () => {
           </div>
         ) : (
           <div className="relative">
+            {/* Directions Form Modal */}
+            {showDirectionsForm && (
+              <div className="absolute top-4 left-4 z-20 bg-white rounded-lg shadow-xl p-6 max-w-sm border">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold text-gray-900">Get Directions</h4>
+                  <button
+                    onClick={() => setShowDirectionsForm(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <form onSubmit={handleDirectionsSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      From Address
+                    </label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={fromAddress}
+                        onChange={(e) => setFromAddress(e.target.value)}
+                        placeholder="Enter your starting address..."
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm text-gray-600">
+                    <p className="mb-2">To: <strong>{selectedArtist?.studioName}</strong></p>
+                    <p className="text-xs text-gray-500">
+                      {selectedArtist?.user.firstName} {selectedArtist?.user.lastName}
+                    </p>
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <button
+                      type="submit"
+                      disabled={isGettingDirections}
+                      className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    >
+                      {isGettingDirections ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b border-white"></div>
+                          <span>Getting Directions...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Navigation className="w-4 h-4" />
+                          <span>Get Directions</span>
+                        </>
+                      )}
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => getDirections(selectedArtist)}
+                      disabled={isGettingDirections}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      title="Use my current location"
+                    >
+                      📍
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
             {/* Directions Info Panel */}
             {directionsInfo && (
               <div className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-lg p-4 max-w-sm">
@@ -424,23 +556,13 @@ export const ArtistMap = () => {
                   <div className="flex flex-col space-y-2">
                     <button
                       onClick={() => {
-                        getDirections(selectedArtist)
-                        setSelectedArtist(null)
+                        setShowDirectionsForm(true)
+                        setFromAddress('')
                       }}
-                      disabled={isGettingDirections}
-                      className="w-full px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
+                      className="w-full px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition-colors flex items-center justify-center space-x-1"
                     >
-                      {isGettingDirections ? (
-                        <>
-                          <div className="animate-spin rounded-full h-3 w-3 border-b border-white"></div>
-                          <span>Getting Directions...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Navigation className="w-3 h-3" />
-                          <span>Get Directions</span>
-                        </>
-                      )}
+                      <Navigation className="w-3 h-3" />
+                      <span>Get Directions</span>
                     </button>
                     
                     <button

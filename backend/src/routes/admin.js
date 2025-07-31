@@ -134,7 +134,7 @@ router.get('/users', async (req, res) => {
  */
 router.put('/users/:id', [
   body('isActive').optional().isBoolean(),
-  body('role').optional().isIn(['CLIENT', 'ARTIST', 'ADMIN']),
+  body('role').optional().isIn(['CLIENT', 'ARTIST', 'ADMIN', 'ARTIST_ADMIN']),
   body('isVerified').optional().isBoolean(),
   body('reason').optional().isString()
 ], async (req, res) => {

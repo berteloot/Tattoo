@@ -1,13 +1,14 @@
+import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { MapPin, User, LogOut, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { MapPin, Menu, X, LogOut } from 'lucide-react'
 import { SkipToMainContent } from './UXComponents'
 
 export const Layout = ({ children }) => {
-  const { user, isAuthenticated, logout } = useAuth()
-  const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { user, isAuthenticated, logout, isArtist, isAdmin } = useAuth()
+  const location = useLocation()
+  const currentYear = new Date().getFullYear()
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -16,9 +17,6 @@ export const Layout = ({ children }) => {
   ]
 
   const isActive = (path) => location.pathname === path
-
-  // Get current year for copyright
-  const currentYear = new Date().getFullYear()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -62,7 +60,7 @@ export const Layout = ({ children }) => {
                     <User className="h-4 w-4" />
                     <span>{user?.firstName}</span>
                   </Link>
-                  {user?.role === 'ARTIST' && (
+                  {isArtist && (
                     <Link
                       to="/dashboard"
                       className="px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
@@ -70,7 +68,7 @@ export const Layout = ({ children }) => {
                       Dashboard
                     </Link>
                   )}
-                  {user?.role === 'ADMIN' && (
+                  {isAdmin && (
                     <Link
                       to="/admin"
                       className="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700"
@@ -157,7 +155,7 @@ export const Layout = ({ children }) => {
                   >
                     Profile
                   </Link>
-                  {user?.role === 'ARTIST' && (
+                  {isArtist && (
                     <Link
                       to="/dashboard"
                       className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary-600 hover:bg-primary-700"
@@ -166,7 +164,7 @@ export const Layout = ({ children }) => {
                       Dashboard
                     </Link>
                   )}
-                  {user?.role === 'ADMIN' && (
+                  {isAdmin && (
                     <Link
                       to="/admin"
                       className="block px-3 py-2 rounded-md text-base font-medium text-white bg-red-600 hover:bg-red-700"
