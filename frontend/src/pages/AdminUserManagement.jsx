@@ -133,7 +133,7 @@ const AdminUserManagement = () => {
   }, [filters]);
 
   // Check if current user is admin
-  if (user?.role !== 'ADMIN') {
+  if (user?.role !== 'ADMIN' && user?.role !== 'ARTIST_ADMIN') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -182,6 +182,7 @@ const AdminUserManagement = () => {
                 <option value="CLIENT">Client</option>
                 <option value="ARTIST">Artist</option>
                 <option value="ADMIN">Admin</option>
+                <option value="ARTIST_ADMIN">Artist & Admin</option>
               </select>
             </div>
             
