@@ -86,8 +86,9 @@ export const AuthProvider = ({ children }) => {
       } else {
         // Invalid response format
         console.error('Invalid response format:', response)
-        toast.error('Error', 'Invalid response from server')
-        return { success: false, error: 'Invalid response from server' }
+        const message = 'Invalid response from server'
+        toast.error('Error', message)
+        return { success: false, error: message }
       }
     } catch (error) {
       console.error('Login error details:', error)
@@ -95,14 +96,30 @@ export const AuthProvider = ({ children }) => {
       // Handle different error response structures
       let message = 'Login failed'
       
-      if (error.response && error.response.data) {
+      if (error && error.response) {
         // Server returned an error response
-        message = error.response.data.error || error.response.data.message || 'Login failed'
+        if (error.response.status === 400) {
+          // Bad request - likely invalid credentials
+          message = error.response.data?.error || 'Invalid email or password'
+        } else if (error.response.status === 401) {
+          // Unauthorized - invalid credentials
+          message = error.response.data?.error || 'Invalid email or password'
+        } else if (error.response.data) {
+          message = error.response.data.error || error.response.data.message || 'Login failed'
+        } else {
+          message = `Server error (${error.response.status})`
+        }
         console.log('Server error response:', error.response.data)
-      } else if (error.message) {
+      } else if (error && error.message) {
         // Network or other error
         message = error.message
         console.log('Network/other error:', error.message)
+      } else if (error && typeof error === 'string') {
+        // Error is a string
+        message = error
+      } else {
+        // Unknown error type
+        message = 'An unexpected error occurred during login'
       }
       
       toast.error('Error', message)

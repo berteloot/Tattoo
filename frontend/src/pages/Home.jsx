@@ -120,7 +120,8 @@ export const Home = () => {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Find Artists Near You</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Explore our interactive map to discover talented tattoo artists in Montreal. 
-              Click on any marker to view artist details, specialties, and pricing.
+              Click on any marker to view artist details, get directions to their studio, 
+              and see estimated travel time and distance.
             </p>
           </div>
           
