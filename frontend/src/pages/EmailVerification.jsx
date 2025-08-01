@@ -81,7 +81,15 @@ const EmailVerification = () => {
       }
     } catch (error) {
       console.error('Resend verification error:', error);
-      showToast('Failed to resend verification email. Please try again.', 'error');
+      
+      // Handle specific error cases
+      if (error.response?.status === 400) {
+        showToast(error.response.data.error || 'Invalid email address', 'error');
+      } else if (error.response?.status === 500) {
+        showToast('Email service temporarily unavailable. Please try again later.', 'error');
+      } else {
+        showToast('Failed to resend verification email. Please try again.', 'error');
+      }
     } finally {
       setIsResending(false);
     }
