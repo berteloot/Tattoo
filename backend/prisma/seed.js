@@ -910,7 +910,7 @@ async function main() {
           title: flashItem.title,
           description: flashItem.description,
           imageUrl: flashItem.imageUrl,
-          price: flashItem.price,
+          basePrice: flashItem.price,
           tags: flashItem.tags,
           isAvailable: flashItem.isAvailable
         }
