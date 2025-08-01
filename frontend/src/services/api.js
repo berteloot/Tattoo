@@ -33,10 +33,10 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !error.config.url.includes("auth")) {
       // Token expired or invalid
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      // Only redirect for non-auth routes
     }
     return Promise.reject(error)
   }
