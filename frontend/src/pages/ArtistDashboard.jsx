@@ -6,7 +6,7 @@ import ImageUpload from '../components/ImageUpload'
 
 export const ArtistDashboard = () => {
   const { user } = useAuth()
-  const { success, error } = useToast()
+  const { success, error: showError } = useToast()
   
   // State management
   const [profile, setProfile] = useState(null)
@@ -179,7 +179,7 @@ export const ArtistDashboard = () => {
 
     } catch (error) {
       console.error('Error loading dashboard data:', error)
-      error('Error loading dashboard data')
+      showError('Error loading dashboard data')
     } finally {
       setLoading(false)
     }
@@ -248,7 +248,7 @@ export const ArtistDashboard = () => {
     
     // Check if user has artist profile
     if (!user?.artistProfile?.id) {
-      error('You need to create an artist profile first before adding flash items.')
+              showError('You need to create an artist profile first before adding flash items.')
       return
     }
     
@@ -297,6 +297,24 @@ export const ArtistDashboard = () => {
     console.log('🔍 Form submission started')
     console.log('User:', user)
     console.log('Form data:', formData)
+    console.log('🔍 Bio field value:', formData.bio)
+    console.log('🔍 Bio field length:', formData.bio?.length)
+    console.log('🔍 City field value:', formData.city)
+    console.log('🔍 Specialty IDs:', formData.specialtyIds)
+    console.log('🔍 Service IDs:', formData.serviceIds)
+    
+    // Validate required fields
+    if (!formData.bio || formData.bio.trim().length < 10) {
+      console.error('❌ Bio validation failed - too short or empty')
+      showError('Bio is required and must be at least 10 characters long')
+      return
+    }
+    
+    if (!formData.city || formData.city.trim().length === 0) {
+      console.error('❌ City validation failed - empty')
+      showError('City is required')
+      return
+    }
     
     try {
       setLoading(true)
@@ -340,8 +358,9 @@ export const ArtistDashboard = () => {
       console.error('❌ Error saving profile:', error)
       console.error('❌ Error response:', error.response)
       console.error('❌ Error message:', error.message)
+      console.error('❌ Error details:', error.response?.data)
       const errorMessage = error.response?.data?.error || 'Error saving profile'
-      error(errorMessage)
+              showError(errorMessage)
     } finally {
       setLoading(false)
       console.log('✅ Loading state set to false')

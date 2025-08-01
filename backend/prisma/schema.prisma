@@ -57,6 +57,10 @@ model ArtistProfile {
   studioName  String?
   website     String?
   instagram   String?
+  facebook    String?
+  twitter     String?
+  youtube     String?
+  linkedin    String?
   calendlyUrl String? // Calendly booking URL for the artist
   
   // Location

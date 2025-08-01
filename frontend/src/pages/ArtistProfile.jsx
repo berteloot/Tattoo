@@ -1,6 +1,23 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Star, MapPin, Clock, DollarSign, Phone, Globe, Instagram, ArrowLeft } from 'lucide-react'
+import { 
+  Star, 
+  MapPin, 
+  Clock, 
+  DollarSign, 
+  Phone, 
+  Globe, 
+  Instagram, 
+  ArrowLeft, 
+  Mail, 
+  Facebook, 
+  Twitter, 
+  Youtube, 
+  Linkedin, 
+  ExternalLink,
+  Calendar,
+  MessageCircle
+} from 'lucide-react'
 import { LoadingSpinner } from '../components/UXComponents'
 import { CalendlyWidget } from '../components/CalendlyWidget'
 import { artistsAPI } from '../services/api'
@@ -253,59 +270,229 @@ export const ArtistProfile = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Info */}
+            {/* Enhanced Contact Info */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h2>
-              <div className="space-y-3">
-                {artist.phone && (
-                  <div className="flex items-center text-gray-600">
-                    <Phone className="w-4 h-4 mr-2" />
-                    <span>{artist.phone}</span>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <MessageCircle className="w-5 h-5 mr-2 text-primary-600" />
+                Contact Information
+              </h2>
+              
+              <div className="space-y-4">
+                {/* Phone */}
+                {artist.user.phone && (
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                      <Phone className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">Phone</p>
+                      <a 
+                        href={`tel:${artist.user.phone}`}
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors"
+                      >
+                        {artist.user.phone}
+                      </a>
+                    </div>
                   </div>
                 )}
-                {artist.website && (
-                  <a
-                    href={artist.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-primary-600 hover:text-primary-700 transition-colors"
-                  >
-                    <Globe className="w-4 h-4 mr-2" />
-                    <span>Visit Website</span>
-                  </a>
+
+                {/* Email */}
+                {artist.user.email && (
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                      <Mail className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">Email</p>
+                      <a 
+                        href={`mailto:${artist.user.email}`}
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block"
+                      >
+                        {artist.user.email}
+                      </a>
+                    </div>
+                  </div>
                 )}
+
+                {/* Website */}
+                {artist.website && (
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                      <Globe className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">Website</p>
+                      <a
+                        href={artist.website.startsWith('http') ? artist.website : `https://${artist.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block flex items-center"
+                      >
+                        {artist.website.replace(/^https?:\/\//, '')}
+                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Instagram */}
                 {artist.instagram && (
-                  <a
-                    href={`https://instagram.com/${artist.instagram.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-primary-600 hover:text-primary-700 transition-colors"
-                  >
-                    <Instagram className="w-4 h-4 mr-2" />
-                    <span>{artist.instagram}</span>
-                  </a>
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center mr-3">
+                      <Instagram className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">Instagram</p>
+                      <a
+                        href={`https://instagram.com/${artist.instagram.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block flex items-center"
+                      >
+                        {artist.instagram}
+                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Facebook */}
+                {artist.facebook && (
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                      <Facebook className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">Facebook</p>
+                      <a
+                        href={artist.facebook.startsWith('http') ? artist.facebook : `https://facebook.com/${artist.facebook}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block flex items-center"
+                      >
+                        {artist.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}
+                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Twitter/X */}
+                {artist.twitter && (
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
+                      <Twitter className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">Twitter/X</p>
+                      <a
+                        href={`https://twitter.com/${artist.twitter.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block flex items-center"
+                      >
+                        {artist.twitter}
+                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* YouTube */}
+                {artist.youtube && (
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-red-600 rounded-full flex items-center justify-center mr-3">
+                      <Youtube className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">YouTube</p>
+                      <a
+                        href={artist.youtube.startsWith('http') ? artist.youtube : `https://youtube.com/${artist.youtube}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block flex items-center"
+                      >
+                        {artist.youtube.replace(/^https?:\/\/(www\.)?youtube\.com\//, '')}
+                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* LinkedIn */}
+                {artist.linkedin && (
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center mr-3">
+                      <Linkedin className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">LinkedIn</p>
+                      <a
+                        href={artist.linkedin.startsWith('http') ? artist.linkedin : `https://linkedin.com/in/${artist.linkedin}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block flex items-center"
+                      >
+                        {artist.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/(in\/)?/, '')}
+                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Calendly Booking */}
+                {artist.calendlyUrl && (
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-3">
+                      <Calendar className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">Book Appointment</p>
+                      <a
+                        href={artist.calendlyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block flex items-center"
+                      >
+                        Schedule Consultation
+                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* No contact info message */}
+                {!artist.user.phone && !artist.user.email && !artist.website && !artist.instagram && 
+                 !artist.facebook && !artist.twitter && !artist.youtube && !artist.linkedin && !artist.calendlyUrl && (
+                  <div className="text-center py-6">
+                    <MessageCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500 text-sm">No contact information available</p>
+                  </div>
                 )}
               </div>
             </div>
 
             {/* Pricing */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Pricing</h2>
-              <div className="space-y-2">
-                <div className="flex justify-between">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <DollarSign className="w-5 h-5 mr-2 text-primary-600" />
+                Pricing
+              </h2>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-gray-600">Hourly Rate:</span>
-                  <span className="font-semibold">${artist.hourlyRate}/hr</span>
+                  <span className="font-semibold text-gray-900">${artist.hourlyRate}/hr</span>
                 </div>
                 {artist.minPrice && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
                     <span className="text-gray-600">Starting Price:</span>
-                    <span className="font-semibold">${artist.minPrice}</span>
+                    <span className="font-semibold text-gray-900">${artist.minPrice}</span>
                   </div>
                 )}
                 {artist.maxPrice && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center py-2">
                     <span className="text-gray-600">Up to:</span>
-                    <span className="font-semibold">${artist.maxPrice}</span>
+                    <span className="font-semibold text-gray-900">${artist.maxPrice}</span>
                   </div>
                 )}
               </div>
@@ -313,11 +500,14 @@ export const ArtistProfile = () => {
 
             {/* Location */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Location</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <MapPin className="w-5 h-5 mr-2 text-primary-600" />
+                Location
+              </h2>
               <div className="space-y-2 text-gray-600">
-                {artist.address && <p>{artist.address}</p>}
+                {artist.address && <p className="font-medium">{artist.address}</p>}
                 <p>{artist.city}, {artist.state} {artist.zipCode}</p>
-                <p>{artist.country}</p>
+                {artist.country && <p>{artist.country}</p>}
               </div>
             </div>
 
