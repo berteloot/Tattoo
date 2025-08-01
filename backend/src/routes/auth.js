@@ -182,8 +182,19 @@ router.post('/login', [
       });
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
+    // Check if email is verified (bypass for test accounts in production)
+    const testEmails = [
+      'admin@tattoolocator.com',
+      'client@example.com', 
+      'artist@example.com',
+      'lisa@example.com',
+      'david@example.com',
+      'emma@example.com',
+      'marcus@example.com',
+      'pending@example.com'
+    ]
+    
+    if (!user.emailVerified && !testEmails.includes(user.email)) {
       return res.status(401).json({
         success: false,
         error: 'Please verify your email address before logging in. Check your inbox for a verification link.',

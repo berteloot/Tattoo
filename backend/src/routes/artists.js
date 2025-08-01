@@ -610,7 +610,15 @@ router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     .withMessage('Studio name must be less than 100 characters'),
   body('website')
     .optional()
-    .isURL()
+    .custom((value) => {
+      if (value && value.trim() !== '') {
+        const urlRegex = /^https?:\/\/.+/;
+        if (!urlRegex.test(value)) {
+          throw new Error('Website must be a valid URL starting with http:// or https://');
+        }
+      }
+      return true;
+    })
     .withMessage('Website must be a valid URL'),
   body('instagram')
     .optional()
@@ -619,7 +627,15 @@ router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     .withMessage('Instagram handle must be less than 50 characters'),
   body('calendlyUrl')
     .optional()
-    .isURL()
+    .custom((value) => {
+      if (value && value.trim() !== '') {
+        const urlRegex = /^https?:\/\/.+/;
+        if (!urlRegex.test(value)) {
+          throw new Error('Calendly URL must be a valid URL starting with http:// or https://');
+        }
+      }
+      return true;
+    })
     .withMessage('Calendly URL must be a valid URL'),
   body('address')
     .optional()
