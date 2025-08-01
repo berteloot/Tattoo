@@ -30,6 +30,16 @@ const EmailVerification = () => {
     try {
       setVerificationStatus('verifying');
       
+      // Debug: Check if authAPI and verifyEmail exist
+      console.log('authAPI:', authAPI);
+      console.log('authAPI.verifyEmail:', authAPI.verifyEmail);
+      
+      if (!authAPI || !authAPI.verifyEmail) {
+        console.error('authAPI.verifyEmail is not available');
+        setVerificationStatus('error');
+        return;
+      }
+      
       const response = await authAPI.verifyEmail(verificationToken);
 
       if (response.data.success) {
@@ -72,6 +82,16 @@ const EmailVerification = () => {
 
     try {
       setIsResending(true);
+      
+      // Debug: Check if authAPI and resendVerification exist
+      console.log('authAPI:', authAPI);
+      console.log('authAPI.resendVerification:', authAPI.resendVerification);
+      
+      if (!authAPI || !authAPI.resendVerification) {
+        console.error('authAPI.resendVerification is not available');
+        showToast('API method not available. Please refresh the page.', 'error');
+        return;
+      }
       
       const response = await authAPI.resendVerification(email);
 
