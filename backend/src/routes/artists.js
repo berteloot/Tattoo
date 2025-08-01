@@ -348,9 +348,11 @@ router.get('/:id', optionalAuth, async (req, res) => {
  */
 router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
   body('bio')
-    .optional()
-    .isLength({ max: 1000 })
-    .withMessage('Bio must be less than 1000 characters'),
+    .trim()
+    .notEmpty()
+    .withMessage('Bio is required')
+    .isLength({ min: 10, max: 1000 })
+    .withMessage('Bio must be between 10 and 1000 characters'),
   body('studioName')
     .optional()
     .trim()
@@ -391,8 +393,9 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     .isLength({ max: 200 })
     .withMessage('Address must be less than 200 characters'),
   body('city')
-    .optional()
     .trim()
+    .notEmpty()
+    .withMessage('City is required')
     .isLength({ max: 100 })
     .withMessage('City must be less than 100 characters'),
   body('state')

@@ -468,10 +468,17 @@ export const ArtistDashboard = () => {
             <div className="p-6">
               {editing ? (
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Required Fields Note */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800">
+                      <span className="text-red-500">*</span> Required fields. All other fields are optional and can be added later.
+                    </p>
+                  </div>
+                  
                   {/* About Me */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      About Me
+                      About Me <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       name="bio"
@@ -742,7 +749,7 @@ export const ArtistDashboard = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        City
+                        City <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
