@@ -358,7 +358,15 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     .withMessage('Studio name must be less than 100 characters'),
   body('website')
     .optional()
-    .isURL()
+    .custom((value) => {
+      if (value && value.trim() !== '') {
+        const urlRegex = /^https?:\/\/.+/;
+        if (!urlRegex.test(value)) {
+          throw new Error('Website must be a valid URL starting with http:// or https://');
+        }
+      }
+      return true;
+    })
     .withMessage('Website must be a valid URL'),
   body('instagram')
     .optional()
@@ -367,7 +375,15 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     .withMessage('Instagram handle must be less than 50 characters'),
   body('calendlyUrl')
     .optional()
-    .isURL()
+    .custom((value) => {
+      if (value && value.trim() !== '') {
+        const urlRegex = /^https?:\/\/.+/;
+        if (!urlRegex.test(value)) {
+          throw new Error('Calendly URL must be a valid URL starting with http:// or https://');
+        }
+      }
+      return true;
+    })
     .withMessage('Calendly URL must be a valid URL'),
   body('address')
     .optional()
@@ -396,23 +412,63 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     .withMessage('Country must be less than 100 characters'),
   body('latitude')
     .optional()
-    .isFloat({ min: -90, max: 90 })
+    .custom((value) => {
+      if (value && value.toString().trim() !== '') {
+        const num = parseFloat(value);
+        if (isNaN(num) || num < -90 || num > 90) {
+          throw new Error('Latitude must be between -90 and 90');
+        }
+      }
+      return true;
+    })
     .withMessage('Latitude must be between -90 and 90'),
   body('longitude')
     .optional()
-    .isFloat({ min: -180, max: 180 })
+    .custom((value) => {
+      if (value && value.toString().trim() !== '') {
+        const num = parseFloat(value);
+        if (isNaN(num) || num < -180 || num > 180) {
+          throw new Error('Longitude must be between -180 and 180');
+        }
+      }
+      return true;
+    })
     .withMessage('Longitude must be between -180 and 180'),
   body('hourlyRate')
     .optional()
-    .isFloat({ min: 0 })
+    .custom((value) => {
+      if (value && value.toString().trim() !== '') {
+        const num = parseFloat(value);
+        if (isNaN(num) || num < 0) {
+          throw new Error('Hourly rate must be a positive number');
+        }
+      }
+      return true;
+    })
     .withMessage('Hourly rate must be a positive number'),
   body('minPrice')
     .optional()
-    .isFloat({ min: 0 })
+    .custom((value) => {
+      if (value && value.toString().trim() !== '') {
+        const num = parseFloat(value);
+        if (isNaN(num) || num < 0) {
+          throw new Error('Minimum price must be a positive number');
+        }
+      }
+      return true;
+    })
     .withMessage('Minimum price must be a positive number'),
   body('maxPrice')
     .optional()
-    .isFloat({ min: 0 })
+    .custom((value) => {
+      if (value && value.toString().trim() !== '') {
+        const num = parseFloat(value);
+        if (isNaN(num) || num < 0) {
+          throw new Error('Maximum price must be a positive number');
+        }
+      }
+      return true;
+    })
     .withMessage('Maximum price must be a positive number'),
   body('specialtyIds')
     .optional()
@@ -469,21 +525,21 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     const artistProfile = await prisma.artistProfile.create({
       data: {
         userId: req.user.id,
-        bio,
-        studioName,
-        website,
-        instagram,
-        calendlyUrl,
-        address,
-        city,
-        state,
-        zipCode,
-        country,
-        latitude: latitude ? parseFloat(latitude) : null,
-        longitude: longitude ? parseFloat(longitude) : null,
-        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
-        minPrice: minPrice ? parseFloat(minPrice) : null,
-        maxPrice: maxPrice ? parseFloat(maxPrice) : null,
+        bio: bio?.trim() || null,
+        studioName: studioName?.trim() || null,
+        website: website?.trim() || null,
+        instagram: instagram?.trim() || null,
+        calendlyUrl: calendlyUrl?.trim() || null,
+        address: address?.trim() || null,
+        city: city?.trim() || null,
+        state: state?.trim() || null,
+        zipCode: zipCode?.trim() || null,
+        country: country?.trim() || null,
+        latitude: latitude && latitude.toString().trim() !== '' ? parseFloat(latitude) : null,
+        longitude: longitude && longitude.toString().trim() !== '' ? parseFloat(longitude) : null,
+        hourlyRate: hourlyRate && hourlyRate.toString().trim() !== '' ? parseFloat(hourlyRate) : null,
+        minPrice: minPrice && minPrice.toString().trim() !== '' ? parseFloat(minPrice) : null,
+        maxPrice: maxPrice && maxPrice.toString().trim() !== '' ? parseFloat(maxPrice) : null,
         specialties: {
           connect: specialtyIds.map(id => ({ id }))
         },
