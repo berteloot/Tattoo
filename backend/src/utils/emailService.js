@@ -145,7 +145,7 @@ class EmailService {
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com'}/artists" 
+              <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com'}/artists" 
                  style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
                 Start Exploring Artists
               </a>
@@ -203,7 +203,7 @@ class EmailService {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com'}/artists/${artistProfile.id}" 
+                          <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com'}/artists/${artistProfile.id}" 
                style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View Your Profile
             </a>
@@ -237,7 +237,7 @@ class EmailService {
 
   // Password reset email
   async sendPasswordResetEmail(user, resetToken) {
-    const resetUrl = `${process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com'}/reset-password?token=${resetToken}`
+          const resetUrl = `${process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com'}/reset-password?token=${resetToken}`
     const subject = 'Reset Your Password - Tattooed World'
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -317,7 +317,7 @@ class EmailService {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com'}/artists/${artist.id}" 
+                          <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com'}/artists/${artist.id}" 
                style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View Your Profile
             </a>
