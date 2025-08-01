@@ -818,4 +818,55 @@ router.get('/actions', async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/admin/quick-fix-verification
+ * @desc    Quick fix to disable email verification for existing users
+ * @access  Admin only
+ */
+router.post('/quick-fix-verification', protect, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== 'ADMIN') {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      });
+    }
+
+    // Get all users
+    const users = await prisma.user.findMany();
+
+    // Update all users to be verified
+    const updatePromises = users.map(user => 
+      prisma.user.update({
+        where: { id: user.id },
+        data: {
+          emailVerified: true,
+          isActive: true,
+          emailVerificationToken: null,
+          emailVerificationExpiry: null
+        }
+      })
+    );
+
+    await Promise.all(updatePromises);
+
+    res.json({
+      success: true,
+      message: `Email verification disabled for ${users.length} users`,
+      data: {
+        usersFixed: users.length,
+        users: users.map(u => ({ id: u.id, email: u.email, role: u.role }))
+      }
+    });
+
+  } catch (error) {
+    console.error('Quick fix error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error during quick fix'
+    });
+  }
+});
+
 module.exports = router; 
