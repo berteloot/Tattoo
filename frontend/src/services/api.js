@@ -55,6 +55,8 @@ export const authAPI = {
   updateProfile: (profileData) => api.put('/auth/profile', profileData),
   changePassword: (passwordData) => api.put('/auth/change-password', passwordData),
   changeEmail: (emailData) => api.put('/auth/change-email', emailData),
+  verifyEmail: (token) => api.post('/auth/verify-email', { token }),
+  resendVerification: (email) => api.post('/auth/resend-verification', { email }),
 }
 
 export const artistsAPI = {

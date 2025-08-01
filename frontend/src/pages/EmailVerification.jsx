@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { api } from '../services/api';
+import { authAPI } from '../services/api';
 import { CheckCircle, XCircle, Mail, RefreshCw, ArrowLeft } from 'lucide-react';
 
 const EmailVerification = () => {
@@ -30,9 +30,7 @@ const EmailVerification = () => {
     try {
       setVerificationStatus('verifying');
       
-      const response = await api.post('/auth/verify-email', {
-        token: verificationToken
-      });
+      const response = await authAPI.verifyEmail(verificationToken);
 
       if (response.data.success) {
         setVerificationStatus('success');
@@ -75,9 +73,7 @@ const EmailVerification = () => {
     try {
       setIsResending(true);
       
-      const response = await api.post('/auth/resend-verification', {
-        email: email
-      });
+      const response = await authAPI.resendVerification(email);
 
       if (response.data.success) {
         showToast('Verification email sent! Please check your inbox.', 'success');
