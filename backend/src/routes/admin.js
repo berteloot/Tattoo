@@ -869,4 +869,70 @@ router.post('/quick-fix-verification', protect, async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/admin/fix-test-accounts
+ * @desc    Fix test accounts for production (temporary)
+ * @access  Admin only
+ */
+router.post('/fix-test-accounts', protect, adminOnly, async (req, res) => {
+  try {
+    console.log('🔄 Fixing test accounts in production...')
+    
+    // Update all test accounts to have emailVerified: true
+    const testEmails = [
+      'admin@tattoolocator.com',
+      'client@example.com', 
+      'artist@example.com',
+      'lisa@example.com',
+      'david@example.com',
+      'emma@example.com',
+      'marcus@example.com',
+      'pending@example.com'
+    ]
+    
+    const updatedUsers = await prisma.user.updateMany({
+      where: {
+        email: {
+          in: testEmails
+        }
+      },
+      data: {
+        emailVerified: true
+      }
+    })
+    
+    console.log(`✅ Updated ${updatedUsers.count} test accounts`)
+    
+    // Verify the updates
+    const users = await prisma.user.findMany({
+      where: {
+        email: {
+          in: testEmails
+        }
+      },
+      select: {
+        email: true,
+        emailVerified: true,
+        role: true
+      }
+    })
+    
+    res.json({
+      success: true,
+      message: `Updated ${updatedUsers.count} test accounts`,
+      data: {
+        updatedCount: updatedUsers.count,
+        users: users
+      }
+    })
+    
+  } catch (error) {
+    console.error('❌ Error fixing test accounts:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Server error while fixing test accounts'
+    })
+  }
+})
+
 module.exports = router; 
