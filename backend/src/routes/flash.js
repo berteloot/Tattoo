@@ -199,8 +199,21 @@ router.get('/:id', optionalAuth, async (req, res) => {
  */
 router.post('/upload', protect, authorize('ARTIST', 'ARTIST_ADMIN'), handleUpload, async (req, res) => {
   try {
+    // Check if Cloudinary is configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error('Cloudinary configuration missing');
+      return res.status(500).json({
+        success: false,
+        error: 'Image upload service is not configured. Please contact support.'
+      });
+    }
+
     // Upload image to Cloudinary
     const uploadResult = await uploadImage(req.uploadedFile.buffer, 'flash');
+    
+    if (!uploadResult || !uploadResult.url) {
+      throw new Error('Failed to get upload result from Cloudinary');
+    }
     
     res.json({
       success: true,
@@ -217,6 +230,8 @@ router.post('/upload', protect, authorize('ARTIST', 'ARTIST_ADMIN'), handleUploa
     });
   } catch (error) {
     console.error('Image upload error:', error);
+    
+    // Ensure we always return a JSON response
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to upload image'

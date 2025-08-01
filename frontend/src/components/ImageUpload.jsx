@@ -73,7 +73,33 @@ const ImageUpload = ({
         body: formData
       });
 
-      const result = await response.json();
+      // Check if response is ok
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = 'Upload failed';
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorData.message || 'Upload failed';
+        } catch (e) {
+          errorMessage = errorText || `Upload failed (${response.status})`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      // Check if response has content
+      const responseText = await response.text();
+      if (!responseText) {
+        throw new Error('Server returned empty response');
+      }
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error('Server returned invalid JSON response');
+      }
 
       if (!result.success) {
         throw new Error(result.error || 'Upload failed');
