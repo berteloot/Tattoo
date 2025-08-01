@@ -205,3 +205,4 @@ MIT License - see LICENSE file for details
 ## Support
 
 For support, please open an issue in the GitHub repository. # Updated Thu Jul 31 14:44:32 CEST 2025
+# Production deployment fix - Fri Aug  1 18:43:16 CEST 2025
