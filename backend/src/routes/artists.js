@@ -346,7 +346,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
  * @desc    Create artist profile
  * @access  Private (ARTIST role)
  */
-router.post('/', protect, authorize('ARTIST'), [
+router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
   body('bio')
     .optional()
     .isLength({ max: 1000 })
@@ -539,7 +539,7 @@ router.post('/', protect, authorize('ARTIST'), [
  * @desc    Update artist profile
  * @access  Private (ARTIST role, owner only)
  */
-router.put('/:id', protect, authorize('ARTIST'), [
+router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
   body('bio')
     .optional()
     .isLength({ max: 1000 })

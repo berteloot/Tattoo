@@ -197,7 +197,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
  * @desc    Upload image for flash item
  * @access  Private (ARTIST role)
  */
-router.post('/upload', protect, authorize('ARTIST'), handleUpload, async (req, res) => {
+router.post('/upload', protect, authorize('ARTIST', 'ARTIST_ADMIN'), handleUpload, async (req, res) => {
   try {
     // Upload image to Cloudinary
     const uploadResult = await uploadImage(req.uploadedFile.buffer, 'flash');
@@ -229,7 +229,7 @@ router.post('/upload', protect, authorize('ARTIST'), handleUpload, async (req, r
  * @desc    Create new flash item (supports both URL and file upload)
  * @access  Private (ARTIST role)
  */
-router.post('/', protect, authorize('ARTIST'), [
+router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
   body('title')
     .trim()
     .isLength({ min: 1, max: 100 })
@@ -345,7 +345,7 @@ router.post('/', protect, authorize('ARTIST'), [
  * @desc    Update flash item
  * @access  Private (ARTIST role, owner only)
  */
-router.put('/:id', protect, authorize('ARTIST'), [
+router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
   body('title')
     .optional()
     .trim()
@@ -487,7 +487,7 @@ router.put('/:id', protect, authorize('ARTIST'), [
  * @desc    Delete flash item
  * @access  Private (ARTIST role, owner only)
  */
-router.delete('/:id', protect, authorize('ARTIST'), async (req, res) => {
+router.delete('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
 

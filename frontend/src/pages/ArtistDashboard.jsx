@@ -63,10 +63,14 @@ export const ArtistDashboard = () => {
   })
 
   useEffect(() => {
+    console.log('🔍 ArtistDashboard mounted')
+    console.log('User state:', user)
+    console.log('User artist profile:', user?.artistProfile)
     loadDashboardData()
   }, [])
 
   const loadDashboardData = async () => {
+    console.log('🔍 Loading dashboard data...')
     try {
       setLoading(true)
       
@@ -75,11 +79,14 @@ export const ArtistDashboard = () => {
       
       // Load artist profile
       if (user?.artistProfile?.id) {
+        console.log('✅ User has artist profile, loading details...')
         try {
           const profileResponse = await artistsAPI.getById(user.artistProfile.id)
+          console.log('✅ Profile response:', profileResponse)
           if (profileResponse?.data?.data?.artist) {
             const artist = profileResponse.data.data.artist
             setProfile(artist)
+            console.log('✅ Profile set:', artist)
             
             // Set form data with safety checks
             setFormData({
@@ -99,11 +106,14 @@ export const ArtistDashboard = () => {
               specialtyIds: artist.specialties?.map(s => s.id) || [],
               serviceIds: artist.services?.map(s => s.id) || []
             })
+            console.log('✅ Form data set')
           }
         } catch (profileError) {
-          console.error('Error loading artist profile:', profileError)
+          console.error('❌ Error loading artist profile:', profileError)
           // Profile might not exist, continue with empty form
         }
+      } else {
+        console.log('⚠️  User does not have artist profile')
       }
 
       // Load flash items (only if artist profile exists)
@@ -259,42 +269,57 @@ export const ArtistDashboard = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    console.log('🔍 Form submission started')
+    console.log('User:', user)
+    console.log('Form data:', formData)
+    
     try {
       setLoading(true)
+      console.log('✅ Loading state set to true')
       
       let response
       
       // Check if artist profile exists
       if (user?.artistProfile?.id) {
+        console.log('🔄 Updating existing profile with ID:', user.artistProfile.id)
         // Update existing profile
         response = await artistsAPI.updateProfile(user.artistProfile.id, formData)
+        console.log('✅ Update response:', response)
         success('Profile updated successfully!')
       } else {
+        console.log('🔄 Creating new profile')
         // Create new profile
         response = await artistsAPI.createProfile(formData)
+        console.log('✅ Create response:', response)
         success('Profile created successfully!')
         
         // Refresh user data to get the new profile ID
         try {
+          console.log('🔄 Refreshing user data...')
           const userResponse = await api.get('/auth/me')
+          console.log('✅ User refresh response:', userResponse)
           if (userResponse.data.success) {
             // Update the user context with the new profile
             window.location.reload() // Simple refresh to get updated user data
           }
         } catch (error) {
-          console.error('Error refreshing user data:', error)
+          console.error('❌ Error refreshing user data:', error)
           // Continue anyway, the profile was created successfully
         }
       }
       
       setProfile(response.data.data.artistProfile || response.data.data.artist)
       setEditing(false)
+      console.log('✅ Form submission completed successfully')
     } catch (error) {
-      console.error('Error saving profile:', error)
+      console.error('❌ Error saving profile:', error)
+      console.error('❌ Error response:', error.response)
+      console.error('❌ Error message:', error.message)
       const errorMessage = error.response?.data?.error || 'Error saving profile'
       error(errorMessage)
     } finally {
       setLoading(false)
+      console.log('✅ Loading state set to false')
     }
   }
 
