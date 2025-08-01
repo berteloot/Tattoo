@@ -352,6 +352,26 @@ export const ArtistDashboard = () => {
           <p className="mt-2 text-gray-600">Manage your profile, portfolio, and business</p>
         </div>
 
+        {/* Profile Creation Banner */}
+        {!user?.artistProfile?.id && (
+          <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-blue-900">Create Your Artist Profile</h3>
+                <p className="mt-1 text-blue-700">
+                  To start adding flash items and managing your portfolio, you need to create your artist profile first. 
+                  Click the "Edit" button in the Profile Management section below to get started.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Analytics Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
@@ -434,9 +454,13 @@ export const ArtistDashboard = () => {
                 <h2 className="text-xl font-semibold text-gray-900">Profile Management</h2>
                 <button
                   onClick={() => setEditing(!editing)}
-                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-500"
+                  className={`px-4 py-2 text-sm font-medium rounded-md ${
+                    !user?.artistProfile?.id 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'text-blue-600 hover:text-blue-500'
+                  }`}
                 >
-                  {editing ? 'Cancel' : 'Edit'}
+                  {editing ? 'Cancel' : (!user?.artistProfile?.id ? 'Create Profile' : 'Edit')}
                 </button>
               </div>
             </div>
