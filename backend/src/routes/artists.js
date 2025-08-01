@@ -274,7 +274,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
             title: true,
             description: true,
             imageUrl: true,
-            price: true,
+            basePrice: true,
             tags: true,
             createdAt: true
           },

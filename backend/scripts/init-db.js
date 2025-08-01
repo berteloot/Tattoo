@@ -77,6 +77,61 @@ async function initializeDatabase() {
       console.log('⚠️ Database fix error (might be already fixed):', fixError.message);
     }
 
+    // Fix Flash table schema
+    console.log('🔄 Fixing Flash table schema...');
+    try {
+      const flashFixes = [
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "imagePublicId" TEXT;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "imageWidth" INTEGER;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "imageHeight" INTEGER;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "imageFormat" TEXT;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "imageBytes" INTEGER;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "basePrice" DOUBLE PRECISION;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "complexity" TEXT DEFAULT 'MEDIUM';`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "timeEstimate" INTEGER;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "isRepeatable" BOOLEAN DEFAULT true;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "sizePricing" JSONB;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "isAvailable" BOOLEAN DEFAULT true;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "isApproved" BOOLEAN DEFAULT true;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "tags" TEXT[] DEFAULT '{}';`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;`
+      ];
+      
+      for (const query of flashFixes) {
+        try {
+          await prisma.$executeRawUnsafe(query);
+        } catch (error) {
+          // Ignore errors - columns might already exist
+        }
+      }
+      console.log('✅ Flash table schema fixed');
+    } catch (fixError) {
+      console.log('⚠️ Flash schema fix error:', fixError.message);
+    }
+
+    // Fix Specialties table schema
+    console.log('🔄 Fixing Specialties table schema...');
+    try {
+      const specialtyFixes = [
+        `ALTER TABLE "specialties" ADD COLUMN IF NOT EXISTS "category" TEXT DEFAULT 'Traditional & Regional';`,
+        `ALTER TABLE "specialties" ADD COLUMN IF NOT EXISTS "description" TEXT;`,
+        `ALTER TABLE "specialties" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN DEFAULT true;`,
+        `ALTER TABLE "specialties" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;`,
+        `ALTER TABLE "specialties" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;`
+      ];
+      
+      for (const query of specialtyFixes) {
+        try {
+          await prisma.$executeRawUnsafe(query);
+        } catch (error) {
+          // Ignore errors - columns might already exist
+        }
+      }
+      console.log('✅ Specialties table schema fixed');
+    } catch (fixError) {
+      console.log('⚠️ Specialties schema fix error:', fixError.message);
+    }
+
     // Check if we need to seed the database
     const userCount = await prisma.user.count();
     if (userCount < 5) {
