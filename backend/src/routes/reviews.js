@@ -168,7 +168,7 @@ router.post('/', protect, authorize('CLIENT'), [
       });
     }
 
-    if (recipient.role !== 'ARTIST') {
+    if (recipient.role !== 'ARTIST' && recipient.role !== 'ARTIST_ADMIN') {
       return res.status(400).json({
         success: false,
         error: 'Can only review artists'
