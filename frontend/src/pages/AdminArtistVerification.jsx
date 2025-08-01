@@ -70,7 +70,8 @@ const AdminArtistVerification = () => {
   }, [pagination.page]);
 
   // Check if current user is admin
-  if (user?.role !== 'ADMIN') {
+  const { isAdmin } = useAuth();
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
