@@ -365,6 +365,10 @@ router.post('/', protect, authorize('ARTIST'), [
     .trim()
     .isLength({ max: 50 })
     .withMessage('Instagram handle must be less than 50 characters'),
+  body('calendlyUrl')
+    .optional()
+    .isURL()
+    .withMessage('Calendly URL must be a valid URL'),
   body('address')
     .optional()
     .trim()
@@ -447,6 +451,7 @@ router.post('/', protect, authorize('ARTIST'), [
       studioName,
       website,
       instagram,
+      calendlyUrl,
       address,
       city,
       state,
@@ -468,6 +473,7 @@ router.post('/', protect, authorize('ARTIST'), [
         studioName,
         website,
         instagram,
+        calendlyUrl,
         address,
         city,
         state,
@@ -552,6 +558,10 @@ router.put('/:id', protect, authorize('ARTIST'), [
     .trim()
     .isLength({ max: 50 })
     .withMessage('Instagram handle must be less than 50 characters'),
+  body('calendlyUrl')
+    .optional()
+    .isURL()
+    .withMessage('Calendly URL must be a valid URL'),
   body('address')
     .optional()
     .trim()
@@ -643,6 +653,7 @@ router.put('/:id', protect, authorize('ARTIST'), [
       studioName,
       website,
       instagram,
+      calendlyUrl,
       address,
       city,
       state,
@@ -664,6 +675,7 @@ router.put('/:id', protect, authorize('ARTIST'), [
         ...(studioName !== undefined && { studioName }),
         ...(website !== undefined && { website }),
         ...(instagram !== undefined && { instagram }),
+        ...(calendlyUrl !== undefined && { calendlyUrl }),
         ...(address !== undefined && { address }),
         ...(city !== undefined && { city }),
         ...(state !== undefined && { state }),

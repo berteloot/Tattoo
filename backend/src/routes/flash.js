@@ -2,6 +2,8 @@ const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const { PrismaClient } = require('@prisma/client');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
+const { handleUpload } = require('../middleware/upload');
+const { uploadImage, deleteImage, getThumbnailUrl } = require('../utils/cloudinary');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -191,8 +193,40 @@ router.get('/:id', optionalAuth, async (req, res) => {
 });
 
 /**
+ * @route   POST /api/flash/upload
+ * @desc    Upload image for flash item
+ * @access  Private (ARTIST role)
+ */
+router.post('/upload', protect, authorize('ARTIST'), handleUpload, async (req, res) => {
+  try {
+    // Upload image to Cloudinary
+    const uploadResult = await uploadImage(req.uploadedFile.buffer, 'flash');
+    
+    res.json({
+      success: true,
+      message: 'Image uploaded successfully',
+      data: {
+        imageUrl: uploadResult.url,
+        imagePublicId: uploadResult.public_id,
+        imageWidth: uploadResult.width,
+        imageHeight: uploadResult.height,
+        imageFormat: uploadResult.format,
+        imageBytes: uploadResult.bytes,
+        thumbnailUrl: getThumbnailUrl(uploadResult.public_id)
+      }
+    });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to upload image'
+    });
+  }
+});
+
+/**
  * @route   POST /api/flash
- * @desc    Create new flash item
+ * @desc    Create new flash item (supports both URL and file upload)
  * @access  Private (ARTIST role)
  */
 router.post('/', protect, authorize('ARTIST'), [
@@ -206,8 +240,12 @@ router.post('/', protect, authorize('ARTIST'), [
     .isLength({ max: 500 })
     .withMessage('Description must be less than 500 characters'),
   body('imageUrl')
-    .isURL()
-    .withMessage('Image URL must be a valid URL'),
+    .notEmpty()
+    .withMessage('Image URL is required'),
+  body('imagePublicId')
+    .optional()
+    .isString()
+    .withMessage('Image public ID must be a string'),
   body('price')
     .optional()
     .isFloat({ min: 0 })
@@ -248,6 +286,11 @@ router.post('/', protect, authorize('ARTIST'), [
       title,
       description,
       imageUrl,
+      imagePublicId,
+      imageWidth,
+      imageHeight,
+      imageFormat,
+      imageBytes,
       price,
       tags = [],
       isAvailable = true
@@ -259,6 +302,11 @@ router.post('/', protect, authorize('ARTIST'), [
         title,
         description,
         imageUrl,
+        imagePublicId,
+        imageWidth,
+        imageHeight,
+        imageFormat,
+        imageBytes,
         price: price ? parseFloat(price) : null,
         tags,
         isAvailable
@@ -310,8 +358,12 @@ router.put('/:id', protect, authorize('ARTIST'), [
     .withMessage('Description must be less than 500 characters'),
   body('imageUrl')
     .optional()
-    .isURL()
-    .withMessage('Image URL must be a valid URL'),
+    .notEmpty()
+    .withMessage('Image URL cannot be empty'),
+  body('imagePublicId')
+    .optional()
+    .isString()
+    .withMessage('Image public ID must be a string'),
   body('price')
     .optional()
     .isFloat({ min: 0 })
@@ -366,10 +418,25 @@ router.put('/:id', protect, authorize('ARTIST'), [
       title,
       description,
       imageUrl,
+      imagePublicId,
+      imageWidth,
+      imageHeight,
+      imageFormat,
+      imageBytes,
       price,
       tags,
       isAvailable
     } = req.body;
+
+    // If updating image and there's an existing Cloudinary image, delete it
+    if (imageUrl && existingFlash.imagePublicId && imagePublicId !== existingFlash.imagePublicId) {
+      try {
+        await deleteImage(existingFlash.imagePublicId);
+      } catch (error) {
+        console.error('Failed to delete old image:', error);
+        // Continue with update even if deletion fails
+      }
+    }
 
     const updatedFlash = await prisma.flash.update({
       where: { id },
@@ -377,6 +444,11 @@ router.put('/:id', protect, authorize('ARTIST'), [
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(imageUrl !== undefined && { imageUrl }),
+        ...(imagePublicId !== undefined && { imagePublicId }),
+        ...(imageWidth !== undefined && { imageWidth }),
+        ...(imageHeight !== undefined && { imageHeight }),
+        ...(imageFormat !== undefined && { imageFormat }),
+        ...(imageBytes !== undefined && { imageBytes }),
         ...(price !== undefined && { price: parseFloat(price) }),
         ...(tags !== undefined && { tags }),
         ...(isAvailable !== undefined && { isAvailable })
@@ -441,6 +513,16 @@ router.delete('/:id', protect, authorize('ARTIST'), async (req, res) => {
         success: false,
         error: 'Not authorized to delete this flash item'
       });
+    }
+
+    // Delete image from Cloudinary if it exists
+    if (existingFlash.imagePublicId) {
+      try {
+        await deleteImage(existingFlash.imagePublicId);
+      } catch (error) {
+        console.error('Failed to delete image from Cloudinary:', error);
+        // Continue with deletion even if image deletion fails
+      }
     }
 
     await prisma.flash.delete({

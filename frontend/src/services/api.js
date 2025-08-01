@@ -66,6 +66,11 @@ export const flashAPI = {
   create: (flashData) => api.post('/flash', flashData),
   update: (id, flashData) => api.put(`/flash/${id}`, flashData),
   delete: (id) => api.delete(`/flash/${id}`),
+  uploadImage: (formData) => api.post('/flash/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
 }
 
 export const reviewsAPI = {

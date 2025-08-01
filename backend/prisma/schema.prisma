@@ -54,6 +54,7 @@ model ArtistProfile {
   studioName  String?
   website     String?
   instagram   String?
+  calendlyUrl String? // Calendly booking URL for the artist
   
   // Location
   latitude    Float?
@@ -134,6 +135,11 @@ model Flash {
   title       String
   description String?
   imageUrl    String
+  imagePublicId String? // Cloudinary public ID for image management
+  imageWidth  Int?     // Image dimensions for optimization
+  imageHeight Int?
+  imageFormat String?  // Image format (jpg, png, webp, etc.)
+  imageBytes  Int?     // File size in bytes
   price       Float?
   isAvailable Boolean  @default(true)
   isApproved  Boolean  @default(true) // Admin can moderate flash items

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Star, MapPin, Clock, DollarSign, Phone, Globe, Instagram, ArrowLeft } from 'lucide-react'
 import { LoadingSpinner } from '../components/UXComponents'
+import { CalendlyWidget } from '../components/CalendlyWidget'
 import { artistsAPI } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
@@ -319,6 +320,12 @@ export const ArtistProfile = () => {
                 <p>{artist.country}</p>
               </div>
             </div>
+
+            {/* Calendly Widget */}
+            <CalendlyWidget 
+              calendlyUrl={artist.calendlyUrl}
+              artistName={`${artist.user.firstName} ${artist.user.lastName}`}
+            />
           </div>
         </div>
       </div>

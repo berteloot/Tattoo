@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
+import ImageUpload from '../components/ImageUpload'
 
 export const ArtistDashboard = () => {
   const { user } = useAuth()
@@ -23,6 +24,7 @@ export const ArtistDashboard = () => {
     studioName: '',
     website: '',
     instagram: '',
+    calendlyUrl: '',
     address: '',
     city: '',
     state: '',
@@ -39,6 +41,11 @@ export const ArtistDashboard = () => {
     title: '',
     description: '',
     imageUrl: '',
+    imagePublicId: '',
+    imageWidth: null,
+    imageHeight: null,
+    imageFormat: '',
+    imageBytes: null,
     price: '',
     tags: [],
     isAvailable: true
@@ -80,6 +87,7 @@ export const ArtistDashboard = () => {
               studioName: artist.studioName || '',
               website: artist.website || '',
               instagram: artist.instagram || '',
+              calendlyUrl: artist.calendlyUrl || '',
               address: artist.address || '',
               city: artist.city || '',
               state: artist.state || '',
@@ -192,6 +200,30 @@ export const ArtistDashboard = () => {
     }))
   }
 
+  const handleImageUpload = (imageData) => {
+    setFlashFormData(prev => ({
+      ...prev,
+      imageUrl: imageData.imageUrl,
+      imagePublicId: imageData.imagePublicId,
+      imageWidth: imageData.imageWidth,
+      imageHeight: imageData.imageHeight,
+      imageFormat: imageData.imageFormat,
+      imageBytes: imageData.imageBytes
+    }))
+  }
+
+  const handleImageRemove = () => {
+    setFlashFormData(prev => ({
+      ...prev,
+      imageUrl: '',
+      imagePublicId: '',
+      imageWidth: null,
+      imageHeight: null,
+      imageFormat: '',
+      imageBytes: null
+    }))
+  }
+
   const handleFlashSubmit = async (e) => {
     e.preventDefault()
     try {
@@ -203,6 +235,11 @@ export const ArtistDashboard = () => {
         title: '',
         description: '',
         imageUrl: '',
+        imagePublicId: '',
+        imageWidth: null,
+        imageHeight: null,
+        imageFormat: '',
+        imageBytes: null,
         price: '',
         tags: [],
         isAvailable: true
@@ -433,6 +470,22 @@ export const ArtistDashboard = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="@yourhandle"
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Calendly URL
+                      </label>
+                      <input
+                        type="url"
+                        name="calendlyUrl"
+                        value={formData.calendlyUrl}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://calendly.com/yourname/consultation"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Add your Calendly booking link for online appointments
+                      </p>
                     </div>
                   </div>
 
@@ -896,16 +949,18 @@ export const ArtistDashboard = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Image URL *
+                    Image *
                   </label>
-                  <input
-                    type="url"
-                    name="imageUrl"
-                    value={flashFormData.imageUrl}
-                    onChange={handleFlashInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://example.com/image.jpg"
+                  <ImageUpload
+                    onImageUpload={handleImageUpload}
+                    onImageRemove={handleImageRemove}
+                    currentImageUrl={flashFormData.imageUrl}
+                    currentImageData={flashFormData.imagePublicId ? {
+                      imageWidth: flashFormData.imageWidth,
+                      imageHeight: flashFormData.imageHeight,
+                      imageFormat: flashFormData.imageFormat
+                    } : null}
+                    disabled={loading}
                   />
                 </div>
 
