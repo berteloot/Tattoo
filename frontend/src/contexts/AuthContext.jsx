@@ -100,12 +100,14 @@ export const AuthProvider = ({ children }) => {
       
       // Handle different error types
       let errorMessage = 'Login failed'
+      let requiresEmailVerification = false
       
       if (error.response) {
         // Server error response
         const status = error.response.status
         if (status === 401) {
-          errorMessage = 'Invalid email or password'
+          errorMessage = error.response.data?.error || 'Invalid email or password'
+          requiresEmailVerification = error.response.data?.requiresEmailVerification || false
         } else if (status === 400) {
           errorMessage = error.response.data?.error || 'Invalid credentials'
         } else {
@@ -115,7 +117,11 @@ export const AuthProvider = ({ children }) => {
         errorMessage = error.message
       }
       
-      return { success: false, error: errorMessage }
+      return { 
+        success: false, 
+        error: errorMessage,
+        requiresEmailVerification 
+      }
     }
   }
 
