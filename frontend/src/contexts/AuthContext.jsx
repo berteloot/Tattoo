@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  const { toast } = useToast()
+  const { showToast } = useToast()
 
   // Check if user is logged in on app start
   useEffect(() => {
@@ -134,12 +134,7 @@ export const AuthProvider = ({ children }) => {
         
         if (requiresEmailVerification) {
           // Show success message about email verification
-          toast({
-            title: 'Registration Successful!',
-            description: 'Please check your email to verify your account before logging in.',
-            type: 'success',
-            duration: 5000
-          })
+          showToast('Registration Successful! Please check your email to verify your account before logging in.', 'success')
           
           // Navigate to login page
           navigate('/login')
