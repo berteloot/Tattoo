@@ -33,10 +33,14 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
-    if (error.response?.status === 401 && !error.config.url.includes("auth")) {
-      // Token expired or invalid
+    // Only clear token and redirect for non-auth routes that return 401
+    if (error.response?.status === 401 && 
+        !error.config.url.includes('/auth/') && 
+        !error.config.url.includes('/login') && 
+        !error.config.url.includes('/register')) {
+      console.log('Token expired or invalid, clearing token')
       localStorage.removeItem('token')
-      // Only redirect for non-auth routes
+      // Don't redirect automatically, let components handle it
     }
     return Promise.reject(error)
   }

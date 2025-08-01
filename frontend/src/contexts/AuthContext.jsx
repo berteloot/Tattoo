@@ -42,10 +42,18 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error fetching user:', error)
-      // Clear invalid token and user data
-      localStorage.removeItem('token')
-      delete api.defaults.headers.common['Authorization']
-      setUser(null)
+      
+      // Only clear token if it's a 401 error (token is invalid)
+      if (error.response?.status === 401) {
+        console.log('Token is invalid, clearing token and user data')
+        localStorage.removeItem('token')
+        delete api.defaults.headers.common['Authorization']
+        setUser(null)
+      } else {
+        // For other errors (like 500), keep the token but set user to null temporarily
+        console.log('Server error, keeping token but clearing user data temporarily')
+        setUser(null)
+      }
     } finally {
       setLoading(false)
     }
