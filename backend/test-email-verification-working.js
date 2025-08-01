@@ -16,7 +16,7 @@ async function testEmailVerification() {
   
   // Test email verification email
   const verificationToken = 'test-verification-token-12345';
-  const verificationUrl = `https://tattooed-world-app.onrender.com/verify-email?token=${verificationToken}`;
+  const verificationUrl = `https://tattooed-world-backend.onrender.com/verify-email?token=${verificationToken}`;
   
   const msg = {
     to: 'berteloot@gmail.com',
