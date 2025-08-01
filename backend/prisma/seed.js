@@ -19,6 +19,7 @@ async function main() {
       role: 'ADMIN',
       isActive: true,
       isVerified: true,
+      emailVerified: true,
       phone: '+1234567890'
     }
   });
@@ -37,6 +38,7 @@ async function main() {
       role: 'CLIENT',
       isActive: true,
       isVerified: true,
+      emailVerified: true,
       phone: '+1234567891'
     }
   });
@@ -55,6 +57,7 @@ async function main() {
       role: 'ARTIST',
       isActive: true,
       isVerified: true,
+      emailVerified: true,
       phone: '+1234567892'
     }
   });
@@ -103,6 +106,7 @@ async function main() {
         role: 'ARTIST',
         isActive: true,
         isVerified: true,
+        emailVerified: true,
         phone: '+1234567894'
       }
     }),
@@ -118,6 +122,7 @@ async function main() {
         role: 'ARTIST',
         isActive: true,
         isVerified: true,
+        emailVerified: true,
         phone: '+1234567895'
       }
     }),
@@ -133,6 +138,7 @@ async function main() {
         role: 'ARTIST',
         isActive: true,
         isVerified: true,
+        emailVerified: true,
         phone: '+1234567896'
       }
     }),
@@ -148,6 +154,7 @@ async function main() {
         role: 'ARTIST',
         isActive: true,
         isVerified: true,
+        emailVerified: true,
         phone: '+1234567897'
       }
     })
@@ -1063,6 +1070,7 @@ async function main() {
       role: 'ARTIST',
       isActive: true,
       isVerified: false,
+      emailVerified: true,
       phone: '+1234567893'
     }
   });
