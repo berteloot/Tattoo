@@ -50,6 +50,33 @@ async function initializeDatabase() {
       console.log('✅ Admin user already exists');
     }
 
+    // Fix production database issues
+    console.log('🔄 Checking for production database fixes...');
+    try {
+      // Check if calendlyUrl column exists
+      const result = await prisma.$queryRaw`
+        SELECT column_name, data_type, is_nullable 
+        FROM information_schema.columns 
+        WHERE table_name = 'artist_profiles' 
+        AND column_name = 'calendlyUrl'
+      `;
+      
+      if (result.length === 0) {
+        console.log('❌ calendlyUrl column is missing. Adding it...');
+        
+        // Add the missing column
+        await prisma.$executeRaw`
+          ALTER TABLE "artist_profiles" ADD COLUMN "calendlyUrl" TEXT
+        `;
+        
+        console.log('✅ calendlyUrl column added successfully!');
+      } else {
+        console.log('✅ calendlyUrl column already exists.');
+      }
+    } catch (fixError) {
+      console.log('⚠️ Database fix error (might be already fixed):', fixError.message);
+    }
+
     // Check if we need to seed the database
     const userCount = await prisma.user.count();
     if (userCount < 5) {
