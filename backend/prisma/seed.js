@@ -263,7 +263,7 @@ async function main() {
 
   console.log('✅ Additional artists created:', additionalArtists.length);
 
-  // Create comprehensive specialties with categories
+  // Create comprehensive list of tattoo specialties organized by categories
   const specialties = await Promise.all([
     // 1. Traditional & Regional
     prisma.specialty.upsert({
@@ -272,7 +272,7 @@ async function main() {
       create: {
         name: 'American Traditional',
         category: 'Traditional & Regional',
-        description: 'Classic American traditional tattoos with bold outlines and limited color palette'
+        description: 'Classic American traditional tattoo style with bold outlines and limited color palette'
       }
     }),
     prisma.specialty.upsert({
@@ -281,7 +281,7 @@ async function main() {
       create: {
         name: 'Neo-Traditional',
         category: 'Traditional & Regional',
-        description: 'Modern take on traditional style with more colors and detailed shading'
+        description: 'Modern take on traditional styles with expanded color palette and contemporary elements'
       }
     }),
     prisma.specialty.upsert({
@@ -290,7 +290,16 @@ async function main() {
       create: {
         name: 'Japanese Traditional (Irezumi / Tebori)',
         category: 'Traditional & Regional',
-        description: 'Traditional Japanese tattooing with hand-carved tools and cultural motifs'
+        description: 'Traditional Japanese Irezumi style with tebori hand-poking technique'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Tribal (Polynesian, Maori, Borneo)' },
+      update: { category: 'Traditional & Regional' },
+      create: {
+        name: 'Tribal (Polynesian, Maori, Borneo)',
+        category: 'Traditional & Regional',
+        description: 'Traditional tribal designs from Polynesian, Maori, and Borneo cultures'
       }
     }),
     prisma.specialty.upsert({
@@ -299,10 +308,37 @@ async function main() {
       create: {
         name: 'Thai Sak Yant',
         category: 'Traditional & Regional',
-        description: 'Traditional Thai sacred tattoos with Buddhist and animist symbols'
+        description: 'Traditional Thai sacred tattoo designs with spiritual significance'
       }
     }),
-    
+    prisma.specialty.upsert({
+      where: { name: 'Inuit Kakiniit' },
+      update: { category: 'Traditional & Regional' },
+      create: {
+        name: 'Inuit Kakiniit',
+        category: 'Traditional & Regional',
+        description: 'Traditional Inuit facial and body markings'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Chicano' },
+      update: { category: 'Traditional & Regional' },
+      create: {
+        name: 'Chicano',
+        category: 'Traditional & Regional',
+        description: 'Chicano style tattoos with cultural and religious themes'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Russian Criminal' },
+      update: { category: 'Traditional & Regional' },
+      create: {
+        name: 'Russian Criminal',
+        category: 'Traditional & Regional',
+        description: 'Traditional Russian criminal tattoo style with symbolic meanings'
+      }
+    }),
+
     // 2. Blackwork & Line-Based
     prisma.specialty.upsert({
       where: { name: 'Blackwork' },
@@ -319,7 +355,25 @@ async function main() {
       create: {
         name: 'Dotwork',
         category: 'Blackwork & Line-Based',
-        description: 'Tattoos created entirely with dots for shading and texture'
+        description: 'Tattoos created entirely with dots to form images and patterns'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Geometric' },
+      update: { category: 'Blackwork & Line-Based' },
+      create: {
+        name: 'Geometric',
+        category: 'Blackwork & Line-Based',
+        description: 'Geometric patterns and shapes with precise lines and angles'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Ornamental (Mandalas, Lace)' },
+      update: { category: 'Blackwork & Line-Based' },
+      create: {
+        name: 'Ornamental (Mandalas, Lace)',
+        category: 'Blackwork & Line-Based',
+        description: 'Ornamental designs including mandalas and lace-like patterns'
       }
     }),
     prisma.specialty.upsert({
@@ -328,10 +382,28 @@ async function main() {
       create: {
         name: 'Fine Line',
         category: 'Blackwork & Line-Based',
-        description: 'Delicate, thin line work with minimal shading'
+        description: 'Delicate fine line work with minimal shading'
       }
     }),
-    
+    prisma.specialty.upsert({
+      where: { name: 'Single Needle' },
+      update: { category: 'Blackwork & Line-Based' },
+      create: {
+        name: 'Single Needle',
+        category: 'Blackwork & Line-Based',
+        description: 'Ultra-fine line work using single needle technique'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Stick and Poke' },
+      update: { category: 'Blackwork & Line-Based' },
+      create: {
+        name: 'Stick and Poke',
+        category: 'Blackwork & Line-Based',
+        description: 'Hand-poked tattoos using manual technique'
+      }
+    }),
+
     // 3. Realism & Detail-Oriented
     prisma.specialty.upsert({
       where: { name: 'Realism' },
@@ -343,24 +415,51 @@ async function main() {
       }
     }),
     prisma.specialty.upsert({
-      where: { name: 'Black and Grey' },
-      update: { category: 'Realism & Detail-Oriented' },
-      create: {
-        name: 'Black and Grey',
-        category: 'Realism & Detail-Oriented',
-        description: 'Realistic tattoos using only black and grey ink'
-      }
-    }),
-    prisma.specialty.upsert({
       where: { name: 'Portraiture' },
       update: { category: 'Realism & Detail-Oriented' },
       create: {
         name: 'Portraiture',
         category: 'Realism & Detail-Oriented',
-        description: 'Realistic portraits of people and faces'
+        description: 'Realistic portrait tattoos of people and faces'
       }
     }),
-    
+    prisma.specialty.upsert({
+      where: { name: 'Microrealism' },
+      update: { category: 'Realism & Detail-Oriented' },
+      create: {
+        name: 'Microrealism',
+        category: 'Realism & Detail-Oriented',
+        description: 'Extremely detailed realistic tattoos in small sizes'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Black and Grey' },
+      update: { category: 'Realism & Detail-Oriented' },
+      create: {
+        name: 'Black and Grey',
+        category: 'Realism & Detail-Oriented',
+        description: 'Realistic black and grey tattoos with detailed shading'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Hyperrealism' },
+      update: { category: 'Realism & Detail-Oriented' },
+      create: {
+        name: 'Hyperrealism',
+        category: 'Realism & Detail-Oriented',
+        description: 'Ultra-realistic tattoos that appear three-dimensional'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Sculptural / Embossed' },
+      update: { category: 'Realism & Detail-Oriented' },
+      create: {
+        name: 'Sculptural / Embossed',
+        category: 'Realism & Detail-Oriented',
+        description: 'Tattoos that create the illusion of being raised or embossed'
+      }
+    }),
+
     // 4. Color & Painterly
     prisma.specialty.upsert({
       where: { name: 'Watercolor' },
@@ -368,7 +467,7 @@ async function main() {
       create: {
         name: 'Watercolor',
         category: 'Color & Painterly',
-        description: 'Soft, flowing designs that mimic watercolor paintings'
+        description: 'Soft, painterly style with watercolor-like effects'
       }
     }),
     prisma.specialty.upsert({
@@ -377,10 +476,37 @@ async function main() {
       create: {
         name: 'New School',
         category: 'Color & Painterly',
-        description: 'Modern, cartoon-like style with bright colors and exaggerated features'
+        description: 'Modern, cartoon-inspired style with bold colors and exaggerated proportions'
       }
     }),
-    
+    prisma.specialty.upsert({
+      where: { name: 'Pop Art / Comic' },
+      update: { category: 'Color & Painterly' },
+      create: {
+        name: 'Pop Art / Comic',
+        category: 'Color & Painterly',
+        description: 'Pop art and comic book inspired designs with vibrant colors'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Embroidery / Patch / Sticker' },
+      update: { category: 'Color & Painterly' },
+      create: {
+        name: 'Embroidery / Patch / Sticker',
+        category: 'Color & Painterly',
+        description: 'Tattoos that mimic the appearance of embroidery, patches, or stickers'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Mambo (Destrutturato)' },
+      update: { category: 'Color & Painterly' },
+      create: {
+        name: 'Mambo (Destrutturato)',
+        category: 'Color & Painterly',
+        description: 'Italian style with bold colors and abstract, deconstructed elements'
+      }
+    }),
+
     // 5. Abstract & Experimental
     prisma.specialty.upsert({
       where: { name: 'Abstract' },
@@ -388,7 +514,7 @@ async function main() {
       create: {
         name: 'Abstract',
         category: 'Abstract & Experimental',
-        description: 'Non-representational designs and patterns'
+        description: 'Abstract designs with non-representational forms and shapes'
       }
     }),
     prisma.specialty.upsert({
@@ -400,7 +526,34 @@ async function main() {
         description: 'Bold black and red designs with chaotic, abstract elements'
       }
     }),
-    
+    prisma.specialty.upsert({
+      where: { name: 'Ignorant / Naïve' },
+      update: { category: 'Abstract & Experimental' },
+      create: {
+        name: 'Ignorant / Naïve',
+        category: 'Abstract & Experimental',
+        description: 'Simple, childlike drawings with minimal detail'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Cyber Sigilism' },
+      update: { category: 'Abstract & Experimental' },
+      create: {
+        name: 'Cyber Sigilism',
+        category: 'Abstract & Experimental',
+        description: 'Futuristic sigil designs with cyberpunk aesthetics'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Glitch / Pixel' },
+      update: { category: 'Abstract & Experimental' },
+      create: {
+        name: 'Glitch / Pixel',
+        category: 'Abstract & Experimental',
+        description: 'Digital glitch and pixel art inspired designs'
+      }
+    }),
+
     // 6. Cultural / Spiritual
     prisma.specialty.upsert({
       where: { name: 'Samoan / Hawaiian' },
@@ -420,7 +573,7 @@ async function main() {
         description: 'Religious and spiritual symbols from various traditions'
       }
     }),
-    
+
     // 7. Typography & Lettering
     prisma.specialty.upsert({
       where: { name: 'Script / Calligraphy' },
@@ -440,7 +593,16 @@ async function main() {
         description: 'Gothic and blackletter style typography'
       }
     }),
-    
+    prisma.specialty.upsert({
+      where: { name: 'Graffiti' },
+      update: { category: 'Typography & Lettering' },
+      create: {
+        name: 'Graffiti',
+        category: 'Typography & Lettering',
+        description: 'Graffiti-style lettering and urban art'
+      }
+    }),
+
     // 8. Digital & Tech-Inspired
     prisma.specialty.upsert({
       where: { name: 'UV / Blacklight' },
@@ -458,6 +620,24 @@ async function main() {
         name: '3D / Optical Illusion',
         category: 'Digital & Tech-Inspired',
         description: 'Three-dimensional and optical illusion effects'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Bio-Mechanical' },
+      update: { category: 'Digital & Tech-Inspired' },
+      create: {
+        name: 'Bio-Mechanical',
+        category: 'Digital & Tech-Inspired',
+        description: 'Fusion of organic and mechanical elements'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Cyberpunk / Cyber-Sigilism' },
+      update: { category: 'Digital & Tech-Inspired' },
+      create: {
+        name: 'Cyberpunk / Cyber-Sigilism',
+        category: 'Digital & Tech-Inspired',
+        description: 'Futuristic cyberpunk and cyber-sigil designs'
       }
     })
   ]);

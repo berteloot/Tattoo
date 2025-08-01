@@ -6,18 +6,34 @@ const prisma = new PrismaClient();
 
 /**
  * @route   GET /api/specialties
- * @desc    Get all specialties
+ * @desc    Get all specialties organized by categories
  * @access  Public
  */
 router.get('/', async (req, res) => {
   try {
     const specialties = await prisma.specialty.findMany({
-      orderBy: { name: 'asc' }
+      where: { isActive: true },
+      orderBy: [
+        { category: 'asc' },
+        { name: 'asc' }
+      ]
     });
+
+    // Group specialties by category
+    const specialtiesByCategory = specialties.reduce((acc, specialty) => {
+      if (!acc[specialty.category]) {
+        acc[specialty.category] = [];
+      }
+      acc[specialty.category].push(specialty);
+      return acc;
+    }, {});
 
     res.json({
       success: true,
-      data: { specialties }
+      data: { 
+        specialties,
+        specialtiesByCategory
+      }
     });
   } catch (error) {
     console.error('Get specialties error:', error);
