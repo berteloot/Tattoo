@@ -22,6 +22,9 @@ model User {
   avatar    String?
   isActive  Boolean  @default(true)
   isVerified Boolean @default(false) // For admin verification
+  emailVerified Boolean @default(false) // For email verification
+  emailVerificationToken String? // Token for email verification
+  emailVerificationExpiry DateTime? // Expiry for email verification token
   resetToken String?
   resetTokenExpiry DateTime?
   lastLoginAt DateTime?
@@ -140,7 +143,16 @@ model Flash {
   imageHeight Int?
   imageFormat String?  // Image format (jpg, png, webp, etc.)
   imageBytes  Int?     // File size in bytes
-  price       Float?
+  
+  // Pricing structure
+  basePrice   Float?   // Base price for the design
+  complexity  FlashComplexity @default(MEDIUM) // Design complexity level
+  timeEstimate Int?    // Estimated time in minutes
+  isRepeatable Boolean @default(true) // Can this design be used multiple times
+  
+  // Size-based pricing (JSON field for flexibility)
+  sizePricing Json?    // {"small": {"price": 150, "time": 90}, "medium": {"price": 200, "time": 120}}
+  
   isAvailable Boolean  @default(true)
   isApproved  Boolean  @default(true) // Admin can moderate flash items
   tags        String[] // Array of tags
@@ -206,4 +218,12 @@ enum VerificationStatus {
   APPROVED
   REJECTED
   SUSPENDED
+}
+
+// Flash complexity levels
+enum FlashComplexity {
+  SIMPLE
+  MEDIUM
+  COMPLEX
+  MASTERPIECE
 } 

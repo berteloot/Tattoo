@@ -46,7 +46,16 @@ export const ArtistDashboard = () => {
     imageHeight: null,
     imageFormat: '',
     imageBytes: null,
-    price: '',
+    basePrice: '',
+    complexity: 'MEDIUM',
+    timeEstimate: 120,
+    isRepeatable: true,
+    sizePricing: {
+      small: { price: 100, time: 60, size: '1-2 inches' },
+      medium: { price: 150, time: 90, size: '3-4 inches' },
+      large: { price: 200, time: 120, size: '5-6 inches' },
+      xlarge: { price: 250, time: 150, size: '7+ inches' }
+    },
     tags: [],
     isAvailable: true
   })
@@ -257,7 +266,16 @@ export const ArtistDashboard = () => {
         imageHeight: null,
         imageFormat: '',
         imageBytes: null,
-        price: '',
+        basePrice: '',
+        complexity: 'MEDIUM',
+        timeEstimate: 120,
+        isRepeatable: true,
+        sizePricing: {
+          small: { price: 100, time: 60, size: '1-2 inches' },
+          medium: { price: 150, time: 90, size: '3-4 inches' },
+          large: { price: 200, time: 120, size: '5-6 inches' },
+          xlarge: { price: 250, time: 150, size: '7+ inches' }
+        },
         tags: [],
         isAvailable: true
       })
@@ -994,8 +1012,16 @@ export const ArtistDashboard = () => {
                       {item.description && (
                         <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                       )}
-                      {item.price && (
-                        <p className="text-lg font-semibold text-blue-600 mt-2">${item.price}</p>
+                      {item.basePrice && (
+                        <div className="mt-2">
+                          <p className="text-lg font-semibold text-blue-600">${item.basePrice}</p>
+                          {item.complexity && (
+                            <p className="text-xs text-gray-500 capitalize">{item.complexity.toLowerCase()}</p>
+                          )}
+                          {item.timeEstimate && (
+                            <p className="text-xs text-gray-500">{item.timeEstimate} min</p>
+                          )}
+                        </div>
                       )}
                       {item.tags && item.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
@@ -1019,7 +1045,7 @@ export const ArtistDashboard = () => {
         {/* Flash Form Modal */}
         {showFlashForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-gray-900">Add New Flash Item</h3>
                 <button
@@ -1079,22 +1105,138 @@ export const ArtistDashboard = () => {
                   />
                 </div>
 
+                {/* Design Complexity */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price ($)
+                    Design Complexity
+                  </label>
+                  <select
+                    name="complexity"
+                    value={flashFormData.complexity}
+                    onChange={handleFlashInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="SIMPLE">Simple - Basic designs, minimal detail</option>
+                    <option value="MEDIUM">Medium - Moderate complexity, good detail</option>
+                    <option value="COMPLEX">Complex - High detail, intricate work</option>
+                    <option value="MASTERPIECE">Masterpiece - Exceptional detail, premium work</option>
+                  </select>
+                </div>
+
+                {/* Base Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Base Price ($)
                   </label>
                   <input
                     type="number"
-                    name="price"
-                    value={flashFormData.price}
+                    name="basePrice"
+                    value={flashFormData.basePrice}
                     onChange={handleFlashInputChange}
                     min="0"
                     step="0.01"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="100"
+                    placeholder="150"
                   />
                 </div>
 
+                {/* Time Estimate */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Estimated Time (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    name="timeEstimate"
+                    value={flashFormData.timeEstimate}
+                    onChange={handleFlashInputChange}
+                    min="15"
+                    max="480"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="120"
+                  />
+                </div>
+
+                {/* Size-Based Pricing */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Size-Based Pricing
+                  </label>
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                    {Object.entries(flashFormData.sizePricing).map(([size, pricing]) => (
+                      <div key={size} className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            {size.charAt(0).toUpperCase() + size.slice(1)}
+                          </label>
+                          <input
+                            type="number"
+                            value={pricing.price}
+                            onChange={(e) => {
+                              const newSizePricing = { ...flashFormData.sizePricing }
+                              newSizePricing[size].price = parseFloat(e.target.value) || 0
+                              setFlashFormData(prev => ({ ...prev, sizePricing: newSizePricing }))
+                            }}
+                            min="0"
+                            step="0.01"
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            placeholder="Price"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Time (min)
+                          </label>
+                          <input
+                            type="number"
+                            value={pricing.time}
+                            onChange={(e) => {
+                              const newSizePricing = { ...flashFormData.sizePricing }
+                              newSizePricing[size].time = parseInt(e.target.value) || 0
+                              setFlashFormData(prev => ({ ...prev, sizePricing: newSizePricing }))
+                            }}
+                            min="15"
+                            max="480"
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            placeholder="Time"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Size Range
+                          </label>
+                          <input
+                            type="text"
+                            value={pricing.size}
+                            onChange={(e) => {
+                              const newSizePricing = { ...flashFormData.sizePricing }
+                              newSizePricing[size].size = e.target.value
+                              setFlashFormData(prev => ({ ...prev, sizePricing: newSizePricing }))
+                            }}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            placeholder="1-2 inches"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Repeatable Option */}
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="isRepeatable"
+                    checked={flashFormData.isRepeatable}
+                    onChange={(e) => setFlashFormData(prev => ({ ...prev, isRepeatable: e.target.checked }))}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 text-sm text-gray-700">
+                    This design can be used multiple times
+                  </label>
+                </div>
+
+                {/* Available for Booking */}
                 <div className="flex items-center">
                   <input
                     type="checkbox"

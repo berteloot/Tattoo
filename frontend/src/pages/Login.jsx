@@ -57,7 +57,11 @@ export const Login = () => {
         success('Welcome back!', 'You have successfully signed in.')
         // Navigation is handled in AuthContext
       } else {
-        showError('Login failed', result.error || 'Please check your credentials and try again.')
+        if (result.requiresEmailVerification) {
+          showError('Email Verification Required', 'Please check your email and click the verification link before logging in.')
+        } else {
+          showError('Login failed', result.error || 'Please check your credentials and try again.')
+        }
       }
     } catch (error) {
       console.error('Login error:', error)
@@ -113,6 +117,12 @@ export const Login = () => {
               className="text-sm text-primary-600 hover:text-primary-500"
             >
               Forgot your password?
+            </Link>
+            <Link 
+              to="/verify-email" 
+              className="text-sm text-primary-600 hover:text-primary-500"
+            >
+              Resend verification email
             </Link>
           </div>
 

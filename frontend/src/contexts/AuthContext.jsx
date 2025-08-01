@@ -86,8 +86,14 @@ export const AuthProvider = ({ children }) => {
       } else {
         // Handle login failure
         const errorMessage = response?.data?.error || 'Login failed'
+        const requiresEmailVerification = response?.data?.requiresEmailVerification || false
+        
         console.log('Login failed:', errorMessage)
-        return { success: false, error: errorMessage }
+        return { 
+          success: false, 
+          error: errorMessage,
+          requiresEmailVerification 
+        }
       }
     } catch (error) {
       console.error('Login error:', error)
@@ -118,17 +124,34 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.register(userData)
       
       if (response && response.data && response.data.success) {
-        const { token, user } = response.data.data || {}
+        const { requiresEmailVerification, user } = response.data.data || {}
         
-        if (token && user) {
-          localStorage.setItem('token', token)
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-          setUser(user)
+        if (requiresEmailVerification) {
+          // Show success message about email verification
+          toast({
+            title: 'Registration Successful!',
+            description: 'Please check your email to verify your account before logging in.',
+            type: 'success',
+            duration: 5000
+          })
           
-          navigate('/')
-          return { success: true }
+          // Navigate to login page
+          navigate('/login')
+          return { success: true, requiresEmailVerification: true }
         } else {
-          return { success: false, error: 'Invalid response from server' }
+          // Legacy case - if no email verification required
+          const { token, user } = response.data.data || {}
+          
+          if (token && user) {
+            localStorage.setItem('token', token)
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+            setUser(user)
+            
+            navigate('/')
+            return { success: true }
+          } else {
+            return { success: false, error: 'Invalid response from server' }
+          }
         }
       } else {
         const errorMessage = response?.data?.error || 'Registration failed'

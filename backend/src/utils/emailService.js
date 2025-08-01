@@ -46,7 +46,77 @@ class EmailService {
     return html.replace(/<[^>]*>/g, '')
   }
 
-  // Welcome email for new users
+  // Email verification email
+  async sendEmailVerificationEmail(user, verificationToken) {
+    try {
+      const verificationUrl = `${process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com'}/verify-email?token=${verificationToken}`
+      const subject = 'Verify Your Email - Tattooed World 🎨'
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 28px;">Verify Your Email</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Complete your Tattooed World registration</p>
+          </div>
+          
+          <div style="padding: 40px; background: white;">
+            <h2 style="color: #333; margin-bottom: 20px;">Hi ${user.firstName}!</h2>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              Thank you for joining Tattooed World! To complete your registration and start exploring amazing tattoo artists, 
+              please verify your email address by clicking the button below.
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verificationUrl}" 
+                 style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                Verify Email Address
+              </a>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">What happens next?</h3>
+              <ul style="color: #666; line-height: 1.8;">
+                <li>✅ Your account will be activated immediately</li>
+                <li>🔍 You can start browsing tattoo artists</li>
+                <li>⭐ Read reviews and view portfolios</li>
+                <li>📅 Book consultations with your favorite artists</li>
+                <li>💬 Leave reviews after your sessions</li>
+              </ul>
+            </div>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              This verification link will expire in 24 hours for security reasons. If you didn't create an account with us, 
+              you can safely ignore this email.
+            </p>
+            
+            <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #666; margin: 0; font-size: 14px;">
+                <strong>Security Tip:</strong> Never share this verification link with anyone. 
+                Our team will never ask for your verification link.
+              </p>
+            </div>
+            
+            <p style="color: #666; line-height: 1.6;">
+              Welcome to the Tattooed World community!<br>
+              The Tattooed World Team
+            </p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px;">
+            <p>© 2025 Tattooed World. All rights reserved.</p>
+            <p>This email was sent to ${user.email}</p>
+          </div>
+        </div>
+      `
+
+      return await this.sendEmail(user.email, subject, htmlContent)
+    } catch (error) {
+      console.error('Error in sendEmailVerificationEmail:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Welcome email for verified users
   async sendWelcomeEmail(user) {
     try {
       const subject = 'Welcome to Tattooed World! 🎨'

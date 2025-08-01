@@ -144,7 +144,7 @@ router.get('/', optionalAuth, [
           select: {
             id: true,
             name: true,
-            icon: true
+            category: true
           }
         },
         services: {
@@ -255,7 +255,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
             id: true,
             name: true,
             description: true,
-            icon: true
+            category: true
           }
         },
         services: {
@@ -564,7 +564,7 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
             id: true,
             name: true,
             description: true,
-            icon: true
+            category: true
           }
         },
         services: {

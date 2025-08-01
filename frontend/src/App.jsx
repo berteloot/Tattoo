@@ -12,6 +12,7 @@ import { ArtistProfile } from './pages/ArtistProfile'
 import { ArtistDashboard } from './pages/ArtistDashboard'
 import { FlashGallery } from './pages/FlashGallery'
 import { UserProfile } from './pages/UserProfile'
+import EmailVerification from './pages/EmailVerification'
 import AdminUserManagement from './pages/AdminUserManagement'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminArtistVerification from './pages/AdminArtistVerification'
@@ -29,6 +30,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/verify-email" element={<EmailVerification />} />
               <Route path="/artists" element={<Artists />} />
               <Route path="/artists/:id" element={<ArtistProfile />} />
               <Route path="/flash" element={<FlashGallery />} />
