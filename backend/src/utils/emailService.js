@@ -9,7 +9,7 @@ if (process.env.SENDGRID_API_KEY) {
 
 class EmailService {
   constructor() {
-    this.fromEmail = process.env.FROM_EMAIL || 'stan@altilead.com'
+    this.fromEmail = process.env.FROM_EMAIL || 'stan@berteloot.org'
     this.fromName = 'Tattooed World'
   }
 

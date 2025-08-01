@@ -49,7 +49,7 @@ services:
       - key: SENDGRID_API_KEY
         sync: false
       - key: FROM_EMAIL
-        value: noreply@tattooedworld.com
+        value: stan@berteloot.org
 
 databases:
   # PostgreSQL Database
