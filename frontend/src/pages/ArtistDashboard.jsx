@@ -601,18 +601,44 @@ export const ArtistDashboard = () => {
                   {/* Specialties */}
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Specialties</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {(specialties || []).map((specialty) => (
-                        <label key={specialty.id} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={formData.specialtyIds.includes(specialty.id)}
-                            onChange={() => handleSpecialtyChange(specialty.id)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{specialty.name}</span>
-                        </label>
-                      ))}
+                    <div className="space-y-6">
+                      {(() => {
+                        // Group specialties by category
+                        const groupedSpecialties = (specialties || []).reduce((acc, specialty) => {
+                          const category = specialty.category || 'Other';
+                          if (!acc[category]) {
+                            acc[category] = [];
+                          }
+                          acc[category].push(specialty);
+                          return acc;
+                        }, {});
+
+                        return Object.entries(groupedSpecialties).map(([category, categorySpecialties]) => (
+                          <div key={category} className="border border-gray-200 rounded-lg p-4">
+                            <h4 className="text-md font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">
+                              {category}
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {categorySpecialties.map((specialty) => (
+                                <label key={specialty.id} className="flex items-center p-2 hover:bg-gray-50 rounded">
+                                  <input
+                                    type="checkbox"
+                                    checked={formData.specialtyIds.includes(specialty.id)}
+                                    onChange={() => handleSpecialtyChange(specialty.id)}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                  />
+                                  <div className="ml-2">
+                                    <span className="text-sm font-medium text-gray-700">{specialty.name}</span>
+                                    {specialty.description && (
+                                      <p className="text-xs text-gray-500 mt-1">{specialty.description}</p>
+                                    )}
+                                  </div>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ));
+                      })()}
                     </div>
                   </div>
 
@@ -694,12 +720,33 @@ export const ArtistDashboard = () => {
                   {profile?.specialties && profile.specialties.length > 0 && (
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Specialties</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {profile.specialties.map((specialty) => (
-                          <span key={specialty.id} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                            {specialty.name}
-                          </span>
-                        ))}
+                      <div className="space-y-4">
+                        {(() => {
+                          // Group specialties by category
+                          const groupedSpecialties = profile.specialties.reduce((acc, specialty) => {
+                            const category = specialty.category || 'Other';
+                            if (!acc[category]) {
+                              acc[category] = [];
+                            }
+                            acc[category].push(specialty);
+                            return acc;
+                          }, {});
+
+                          return Object.entries(groupedSpecialties).map(([category, categorySpecialties]) => (
+                            <div key={category} className="border border-gray-200 rounded-lg p-3">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-2 border-b border-gray-200 pb-1">
+                                {category}
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {categorySpecialties.map((specialty) => (
+                                  <span key={specialty.id} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                                    {specialty.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   )}

@@ -91,12 +91,12 @@ model ArtistProfile {
   @@map("artist_profiles")
 }
 
-// Artist specialties (e.g., Traditional, Japanese, Black & Grey, etc.)
+// Artist specialties (organized by tattoo style categories)
 model Specialty {
   id          String   @id @default(cuid())
   name        String   @unique
+  category    String   // Category grouping (e.g., "Traditional & Regional", "Blackwork & Line-Based")
   description String?
-  icon        String?
   isActive    Boolean  @default(true) // Admin can disable specialties
   
   // Many-to-many with artists

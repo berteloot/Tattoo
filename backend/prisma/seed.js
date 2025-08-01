@@ -263,51 +263,201 @@ async function main() {
 
   console.log('✅ Additional artists created:', additionalArtists.length);
 
-  // Create specialties
+  // Create comprehensive specialties with categories
   const specialties = await Promise.all([
+    // 1. Traditional & Regional
     prisma.specialty.upsert({
-      where: { name: 'Traditional' },
-      update: {},
+      where: { name: 'American Traditional' },
+      update: { category: 'Traditional & Regional' },
       create: {
-        name: 'Traditional',
-        description: 'American Traditional tattoo style',
-        icon: 'traditional-icon'
-      }
-    }),
-    prisma.specialty.upsert({
-      where: { name: 'Japanese' },
-      update: {},
-      create: {
-        name: 'Japanese',
-        description: 'Japanese Irezumi style',
-        icon: 'japanese-icon'
-      }
-    }),
-    prisma.specialty.upsert({
-      where: { name: 'Black & Grey' },
-      update: {},
-      create: {
-        name: 'Black & Grey',
-        description: 'Black and grey realism',
-        icon: 'black-grey-icon'
-      }
-    }),
-    prisma.specialty.upsert({
-      where: { name: 'Color Realism' },
-      update: {},
-      create: {
-        name: 'Color Realism',
-        description: 'Color realistic tattoos',
-        icon: 'color-realism-icon'
+        name: 'American Traditional',
+        category: 'Traditional & Regional',
+        description: 'Classic American traditional tattoos with bold outlines and limited color palette'
       }
     }),
     prisma.specialty.upsert({
       where: { name: 'Neo-Traditional' },
-      update: {},
+      update: { category: 'Traditional & Regional' },
       create: {
         name: 'Neo-Traditional',
-        description: 'Modern take on traditional style',
-        icon: 'neo-traditional-icon'
+        category: 'Traditional & Regional',
+        description: 'Modern take on traditional style with more colors and detailed shading'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Japanese Traditional (Irezumi / Tebori)' },
+      update: { category: 'Traditional & Regional' },
+      create: {
+        name: 'Japanese Traditional (Irezumi / Tebori)',
+        category: 'Traditional & Regional',
+        description: 'Traditional Japanese tattooing with hand-carved tools and cultural motifs'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Thai Sak Yant' },
+      update: { category: 'Traditional & Regional' },
+      create: {
+        name: 'Thai Sak Yant',
+        category: 'Traditional & Regional',
+        description: 'Traditional Thai sacred tattoos with Buddhist and animist symbols'
+      }
+    }),
+    
+    // 2. Blackwork & Line-Based
+    prisma.specialty.upsert({
+      where: { name: 'Blackwork' },
+      update: { category: 'Blackwork & Line-Based' },
+      create: {
+        name: 'Blackwork',
+        category: 'Blackwork & Line-Based',
+        description: 'Bold black designs with solid fills and strong contrast'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Dotwork' },
+      update: { category: 'Blackwork & Line-Based' },
+      create: {
+        name: 'Dotwork',
+        category: 'Blackwork & Line-Based',
+        description: 'Tattoos created entirely with dots for shading and texture'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Fine Line' },
+      update: { category: 'Blackwork & Line-Based' },
+      create: {
+        name: 'Fine Line',
+        category: 'Blackwork & Line-Based',
+        description: 'Delicate, thin line work with minimal shading'
+      }
+    }),
+    
+    // 3. Realism & Detail-Oriented
+    prisma.specialty.upsert({
+      where: { name: 'Realism' },
+      update: { category: 'Realism & Detail-Oriented' },
+      create: {
+        name: 'Realism',
+        category: 'Realism & Detail-Oriented',
+        description: 'Photorealistic tattoos that look like photographs'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Black and Grey' },
+      update: { category: 'Realism & Detail-Oriented' },
+      create: {
+        name: 'Black and Grey',
+        category: 'Realism & Detail-Oriented',
+        description: 'Realistic tattoos using only black and grey ink'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Portraiture' },
+      update: { category: 'Realism & Detail-Oriented' },
+      create: {
+        name: 'Portraiture',
+        category: 'Realism & Detail-Oriented',
+        description: 'Realistic portraits of people and faces'
+      }
+    }),
+    
+    // 4. Color & Painterly
+    prisma.specialty.upsert({
+      where: { name: 'Watercolor' },
+      update: { category: 'Color & Painterly' },
+      create: {
+        name: 'Watercolor',
+        category: 'Color & Painterly',
+        description: 'Soft, flowing designs that mimic watercolor paintings'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'New School' },
+      update: { category: 'Color & Painterly' },
+      create: {
+        name: 'New School',
+        category: 'Color & Painterly',
+        description: 'Modern, cartoon-like style with bright colors and exaggerated features'
+      }
+    }),
+    
+    // 5. Abstract & Experimental
+    prisma.specialty.upsert({
+      where: { name: 'Abstract' },
+      update: { category: 'Abstract & Experimental' },
+      create: {
+        name: 'Abstract',
+        category: 'Abstract & Experimental',
+        description: 'Non-representational designs and patterns'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Trash Polka' },
+      update: { category: 'Abstract & Experimental' },
+      create: {
+        name: 'Trash Polka',
+        category: 'Abstract & Experimental',
+        description: 'Bold black and red designs with chaotic, abstract elements'
+      }
+    }),
+    
+    // 6. Cultural / Spiritual
+    prisma.specialty.upsert({
+      where: { name: 'Samoan / Hawaiian' },
+      update: { category: 'Cultural / Spiritual' },
+      create: {
+        name: 'Samoan / Hawaiian',
+        category: 'Cultural / Spiritual',
+        description: 'Traditional Polynesian tribal designs'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Religious / Spiritual symbols' },
+      update: { category: 'Cultural / Spiritual' },
+      create: {
+        name: 'Religious / Spiritual symbols',
+        category: 'Cultural / Spiritual',
+        description: 'Religious and spiritual symbols from various traditions'
+      }
+    }),
+    
+    // 7. Typography & Lettering
+    prisma.specialty.upsert({
+      where: { name: 'Script / Calligraphy' },
+      update: { category: 'Typography & Lettering' },
+      create: {
+        name: 'Script / Calligraphy',
+        category: 'Typography & Lettering',
+        description: 'Elegant script and calligraphic lettering'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: 'Gothic / Blackletter' },
+      update: { category: 'Typography & Lettering' },
+      create: {
+        name: 'Gothic / Blackletter',
+        category: 'Typography & Lettering',
+        description: 'Gothic and blackletter style typography'
+      }
+    }),
+    
+    // 8. Digital & Tech-Inspired
+    prisma.specialty.upsert({
+      where: { name: 'UV / Blacklight' },
+      update: { category: 'Digital & Tech-Inspired' },
+      create: {
+        name: 'UV / Blacklight',
+        category: 'Digital & Tech-Inspired',
+        description: 'Tattoos that glow under blacklight'
+      }
+    }),
+    prisma.specialty.upsert({
+      where: { name: '3D / Optical Illusion' },
+      update: { category: 'Digital & Tech-Inspired' },
+      create: {
+        name: '3D / Optical Illusion',
+        category: 'Digital & Tech-Inspired',
+        description: 'Three-dimensional and optical illusion effects'
       }
     })
   ]);
@@ -364,9 +514,9 @@ async function main() {
     data: {
       specialties: {
         connect: [
-          { name: 'Traditional' },
-          { name: 'Japanese' },
-          { name: 'Black & Grey' }
+          { name: 'American Traditional' },
+          { name: 'Japanese Traditional (Irezumi / Tebori)' },
+          { name: 'Black and Grey' }
         ]
       },
       services: {
@@ -389,8 +539,8 @@ async function main() {
       data: {
         specialties: {
           connect: [
-            { name: 'Japanese' },
-            { name: 'Traditional' }
+            { name: 'Japanese Traditional (Irezumi / Tebori)' },
+            { name: 'American Traditional' }
           ]
         },
         services: {
@@ -407,8 +557,8 @@ async function main() {
       data: {
         specialties: {
           connect: [
-            { name: 'Black & Grey' },
-            { name: 'Color Realism' }
+            { name: 'Black and Grey' },
+            { name: 'Realism' }
           ]
         },
         services: {
@@ -426,7 +576,8 @@ async function main() {
       data: {
         specialties: {
           connect: [
-            { name: 'Neo-Traditional' }
+            { name: 'Neo-Traditional' },
+            { name: 'Fine Line' }
           ]
         },
         services: {
@@ -443,8 +594,8 @@ async function main() {
       data: {
         specialties: {
           connect: [
-            { name: 'Color Realism' },
-            { name: 'Black & Grey' }
+            { name: 'Watercolor' },
+            { name: 'New School' }
           ]
         },
         services: {
