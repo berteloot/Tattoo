@@ -22,10 +22,13 @@ const AdminUserManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPermanentDeleteModal, setShowPermanentDeleteModal] = useState(false);
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [userToPermanentDelete, setUserToPermanentDelete] = useState(null);
   const [userToRestore, setUserToRestore] = useState(null);
   const [deleteReason, setDeleteReason] = useState('');
+  const [permanentDeleteReason, setPermanentDeleteReason] = useState('');
   const [restoreReason, setRestoreReason] = useState('');
   
   // Filtering and pagination
@@ -105,6 +108,23 @@ const AdminUserManagement = () => {
     } catch (error) {
       error(error.response?.data?.error || 'Error deactivating user');
       console.error('Error deleting user:', error);
+    }
+  };
+
+  // Permanently delete user (hard delete)
+  const permanentDeleteUser = async () => {
+    try {
+      await api.delete(`/admin/users/${userToPermanentDelete.id}/permanent`, {
+        data: { reason: permanentDeleteReason }
+      });
+      success('User permanently deleted successfully');
+      setShowPermanentDeleteModal(false);
+      setUserToPermanentDelete(null);
+      setPermanentDeleteReason('');
+      fetchUsers();
+    } catch (error) {
+      error(error.response?.data?.error || 'Error permanently deleting user');
+      console.error('Error permanently deleting user:', error);
     }
   };
 
@@ -335,15 +355,27 @@ const AdminUserManagement = () => {
                               </button>
                             )}
                             {user.isActive ? (
-                              <button
-                                onClick={() => {
-                                  setUserToDelete(user);
-                                  setShowDeleteModal(true);
-                                }}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Deactivate
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setUserToDelete(user);
+                                    setShowDeleteModal(true);
+                                  }}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  Deactivate
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setUserToPermanentDelete(user);
+                                    setShowPermanentDeleteModal(true);
+                                  }}
+                                  className="text-red-800 hover:text-red-950 font-bold"
+                                  title="Permanently delete user - CANNOT BE UNDONE"
+                                >
+                                  Delete Forever
+                                </button>
+                              </>
                             ) : (
                               <button
                                 onClick={() => {
@@ -475,6 +507,82 @@ const AdminUserManagement = () => {
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                   >
                     Deactivate
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Permanent Delete Confirmation Modal */}
+        {showPermanentDeleteModal && userToPermanentDelete && (
+          <div className="fixed inset-0 bg-red-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-[500px] shadow-lg rounded-md bg-white">
+              <div className="mt-3">
+                <div className="text-center mb-6">
+                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-red-900 mb-2">⚠️ PERMANENT DELETION WARNING ⚠️</h3>
+                  <p className="text-lg font-semibold text-red-800 mb-4">
+                    This action CANNOT be undone!
+                  </p>
+                </div>
+                
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <h4 className="font-bold text-red-900 mb-2">What will be permanently deleted:</h4>
+                  <ul className="text-sm text-red-800 space-y-1">
+                    <li>• User account and all personal information</li>
+                    <li>• Artist profile (if exists)</li>
+                    <li>• All flash items and portfolio</li>
+                    <li>• All reviews given and received</li>
+                    <li>• All associated data and files</li>
+                  </ul>
+                </div>
+
+                <div className="mb-6">
+                  <p className="text-sm text-gray-700 mb-4">
+                    Are you absolutely sure you want to <strong className="text-red-900">PERMANENTLY DELETE</strong> the user{' '}
+                    <strong className="text-red-900">{userToPermanentDelete.firstName} {userToPermanentDelete.lastName}</strong>?
+                  </p>
+                  <p className="text-xs text-red-600 font-semibold">
+                    This action is irreversible and will remove all data associated with this user from the database.
+                  </p>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-bold text-red-900 mb-2">
+                    Reason for permanent deletion (REQUIRED):
+                  </label>
+                  <textarea
+                    placeholder="You must provide a reason for permanent deletion..."
+                    value={permanentDeleteReason}
+                    onChange={(e) => setPermanentDeleteReason(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    rows="3"
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setShowPermanentDeleteModal(false);
+                      setUserToPermanentDelete(null);
+                      setPermanentDeleteReason('');
+                    }}
+                    className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={permanentDeleteUser}
+                    disabled={!permanentDeleteReason.trim()}
+                    className="px-6 py-2 bg-red-800 text-white rounded-md hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                  >
+                    DELETE FOREVER
                   </button>
                 </div>
               </div>

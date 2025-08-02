@@ -363,6 +363,136 @@ router.post('/users/:id/restore', async (req, res) => {
 });
 
 /**
+ * @route   DELETE /api/admin/users/:id/permanent
+ * @desc    Permanently delete a user and all associated data
+ * @access  Admin only
+ */
+router.delete('/users/:id/permanent', [
+  body('reason').notEmpty().withMessage('Reason is required for permanent deletion')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: { 
+        artistProfile: true,
+        reviewsGiven: true,
+        reviewsReceived: true,
+        _count: {
+          select: {
+            reviewsGiven: true,
+            reviewsReceived: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Prevent admin from deleting themselves
+    if (user.id === req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot delete your own account'
+      });
+    }
+
+    // Prevent deletion of other admins (optional safety measure)
+    if (user.role === 'ADMIN' && user.id !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot delete other admin accounts'
+      });
+    }
+
+    console.log(`🔄 Starting permanent deletion of user: ${user.email} (ID: ${id})`);
+    console.log(`📊 User data to be deleted: ${user._count.reviewsGiven} reviews given, ${user._count.reviewsReceived} reviews received`);
+
+    // Use a transaction to ensure all related data is deleted
+    const result = await prisma.$transaction(async (tx) => {
+      // Delete all reviews given by this user
+      await tx.review.deleteMany({
+        where: { authorId: id }
+      });
+
+      // Delete all reviews received by this user
+      await tx.review.deleteMany({
+        where: { recipientId: id }
+      });
+
+      // Delete all flash items by this user
+      if (user.artistProfile) {
+        await tx.flash.deleteMany({
+          where: { artistId: user.artistProfile.id }
+        });
+      }
+
+      // Delete artist profile if it exists
+      if (user.artistProfile) {
+        await tx.artistProfile.delete({
+          where: { userId: id }
+        });
+      }
+
+      // Finally, delete the user
+      const deletedUser = await tx.user.delete({
+        where: { id }
+      });
+
+      return deletedUser;
+    });
+
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'PERMANENT_DELETE_USER',
+        targetType: 'USER',
+        targetId: id,
+        details: `User permanently deleted - Reason: ${reason}`
+      }
+    });
+
+    console.log(`✅ User permanently deleted: ${user.email} (ID: ${id})`);
+
+    res.json({
+      success: true,
+      message: 'User permanently deleted successfully',
+      data: { 
+        user: result,
+        deletedData: {
+          reviewsGiven: user._count.reviewsGiven,
+          reviewsReceived: user._count.reviewsReceived,
+          hadArtistProfile: !!user.artistProfile
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Permanent delete user error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error permanently deleting user'
+    });
+  }
+});
+
+/**
  * @route   GET /api/admin/users/:id
  * @desc    Get detailed user information
  * @access  Admin only
