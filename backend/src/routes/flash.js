@@ -80,15 +80,15 @@ router.get('/', optionalAuth, [
     }
 
     if (minPrice !== undefined) {
-      where.price = {
-        ...where.price,
+      where.basePrice = {
+        ...where.basePrice,
         gte: parseFloat(minPrice)
       };
     }
 
     if (maxPrice !== undefined) {
-      where.price = {
-        ...where.price,
+      where.basePrice = {
+        ...where.basePrice,
         lte: parseFloat(maxPrice)
       };
     }
@@ -265,10 +265,6 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     .optional()
     .isFloat({ min: 0 })
     .withMessage('Base price must be a positive number'),
-  body('price')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Price must be a positive number'),
   body('complexity')
     .optional()
     .isIn(['SIMPLE', 'MEDIUM', 'COMPLEX', 'MASTERPIECE'])
@@ -327,7 +323,7 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
       imageFormat,
       imageBytes,
       basePrice,
-      price,
+      price, // Ignore this field as it's not in the schema
       complexity,
       timeEstimate,
       isRepeatable,
@@ -348,7 +344,6 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
         imageFormat,
         imageBytes,
         basePrice: basePrice ? parseFloat(basePrice) : null,
-        price: price ? parseFloat(price) : null,
         complexity: complexity || 'MEDIUM',
         timeEstimate: timeEstimate ? parseInt(timeEstimate) : 120,
         isRepeatable: isRepeatable !== undefined ? isRepeatable : true,
@@ -409,10 +404,10 @@ router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     .optional()
     .isString()
     .withMessage('Image public ID must be a string'),
-  body('price')
+  body('basePrice')
     .optional()
     .isFloat({ min: 0 })
-    .withMessage('Price must be a positive number'),
+    .withMessage('Base price must be a positive number'),
   body('tags')
     .optional()
     .isArray()
@@ -468,7 +463,7 @@ router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
       imageHeight,
       imageFormat,
       imageBytes,
-      price,
+      basePrice,
       tags,
       isAvailable
     } = req.body;
@@ -494,7 +489,7 @@ router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
         ...(imageHeight !== undefined && { imageHeight }),
         ...(imageFormat !== undefined && { imageFormat }),
         ...(imageBytes !== undefined && { imageBytes }),
-        ...(price !== undefined && { price: parseFloat(price) }),
+        ...(basePrice !== undefined && { basePrice: parseFloat(basePrice) }),
         ...(tags !== undefined && { tags }),
         ...(isAvailable !== undefined && { isAvailable })
       },
