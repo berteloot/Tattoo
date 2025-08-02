@@ -4,10 +4,15 @@ import { Upload, X, Image as ImageIcon, AlertCircle } from 'lucide-react';
 const ImageUpload = ({ 
   onImageUpload, 
   onImageRemove, 
+  onUpload,
+  onCancel,
   currentImageUrl, 
   currentImageData,
   disabled = false,
-  className = '' 
+  className = '',
+  maxFiles = 1,
+  acceptedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  maxSize = 5 * 1024 * 1024 // 5MB default
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -37,16 +42,14 @@ const ImageUpload = ({
 
   const handleFileSelect = async (file) => {
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      setUploadError('Please select a valid image file (JPEG, PNG, or WebP)');
+    if (!acceptedTypes.includes(file.type)) {
+      setUploadError(`Please select a valid image file (${acceptedTypes.join(', ')})`);
       return;
     }
 
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size
     if (file.size > maxSize) {
-      setUploadError('File size must be less than 5MB');
+      setUploadError(`File size must be less than ${Math.round(maxSize / (1024 * 1024))}MB`);
       return;
     }
 
@@ -106,7 +109,11 @@ const ImageUpload = ({
       }
 
       // Call parent callback with uploaded image data
-      onImageUpload(result.data);
+      if (onUpload) {
+        onUpload([result.data.imageUrl]); // Support new callback structure
+      } else if (onImageUpload) {
+        onImageUpload(result.data); // Support legacy callback structure
+      }
     } catch (error) {
       console.error('Upload error:', error);
       setUploadError(error.message || 'Failed to upload image');
@@ -214,6 +221,19 @@ const ImageUpload = ({
         <div className="flex items-center space-x-2 text-red-600 text-sm">
           <AlertCircle className="h-4 w-4" />
           <span>{uploadError}</span>
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      {onCancel && (
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       )}
 

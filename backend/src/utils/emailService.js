@@ -46,6 +46,10 @@ class EmailService {
     return html.replace(/<[^>]*>/g, '')
   }
 
+  isConfigured() {
+    return !!process.env.SENDGRID_API_KEY
+  }
+
   // Email verification email
   async sendEmailVerificationEmail(user, verificationToken) {
     try {
@@ -289,7 +293,7 @@ class EmailService {
   }
 
   // New review notification
-  async sendReviewNotification(artist, review) {
+  async sendReviewNotification({ to, artistName, reviewerName, rating, title, comment }) {
     const subject = 'New Review on Your Profile! ⭐'
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -299,25 +303,25 @@ class EmailService {
         </div>
         
         <div style="padding: 40px; background: white;">
-          <h2 style="color: #333; margin-bottom: 20px;">Hi ${artist.user.firstName},</h2>
+          <h2 style="color: #333; margin-bottom: 20px;">Hi ${artistName.split(' ')[0]},</h2>
           
           <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            You received a new review on your Tattooed World profile!
+            You received a new review on your Tattooed World profile from ${reviewerName}!
           </p>
           
           <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <div style="display: flex; align-items: center; margin-bottom: 15px;">
               <div style="font-size: 24px; margin-right: 10px;">
-                ${'⭐'.repeat(review.rating)}
+                ${'⭐'.repeat(rating)}
               </div>
-              <span style="color: #333; font-weight: bold;">${review.rating}/5 stars</span>
+              <span style="color: #333; font-weight: bold;">${rating}/5 stars</span>
             </div>
-            <h3 style="color: #333; margin: 0 0 10px 0;">${review.title}</h3>
-            <p style="color: #666; line-height: 1.6; margin: 0;">${review.comment}</p>
+            ${title ? `<h3 style="color: #333; margin: 0 0 10px 0;">${title}</h3>` : ''}
+            ${comment ? `<p style="color: #666; line-height: 1.6; margin: 0;">${comment}</p>` : ''}
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-                          <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com'}/artists/${artist.id}" 
+            <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com'}/profile" 
                style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View Your Profile
             </a>
@@ -331,12 +335,12 @@ class EmailService {
         
         <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px;">
           <p>© 2025 Tattooed World. All rights reserved.</p>
-          <p>This email was sent to ${artist.user.email}</p>
+          <p>This email was sent to ${to}</p>
         </div>
       </div>
     `
 
-    return this.sendEmail(artist.user.email, subject, htmlContent)
+    return this.sendEmail(to, subject, htmlContent)
   }
 
   // Booking confirmation email

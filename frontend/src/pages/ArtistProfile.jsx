@@ -16,10 +16,12 @@ import {
   Linkedin, 
   ExternalLink,
   Calendar,
-  MessageCircle
+  MessageCircle,
+  Plus
 } from 'lucide-react'
 import { LoadingSpinner } from '../components/UXComponents'
 import { CalendlyWidget } from '../components/CalendlyWidget'
+import { ReviewForm } from '../components/ReviewForm'
 import { artistsAPI } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
@@ -29,6 +31,7 @@ export const ArtistProfile = () => {
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showReviewForm, setShowReviewForm] = useState(false)
 
   useEffect(() => {
     // Check API health first
@@ -78,6 +81,10 @@ export const ArtistProfile = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleReviewSubmitted = (newReview) => {
+    setReviews(prev => [newReview, ...prev])
   }
 
   if (loading) {
@@ -226,7 +233,16 @@ export const ArtistProfile = () => {
 
             {/* Reviews */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Reviews</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Reviews</h2>
+                <button
+                  onClick={() => setShowReviewForm(true)}
+                  className="inline-flex items-center px-3 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Leave Review
+                </button>
+              </div>
               {(reviews || []).length > 0 ? (
                 <div className="space-y-4">
                   {(reviews || []).map((review) => (
@@ -519,6 +535,15 @@ export const ArtistProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Review Form Modal */}
+      {showReviewForm && (
+        <ReviewForm
+          artist={artist}
+          onClose={() => setShowReviewForm(false)}
+          onReviewSubmitted={handleReviewSubmitted}
+        />
+      )}
     </div>
   )
 } 

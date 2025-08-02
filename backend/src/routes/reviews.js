@@ -7,9 +7,73 @@ const emailService = require('../utils/emailService');
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Content filtering and spam detection utilities
+const contentFilter = {
+  // Common spam words and phrases
+  spamWords: [
+    'buy now', 'click here', 'free money', 'make money fast', 'work from home',
+    'earn money', 'get rich', 'investment opportunity', 'lottery winner',
+    'viagra', 'cialis', 'weight loss', 'diet pills', 'casino', 'poker'
+  ],
+  
+  // Inappropriate content patterns
+  inappropriatePatterns: [
+    /\b(fuck|shit|bitch|asshole|dick|pussy)\b/i,
+    /\b(kill|murder|suicide|bomb|terrorist)\b/i
+  ],
+  
+  // Check for spam content
+  isSpam: (text) => {
+    if (!text) return false;
+    const lowerText = text.toLowerCase();
+    return contentFilter.spamWords.some(word => lowerText.includes(word));
+  },
+  
+  // Check for inappropriate content
+  isInappropriate: (text) => {
+    if (!text) return false;
+    return contentFilter.inappropriatePatterns.some(pattern => pattern.test(text));
+  },
+  
+  // Check for excessive caps (shouting)
+  isShouting: (text) => {
+    if (!text) return false;
+    const upperCount = (text.match(/[A-Z]/g) || []).length;
+    const totalLetters = (text.match(/[A-Za-z]/g) || []).length;
+    return totalLetters > 10 && (upperCount / totalLetters) > 0.7;
+  },
+  
+  // Check for repetitive characters
+  isRepetitive: (text) => {
+    if (!text) return false;
+    return /(.)\1{4,}/.test(text); // Same character repeated 5+ times
+  }
+};
+
+// Rate limiting for review creation
+const reviewRateLimit = new Map();
+
+const checkRateLimit = (userId) => {
+  const now = Date.now();
+  const userReviews = reviewRateLimit.get(userId) || [];
+  
+  // Remove reviews older than 24 hours
+  const recentReviews = userReviews.filter(time => now - time < 24 * 60 * 60 * 1000);
+  
+  // Limit to 3 reviews per 24 hours
+  if (recentReviews.length >= 3) {
+    return false;
+  }
+  
+  // Add current review time
+  recentReviews.push(now);
+  reviewRateLimit.set(userId, recentReviews);
+  return true;
+};
+
 /**
  * @route   GET /api/reviews
- * @desc    Get reviews with filtering
+ * @desc    Get reviews with filtering and moderation
  * @access  Public
  */
 router.get('/', optionalAuth, [
@@ -28,7 +92,11 @@ router.get('/', optionalAuth, [
   query('rating')
     .optional()
     .isInt({ min: 1, max: 5 })
-    .withMessage('Rating must be between 1 and 5')
+    .withMessage('Rating must be between 1 and 5'),
+  query('sort')
+    .optional()
+    .isIn(['newest', 'oldest', 'rating', 'helpful'])
+    .withMessage('Sort must be newest, oldest, rating, or helpful')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -45,14 +113,16 @@ router.get('/', optionalAuth, [
       page = 1,
       limit = 10,
       recipientId,
-      rating
+      rating,
+      sort = 'newest'
     } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Build where clause
+    // Build where clause with moderation
     const where = {
-      isHidden: false
+      isHidden: false,
+      isApproved: true // Only show approved reviews
     };
 
     if (recipientId) {
@@ -63,7 +133,24 @@ router.get('/', optionalAuth, [
       where.rating = parseInt(rating);
     }
 
-    // Get reviews
+    // Determine sort order
+    let orderBy = {};
+    switch (sort) {
+      case 'oldest':
+        orderBy = { createdAt: 'asc' };
+        break;
+      case 'rating':
+        orderBy = { rating: 'desc' };
+        break;
+      case 'helpful':
+        // For now, sort by rating as helpful votes aren't implemented yet
+        orderBy = { rating: 'desc' };
+        break;
+      default: // newest
+        orderBy = { createdAt: 'desc' };
+    }
+
+    // Get reviews with enhanced data
     const reviews = await prisma.review.findMany({
       where,
       include: {
@@ -72,7 +159,8 @@ router.get('/', optionalAuth, [
             id: true,
             firstName: true,
             lastName: true,
-            avatar: true
+            avatar: true,
+            createdAt: true // For account age verification
           }
         },
         recipient: {
@@ -86,11 +174,25 @@ router.get('/', optionalAuth, [
       },
       skip,
       take: parseInt(limit),
-      orderBy: { createdAt: 'desc' }
+      orderBy
     });
 
     // Get total count for pagination
     const total = await prisma.review.count({ where });
+
+    // Calculate average rating for the recipient if specified
+    let averageRating = null;
+    if (recipientId) {
+      const ratingStats = await prisma.review.aggregate({
+        where: { ...where, recipientId },
+        _avg: { rating: true },
+        _count: { rating: true }
+      });
+      averageRating = {
+        average: ratingStats._avg.rating,
+        count: ratingStats._count.rating
+      };
+    }
 
     res.json({
       success: true,
@@ -101,7 +203,8 @@ router.get('/', optionalAuth, [
           limit: parseInt(limit),
           total,
           pages: Math.ceil(total / parseInt(limit))
-        }
+        },
+        averageRating
       }
     });
   } catch (error) {
@@ -115,10 +218,10 @@ router.get('/', optionalAuth, [
 
 /**
  * @route   POST /api/reviews
- * @desc    Create a new review
- * @access  Private (CLIENT role)
+ * @desc    Create a new review with enhanced validation and moderation
+ * @access  Private (CLIENT, ARTIST roles)
  */
-router.post('/', protect, authorize('CLIENT'), [
+router.post('/', protect, authorize('CLIENT', 'ARTIST'), [
   body('recipientId')
     .isString()
     .withMessage('Recipient ID is required'),
@@ -128,17 +231,25 @@ router.post('/', protect, authorize('CLIENT'), [
   body('title')
     .optional()
     .trim()
-    .isLength({ max: 100 })
-    .withMessage('Title must be less than 100 characters'),
+    .isLength({ min: 3, max: 100 })
+    .withMessage('Title must be between 3 and 100 characters')
+    .matches(/^[a-zA-Z0-9\s\-_.,!?()]+$/)
+    .withMessage('Title contains invalid characters'),
   body('comment')
     .optional()
     .trim()
-    .isLength({ max: 1000 })
-    .withMessage('Comment must be less than 1000 characters'),
+    .isLength({ min: 10, max: 1000 })
+    .withMessage('Comment must be between 10 and 1000 characters')
+    .matches(/^[a-zA-Z0-9\s\-_.,!?()@#$%&*+=<>[\]{}|\\/:;"'`~]+$/)
+    .withMessage('Comment contains invalid characters'),
   body('images')
     .optional()
-    .isArray()
-    .withMessage('Images must be an array')
+    .isArray({ max: 5 })
+    .withMessage('Maximum 5 images allowed'),
+  body('images.*')
+    .optional()
+    .isURL()
+    .withMessage('Invalid image URL')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -152,6 +263,14 @@ router.post('/', protect, authorize('CLIENT'), [
     }
 
     const { recipientId, rating, title, comment, images = [] } = req.body;
+
+    // Rate limiting check
+    if (!checkRateLimit(req.user.id)) {
+      return res.status(429).json({
+        success: false,
+        error: 'Rate limit exceeded. You can only submit 3 reviews per 24 hours.'
+      });
+    }
 
     // Check if recipient exists and is an artist
     const recipient = await prisma.user.findUnique({
@@ -175,6 +294,14 @@ router.post('/', protect, authorize('CLIENT'), [
       });
     }
 
+    // Prevent self-reviews
+    if (req.user.id === recipientId) {
+      return res.status(400).json({
+        success: false,
+        error: 'You cannot review yourself'
+      });
+    }
+
     // Check if user has already reviewed this artist
     const existingReview = await prisma.review.findUnique({
       where: {
@@ -192,15 +319,68 @@ router.post('/', protect, authorize('CLIENT'), [
       });
     }
 
-    // Create review
+    // Content moderation checks
+    const moderationFlags = [];
+    let requiresModeration = false;
+
+    // Check for spam content
+    if (contentFilter.isSpam(title) || contentFilter.isSpam(comment)) {
+      moderationFlags.push('SPAM_CONTENT');
+      requiresModeration = true;
+    }
+
+    // Check for inappropriate content
+    if (contentFilter.isInappropriate(title) || contentFilter.isInappropriate(comment)) {
+      moderationFlags.push('INAPPROPRIATE_CONTENT');
+      requiresModeration = true;
+    }
+
+    // Check for shouting
+    if (contentFilter.isShouting(title) || contentFilter.isShouting(comment)) {
+      moderationFlags.push('EXCESSIVE_CAPS');
+    }
+
+    // Check for repetitive content
+    if (contentFilter.isRepetitive(title) || contentFilter.isRepetitive(comment)) {
+      moderationFlags.push('REPETITIVE_CONTENT');
+    }
+
+    // Check for suspicious rating patterns
+    const userReviews = await prisma.review.findMany({
+      where: { authorId: req.user.id },
+      select: { rating: true }
+    });
+
+    if (userReviews.length > 0) {
+      const avgRating = userReviews.reduce((sum, r) => sum + r.rating, 0) / userReviews.length;
+      const ratingDiff = Math.abs(rating - avgRating);
+      
+      if (ratingDiff > 3) {
+        moderationFlags.push('SUSPICIOUS_RATING');
+        requiresModeration = true;
+      }
+    }
+
+    // Check account age (new accounts are more likely to be fake)
+    const accountAge = Date.now() - new Date(req.user.createdAt).getTime();
+    const accountAgeDays = accountAge / (1000 * 60 * 60 * 24);
+    
+    if (accountAgeDays < 1) { // Less than 1 day old
+      moderationFlags.push('NEW_ACCOUNT');
+      requiresModeration = true;
+    }
+
+    // Create review with moderation status
     const review = await prisma.review.create({
       data: {
         authorId: req.user.id,
         recipientId,
         rating,
-        title,
-        comment,
-        images
+        title: title || null,
+        comment: comment || null,
+        images,
+        isApproved: !requiresModeration, // Auto-approve if no flags
+        isVerified: false // Will be verified by admin if needed
       },
       include: {
         author: {
@@ -222,10 +402,47 @@ router.post('/', protect, authorize('CLIENT'), [
       }
     });
 
+    // Log moderation flags if any
+    if (moderationFlags.length > 0) {
+      console.log(`Review ${review.id} flagged for moderation:`, moderationFlags);
+      
+      // Create admin action log entry
+      await prisma.adminAction.create({
+        data: {
+          adminId: req.user.id, // Using author as admin for logging
+          action: 'REVIEW_FLAGGED',
+          targetType: 'REVIEW',
+          targetId: review.id,
+          details: `Review flagged for moderation: ${moderationFlags.join(', ')}`
+        }
+      });
+    }
+
+    // Send notification to artist if review is approved
+    if (!requiresModeration && emailService.isConfigured()) {
+      try {
+        await emailService.sendReviewNotification({
+          to: recipient.email,
+          artistName: `${recipient.firstName} ${recipient.lastName}`,
+          reviewerName: `${req.user.firstName} ${req.user.lastName}`,
+          rating,
+          title,
+          comment
+        });
+      } catch (emailError) {
+        console.error('Failed to send review notification:', emailError);
+      }
+    }
+
     res.status(201).json({
       success: true,
-      message: 'Review created successfully',
-      data: { review }
+      message: requiresModeration 
+        ? 'Review submitted and pending moderation' 
+        : 'Review created successfully',
+      data: { 
+        review,
+        moderationFlags: moderationFlags.length > 0 ? moderationFlags : undefined
+      }
     });
   } catch (error) {
     console.error('Create review error:', error);
