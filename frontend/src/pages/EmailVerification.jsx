@@ -8,7 +8,7 @@ import { CheckCircle, XCircle, Mail, RefreshCw, ArrowLeft } from 'lucide-react';
 const EmailVerification = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { loginWithToken } = useAuth();
   const { success: showSuccessToast, error: showErrorToast } = useToast();
   
   const [verificationStatus, setVerificationStatus] = useState('verifying'); // 'verifying', 'success', 'error', 'expired'
@@ -46,8 +46,8 @@ const EmailVerification = () => {
         setVerificationStatus('success');
         
         // Automatically log the user in
-        if (response.data.data.token) {
-          login(response.data.data.token, response.data.data.user);
+        if (response.data.data.token && response.data.data.user) {
+          loginWithToken(response.data.data.token, response.data.data.user);
         }
         
         showSuccessToast('Email Verified!', 'Welcome to Tattooed World!');

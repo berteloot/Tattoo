@@ -30,7 +30,11 @@ export const Register = () => {
     
     try {
       const result = await register(formData)
-      if (!result.success) {
+      if (result.success) {
+        if (result.requiresEmailVerification) {
+          showSuccessToast('Registration Successful!', 'Please check your email to verify your account before logging in.')
+        }
+      } else {
         showErrorToast('Registration Failed', result.error || 'Registration failed')
         console.error('Registration failed:', result.error)
       }

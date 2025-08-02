@@ -223,10 +223,18 @@ export const AuthProvider = ({ children }) => {
     }))
   }
 
+  const loginWithToken = (token, user) => {
+    localStorage.setItem('token', token)
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    setUser(user)
+    navigate('/')
+  }
+
   const value = {
     user,
     loading,
     login,
+    loginWithToken,
     register,
     logout,
     updateProfile,
