@@ -45,11 +45,14 @@ router.post('/register', [
       });
     }
 
-    const { email, password, firstName, lastName, role = 'CLIENT', phone } = req.body;
+    const { password, firstName, lastName, role = 'CLIENT', phone } = req.body;
+    
+    // Get the normalized email from validation middleware
+    const email = req.body.email;
 
-    // Check if user already exists
+    // Check if user already exists (using normalized email)
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email: email.toLowerCase().trim() }
     });
 
     if (existingUser) {
@@ -67,10 +70,10 @@ router.post('/register', [
     const emailVerificationToken = require('crypto').randomBytes(32).toString('hex');
     const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    // Create user with email verification required
+    // Create user with email verification required (using normalized email)
     const user = await prisma.user.create({
       data: {
-        email,
+        email: email.toLowerCase().trim(),
         password: hashedPassword,
         firstName,
         lastName,

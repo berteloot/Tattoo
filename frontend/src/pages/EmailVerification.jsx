@@ -50,7 +50,7 @@ const EmailVerification = () => {
           login(response.data.data.token, response.data.data.user);
         }
         
-        showToast('Email verified successfully! Welcome to Tattooed World!', 'success');
+        showSuccessToast('Email Verified!', 'Welcome to Tattooed World!');
         
         // Redirect to home page after 3 seconds
         setTimeout(() => {
@@ -76,7 +76,7 @@ const EmailVerification = () => {
     e.preventDefault();
     
     if (!email) {
-      showToast('Please enter your email address', 'error');
+              showErrorToast('Email Required', 'Please enter your email address');
       return;
     }
 
@@ -89,14 +89,14 @@ const EmailVerification = () => {
       
       if (!authAPI || !authAPI.resendVerification) {
         console.error('authAPI.resendVerification is not available');
-        showToast('API method not available. Please refresh the page.', 'error');
+        showErrorToast('API Error', 'API method not available. Please refresh the page.');
         return;
       }
       
       const response = await authAPI.resendVerification(email);
 
       if (response.data.success) {
-        showToast('Verification email sent! Please check your inbox.', 'success');
+        showSuccessToast('Email Sent!', 'Verification email sent! Please check your inbox.');
         setShowResendForm(false);
       }
     } catch (error) {
@@ -104,11 +104,11 @@ const EmailVerification = () => {
       
       // Handle specific error cases
       if (error.response?.status === 400) {
-        showToast(error.response.data.error || 'Invalid email address', 'error');
+        showErrorToast('Invalid Email', error.response.data.error || 'Invalid email address');
       } else if (error.response?.status === 500) {
-        showToast('Email service temporarily unavailable. Please try again later.', 'error');
-      } else {
-        showToast('Failed to resend verification email. Please try again.', 'error');
+                  showErrorToast('Service Unavailable', 'Email service temporarily unavailable. Please try again later.');
+        } else {
+          showErrorToast('Resend Failed', 'Failed to resend verification email. Please try again.');
       }
     } finally {
       setIsResending(false);

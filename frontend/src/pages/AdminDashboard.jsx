@@ -20,7 +20,7 @@ import {
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { error: showErrorToast } = useToast();
   
   const [stats, setStats] = useState(null);
   const [recentActions, setRecentActions] = useState([]);
@@ -42,7 +42,7 @@ const AdminDashboard = () => {
       setRecentActions(actionsResponse.data?.data?.actions || actionsResponse.data?.actions || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      showToast('Error fetching dashboard data', 'error');
+              showErrorToast('Dashboard Error', 'Error fetching dashboard data');
       // Set default values on error
       setStats({});
       setRecentActions([]);
