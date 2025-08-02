@@ -7,11 +7,11 @@ async function testProfileSaveFix() {
   const API_BASE_URL = 'https://tattooed-world-backend.onrender.com';
   
   try {
-    // Login with stan account
+    // Login with stan account (using the password we set via emergency reset)
     console.log('1. Logging in with stan@altilead.com...');
     const loginResponse = await axios.post(`${API_BASE_URL}/api/auth/login`, {
       email: 'stan@altilead.com',
-      password: '@222888'
+      password: 'stan123456'
     });
     
     console.log('✅ Login successful!');

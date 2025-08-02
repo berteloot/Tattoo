@@ -1,6 +1,8 @@
 const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
+const { validateArtistProfile } = require('../middleware/artistValidation');
+const { processArtistData, createArtistProfileData, updateArtistProfileData } = require('../utils/artistDataProcessor');
 const emailService = require('../utils/emailService');
 const { prisma } = require('../utils/prisma');
 
@@ -346,142 +348,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
  * @desc    Create artist profile
  * @access  Private (ARTIST role)
  */
-router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
-  body('bio')
-    .trim()
-    .notEmpty()
-    .withMessage('Bio is required')
-    .isLength({ min: 10, max: 1000 })
-    .withMessage('Bio must be between 10 and 1000 characters'),
-  body('studioName')
-    .optional()
-    .trim()
-    .isLength({ max: 100 })
-    .withMessage('Studio name must be less than 100 characters'),
-  body('website')
-    .optional()
-    .custom((value) => {
-      if (value && value.trim() !== '') {
-        const urlRegex = /^https?:\/\/.+/;
-        if (!urlRegex.test(value)) {
-          throw new Error('Website must be a valid URL starting with http:// or https://');
-        }
-      }
-      return true;
-    })
-    .withMessage('Website must be a valid URL'),
-  body('instagram')
-    .optional()
-    .trim()
-    .isLength({ max: 50 })
-    .withMessage('Instagram handle must be less than 50 characters'),
-  body('calendlyUrl')
-    .optional()
-    .custom((value) => {
-      if (value && value.trim() !== '') {
-        const urlRegex = /^https?:\/\/.+/;
-        if (!urlRegex.test(value)) {
-          throw new Error('Calendly URL must be a valid URL starting with http:// or https://');
-        }
-      }
-      return true;
-    })
-    .withMessage('Calendly URL must be a valid URL'),
-  body('address')
-    .optional()
-    .trim()
-    .isLength({ max: 200 })
-    .withMessage('Address must be less than 200 characters'),
-  body('city')
-    .trim()
-    .notEmpty()
-    .withMessage('City is required')
-    .isLength({ max: 100 })
-    .withMessage('City must be less than 100 characters'),
-  body('state')
-    .optional()
-    .trim()
-    .isLength({ max: 100 })
-    .withMessage('State must be less than 100 characters'),
-  body('zipCode')
-    .optional()
-    .trim()
-    .isLength({ max: 20 })
-    .withMessage('Zip code must be less than 20 characters'),
-  body('country')
-    .optional()
-    .trim()
-    .isLength({ max: 100 })
-    .withMessage('Country must be less than 100 characters'),
-  body('latitude')
-    .optional()
-    .custom((value) => {
-      if (value && value.toString().trim() !== '') {
-        const num = parseFloat(value);
-        if (isNaN(num) || num < -90 || num > 90) {
-          throw new Error('Latitude must be between -90 and 90');
-        }
-      }
-      return true;
-    })
-    .withMessage('Latitude must be between -90 and 90'),
-  body('longitude')
-    .optional()
-    .custom((value) => {
-      if (value && value.toString().trim() !== '') {
-        const num = parseFloat(value);
-        if (isNaN(num) || num < -180 || num > 180) {
-          throw new Error('Longitude must be between -180 and 180');
-        }
-      }
-      return true;
-    })
-    .withMessage('Longitude must be between -180 and 180'),
-  body('hourlyRate')
-    .optional()
-    .custom((value) => {
-      if (value && value.toString().trim() !== '') {
-        const num = parseFloat(value);
-        if (isNaN(num) || num < 0) {
-          throw new Error('Hourly rate must be a positive number');
-        }
-      }
-      return true;
-    })
-    .withMessage('Hourly rate must be a positive number'),
-  body('minPrice')
-    .optional()
-    .custom((value) => {
-      if (value && value.toString().trim() !== '') {
-        const num = parseFloat(value);
-        if (isNaN(num) || num < 0) {
-          throw new Error('Minimum price must be a positive number');
-        }
-      }
-      return true;
-    })
-    .withMessage('Minimum price must be a positive number'),
-  body('maxPrice')
-    .optional()
-    .custom((value) => {
-      if (value && value.toString().trim() !== '') {
-        const num = parseFloat(value);
-        if (isNaN(num) || num < 0) {
-          throw new Error('Maximum price must be a positive number');
-        }
-      }
-      return true;
-    })
-    .withMessage('Maximum price must be a positive number'),
-  body('specialtyIds')
-    .optional()
-    .isArray()
-    .withMessage('Specialty IDs must be an array'),
-  body('serviceIds')
-    .optional()
-    .isArray()
-    .withMessage('Service IDs must be an array')
-], async (req, res) => {
+router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistProfile(false), async (req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -505,51 +372,14 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
       });
     }
 
-    const {
-      bio,
-      studioName,
-      website,
-      instagram,
-      calendlyUrl,
-      address,
-      city,
-      state,
-      zipCode,
-      country,
-      latitude,
-      longitude,
-      hourlyRate,
-      minPrice,
-      maxPrice,
-      specialtyIds = [],
-      serviceIds = []
-    } = req.body;
+    // Process and validate the form data
+    const processedData = processArtistData(req.body, false);
+    
+    // Create the artist profile data object
+    const profileData = createArtistProfileData(processedData, req.user.id);
 
     const artistProfile = await prisma.artistProfile.create({
-      data: {
-        userId: req.user.id,
-        bio: bio?.trim() || null,
-        studioName: studioName?.trim() || null,
-        website: website?.trim() || null,
-        instagram: instagram?.trim() || null,
-        calendlyUrl: calendlyUrl?.trim() || null,
-        address: address?.trim() || null,
-        city: city?.trim() || null,
-        state: state?.trim() || null,
-        zipCode: zipCode?.trim() || null,
-        country: country?.trim() || null,
-        latitude: latitude && latitude.toString().trim() !== '' ? parseFloat(latitude) : null,
-        longitude: longitude && longitude.toString().trim() !== '' ? parseFloat(longitude) : null,
-        hourlyRate: hourlyRate && hourlyRate.toString().trim() !== '' ? parseFloat(hourlyRate) : null,
-        minPrice: minPrice && minPrice.toString().trim() !== '' ? parseFloat(minPrice) : null,
-        maxPrice: maxPrice && maxPrice.toString().trim() !== '' ? parseFloat(maxPrice) : null,
-        specialties: {
-          connect: specialtyIds.map(id => ({ id }))
-        },
-        services: {
-          connect: serviceIds.map(id => ({ id }))
-        }
-      },
+      data: profileData,
       include: {
         user: {
           select: {
@@ -586,6 +416,20 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     });
   } catch (error) {
     console.error('Create artist profile error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      body: req.body
+    });
+    
+    // Handle specific validation errors from our processor
+    if (error.message.includes('Bio is required') || error.message.includes('City is required')) {
+      return res.status(400).json({
+        success: false,
+        error: error.message
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Server error while creating artist profile'
@@ -598,109 +442,9 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
  * @desc    Update artist profile
  * @access  Private (ARTIST role, owner only)
  */
-router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
-  body('bio')
-    .optional()
-    .isLength({ max: 1000 })
-    .withMessage('Bio must be less than 1000 characters'),
-  body('studioName')
-    .optional()
-    .trim()
-    .isLength({ max: 100 })
-    .withMessage('Studio name must be less than 100 characters'),
-  body('website')
-    .optional()
-    .custom((value) => {
-      if (value && value.trim() !== '') {
-        const urlRegex = /^https?:\/\/.+/;
-        if (!urlRegex.test(value)) {
-          throw new Error('Website must be a valid URL starting with http:// or https://');
-        }
-      }
-      return true;
-    })
-    .withMessage('Website must be a valid URL'),
-  body('instagram')
-    .optional()
-    .trim()
-    .isLength({ max: 50 })
-    .withMessage('Instagram handle must be less than 50 characters'),
-  body('calendlyUrl')
-    .optional()
-    .custom((value) => {
-      if (value && value.trim() !== '') {
-        const urlRegex = /^https?:\/\/.+/;
-        if (!urlRegex.test(value)) {
-          throw new Error('Calendly URL must be a valid URL starting with http:// or https://');
-        }
-      }
-      return true;
-    })
-    .withMessage('Calendly URL must be a valid URL'),
-  body('address')
-    .optional()
-    .trim()
-    .isLength({ max: 200 })
-    .withMessage('Address must be less than 200 characters'),
-  body('city')
-    .optional()
-    .trim()
-    .isLength({ max: 100 })
-    .withMessage('City must be less than 100 characters'),
-  body('state')
-    .optional()
-    .trim()
-    .isLength({ max: 100 })
-    .withMessage('State must be less than 100 characters'),
-  body('zipCode')
-    .optional()
-    .trim()
-    .isLength({ max: 20 })
-    .withMessage('Zip code must be less than 20 characters'),
-  body('country')
-    .optional()
-    .trim()
-    .isLength({ max: 100 })
-    .withMessage('Country must be less than 100 characters'),
-  body('latitude')
-    .optional()
-    .isFloat({ min: -90, max: 90 })
-    .withMessage('Latitude must be between -90 and 90'),
-  body('longitude')
-    .optional()
-    .isFloat({ min: -180, max: 180 })
-    .withMessage('Longitude must be between -180 and 180'),
-  body('hourlyRate')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Hourly rate must be a positive number'),
-  body('minPrice')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Minimum price must be a positive number'),
-  body('maxPrice')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Maximum price must be a positive number'),
-  body('specialtyIds')
-    .optional()
-    .isArray()
-    .withMessage('Specialty IDs must be an array'),
-  body('serviceIds')
-    .optional()
-    .isArray()
-    .withMessage('Service IDs must be an array')
-], async (req, res) => {
+router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistProfile(true), async (req, res) => {
   try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
+    // Validation is now handled by the middleware
 
     const { id } = req.params;
 
@@ -723,55 +467,15 @@ router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
       });
     }
 
-    const {
-      bio,
-      studioName,
-      website,
-      instagram,
-      calendlyUrl,
-      address,
-      city,
-      state,
-      zipCode,
-      country,
-      latitude,
-      longitude,
-      hourlyRate,
-      minPrice,
-      maxPrice,
-      specialtyIds,
-      serviceIds
-    } = req.body;
+    // Process and validate the form data
+    const processedData = processArtistData(req.body, true);
+    
+    // Create the update data object
+    const updateData = updateArtistProfileData(processedData);
 
     const updatedProfile = await prisma.artistProfile.update({
       where: { id },
-      data: {
-        ...(bio !== undefined && { bio }),
-        ...(studioName !== undefined && { studioName }),
-        ...(website !== undefined && { website }),
-        ...(instagram !== undefined && { instagram }),
-        ...(calendlyUrl !== undefined && { calendlyUrl }),
-        ...(address !== undefined && { address }),
-        ...(city !== undefined && { city }),
-        ...(state !== undefined && { state }),
-        ...(zipCode !== undefined && { zipCode }),
-        ...(country !== undefined && { country }),
-        ...(latitude !== undefined && { latitude: parseFloat(latitude) }),
-        ...(longitude !== undefined && { longitude: parseFloat(longitude) }),
-        ...(hourlyRate !== undefined && { hourlyRate: parseFloat(hourlyRate) }),
-        ...(minPrice !== undefined && { minPrice: parseFloat(minPrice) }),
-        ...(maxPrice !== undefined && { maxPrice: parseFloat(maxPrice) }),
-        ...(specialtyIds !== undefined && {
-          specialties: {
-            set: specialtyIds.map(id => ({ id }))
-          }
-        }),
-        ...(serviceIds !== undefined && {
-          services: {
-            set: serviceIds.map(id => ({ id }))
-          }
-        })
-      },
+      data: updateData,
       include: {
         user: {
           select: {
@@ -793,6 +497,21 @@ router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     });
   } catch (error) {
     console.error('Update artist profile error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      body: req.body,
+      profileId: req.params.id
+    });
+    
+    // Handle specific validation errors from our processor
+    if (error.message.includes('Bio is required') || error.message.includes('City is required')) {
+      return res.status(400).json({
+        success: false,
+        error: error.message
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Server error while updating artist profile'
