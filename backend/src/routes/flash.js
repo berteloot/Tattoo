@@ -261,10 +261,30 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
     .optional()
     .isString()
     .withMessage('Image public ID must be a string'),
+  body('basePrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Base price must be a positive number'),
   body('price')
     .optional()
     .isFloat({ min: 0 })
     .withMessage('Price must be a positive number'),
+  body('complexity')
+    .optional()
+    .isIn(['SIMPLE', 'MEDIUM', 'COMPLEX', 'MASTERPIECE'])
+    .withMessage('Complexity must be one of: SIMPLE, MEDIUM, COMPLEX, MASTERPIECE'),
+  body('timeEstimate')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Time estimate must be a positive integer'),
+  body('isRepeatable')
+    .optional()
+    .isBoolean()
+    .withMessage('isRepeatable must be a boolean'),
+  body('sizePricing')
+    .optional()
+    .isObject()
+    .withMessage('Size pricing must be an object'),
   body('tags')
     .optional()
     .isArray()
@@ -306,7 +326,12 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
       imageHeight,
       imageFormat,
       imageBytes,
+      basePrice,
       price,
+      complexity,
+      timeEstimate,
+      isRepeatable,
+      sizePricing,
       tags = [],
       isAvailable = true
     } = req.body;
@@ -322,7 +347,12 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
         imageHeight,
         imageFormat,
         imageBytes,
+        basePrice: basePrice ? parseFloat(basePrice) : null,
         price: price ? parseFloat(price) : null,
+        complexity: complexity || 'MEDIUM',
+        timeEstimate: timeEstimate ? parseInt(timeEstimate) : 120,
+        isRepeatable: isRepeatable !== undefined ? isRepeatable : true,
+        sizePricing: sizePricing ? JSON.stringify(sizePricing) : null,
         tags,
         isAvailable
       },
