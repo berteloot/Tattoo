@@ -14,13 +14,13 @@ export const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [token, setToken] = useState('')
-  const { showToast } = useToast()
+  const { success, error } = useToast()
   const navigate = useNavigate()
 
   useEffect(() => {
     const tokenParam = searchParams.get('token')
     if (!tokenParam) {
-      showToast('Invalid reset link. Please request a new password reset.', 'error')
+      error('Error', 'Invalid reset link. Please request a new password reset.')
       navigate('/forgot-password')
       return
     }
@@ -63,14 +63,14 @@ export const ResetPassword = () => {
       
       if (response.data.success) {
         setIsSuccess(true)
-        showToast('Password reset successfully! You can now log in with your new password.', 'success')
+        success('Success', 'Password reset successfully! You can now log in with your new password.')
       } else {
-        showToast(response.data.error || 'Failed to reset password', 'error')
+        error('Error', response.data.error || 'Failed to reset password')
       }
     } catch (error) {
       console.error('Reset password error:', error)
       const errorMessage = error.response?.data?.error || 'Failed to reset password. Please try again.'
-      showToast(errorMessage, 'error')
+      error('Error', errorMessage)
     } finally {
       setIsLoading(false)
     }

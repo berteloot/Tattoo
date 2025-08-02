@@ -9,7 +9,7 @@ export const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [errors, setErrors] = useState({})
-  const { showToast } = useToast()
+  const { success, error } = useToast()
   const navigate = useNavigate()
 
   const validateForm = () => {
@@ -39,14 +39,14 @@ export const ForgotPassword = () => {
       
       if (response.data.success) {
         setIsSubmitted(true)
-        showToast('Password reset email sent! Check your inbox.', 'success')
+        success('Success', 'Password reset email sent! Check your inbox.')
       } else {
-        showToast(response.data.error || 'Failed to send reset email', 'error')
+        error('Error', response.data.error || 'Failed to send reset email')
       }
     } catch (error) {
       console.error('Forgot password error:', error)
       const errorMessage = error.response?.data?.error || 'Failed to send reset email. Please try again.'
-      showToast(errorMessage, 'error')
+      error('Error', errorMessage)
     } finally {
       setIsLoading(false)
     }
