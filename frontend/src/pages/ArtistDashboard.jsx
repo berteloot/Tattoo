@@ -224,10 +224,20 @@ export const ArtistDashboard = () => {
   }
 
   const handleFlashInputChange = (e) => {
-    const { name, value } = e.target
+    const { name, value, type, checked } = e.target
+    
+    // Convert values to appropriate types
+    let processedValue = value
+    
+    if (type === 'number') {
+      processedValue = value === '' ? '' : parseFloat(value) || 0
+    } else if (type === 'checkbox') {
+      processedValue = checked
+    }
+    
     setFlashFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: processedValue
     }))
   }
 
@@ -1338,7 +1348,7 @@ export const ArtistDashboard = () => {
                     type="checkbox"
                     name="isRepeatable"
                     checked={flashFormData.isRepeatable}
-                    onChange={(e) => setFlashFormData(prev => ({ ...prev, isRepeatable: e.target.checked }))}
+                    onChange={handleFlashInputChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label className="ml-2 text-sm text-gray-700">
@@ -1352,7 +1362,7 @@ export const ArtistDashboard = () => {
                     type="checkbox"
                     name="isAvailable"
                     checked={flashFormData.isAvailable}
-                    onChange={(e) => setFlashFormData(prev => ({ ...prev, isAvailable: e.target.checked }))}
+                    onChange={handleFlashInputChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label className="ml-2 text-sm text-gray-700">
