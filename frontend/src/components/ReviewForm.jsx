@@ -266,6 +266,7 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
                   maxFiles={5}
                   acceptedTypes={['image/jpeg', 'image/png', 'image/webp']}
                   maxSize={5 * 1024 * 1024} // 5MB
+                  uploadEndpoint="/api/reviews/upload-image"
                 />
               </div>
             )}

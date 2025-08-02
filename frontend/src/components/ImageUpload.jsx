@@ -69,7 +69,7 @@ const ImageUpload = ({
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('/api/flash/upload', {
+      const response = await fetch(uploadEndpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
