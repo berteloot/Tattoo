@@ -47,8 +47,7 @@ export const ArtistMap = () => {
           strokeWeight: 6,
           strokeOpacity: 0.9
         },
-        suppressInfoWindows: false,
-        suppressMarkers: true // We'll handle our own markers
+        suppressInfoWindows: false
       })
       directionsRenderer.current.setMap(map)
       

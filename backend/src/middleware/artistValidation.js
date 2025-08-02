@@ -8,12 +8,12 @@ const validateArtistProfile = (isUpdate = false) => {
   const validations = [
     // Bio validation - more flexible for updates
     body('bio')
-      .if(isUpdate)
+      .if(() => isUpdate)
       .optional()
       .trim()
       .isLength({ min: 1, max: 1000 })
       .withMessage('Bio must be between 1 and 1000 characters')
-      .if(!isUpdate)
+      .if(() => !isUpdate)
       .trim()
       .notEmpty()
       .withMessage('Bio is required')
@@ -103,12 +103,12 @@ const validateArtistProfile = (isUpdate = false) => {
 
     // City validation - more flexible for updates
     body('city')
-      .if(isUpdate)
+      .if(() => isUpdate)
       .optional()
       .trim()
       .isLength({ min: 1, max: 100 })
       .withMessage('City must be between 1 and 100 characters')
-      .if(!isUpdate)
+      .if(() => !isUpdate)
       .trim()
       .notEmpty()
       .withMessage('City is required')
