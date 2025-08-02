@@ -519,4 +519,78 @@ router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistP
   }
 });
 
+/**
+ * @route   POST /api/artists/:id/view
+ * @desc    Track page view for artist profile
+ * @access  Public
+ */
+router.post('/:id/view', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if artist profile exists
+    const artistProfile = await prisma.artistProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            isActive: true
+          }
+        }
+      }
+    });
+
+    if (!artistProfile) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist profile not found'
+      });
+    }
+
+    // Check if the user is active
+    if (!artistProfile.user.isActive) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist profile not available'
+      });
+    }
+
+    // Increment profile views and update last viewed timestamp
+    const updatedProfile = await prisma.artistProfile.update({
+      where: { id },
+      data: {
+        profileViews: {
+          increment: 1
+        },
+        lastViewedAt: new Date()
+      },
+      select: {
+        id: true,
+        profileViews: true,
+        lastViewedAt: true
+      }
+    });
+
+    console.log(`📊 Profile view tracked for artist ${id}: ${updatedProfile.profileViews} total views`);
+
+    res.json({
+      success: true,
+      message: 'Profile view tracked successfully',
+      data: {
+        profileViews: updatedProfile.profileViews,
+        lastViewedAt: updatedProfile.lastViewedAt
+      }
+    });
+  } catch (error) {
+    console.error('Track profile view error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while tracking profile view'
+    });
+  }
+});
+
 module.exports = router; 

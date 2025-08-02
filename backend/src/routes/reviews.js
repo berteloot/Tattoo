@@ -3,9 +3,70 @@ const { body, query, validationResult } = require('express-validator');
 const { PrismaClient } = require('@prisma/client');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
 const emailService = require('../utils/emailService');
+const multer = require('multer');
+const path = require('path');
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Configure multer for image uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'), false);
+    }
+  }
+});
+
+/**
+ * @route   POST /api/reviews/upload-image
+ * @desc    Upload image for review
+ * @access  Private (CLIENT, ARTIST roles)
+ */
+router.post('/upload-image', protect, authorize('CLIENT', 'ARTIST'), upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No image file provided'
+      });
+    }
+
+    // For now, we'll return a placeholder URL since we don't have cloud storage configured
+    // In production, you would upload to Cloudinary, AWS S3, or similar
+    const imageUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    
+    // Alternative: Generate a unique filename and save to local storage
+    // const filename = `review-${Date.now()}-${Math.random().toString(36).substring(7)}${path.extname(req.file.originalname)}`;
+    // const filepath = path.join(__dirname, '../../uploads/reviews', filename);
+    // await fs.promises.writeFile(filepath, req.file.buffer);
+    // const imageUrl = `/uploads/reviews/${filename}`;
+
+    res.json({
+      success: true,
+      data: {
+        imageUrl,
+        filename: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      }
+    });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to upload image'
+    });
+  }
+});
 
 // Content filtering and spam detection utilities
 const contentFilter = {

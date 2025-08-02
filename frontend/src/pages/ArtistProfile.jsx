@@ -22,7 +22,7 @@ import {
 import { LoadingSpinner } from '../components/UXComponents'
 import { CalendlyWidget } from '../components/CalendlyWidget'
 import { ReviewForm } from '../components/ReviewForm'
-import { artistsAPI } from '../services/api'
+import { artistsAPI, api } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
 export const ArtistProfile = () => {
@@ -37,8 +37,21 @@ export const ArtistProfile = () => {
     // Check API health first
     checkApiHealth().then(() => {
       fetchArtistProfile()
+      // Track page view when profile is loaded
+      trackProfileView()
     })
   }, [id])
+
+  const trackProfileView = async () => {
+    try {
+      // Track the profile view
+      await api.post(`/artists/${id}/view`)
+      console.log('📊 Profile view tracked successfully')
+    } catch (error) {
+      console.error('Failed to track profile view:', error)
+      // Don't show error to user, just log it
+    }
+  }
 
   const getDummyArtist = (artistId) => ({
     id: artistId,
