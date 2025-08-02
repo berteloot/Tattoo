@@ -9,7 +9,7 @@ const EmailVerification = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { showToast } = useToast();
+  const { success: showSuccessToast, error: showErrorToast } = useToast();
   
   const [verificationStatus, setVerificationStatus] = useState('verifying'); // 'verifying', 'success', 'error', 'expired'
   const [isResending, setIsResending] = useState(false);

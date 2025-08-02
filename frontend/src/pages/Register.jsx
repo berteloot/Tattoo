@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 import { Eye, EyeOff } from 'lucide-react'
 
 export const Register = () => {
@@ -14,6 +15,7 @@ export const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { register } = useAuth()
+  const { error: showErrorToast } = useToast()
 
   const handleChange = (e) => {
     setFormData({
@@ -29,9 +31,12 @@ export const Register = () => {
     try {
       const result = await register(formData)
       if (!result.success) {
+        showErrorToast('Registration Failed', result.error || 'Registration failed')
         console.error('Registration failed:', result.error)
       }
     } catch (error) {
+      const errorMessage = error.message || 'Registration failed'
+      showErrorToast('Registration Failed', errorMessage)
       console.error('Registration error in component:', error)
     } finally {
       setLoading(false)
