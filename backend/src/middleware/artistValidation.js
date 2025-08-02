@@ -48,11 +48,31 @@ const validateArtistProfile = (isUpdate = false) => {
       }),
 
     // Instagram handle
-    body('instagram')
-      .optional()
-      .trim()
-      .isLength({ max: 50 })
-      .withMessage('Instagram handle must be less than 50 characters'),
+      body('instagram')
+    .optional()
+    .trim()
+    .isLength({ max: 50 })
+    .withMessage('Instagram handle must be less than 50 characters'),
+  body('facebook')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Facebook URL must be less than 100 characters'),
+  body('twitter')
+    .optional()
+    .trim()
+    .isLength({ max: 50 })
+    .withMessage('Twitter handle must be less than 50 characters'),
+  body('youtube')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('YouTube URL must be less than 100 characters'),
+  body('linkedin')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('LinkedIn URL must be less than 100 characters'),
 
     // Calendly URL with better validation
     body('calendlyUrl')

@@ -24,12 +24,18 @@ export const ArtistDashboard = () => {
     studioName: '',
     website: '',
     instagram: '',
+    facebook: '',
+    twitter: '',
+    youtube: '',
+    linkedin: '',
     calendlyUrl: '',
     address: '',
     city: '',
     state: '',
     zipCode: '',
     country: '',
+    latitude: '',
+    longitude: '',
     hourlyRate: '',
     minPrice: '',
     maxPrice: '',
@@ -103,12 +109,18 @@ export const ArtistDashboard = () => {
               studioName: artist.studioName || '',
               website: artist.website || '',
               instagram: artist.instagram || '',
+              facebook: artist.facebook || '',
+              twitter: artist.twitter || '',
+              youtube: artist.youtube || '',
+              linkedin: artist.linkedin || '',
               calendlyUrl: artist.calendlyUrl || '',
               address: artist.address || '',
               city: artist.city || '',
               state: artist.state || '',
               zipCode: artist.zipCode || '',
               country: artist.country || '',
+              latitude: artist.latitude || '',
+              longitude: artist.longitude || '',
               hourlyRate: artist.hourlyRate || '',
               minPrice: artist.minPrice || '',
               maxPrice: artist.maxPrice || '',
@@ -573,6 +585,64 @@ export const ArtistDashboard = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Facebook
+                      </label>
+                      <input
+                        type="text"
+                        name="facebook"
+                        value={formData.facebook}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="facebook.com/yourpage"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Twitter
+                      </label>
+                      <input
+                        type="text"
+                        name="twitter"
+                        value={formData.twitter}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="@yourhandle"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        YouTube
+                      </label>
+                      <input
+                        type="text"
+                        name="youtube"
+                        value={formData.youtube}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="youtube.com/yourchannel"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        LinkedIn
+                      </label>
+                      <input
+                        type="text"
+                        name="linkedin"
+                        value={formData.linkedin}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="linkedin.com/in/yourprofile"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Calendly URL
                       </label>
                       <input
@@ -734,11 +804,32 @@ export const ArtistDashboard = () => {
                       {profile?.website && (
                         <p className="text-gray-600"><strong>Website:</strong> <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{profile.website}</a></p>
                       )}
-                      {profile?.instagram && (
-                        <p className="text-gray-600"><strong>Instagram:</strong> <a href={`https://instagram.com/${profile.instagram}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">@{profile.instagram}</a></p>
-                      )}
                     </div>
                   </div>
+
+                  {/* Social Media */}
+                  {(profile?.instagram || profile?.facebook || profile?.twitter || profile?.youtube || profile?.linkedin) && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Social Media</h3>
+                      <div className="space-y-2">
+                        {profile?.instagram && (
+                          <p className="text-gray-600"><strong>Instagram:</strong> <a href={`https://instagram.com/${profile.instagram}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">@{profile.instagram}</a></p>
+                        )}
+                        {profile?.facebook && (
+                          <p className="text-gray-600"><strong>Facebook:</strong> <a href={`https://facebook.com/${profile.facebook}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{profile.facebook}</a></p>
+                        )}
+                        {profile?.twitter && (
+                          <p className="text-gray-600"><strong>Twitter:</strong> <a href={`https://twitter.com/${profile.twitter}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">@{profile.twitter}</a></p>
+                        )}
+                        {profile?.youtube && (
+                          <p className="text-gray-600"><strong>YouTube:</strong> <a href={`https://youtube.com/${profile.youtube}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{profile.youtube}</a></p>
+                        )}
+                        {profile?.linkedin && (
+                          <p className="text-gray-600"><strong>LinkedIn:</strong> <a href={`https://linkedin.com/in/${profile.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{profile.linkedin}</a></p>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Pricing */}
                   <div>

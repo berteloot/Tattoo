@@ -47,6 +47,22 @@ const processArtistData = (data, isUpdate = false) => {
     processed.instagram = safeTrim(data.instagram);
   }
 
+  if (data.facebook !== undefined) {
+    processed.facebook = safeTrim(data.facebook);
+  }
+
+  if (data.twitter !== undefined) {
+    processed.twitter = safeTrim(data.twitter);
+  }
+
+  if (data.youtube !== undefined) {
+    processed.youtube = safeTrim(data.youtube);
+  }
+
+  if (data.linkedin !== undefined) {
+    processed.linkedin = safeTrim(data.linkedin);
+  }
+
   if (data.calendlyUrl !== undefined) {
     processed.calendlyUrl = safeTrim(data.calendlyUrl);
   }
@@ -121,6 +137,10 @@ const createArtistProfileData = (processedData, userId) => {
     studioName: processedData.studioName,
     website: processedData.website,
     instagram: processedData.instagram,
+    facebook: processedData.facebook,
+    twitter: processedData.twitter,
+    youtube: processedData.youtube,
+    linkedin: processedData.linkedin,
     calendlyUrl: processedData.calendlyUrl,
     address: processedData.address,
     city: processedData.city,
@@ -154,6 +174,10 @@ const updateArtistProfileData = (processedData) => {
   if (processedData.studioName !== undefined) updateData.studioName = processedData.studioName;
   if (processedData.website !== undefined) updateData.website = processedData.website;
   if (processedData.instagram !== undefined) updateData.instagram = processedData.instagram;
+  if (processedData.facebook !== undefined) updateData.facebook = processedData.facebook;
+  if (processedData.twitter !== undefined) updateData.twitter = processedData.twitter;
+  if (processedData.youtube !== undefined) updateData.youtube = processedData.youtube;
+  if (processedData.linkedin !== undefined) updateData.linkedin = processedData.linkedin;
   if (processedData.calendlyUrl !== undefined) updateData.calendlyUrl = processedData.calendlyUrl;
   if (processedData.address !== undefined) updateData.address = processedData.address;
   if (processedData.city !== undefined) updateData.city = processedData.city;
