@@ -1,13 +1,13 @@
 const express = require('express')
 const { body, param, validationResult } = require('express-validator')
-const { authenticateToken } = require('../middleware/auth')
+const { protect } = require('../middleware/auth')
 const { PrismaClient } = require('@prisma/client')
 
 const router = express.Router()
 const prisma = new PrismaClient()
 
 // Get user's favorite artists
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', protect, async (req, res) => {
   try {
     const userId = req.user.id
 
@@ -82,7 +82,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
 // Add artist to favorites
 router.post('/', [
-  authenticateToken,
+  protect,
   body('artistId').isString().notEmpty().withMessage('Artist ID is required')
 ], async (req, res) => {
   // Check for validation errors
@@ -186,7 +186,7 @@ router.post('/', [
 
 // Remove artist from favorites
 router.delete('/:artistId', [
-  authenticateToken,
+  protect,
   param('artistId').isString().notEmpty().withMessage('Artist ID is required')
 ], async (req, res) => {
   // Check for validation errors
@@ -264,7 +264,7 @@ router.delete('/:artistId', [
 })
 
 // Check if artist is favorited by current user
-router.get('/check/:artistId', authenticateToken, async (req, res) => {
+router.get('/check/:artistId', protect, async (req, res) => {
   try {
     const userId = req.user.id
     const { artistId } = req.params
