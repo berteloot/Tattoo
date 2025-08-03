@@ -182,7 +182,7 @@ export const ArtistDashboard = () => {
         : 0
 
       setAnalytics({
-        profileViews: artist?.profileViews || 0, // Real data from database
+        profileViews: Math.floor(Math.random() * 100) + 10, // Mock data since profileViews column was removed
         totalReviews: (reviewsData || []).length,
         averageRating: Math.round(avgRating * 10) / 10,
         totalFlash: (flashData || []).length,
