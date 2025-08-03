@@ -93,7 +93,6 @@ model ArtistProfile {
   verifiedBy         String? // Admin ID who verified
   
   // Analytics and tracking
-  profileViews       Int      @default(0) // Total profile views
   lastViewedAt       DateTime? // Last time profile was viewed
   
   createdAt   DateTime @default(now())

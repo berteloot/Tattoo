@@ -558,29 +558,24 @@ router.post('/:id/view', async (req, res) => {
       });
     }
 
-    // Increment profile views and update last viewed timestamp
+    // Update last viewed timestamp (profileViews column doesn't exist)
     const updatedProfile = await prisma.artistProfile.update({
       where: { id },
       data: {
-        profileViews: {
-          increment: 1
-        },
         lastViewedAt: new Date()
       },
       select: {
         id: true,
-        profileViews: true,
         lastViewedAt: true
       }
     });
 
-    console.log(`📊 Profile view tracked for artist ${id}: ${updatedProfile.profileViews} total views`);
+    console.log(`📊 Profile view tracked for artist ${id}`);
 
     res.json({
       success: true,
       message: 'Profile view tracked successfully',
       data: {
-        profileViews: updatedProfile.profileViews,
         lastViewedAt: updatedProfile.lastViewedAt
       }
     });
