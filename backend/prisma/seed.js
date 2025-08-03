@@ -410,6 +410,15 @@ async function main() {
         description: 'Hand-poked tattoos using manual technique'
       }
     }),
+    prisma.specialty.upsert({
+      where: { name: 'Illustrative Tattoo Style' },
+      update: { category: 'Blackwork & Line-Based' },
+      create: {
+        name: 'Illustrative Tattoo Style',
+        category: 'Blackwork & Line-Based',
+        description: 'Tattoo style draws heavily from traditional illustration techniques — like pen and ink, woodcut, or etching — often mimicking book illustrations, storybook drawings, or fine art.'
+      }
+    }),
 
     // 3. Realism & Detail-Oriented
     prisma.specialty.upsert({
