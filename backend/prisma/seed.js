@@ -416,7 +416,7 @@ async function main() {
       create: {
         name: 'Illustrative Tattoo Style',
         category: 'Blackwork & Line-Based',
-        description: 'Tattoo style draws heavily from traditional illustration techniques — like pen and ink, woodcut, or etching — often mimicking book illustrations, storybook drawings, or fine art.'
+        description: 'Illustrative tattoos inspired by drawing techniques like pen, ink, and etching, with a hand-drawn, artistic look'
       }
     }),
 
