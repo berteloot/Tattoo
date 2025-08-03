@@ -1,6 +1,5 @@
 const express = require('express')
-const { body, param } = require('express-validator')
-const { validateRequest } = require('../middleware/errorHandler')
+const { body, param, validationResult } = require('express-validator')
 const { authenticateToken } = require('../middleware/auth')
 const { PrismaClient } = require('@prisma/client')
 
@@ -84,9 +83,17 @@ router.get('/', authenticateToken, async (req, res) => {
 // Add artist to favorites
 router.post('/', [
   authenticateToken,
-  body('artistId').isString().notEmpty().withMessage('Artist ID is required'),
-  validateRequest
+  body('artistId').isString().notEmpty().withMessage('Artist ID is required')
 ], async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors.array()
+    });
+  }
   try {
     const userId = req.user.id
     const { artistId } = req.body
@@ -180,9 +187,17 @@ router.post('/', [
 // Remove artist from favorites
 router.delete('/:artistId', [
   authenticateToken,
-  param('artistId').isString().notEmpty().withMessage('Artist ID is required'),
-  validateRequest
+  param('artistId').isString().notEmpty().withMessage('Artist ID is required')
 ], async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors.array()
+    });
+  }
   try {
     const userId = req.user.id
     const { artistId } = req.params
