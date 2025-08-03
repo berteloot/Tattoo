@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
 import ImageUpload from '../components/ImageUpload'
+import AddressAutocomplete from '../components/AddressAutocomplete'
 
 export const ArtistDashboard = () => {
   const { user } = useAuth()
@@ -202,6 +203,31 @@ export const ArtistDashboard = () => {
       ...prev,
       [name]: value
     }))
+  }
+
+  const handleAddressChange = (e) => {
+    // Handle address field specifically for AddressAutocomplete
+    setFormData(prev => ({
+      ...prev,
+      address: e.target.value
+    }))
+  }
+
+  const handlePlaceSelect = (placeData) => {
+    // Update form data with the selected place information
+    setFormData(prev => ({
+      ...prev,
+      address: placeData.address || '',
+      city: placeData.city || '',
+      state: placeData.state || '',
+      zipCode: placeData.zipCode || '',
+      country: placeData.country || '',
+      latitude: placeData.latitude || '',
+      longitude: placeData.longitude || ''
+    }))
+    
+    // Show success message
+    success('Address selected successfully!')
   }
 
   const handleSpecialtyChange = (specialtyId) => {
@@ -910,13 +936,12 @@ export const ArtistDashboard = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Address
                       </label>
-                      <input
-                        type="text"
-                        name="address"
+                      <AddressAutocomplete
                         value={formData.address}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="123 Main St"
+                        onChange={handleAddressChange}
+                        onPlaceSelect={handlePlaceSelect}
+                        placeholder="Enter your studio address..."
+                        disabled={!editing}
                       />
                     </div>
                     <div>
