@@ -27,9 +27,15 @@ const Studios = () => {
       if (filterFeatured) params.append('featured', 'true');
       
       const response = await api.get(`/studios?${params.toString()}`);
-      setStudios(response.data.data.studios);
+      if (response.data && response.data.success) {
+        setStudios(response.data.data.studios || []);
+      } else {
+        setStudios([]);
+        showToast('Failed to load studios', 'error');
+      }
     } catch (error) {
       console.error('Failed to fetch studios:', error);
+      setStudios([]);
       showToast('Failed to load studios', 'error');
     } finally {
       setLoading(false);
