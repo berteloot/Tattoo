@@ -132,6 +132,63 @@ async function initializeDatabase() {
       console.log('⚠️ Specialties schema fix error:', fixError.message);
     }
 
+    // Fix Favorites table schema
+    console.log('🔄 Fixing Favorites table schema...');
+    try {
+      // Create favorites table if it doesn't exist
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "favorites" (
+          "id" TEXT NOT NULL,
+          "userId" TEXT NOT NULL,
+          "artistId" TEXT NOT NULL,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "favorites_pkey" PRIMARY KEY ("id")
+        );
+      `);
+
+      // Add foreign key constraints if they don't exist
+      const foreignKeyFixes = [
+        `ALTER TABLE "favorites" ADD CONSTRAINT IF NOT EXISTS "favorites_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+        `ALTER TABLE "favorites" ADD CONSTRAINT IF NOT EXISTS "favorites_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artist_profiles"("id") ON DELETE CASCADE ON UPDATE CASCADE;`
+      ];
+      
+      for (const query of foreignKeyFixes) {
+        try {
+          await prisma.$executeRawUnsafe(query);
+        } catch (error) {
+          // Ignore errors - constraints might already exist
+        }
+      }
+
+      // Add unique constraint if it doesn't exist
+      try {
+        await prisma.$executeRawUnsafe(`
+          ALTER TABLE "favorites" ADD CONSTRAINT IF NOT EXISTS "unique_user_artist_favorite" UNIQUE ("userId", "artistId");
+        `);
+      } catch (error) {
+        // Ignore errors - constraint might already exist
+      }
+
+      // Add indexes if they don't exist
+      const indexFixes = [
+        `CREATE INDEX IF NOT EXISTS "idx_favorites_user_id" ON "favorites"("userId");`,
+        `CREATE INDEX IF NOT EXISTS "idx_favorites_artist_id" ON "favorites"("artistId");`,
+        `CREATE INDEX IF NOT EXISTS "idx_favorites_created_at" ON "favorites"("createdAt");`
+      ];
+      
+      for (const query of indexFixes) {
+        try {
+          await prisma.$executeRawUnsafe(query);
+        } catch (error) {
+          // Ignore errors - indexes might already exist
+        }
+      }
+
+      console.log('✅ Favorites table schema fixed');
+    } catch (fixError) {
+      console.log('⚠️ Favorites schema fix error:', fixError.message);
+    }
+
     // Check if we need to seed the database
     const userCount = await prisma.user.count();
     if (userCount < 5) {
