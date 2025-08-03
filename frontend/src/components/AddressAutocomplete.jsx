@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { LoadScript, StandaloneSearchBox } from '@react-google-maps/api'
 import { MapPin, Search } from 'lucide-react'
 
+// Static libraries array to prevent LoadScript reloading
+const GOOGLE_MAPS_LIBRARIES = ['places']
+
 const AddressAutocomplete = ({ 
   value, 
   onChange, 
@@ -15,6 +18,7 @@ const AddressAutocomplete = ({
   const [isLoading, setIsLoading] = useState(false)
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [apiError, setApiError] = useState(null)
   const inputRef = useRef(null)
   const suggestionsRef = useRef(null)
 
@@ -43,6 +47,13 @@ const AddressAutocomplete = ({
   // Handle search box load
   const onSearchBoxLoad = (ref) => {
     setSearchBox(ref)
+    setApiError(null) // Clear any previous errors
+  }
+
+  // Handle script load error
+  const onScriptLoadError = (error) => {
+    console.error('Google Maps script load error:', error)
+    setApiError('Failed to load Google Maps. Please check your API key configuration.')
   }
 
   // Handle place selection from search box
@@ -153,11 +164,9 @@ const AddressAutocomplete = ({
             placeholder={placeholder}
           />
         </div>
-        {!googleMapsApiKey && (
-          <p className="text-xs text-gray-500 mt-1">
-            Google Maps API key not configured. Address autocomplete disabled.
-          </p>
-        )}
+        <p className="text-xs text-gray-500 mt-1">
+          Google Maps API key not configured. Address autocomplete disabled.
+        </p>
       </div>
     )
   }
@@ -166,7 +175,8 @@ const AddressAutocomplete = ({
     <div className={`relative ${className}`}>
       <LoadScript
         googleMapsApiKey={googleMapsApiKey}
-        libraries={['places']}
+        libraries={GOOGLE_MAPS_LIBRARIES}
+        onError={onScriptLoadError}
       >
         <div className="relative">
           <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -191,6 +201,18 @@ const AddressAutocomplete = ({
             </div>
           )}
         </div>
+
+        {/* Error message */}
+        {apiError && (
+          <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-xs text-red-600">
+              ⚠️ {apiError}
+            </p>
+            <p className="text-xs text-red-500 mt-1">
+              Address autocomplete is disabled. You can still type manually.
+            </p>
+          </div>
+        )}
 
         {/* Suggestions dropdown */}
         {showSuggestions && suggestions.length > 0 && (
