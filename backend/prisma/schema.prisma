@@ -171,30 +171,30 @@ model Studio {
   title           String
   slug            String             @unique
   website         String?
-  phoneNumber     String?
+  phoneNumber     String?            @map("phone_number")
   email           String?
-  facebookUrl     String?
-  instagramUrl    String?
-  twitterUrl      String?
-  linkedinUrl     String?
-  youtubeUrl      String?
+  facebookUrl     String?            @map("facebook_url")
+  instagramUrl    String?            @map("instagram_url")
+  twitterUrl      String?            @map("twitter_url")
+  linkedinUrl     String?            @map("linkedin_url")
+  youtubeUrl      String?            @map("youtube_url")
   latitude        Float?
   longitude       Float?
   address         String?
   city            String?
   state           String?
-  zipCode         String?
+  zipCode         String?            @map("zip_code")
   country         String?
-  isActive        Boolean            @default(true)
-  isVerified      Boolean            @default(false)
-  isFeatured      Boolean            @default(false)
-  verificationStatus VerificationStatus @default(PENDING)
-  claimedBy       String?
-  claimedAt       DateTime?
-  verifiedBy      String?
-  verifiedAt      DateTime?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  isActive        Boolean            @default(true) @map("is_active")
+  isVerified      Boolean            @default(false) @map("is_verified")
+  isFeatured      Boolean            @default(false) @map("is_featured")
+  verificationStatus VerificationStatus @default(PENDING) @map("verification_status")
+  claimedBy       String?            @map("claimed_by")
+  claimedAt       DateTime?          @map("claimed_at")
+  verifiedBy      String?            @map("verified_by")
+  verifiedAt      DateTime?          @map("verified_at")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
   
   // Relations
   claimedByUser   User?              @relation("StudioClaimedBy", fields: [claimedBy], references: [id])
@@ -206,12 +206,12 @@ model Studio {
 
 model StudioArtist {
   id          String        @id @default(cuid())
-  studioId    String
-  artistId    String
+  studioId    String        @map("studio_id")
+  artistId    String        @map("artist_id")
   role        StudioRole    @default(ARTIST)
-  isActive    Boolean       @default(true)
-  joinedAt    DateTime      @default(now())
-  leftAt      DateTime?
+  isActive    Boolean       @default(true) @map("is_active")
+  joinedAt    DateTime      @default(now()) @map("joined_at")
+  leftAt      DateTime?     @map("left_at")
   
   studio      Studio        @relation(fields: [studioId], references: [id], onDelete: Cascade)
   artist      ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
