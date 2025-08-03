@@ -128,12 +128,10 @@ router.post('/', [
     }
 
     // Check if already favorited
-    const existingFavorite = await prisma.favorite.findUnique({
+    const existingFavorite = await prisma.favorite.findFirst({
       where: {
-        userId_artistId: {
-          userId: userId,
-          artistId: artistId
-        }
+        userId: userId,
+        artistId: artistId
       }
     })
 
@@ -211,12 +209,10 @@ router.delete('/:artistId', [
     }
 
     // Find and delete the favorite
-    const favorite = await prisma.favorite.findUnique({
+    const favorite = await prisma.favorite.findFirst({
       where: {
-        userId_artistId: {
-          userId: userId,
-          artistId: artistId
-        }
+        userId: userId,
+        artistId: artistId
       },
       include: {
         artist: {
@@ -241,10 +237,7 @@ router.delete('/:artistId', [
 
     await prisma.favorite.delete({
       where: {
-        userId_artistId: {
-          userId: userId,
-          artistId: artistId
-        }
+        id: favorite.id
       }
     })
 
@@ -269,12 +262,10 @@ router.get('/check/:artistId', protect, async (req, res) => {
     const userId = req.user.id
     const { artistId } = req.params
 
-    const favorite = await prisma.favorite.findUnique({
+    const favorite = await prisma.favorite.findFirst({
       where: {
-        userId_artistId: {
-          userId: userId,
-          artistId: artistId
-        }
+        userId: userId,
+        artistId: artistId
       }
     })
 
