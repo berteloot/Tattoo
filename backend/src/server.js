@@ -19,6 +19,7 @@ const serviceRoutes = require('./routes/services');
 const adminRoutes = require('./routes/admin');
 const emergencyRoutes = require('./routes/emergency');
 const favoriteRoutes = require('./routes/favorites');
+const studioRoutes = require('./routes/studios');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorHandler');
@@ -144,6 +145,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/emergency', emergencyRoutes);
 app.use('/api/favorites', favoriteRoutes);
+app.use('/api/studios', studioRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {
@@ -156,7 +158,8 @@ app.get('/api', (req, res) => {
       flash: '/api/flash',
       reviews: '/api/reviews',
       specialties: '/api/specialties',
-      services: '/api/services'
+      services: '/api/services',
+      studios: '/api/studios'
     }
   });
 });

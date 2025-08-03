@@ -13,6 +13,7 @@ export const Layout = ({ children }) => {
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Artists', href: '/artists' },
+    { name: 'Studios', href: '/studios' },
     { name: 'Flash Gallery', href: '/flash' },
   ]
 

@@ -21,6 +21,8 @@ import AdminArtistVerification from './pages/AdminArtistVerification'
 import AdminReviewModeration from './pages/AdminReviewModeration'
 import AdminAuditLog from './pages/AdminAuditLog'
 import { Favorites } from './pages/Favorites'
+import Studios from './pages/Studios'
+import StudioDetail from './pages/StudioDetail'
 
 function App() {
   return (
@@ -39,6 +41,8 @@ function App() {
               <Route path="/artists" element={<Artists />} />
               <Route path="/artists/:id" element={<ArtistProfile />} />
               <Route path="/flash" element={<FlashGallery />} />
+              <Route path="/studios" element={<Studios />} />
+              <Route path="/studios/:id" element={<StudioDetail />} />
               
               {/* Protected routes */}
               <Route path="/profile" element={

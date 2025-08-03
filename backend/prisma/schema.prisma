@@ -31,6 +31,8 @@ model User {
   reviewsGiven            Review[]       @relation("ReviewAuthor")
   reviewsReceived         Review[]       @relation("ReviewRecipient")
   favorites               Favorite[]     @relation("FavoriteUser")
+  claimedStudios          Studio[]       @relation("StudioClaimedBy")
+  verifiedStudios         Studio[]       @relation("StudioVerifiedBy")
 
   @@map("users")
 }
@@ -72,6 +74,7 @@ model ArtistProfile {
   services           Service[]          @relation("ArtistProfileToService")
   specialties        Specialty[]        @relation("ArtistProfileToSpecialty")
   favorites          Favorite[]         @relation("FavoriteArtist")
+  studioMemberships  StudioArtist[]
 
   @@map("artist_profiles")
 }
@@ -162,6 +165,61 @@ model AdminAction {
   @@map("admin_actions")
 }
 
+// Studio System Models
+model Studio {
+  id              String             @id @default(cuid())
+  title           String
+  slug            String             @unique
+  website         String?
+  phoneNumber     String?
+  email           String?
+  facebookUrl     String?
+  instagramUrl    String?
+  twitterUrl      String?
+  linkedinUrl     String?
+  youtubeUrl      String?
+  latitude        Float?
+  longitude       Float?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  country         String?
+  isActive        Boolean            @default(true)
+  isVerified      Boolean            @default(false)
+  isFeatured      Boolean            @default(false)
+  verificationStatus VerificationStatus @default(PENDING)
+  claimedBy       String?
+  claimedAt       DateTime?
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  
+  // Relations
+  claimedByUser   User?              @relation("StudioClaimedBy", fields: [claimedBy], references: [id])
+  verifiedByUser  User?              @relation("StudioVerifiedBy", fields: [verifiedBy], references: [id])
+  artists         StudioArtist[]
+
+  @@map("studios")
+}
+
+model StudioArtist {
+  id          String        @id @default(cuid())
+  studioId    String
+  artistId    String
+  role        StudioRole    @default(ARTIST)
+  isActive    Boolean       @default(true)
+  joinedAt    DateTime      @default(now())
+  leftAt      DateTime?
+  
+  studio      Studio        @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  artist      ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  @@unique([studioId, artistId])
+  @@map("studio_artists")
+}
+
 enum UserRole {
   CLIENT
   ARTIST
@@ -181,6 +239,13 @@ enum FlashComplexity {
   MEDIUM
   COMPLEX
   MASTERPIECE
+}
+
+enum StudioRole {
+  OWNER
+  MANAGER
+  ARTIST
+  GUEST
 }
 
 // Favorites model - for clients to favorite artists
