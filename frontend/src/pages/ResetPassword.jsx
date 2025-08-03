@@ -25,7 +25,7 @@ export const ResetPassword = () => {
       return
     }
     setToken(tokenParam)
-  }, [searchParams, showToast, navigate])
+  }, [searchParams, error, navigate])
 
   const validateForm = () => {
     const newErrors = {}
