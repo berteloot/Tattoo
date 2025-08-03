@@ -924,7 +924,6 @@ export const ArtistDashboard = () => {
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">Studio Location</h2>
-              <p className="text-sm text-gray-600 mt-1">Click on the map to set your studio location</p>
             </div>
 
             <div className="p-6">
@@ -1034,10 +1033,6 @@ export const ArtistDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <p className="text-gray-500">Location information will be displayed here.</p>
-                  </div>
-
                   {profile?.address && (
                     <div className="space-y-2">
                       <h3 className="text-lg font-medium text-gray-900">Address</h3>
