@@ -20,6 +20,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminArtistVerification from './pages/AdminArtistVerification'
 import AdminReviewModeration from './pages/AdminReviewModeration'
 import AdminAuditLog from './pages/AdminAuditLog'
+import { Favorites } from './pages/Favorites'
 
 function App() {
   return (
@@ -43,6 +44,11 @@ function App() {
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <UserProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/favorites" element={
+                <ProtectedRoute requiredRole="CLIENT">
+                  <Favorites />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard" element={

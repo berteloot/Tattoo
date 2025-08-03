@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Filter, Heart, Eye, DollarSign, Tag, Calendar, Star, MapPin, Instagram } from 'lucide-react'
+import { Search, Filter, Eye, DollarSign, Tag, Calendar, Star, MapPin, Instagram } from 'lucide-react'
+import { FavoriteButton } from '../components/FavoriteButton'
 import { flashAPI, artistsAPI } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
@@ -480,8 +481,7 @@ const FlashCard = ({ item }) => (
               <span className="text-sm">{item.views}</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Heart className="w-4 h-4" />
-              <span className="text-sm">{item.likes}</span>
+              <span className="text-sm">{item.likes || 0} likes</span>
             </div>
           </div>
         </div>
@@ -557,9 +557,7 @@ const FlashCard = ({ item }) => (
         >
           Book Artist
         </Link>
-        <button className="bg-gray-100 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors">
-          <Heart className="w-5 h-5" />
-        </button>
+        <FavoriteButton artistId={item.artist.id} className="bg-gray-100 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors" size="w-5 h-5" />
       </div>
     </div>
   </div>

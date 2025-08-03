@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { MapPin, Menu, X, LogOut, User } from 'lucide-react'
+import { MapPin, Menu, X, LogOut, User, Heart } from 'lucide-react'
 import { SkipToMainContent } from './UXComponents'
 
 export const Layout = ({ children }) => {
@@ -60,6 +60,15 @@ export const Layout = ({ children }) => {
                     <User className="h-4 w-4" />
                     <span>{user?.firstName || user?.name || 'Profile'}</span>
                   </Link>
+                  {user?.role === 'CLIENT' && (
+                    <Link
+                      to="/favorites"
+                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
+                    >
+                      <Heart className="h-4 w-4" />
+                      <span>Favorites</span>
+                    </Link>
+                  )}
                   {isArtist && (
                     <Link
                       to="/dashboard"
@@ -155,6 +164,18 @@ export const Layout = ({ children }) => {
                   >
                     Profile
                   </Link>
+                  {user?.role === 'CLIENT' && (
+                    <Link
+                      to="/favorites"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Heart className="h-4 w-4" />
+                        <span>Favorites</span>
+                      </div>
+                    </Link>
+                  )}
                   {isArtist && (
                     <Link
                       to="/dashboard"

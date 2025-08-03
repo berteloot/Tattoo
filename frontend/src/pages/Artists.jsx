@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Star, MapPin, Filter, Search, DollarSign, Heart, Eye, Calendar, Award, Instagram, Globe } from 'lucide-react'
+import { Star, MapPin, Filter, Search, DollarSign, Eye, Calendar, Award, Instagram, Globe } from 'lucide-react'
+import { FavoriteButton } from '../components/FavoriteButton'
 import { artistsAPI, specialtiesAPI } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
@@ -381,9 +382,7 @@ const ArtistCard = ({ artist }) => (
           </h3>
           <p className="text-primary-600 font-semibold">{artist.studioName}</p>
         </div>
-        <button className="text-gray-400 hover:text-red-500 transition-colors">
-          <Heart className="w-6 h-6" />
-        </button>
+        <FavoriteButton artistId={artist.id} />
       </div>
 
       {/* Rating and Location */}
@@ -497,9 +496,7 @@ const ArtistListCard = ({ artist }) => (
                 </svg>
               </span>
             )}
-            <button className="text-gray-400 hover:text-red-500 transition-colors">
-              <Heart className="w-6 h-6" />
-            </button>
+            <FavoriteButton artistId={artist.id} />
           </div>
         </div>
 

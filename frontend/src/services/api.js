@@ -92,4 +92,11 @@ export const specialtiesAPI = {
 
 export const servicesAPI = {
   getAll: () => api.get('/services'),
+}
+
+export const favoritesAPI = {
+  getAll: () => api.get('/favorites'),
+  add: (artistId) => api.post('/favorites', { artistId }),
+  remove: (artistId) => api.delete(`/favorites/${artistId}`),
+  check: (artistId) => api.get(`/favorites/check/${artistId}`),
 } 

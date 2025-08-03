@@ -18,6 +18,7 @@ const specialtyRoutes = require('./routes/specialties');
 const serviceRoutes = require('./routes/services');
 const adminRoutes = require('./routes/admin');
 const emergencyRoutes = require('./routes/emergency');
+const favoriteRoutes = require('./routes/favorites');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorHandler');
@@ -142,6 +143,7 @@ app.use('/api/specialties', specialtyRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/emergency', emergencyRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {

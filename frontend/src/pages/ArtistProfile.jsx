@@ -22,6 +22,7 @@ import {
 import { LoadingSpinner } from '../components/UXComponents'
 import { CalendlyWidget } from '../components/CalendlyWidget'
 import { ReviewForm } from '../components/ReviewForm'
+import { FavoriteButton } from '../components/FavoriteButton'
 import { artistsAPI, api } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
@@ -167,9 +168,12 @@ export const ArtistProfile = () => {
             
             {/* Artist Info */}
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {artist.user.firstName} {artist.user.lastName}
-              </h1>
+              <div className="flex items-center space-x-4 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {artist.user.firstName} {artist.user.lastName}
+                </h1>
+                <FavoriteButton artistId={artist.id} size="w-8 h-8" />
+              </div>
               <p className="text-xl text-gray-600 mb-4">{artist.studioName}</p>
               
               {/* Rating and Location */}
