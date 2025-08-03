@@ -442,7 +442,7 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistPro
  * @desc    Update artist profile
  * @access  Private (ARTIST role, owner only)
  */
-router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistProfile(true), async (req, res) => {
+router.put('/:id', protect, validateArtistProfile(true), async (req, res) => {
   try {
     // Validation is now handled by the middleware
 
