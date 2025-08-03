@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const { execSync } = require('child_process');
 require('dotenv').config();
 
 // Import database client
@@ -258,6 +259,15 @@ async function startServer() {
     if (process.env.NODE_ENV === 'production') {
       console.log('🔄 Syncing database schema...');
       try {
+        // Regenerate Prisma client to pick up schema changes
+        console.log('🔄 Regenerating Prisma client...');
+        const { execSync } = require('child_process');
+        execSync('npx prisma generate', { 
+          stdio: 'inherit',
+          cwd: path.join(__dirname, '..')
+        });
+        console.log('✅ Prisma client regenerated');
+        
         // Check if studio tables exist
         const tables = await prisma.$queryRaw`
           SELECT table_name 
