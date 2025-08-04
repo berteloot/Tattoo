@@ -60,6 +60,9 @@ const geocodeQueue = new RateLimitedQueue(10);
 // Google Geocoding API key (server-side key)
 const GEOCODE_API_KEY = process.env.GOOGLE_GEOCODE_API_KEY;
 
+// Flag to track if database cache is available
+let databaseCacheAvailable = true;
+
 /**
  * Normalize address for consistent cache keying
  */
@@ -94,27 +97,35 @@ async function getFromCache(address) {
     return memoryResult;
   }
   
-  // Check database cache
-  try {
-    const dbResult = await prisma.geocodeCache.findUnique({
-      where: { addressHash: cacheKey }
-    });
-    
-    if (dbResult) {
-      const result = {
-        lat: dbResult.latitude,
-        lng: dbResult.longitude,
-        cached: true,
-        source: 'database'
-      };
+  // Check database cache (only if available)
+  if (databaseCacheAvailable) {
+    try {
+      const dbResult = await prisma.geocodeCache.findUnique({
+        where: { addressHash: cacheKey }
+      });
       
-      // Store in memory cache for future fast access
-      memoryCache.set(cacheKey, result);
-      console.log(`📋 Database cache hit for: ${address}`);
-      return result;
+      if (dbResult) {
+        const result = {
+          lat: dbResult.latitude,
+          lng: dbResult.longitude,
+          cached: true,
+          source: 'database'
+        };
+        
+        // Store in memory cache for future fast access
+        memoryCache.set(cacheKey, result);
+        console.log(`📋 Database cache hit for: ${address}`);
+        return result;
+      }
+    } catch (error) {
+      // If database cache fails, disable it for future requests
+      if (error.code === 'P2021') {
+        console.warn('⚠️ Database cache table not available, using memory cache only');
+        databaseCacheAvailable = false;
+      } else {
+        console.error('Error checking database cache:', error.message);
+      }
     }
-  } catch (error) {
-    console.error('Error checking database cache:', error);
   }
   
   return null;
@@ -130,27 +141,35 @@ async function storeInCache(address, lat, lng) {
   const result = { lat, lng, cached: false, source: 'api' };
   memoryCache.set(cacheKey, result);
   
-  // Store in database cache
-  try {
-    await prisma.geocodeCache.upsert({
-      where: { addressHash: cacheKey },
-      update: {
-        latitude: lat,
-        longitude: lng,
-        updatedAt: new Date()
-      },
-      create: {
-        addressHash: cacheKey,
-        originalAddress: address,
-        latitude: lat,
-        longitude: lng,
-        createdAt: new Date(),
-        updatedAt: new Date()
+  // Store in database cache (only if available)
+  if (databaseCacheAvailable) {
+    try {
+      await prisma.geocodeCache.upsert({
+        where: { addressHash: cacheKey },
+        update: {
+          latitude: lat,
+          longitude: lng,
+          updatedAt: new Date()
+        },
+        create: {
+          addressHash: cacheKey,
+          originalAddress: address,
+          latitude: lat,
+          longitude: lng,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      });
+      console.log(`💾 Cached geocoding result for: ${address}`);
+    } catch (error) {
+      // If database cache fails, disable it for future requests
+      if (error.code === 'P2021') {
+        console.warn('⚠️ Database cache table not available, using memory cache only');
+        databaseCacheAvailable = false;
+      } else {
+        console.error('Error storing in database cache:', error.message);
       }
-    });
-    console.log(`💾 Cached geocoding result for: ${address}`);
-  } catch (error) {
-    console.error('Error storing in database cache:', error);
+    }
   }
   
   return result;
@@ -296,6 +315,9 @@ function getCacheStats() {
     queue: {
       size: geocodeQueue.size,
       pending: geocodeQueue.pending
+    },
+    database: {
+      available: databaseCacheAvailable
     }
   };
 }
@@ -306,11 +328,13 @@ function getCacheStats() {
 async function clearCache() {
   memoryCache.flushAll();
   
-  try {
-    await prisma.geocodeCache.deleteMany({});
-    console.log('🗑️ Cache cleared successfully');
-  } catch (error) {
-    console.error('Error clearing database cache:', error);
+  if (databaseCacheAvailable) {
+    try {
+      await prisma.geocodeCache.deleteMany({});
+      console.log('🗑️ Cache cleared successfully');
+    } catch (error) {
+      console.error('Error clearing database cache:', error.message);
+    }
   }
 }
 
