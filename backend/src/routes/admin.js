@@ -1576,6 +1576,99 @@ router.put('/studios/:id', protect, adminOnly, async (req, res) => {
 });
 
 /**
+ * @route   POST /api/admin/studios
+ * @desc    Create a new studio
+ * @access  Admin only
+ */
+router.post('/studios', protect, adminOnly, async (req, res) => {
+  try {
+    const {
+      title,
+      website,
+      phoneNumber,
+      email,
+      facebookUrl,
+      instagramUrl,
+      twitterUrl,
+      linkedinUrl,
+      youtubeUrl,
+      address,
+      city,
+      state,
+      zipCode,
+      country,
+      latitude,
+      longitude
+    } = req.body;
+    
+    // Validate required fields
+    if (!title || !address || !city || !state) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title, address, city, and state are required'
+      });
+    }
+    
+    // Generate slug from title
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim('-');
+    
+    const studio = await prisma.studio.create({
+      data: {
+        title,
+        slug,
+        website,
+        phoneNumber,
+        email,
+        facebookUrl,
+        instagramUrl,
+        twitterUrl,
+        linkedinUrl,
+        youtubeUrl,
+        address,
+        city,
+        state,
+        zipCode,
+        country: country || 'USA',
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
+        isActive: true,
+        isVerified: false,
+        isFeatured: false,
+        verificationStatus: 'PENDING'
+      }
+    });
+    
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'CREATE_STUDIO',
+        targetType: 'STUDIO',
+        targetId: studio.id,
+        details: `Studio created: ${title}`
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: studio,
+      message: 'Studio created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating studio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create studio'
+    });
+  }
+});
+
+/**
  * @route   DELETE /api/admin/studios/:id
  * @desc    Deactivate a studio
  * @access  Admin only

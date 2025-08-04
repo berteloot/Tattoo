@@ -18,7 +18,8 @@ import {
   Globe,
   Users,
   Calendar,
-  ArrowLeft
+  ArrowLeft,
+  Plus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -32,6 +33,7 @@ const AdminStudioManagement = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [pagination, setPagination] = useState({});
   
   // Filters
@@ -47,6 +49,24 @@ const AdminStudioManagement = () => {
   const [verifyForm, setVerifyForm] = useState({
     isVerified: true,
     verificationNotes: ''
+  });
+  const [createForm, setCreateForm] = useState({
+    title: '',
+    website: '',
+    phoneNumber: '',
+    email: '',
+    facebookUrl: '',
+    instagramUrl: '',
+    twitterUrl: '',
+    linkedinUrl: '',
+    youtubeUrl: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: 'USA',
+    latitude: '',
+    longitude: ''
   });
 
   // Check if current user is admin
@@ -142,6 +162,37 @@ const AdminStudioManagement = () => {
     }
   };
 
+  const handleCreateStudio = async () => {
+    try {
+      const response = await api.post('/admin/studios', createForm);
+      showSuccessToast('Success', response.data.message);
+      setShowCreateModal(false);
+      setCreateForm({
+        title: '',
+        website: '',
+        phoneNumber: '',
+        email: '',
+        facebookUrl: '',
+        instagramUrl: '',
+        twitterUrl: '',
+        linkedinUrl: '',
+        youtubeUrl: '',
+        address: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'USA',
+        latitude: '',
+        longitude: ''
+      });
+      fetchStudios(pagination.page);
+    } catch (error) {
+      console.error('Error creating studio:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to create studio';
+      showErrorToast('Error', errorMessage);
+    }
+  };
+
   const openVerifyModal = (studio) => {
     setSelectedStudio(studio);
     setVerifyForm({
@@ -205,10 +256,21 @@ const AdminStudioManagement = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Admin Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Studio Management</h1>
-          <p className="mt-2 text-gray-600">
-            Manage all studios, verify claims, and control studio status
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Studio Management</h1>
+              <p className="mt-2 text-gray-600">
+                Manage all studios, verify claims, and control studio status
+              </p>
+            </div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Studio
+            </button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -685,13 +747,248 @@ const AdminStudioManagement = () => {
                 >
                   Update Studio
                 </button>
+                             </div>
+             </div>
+           </div>
+         )}
+
+        {/* Create Studio Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Create New Studio</h3>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Studio Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={createForm.title}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter studio name"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                    <input
+                      type="url"
+                      value={createForm.website}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, website: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://studio.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <input
+                      type="tel"
+                      value={createForm.phoneNumber}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="555-123-4567"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={createForm.email}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="studio@example.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={createForm.address}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, address: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="123 Main St"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      City <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={createForm.city}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, city: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="New York"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      State <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={createForm.state}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, state: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="NY"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+                    <input
+                      type="text"
+                      value={createForm.zipCode}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, zipCode: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="10001"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <input
+                      type="text"
+                      value={createForm.country}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, country: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="USA"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={createForm.latitude}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, latitude: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="40.7128"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={createForm.longitude}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, longitude: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="-74.0060"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Facebook URL</label>
+                    <input
+                      type="url"
+                      value={createForm.facebookUrl}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, facebookUrl: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://facebook.com/studio"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Instagram URL</label>
+                    <input
+                      type="url"
+                      value={createForm.instagramUrl}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, instagramUrl: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://instagram.com/studio"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Twitter URL</label>
+                    <input
+                      type="url"
+                      value={createForm.twitterUrl}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, twitterUrl: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://twitter.com/studio"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn URL</label>
+                    <input
+                      type="url"
+                      value={createForm.linkedinUrl}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, linkedinUrl: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://linkedin.com/studio"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">YouTube URL</label>
+                    <input
+                      type="url"
+                      value={createForm.youtubeUrl}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://youtube.com/studio"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateStudio}
+                  disabled={!createForm.title || !createForm.address || !createForm.city || !createForm.state}
+                  className={`px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md ${
+                    !createForm.title || !createForm.address || !createForm.city || !createForm.state
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                >
+                  Create Studio
+                </button>
               </div>
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-};
+       </div>
+     </div>
+   );
+ };
 
 export default AdminStudioManagement; 
