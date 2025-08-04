@@ -1576,6 +1576,151 @@ router.put('/studios/:id', protect, adminOnly, async (req, res) => {
 });
 
 /**
+ * @route   POST /api/admin/studios/bulk-verify
+ * @desc    Bulk verify multiple studios
+ * @access  Admin only
+ */
+router.post('/studios/bulk-verify', protect, adminOnly, async (req, res) => {
+  try {
+    const { studioIds, isVerified, verificationNotes } = req.body;
+    
+    if (!studioIds || !Array.isArray(studioIds) || studioIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio IDs array is required'
+      });
+    }
+    
+    const results = await Promise.allSettled(
+      studioIds.map(async (studioId) => {
+        const studio = await prisma.studio.update({
+          where: { id: studioId },
+          data: {
+            isVerified,
+            verificationStatus: isVerified ? 'APPROVED' : 'REJECTED',
+            verifiedAt: isVerified ? new Date() : null,
+            verifiedBy: isVerified ? req.user.id : null
+          }
+        });
+        
+        return studio;
+      })
+    );
+    
+    // Log admin actions separately to avoid affecting the main operation
+    const successfulUpdates = results
+      .filter(result => result.status === 'fulfilled')
+      .map(result => result.value);
+    
+    for (const studio of successfulUpdates) {
+      try {
+        await prisma.adminAction.create({
+          data: {
+            adminId: req.user.id,
+            action: 'BULK_VERIFY_STUDIO',
+            targetType: 'STUDIO',
+            targetId: studio.id,
+            details: `Bulk ${isVerified ? 'approved' : 'rejected'}: ${studio.title}`
+          }
+        });
+      } catch (error) {
+        console.error('Failed to log admin action for studio:', studio.id, error);
+      }
+    }
+    
+    const successful = results.filter(result => result.status === 'fulfilled').length;
+    const failed = results.filter(result => result.status === 'rejected').length;
+    
+    res.json({
+      success: true,
+      data: {
+        total: studioIds.length,
+        successful,
+        failed
+      },
+      message: `Bulk verification completed. ${successful} studios updated, ${failed} failed.`
+    });
+  } catch (error) {
+    console.error('Error bulk verifying studios:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to bulk verify studios'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/studios/bulk-feature
+ * @desc    Bulk feature multiple studios
+ * @access  Admin only
+ */
+router.post('/studios/bulk-feature', protect, adminOnly, async (req, res) => {
+  try {
+    const { studioIds, isFeatured } = req.body;
+    
+    if (!studioIds || !Array.isArray(studioIds) || studioIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio IDs array is required'
+      });
+    }
+    
+    const results = await Promise.allSettled(
+      studioIds.map(async (studioId) => {
+        const studio = await prisma.studio.update({
+          where: { id: studioId },
+          data: {
+            isFeatured
+          }
+        });
+        
+        return studio;
+      })
+    );
+    
+    // Log admin actions separately to avoid affecting the main operation
+    const successfulUpdates = results
+      .filter(result => result.status === 'fulfilled')
+      .map(result => result.value);
+    
+    for (const studio of successfulUpdates) {
+      try {
+        await prisma.adminAction.create({
+          data: {
+            adminId: req.user.id,
+            action: 'BULK_FEATURE_STUDIO',
+            targetType: 'STUDIO',
+            targetId: studio.id,
+            details: `Bulk ${isFeatured ? 'featured' : 'unfeatured'}: ${studio.title}`
+          }
+        });
+      } catch (error) {
+        console.error('Failed to log admin action for studio:', studio.id, error);
+      }
+    }
+    
+    const successful = results.filter(result => result.status === 'fulfilled').length;
+    const failed = results.filter(result => result.status === 'rejected').length;
+    
+    res.json({
+      success: true,
+      data: {
+        total: studioIds.length,
+        successful,
+        failed
+      },
+      message: `Bulk featuring completed. ${successful} studios updated, ${failed} failed.`
+    });
+  } catch (error) {
+    console.error('Error bulk featuring studios:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to bulk feature studios'
+    });
+  }
+});
+
+/**
  * @route   POST /api/admin/studios
  * @desc    Create a new studio
  * @access  Admin only

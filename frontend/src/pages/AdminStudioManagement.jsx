@@ -36,6 +36,11 @@ const AdminStudioManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [pagination, setPagination] = useState({});
   
+  // Bulk selection states
+  const [selectedStudios, setSelectedStudios] = useState(new Set());
+  const [selectAll, setSelectAll] = useState(false);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  
   // Filters
   const [filters, setFilters] = useState({
     search: '',
@@ -193,6 +198,95 @@ const AdminStudioManagement = () => {
     }
   };
 
+  // Bulk selection functions
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedStudios(new Set());
+      setSelectAll(false);
+      setShowBulkActions(false);
+    } else {
+      const allStudioIds = studios.map(studio => studio.id);
+      setSelectedStudios(new Set(allStudioIds));
+      setSelectAll(true);
+      setShowBulkActions(true);
+    }
+  };
+
+  const handleSelectStudio = (studioId) => {
+    const newSelected = new Set(selectedStudios);
+    if (newSelected.has(studioId)) {
+      newSelected.delete(studioId);
+    } else {
+      newSelected.add(studioId);
+    }
+    setSelectedStudios(newSelected);
+    setSelectAll(newSelected.size === studios.length);
+    setShowBulkActions(newSelected.size > 0);
+  };
+
+  const handleBulkApprove = async () => {
+    if (!window.confirm(`Are you sure you want to approve ${selectedStudios.size} studios?`)) {
+      return;
+    }
+
+    try {
+      const response = await api.post('/admin/studios/bulk-verify', {
+        studioIds: Array.from(selectedStudios),
+        isVerified: true,
+        verificationNotes: 'Bulk approved'
+      });
+
+      if (response.data.success) {
+        showSuccessToast('Success', response.data.message);
+      } else {
+        showErrorToast('Error', response.data.error);
+      }
+      
+      // Clear selection
+      setSelectedStudios(new Set());
+      setSelectAll(false);
+      setShowBulkActions(false);
+      
+      // Refresh the list
+      fetchStudios(pagination.page);
+    } catch (error) {
+      console.error('Error bulk approving studios:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to approve studios';
+      showErrorToast('Error', errorMessage);
+    }
+  };
+
+  const handleBulkFeature = async () => {
+    if (!window.confirm(`Are you sure you want to feature ${selectedStudios.size} studios?`)) {
+      return;
+    }
+
+    try {
+      const response = await api.post('/admin/studios/bulk-feature', {
+        studioIds: Array.from(selectedStudios),
+        isFeatured: true
+      });
+
+      if (response.data.success) {
+        showSuccessToast('Success', response.data.message);
+      } else {
+        showErrorToast('Error', response.data.error);
+      }
+      
+      // Clear selection
+      setSelectedStudios(new Set());
+      setSelectAll(false);
+      setShowBulkActions(false);
+      
+      // Refresh the list
+      fetchStudios(pagination.page);
+    } catch (error) {
+      console.error('Error bulk featuring studios:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to feature studios';
+      showErrorToast('Error', errorMessage);
+    }
+  };
+
   const openVerifyModal = (studio) => {
     setSelectedStudio(studio);
     setVerifyForm({
@@ -332,6 +426,45 @@ const AdminStudioManagement = () => {
           </div>
         </div>
 
+        {/* Bulk Actions Bar */}
+        {showBulkActions && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-medium text-blue-900">
+                  {selectedStudios.size} studio{selectedStudios.size !== 1 ? 's' : ''} selected
+                </span>
+                <button
+                  onClick={() => {
+                    setSelectedStudios(new Set());
+                    setSelectAll(false);
+                    setShowBulkActions(false);
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  Clear selection
+                </button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleBulkApprove}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Approve All
+                </button>
+                <button
+                  onClick={handleBulkFeature}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                >
+                  <Star className="w-4 h-4 mr-2" />
+                  Feature All
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Studios List */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
@@ -344,6 +477,16 @@ const AdminStudioManagement = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectAll}
+                        onChange={handleSelectAll}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                    </div>
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Studio
                   </th>
@@ -367,6 +510,16 @@ const AdminStudioManagement = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {studios.map((studio) => (
                   <tr key={studio.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedStudios.has(studio.id)}
+                          onChange={() => handleSelectStudio(studio.id)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <Building2 className="h-8 w-8 text-gray-400 mr-3" />
