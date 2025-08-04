@@ -365,10 +365,29 @@ export const ArtistDashboard = () => {
         success('Profile updated successfully!')
       } else {
         console.log('🔄 Creating new profile')
+        
+        // If user has selected a studio but doesn't have a profile yet, link them to the studio after profile creation
+        let studioToLink = null;
+        if (formData.studioId && formData.studioName) {
+          studioToLink = { id: formData.studioId, title: formData.studioName };
+        }
+        
         // Create new profile
         response = await artistsAPI.createProfile(formData)
         console.log('✅ Create response:', response)
         success('Profile created successfully!')
+        
+        // If user had selected a studio, link them to it now that they have a profile
+        if (studioToLink) {
+          try {
+            console.log('🔄 Linking to studio:', studioToLink.title)
+            await studiosAPI.claim(studioToLink.id)
+            success(`Successfully linked to ${studioToLink.title}!`)
+          } catch (error) {
+            console.error('❌ Error linking to studio:', error)
+            // Continue anyway, the profile was created successfully
+          }
+        }
         
         // Refresh user data to get the new profile ID
         try {

@@ -44,17 +44,17 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
   };
 
   const handleLinkToStudio = async (studio) => {
-    if (!currentArtistId) {
-      showError('Artist profile not found', 'Please create an artist profile first');
-      return;
-    }
-
     setIsLinking(true);
     try {
-      // Add artist to studio
-      await studiosAPI.addArtist(studio.id, currentArtistId, 'ARTIST');
+      // If user has an artist profile, link them to the studio
+      if (currentArtistId) {
+        await studiosAPI.addArtist(studio.id, currentArtistId, 'ARTIST');
+        showSuccess(`Successfully linked to ${studio.title}`, 'You are now a member of this studio');
+      } else {
+        // For new users, just store the studio info for profile creation
+        showSuccess(`Studio selected: ${studio.title}`, 'Studio will be linked when you create your profile');
+      }
       
-      showSuccess(`Successfully linked to ${studio.title}`, 'You are now a member of this studio');
       setShowResults(false);
       setSearchQuery('');
       
@@ -79,17 +79,17 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
   };
 
   const handleClaimStudio = async (studio) => {
-    if (!currentArtistId) {
-      showError('Artist profile not found', 'Please create an artist profile first');
-      return;
-    }
-
     setIsLinking(true);
     try {
-      // Claim the studio
-      await studiosAPI.claim(studio.id);
+      // If user has an artist profile, claim the studio
+      if (currentArtistId) {
+        await studiosAPI.claim(studio.id);
+        showSuccess(`Successfully claimed ${studio.title}`, 'You are now the owner of this studio');
+      } else {
+        // For new users, just store the studio info for profile creation
+        showSuccess(`Studio selected: ${studio.title}`, 'Studio will be claimed when you create your profile');
+      }
       
-      showSuccess(`Successfully claimed ${studio.title}`, 'You are now the owner of this studio');
       setShowResults(false);
       setSearchQuery('');
       
@@ -114,11 +114,6 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
   };
 
   const handleCreateStudio = async (studioName) => {
-    if (!currentArtistId) {
-      showError('Artist profile not found', 'Please create an artist profile first');
-      return;
-    }
-
     setIsLinking(true);
     try {
       // Create a new studio with basic information
@@ -139,10 +134,14 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       if (response.data.success) {
         const createdStudio = response.data.data.studio;
         
-        // Automatically claim the newly created studio
-        await studiosAPI.claim(createdStudio.id);
+        // If user has an artist profile, automatically claim the newly created studio
+        if (currentArtistId) {
+          await studiosAPI.claim(createdStudio.id);
+          showSuccess(`Successfully created and claimed ${createdStudio.title}`, 'You are now the owner of this studio');
+        } else {
+          showSuccess(`Studio created: ${createdStudio.title}`, 'Studio will be claimed when you create your profile');
+        }
         
-        showSuccess(`Successfully created and claimed ${createdStudio.title}`, 'You are now the owner of this studio');
         setShowResults(false);
         setSearchQuery('');
         
