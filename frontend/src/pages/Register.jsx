@@ -15,7 +15,7 @@ export const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { register } = useAuth()
-  const { error: showErrorToast } = useToast()
+  const { error: showErrorToast, success: showSuccessToast } = useToast()
 
   const handleChange = (e) => {
     setFormData({

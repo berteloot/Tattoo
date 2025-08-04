@@ -79,10 +79,21 @@ const authorize = (...roles) => {
       });
     }
 
-    if (!roles.includes(req.user.role)) {
+    // Handle both direct user object and nested user object
+    const user = req.user.user || req.user;
+    const userRole = user.role;
+
+    if (!userRole) {
+      return res.status(401).json({
+        success: false,
+        error: 'User role not found'
+      });
+    }
+
+    if (!roles.includes(userRole)) {
       return res.status(403).json({
         success: false,
-        error: `User role '${req.user.role}' is not authorized to access this route`
+        error: `User role '${userRole}' is not authorized to access this route`
       });
     }
 

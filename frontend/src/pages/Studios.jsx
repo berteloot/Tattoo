@@ -18,7 +18,7 @@ const Studios = () => {
     pages: 0
   });
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     fetchStudios(1); // Reset to page 1 when filters change
@@ -45,12 +45,12 @@ const Studios = () => {
         });
       } else {
         setStudios([]);
-        showToast('Failed to load studios', 'error');
+        showError('Failed to load studios', 'Unable to load studios at this time');
       }
     } catch (error) {
       console.error('Failed to fetch studios:', error);
       setStudios([]);
-      showToast('Failed to load studios', 'error');
+      showError('Failed to load studios', 'Unable to load studios at this time');
     } finally {
       setLoading(false);
     }
@@ -59,11 +59,11 @@ const Studios = () => {
   const handleClaimStudio = async (studioId) => {
     try {
       await api.post(`/studios/${studioId}/claim`);
-      showToast('Studio claim request submitted successfully!', 'success');
+      success('Studio claim request submitted successfully!', 'Your claim request has been submitted and will be reviewed.');
       fetchStudios(pagination.page); // Refresh the current page
     } catch (error) {
       console.error('Failed to claim studio:', error);
-      showToast(error.response?.data?.error || 'Failed to claim studio', 'error');
+      showError('Failed to claim studio', error.response?.data?.error || 'Unable to submit claim request at this time');
     }
   };
 

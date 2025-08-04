@@ -232,6 +232,88 @@ router.get('/', optionalAuth, [
 });
 
 /**
+ * @route   GET /api/artists/my-favorites
+ * @desc    Get clients who have favorited the current artist
+ * @access  Private (ARTIST only)
+ */
+router.get('/my-favorites', protect, authorize(['ARTIST', 'ARTIST_ADMIN']), async (req, res) => {
+  try {
+    // Handle both direct user object and nested user object
+    const user = req.user.user || req.user;
+    const artistId = user.artistProfile?.id;
+
+    if (!artistId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist profile not found'
+      });
+    }
+
+    // Get all clients who have favorited this artist
+    const favorites = await prisma.favorite.findMany({
+      where: {
+        artistId: artistId
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatar: true,
+            createdAt: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // Get additional client information
+    const clientsWithDetails = await Promise.all(
+      favorites.map(async (favorite) => {
+        // Get client's review count and average rating given
+        const reviewsGiven = await prisma.review.findMany({
+          where: {
+            authorId: favorite.userId
+          }
+        });
+
+        const averageRating = reviewsGiven.length > 0
+          ? reviewsGiven.reduce((sum, review) => sum + review.rating, 0) / reviewsGiven.length
+          : 0;
+
+        return {
+          ...favorite,
+          client: {
+            ...favorite.user,
+            reviewCount: reviewsGiven.length,
+            averageRating: Math.round(averageRating * 10) / 10,
+            favoritedAt: favorite.createdAt
+          }
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      data: {
+        totalClients: clientsWithDetails.length,
+        clients: clientsWithDetails
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching favorite clients:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while fetching favorite clients'
+    });
+  }
+});
+
+/**
  * @route   GET /api/artists/:id
  * @desc    Get artist by ID with full profile
  * @access  Public
@@ -664,7 +746,9 @@ router.get('/:id/studios', async (req, res) => {
  */
 router.get('/my-favorites', protect, authorize(['ARTIST', 'ARTIST_ADMIN']), async (req, res) => {
   try {
-    const artistId = req.user.artistProfile?.id;
+    // Handle both direct user object and nested user object
+    const user = req.user.user || req.user;
+    const artistId = user.artistProfile?.id;
 
     if (!artistId) {
       return res.status(404).json({
@@ -761,7 +845,9 @@ router.post('/email-favorites', [
       });
     }
 
-    const artistId = req.user.artistProfile?.id;
+    // Handle both direct user object and nested user object
+    const user = req.user.user || req.user;
+    const artistId = user.artistProfile?.id;
     const { subject, message, clientIds, sendToAll = false } = req.body;
 
     if (!artistId) {

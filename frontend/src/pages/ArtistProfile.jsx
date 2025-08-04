@@ -634,18 +634,7 @@ export const ArtistProfile = () => {
               </div>
             </div>
 
-            {/* Location */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <MapPin className="w-5 h-5 mr-2 text-primary-600" />
-                Location
-              </h2>
-              <div className="space-y-2 text-gray-600">
-                {artist.address && <p className="font-medium">{artist.address}</p>}
-                <p>{artist.city}, {artist.state} {artist.zipCode}</p>
-                {artist.country && <p>{artist.country}</p>}
-              </div>
-            </div>
+
 
             {/* Calendly Widget */}
             <CalendlyWidget 

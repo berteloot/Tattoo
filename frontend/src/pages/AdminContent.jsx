@@ -21,7 +21,7 @@ import {
 
 const AdminContent = () => {
   const { isAdmin } = useAuth();
-  const { showToast } = useToast();
+  const { success, error: showError } = useToast();
   const [loading, setLoading] = useState(true);
   const [flashItems, setFlashItems] = useState([]);
   const [pagination, setPagination] = useState({});
@@ -64,7 +64,7 @@ const AdminContent = () => {
       }
     } catch (error) {
       console.error('Error fetching flash items:', error);
-      showToast('Error fetching content', 'error');
+      showError('Error fetching content', 'Unable to load content at this time');
     } finally {
       setLoading(false);
     }
@@ -89,12 +89,12 @@ const AdminContent = () => {
       });
 
       if (response.data.success) {
-        showToast(`Content ${action} updated successfully`, 'success');
+        success(`Content ${action} updated successfully`, 'The content has been updated successfully');
         fetchFlashItems(); // Refresh the list
       }
     } catch (error) {
       console.error('Error moderating content:', error);
-      showToast('Error updating content', 'error');
+      showError('Error updating content', 'Unable to update content at this time');
     }
   };
 
@@ -106,12 +106,12 @@ const AdminContent = () => {
     try {
       const response = await api.delete(`/admin/content/${flashId}`);
       if (response.data.success) {
-        showToast('Content deleted successfully', 'success');
+        success('Content deleted successfully', 'The content has been permanently deleted');
         fetchFlashItems(); // Refresh the list
       }
     } catch (error) {
       console.error('Error deleting content:', error);
-      showToast('Error deleting content', 'error');
+      showError('Error deleting content', 'Unable to delete content at this time');
     }
   };
 

@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
 import ImageUpload from '../components/ImageUpload'
-import AddressAutocomplete from '../components/AddressAutocomplete'
+
 import StudioSearch from '../components/StudioSearch'
 import LinkedStudios from '../components/LinkedStudios'
 import { FavoriteClients } from '../components/FavoriteClients'
@@ -211,30 +211,7 @@ export const ArtistDashboard = () => {
     }))
   }
 
-  const handleAddressChange = (e) => {
-    // Handle address field specifically for AddressAutocomplete
-    setFormData(prev => ({
-      ...prev,
-      address: e.target.value
-    }))
-  }
 
-  const handlePlaceSelect = (placeData) => {
-    // Update form data with the selected place information
-    setFormData(prev => ({
-      ...prev,
-      address: placeData.address || '',
-      city: placeData.city || '',
-      state: placeData.state || '',
-      zipCode: placeData.zipCode || '',
-      country: placeData.country || '',
-      latitude: placeData.latitude || '',
-      longitude: placeData.longitude || ''
-    }))
-    
-    // Show success message
-    success('Address selected successfully!')
-  }
 
   const handleSpecialtyChange = (specialtyId) => {
     setFormData(prev => ({
@@ -945,133 +922,7 @@ export const ArtistDashboard = () => {
             </div>
           </div>
 
-          {/* Location Management */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Studio Location</h2>
-            </div>
 
-            <div className="p-6">
-              {editing ? (
-                <div className="space-y-4">
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Address
-                      </label>
-                      <AddressAutocomplete
-                        value={formData.address}
-                        onChange={handleAddressChange}
-                        onPlaceSelect={handlePlaceSelect}
-                        placeholder="Enter your studio address..."
-                        disabled={!editing}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        City <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="New York"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        State
-                      </label>
-                      <input
-                        type="text"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="NY"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Zip Code
-                      </label>
-                      <input
-                        type="text"
-                        name="zipCode"
-                        value={formData.zipCode}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="10001"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Country
-                      </label>
-                      <input
-                        type="text"
-                        name="country"
-                        value={formData.country}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="USA"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Latitude
-                      </label>
-                      <input
-                        type="number"
-                        name="latitude"
-                        value={formData.latitude}
-                        onChange={handleInputChange}
-                        step="any"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="40.7128"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Longitude
-                      </label>
-                      <input
-                        type="number"
-                        name="longitude"
-                        value={formData.longitude}
-                        onChange={handleInputChange}
-                        step="any"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="-74.0060"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {profile?.address && (
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-gray-900">Address</h3>
-                      <p className="text-gray-600">
-                        {profile.address}<br />
-                        {profile.city}, {profile.state} {profile.zipCode}<br />
-                        {profile.country}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Studio Management */}

@@ -25,7 +25,7 @@ const StudioDetail = () => {
   const [studioArtists, setStudioArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     fetchStudio();
