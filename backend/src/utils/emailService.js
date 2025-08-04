@@ -53,7 +53,11 @@ class EmailService {
   // Email verification email
   async sendEmailVerificationEmail(user, verificationToken) {
     try {
-      const verificationUrl = `${process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com'}/verify-email?token=${verificationToken}`
+      // Use localhost for development, production URL for production
+      const frontendUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5173' 
+        : (process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com');
+      const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`
       const subject = 'Verify Your Email - Tattooed World 🎨'
       const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -149,7 +153,7 @@ class EmailService {
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com'}/artists" 
+              <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com')}/artists" 
                  style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
                 Start Exploring Artists
               </a>
@@ -207,7 +211,7 @@ class EmailService {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-                          <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com'}/artists/${artistProfile.id}" 
+                          <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com')}/artists/${artistProfile.id}" 
                style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View Your Profile
             </a>
@@ -241,7 +245,7 @@ class EmailService {
 
   // Password reset email
   async sendPasswordResetEmail(user, resetToken) {
-          const resetUrl = `${process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com'}/reset-password?token=${resetToken}`
+          const resetUrl = `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com')}/reset-password?token=${resetToken}`
     const subject = 'Reset Your Password - Tattooed World'
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -321,7 +325,7 @@ class EmailService {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com'}/profile" 
+            <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com')}/profile" 
                style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View Your Profile
             </a>
@@ -383,7 +387,7 @@ class EmailService {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com'}/bookings/${booking.id}" 
+            <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com')}/bookings/${booking.id}" 
                style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View Booking Details
             </a>

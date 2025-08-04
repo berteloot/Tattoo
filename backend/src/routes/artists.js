@@ -238,7 +238,7 @@ router.get('/', optionalAuth, [
  * @desc    Get clients who have favorited the current artist
  * @access  Private (ARTIST only)
  */
-router.get('/my-favorites', protect, authorize(['ARTIST', 'ARTIST_ADMIN']), async (req, res) => {
+router.get('/my-favorites', protect, async (req, res) => {
   try {
     const artistId = req.user.artistProfile?.id;
 
@@ -432,7 +432,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
  * @desc    Get clients who have favorited the current artist
  * @access  Private (ARTIST only)
  */
-router.get('/my-favorites', protect, authorize(['ARTIST', 'ARTIST_ADMIN']), async (req, res) => {
+router.get('/my-favorites', protect, authorize('ARTIST', 'ARTIST_ADMIN'), async (req, res) => {
   try {
     // Handle both direct user object and nested user object
     const user = req.user.user || req.user;
@@ -828,7 +828,7 @@ router.get('/:id/studios', async (req, res) => {
  */
 router.post('/email-favorites', [
   protect,
-  authorize(['ARTIST', 'ARTIST_ADMIN']),
+  authorize('ARTIST', 'ARTIST_ADMIN'),
   body('subject').isString().notEmpty().withMessage('Subject is required'),
   body('message').isString().notEmpty().withMessage('Message is required'),
   body('clientIds').optional().isArray().withMessage('Client IDs must be an array'),
