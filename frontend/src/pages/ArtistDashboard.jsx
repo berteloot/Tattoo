@@ -6,7 +6,6 @@ import ImageUpload from '../components/ImageUpload'
 import { CheckCircle } from 'lucide-react'
 
 import StudioSearch from '../components/StudioSearch'
-import LinkedStudios from '../components/LinkedStudios'
 import { FavoriteClients } from '../components/FavoriteClients'
 
 export const ArtistDashboard = () => {
@@ -22,7 +21,7 @@ export const ArtistDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [showFlashForm, setShowFlashForm] = useState(false)
-  const [studioRefreshTrigger, setStudioRefreshTrigger] = useState(0)
+
   
   // Form states
   const [formData, setFormData] = useState({
@@ -983,27 +982,14 @@ export const ArtistDashboard = () => {
 
         {/* Studio Management */}
         {user?.artistProfile?.id && (
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Studio Search */}
+          <div className="mt-8">
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Find Your Studio</h2>
               <StudioSearch 
                 onStudioLinked={(studio) => {
-                  // Refresh the linked studios
-                  setStudioRefreshTrigger(prev => prev + 1);
+                  // Studio linked successfully
                 }}
                 currentArtistId={user.artistProfile.id}
-              />
-            </div>
-
-            {/* Linked Studios */}
-            <div>
-              <LinkedStudios 
-                artistId={user.artistProfile.id}
-                onStudioUnlinked={(studioId) => {
-                  // Handle studio unlink if needed
-                }}
-                refreshTrigger={studioRefreshTrigger}
               />
             </div>
           </div>

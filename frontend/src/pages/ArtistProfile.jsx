@@ -276,11 +276,20 @@ export const ArtistProfile = () => {
                             {studio.address && (
                               <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
                                 <MapPin className="h-3 w-3" />
-                                <span>
+                                <span className="flex-1">
                                   {studio.address}
                                   {studio.city && `, ${studio.city}`}
                                   {studio.state && `, ${studio.state}`}
                                 </span>
+                                {studio.latitude && studio.longitude && (
+                                  <Link
+                                    to="/map"
+                                    className="text-blue-600 hover:text-blue-800 transition-colors"
+                                    title="View on map"
+                                  >
+                                    <MapPin className="h-3 w-3" />
+                                  </Link>
+                                )}
                               </div>
                             )}
                             
