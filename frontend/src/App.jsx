@@ -22,6 +22,7 @@ import AdminReviewModeration from './pages/AdminReviewModeration'
 import AdminAuditLog from './pages/AdminAuditLog'
 import AdminStudioUpload from './pages/AdminStudioUpload'
 import AdminStudioManagement from './pages/AdminStudioManagement'
+import AdminContent from './pages/AdminContent'
 import { Favorites } from './pages/Favorites'
 import Studios from './pages/Studios'
 import StudioDetail from './pages/StudioDetail'
@@ -90,6 +91,11 @@ function App() {
               <Route path="/admin/studios" element={
                 <ProtectedRoute requiredRole="ADMIN">
                   <AdminStudioManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/content" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminContent />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={

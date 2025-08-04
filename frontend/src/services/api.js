@@ -64,6 +64,7 @@ export const artistsAPI = {
   getById: (id) => api.get(`/artists/${id}`),
   createProfile: (profileData) => api.post('/artists', profileData),
   updateProfile: (id, profileData) => api.put(`/artists/${id}`, profileData),
+  getStudios: (id) => api.get(`/artists/${id}/studios`),
 }
 
 export const flashAPI = {
@@ -99,4 +100,15 @@ export const favoritesAPI = {
   add: (artistId) => api.post('/favorites', { artistId }),
   remove: (artistId) => api.delete(`/favorites/${artistId}`),
   check: (artistId) => api.get(`/favorites/check/${artistId}`),
+}
+
+export const studiosAPI = {
+  getAll: (params) => api.get('/studios', { params }),
+  getById: (id) => api.get(`/studios/${id}`),
+  search: (query) => api.get('/studios', { params: { search: query } }),
+  claim: (studioId) => api.post(`/studios/${studioId}/claim`),
+  addArtist: (studioId, artistId, role = 'ARTIST') => api.post(`/studios/${studioId}/artists`, { artistId, role }),
+  removeArtist: (studioId, artistId) => api.delete(`/studios/${studioId}/artists/${artistId}`),
+  getArtists: (studioId) => api.get(`/studios/${studioId}/artists`),
+  leaveStudio: (studioId) => api.post(`/studios/${studioId}/leave`),
 } 

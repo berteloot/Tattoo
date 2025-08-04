@@ -4,6 +4,8 @@ import { useToast } from '../contexts/ToastContext'
 import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
 import ImageUpload from '../components/ImageUpload'
 import AddressAutocomplete from '../components/AddressAutocomplete'
+import StudioSearch from '../components/StudioSearch'
+import LinkedStudios from '../components/LinkedStudios'
 
 export const ArtistDashboard = () => {
   const { user } = useAuth()
@@ -18,6 +20,7 @@ export const ArtistDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [showFlashForm, setShowFlashForm] = useState(false)
+  const [studioRefreshTrigger, setStudioRefreshTrigger] = useState(0)
   
   // Form states
   const [formData, setFormData] = useState({
@@ -1069,6 +1072,34 @@ export const ArtistDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Studio Management */}
+        {user?.artistProfile?.id && (
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Studio Search */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Find Your Studio</h2>
+              <StudioSearch 
+                onStudioLinked={(studio) => {
+                  // Refresh the linked studios
+                  setStudioRefreshTrigger(prev => prev + 1);
+                }}
+                currentArtistId={user.artistProfile.id}
+              />
+            </div>
+
+            {/* Linked Studios */}
+            <div>
+              <LinkedStudios 
+                artistId={user.artistProfile.id}
+                onStudioUnlinked={(studioId) => {
+                  // Handle studio unlink if needed
+                }}
+                refreshTrigger={studioRefreshTrigger}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Recent Reviews */}
         <div className="mt-8 bg-white rounded-lg shadow">

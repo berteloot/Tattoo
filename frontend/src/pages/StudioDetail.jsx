@@ -16,12 +16,13 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../services/api';
+import { api, studiosAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 
 const StudioDetail = () => {
   const { id } = useParams();
   const [studio, setStudio] = useState(null);
+  const [studioArtists, setStudioArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -33,8 +34,13 @@ const StudioDetail = () => {
   const fetchStudio = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/studios/${id}`);
-      setStudio(response.data.data);
+      const [studioResponse, artistsResponse] = await Promise.all([
+        api.get(`/studios/${id}`),
+        studiosAPI.getArtists(id)
+      ]);
+      
+      setStudio(studioResponse.data.data);
+      setStudioArtists(artistsResponse.data.data);
     } catch (error) {
       console.error('Failed to fetch studio:', error);
       showToast('Failed to load studio details', 'error');
@@ -128,7 +134,7 @@ const StudioDetail = () => {
               )}
               <div className="flex items-center">
                 <Users className="w-4 h-4 mr-1" />
-                {studio._count?.artists || 0} artists
+                {studioArtists.length} artists
               </div>
             </div>
           </div>
@@ -204,11 +210,11 @@ const StudioDetail = () => {
           </div>
 
           {/* Artists */}
-          {studio.artists && studio.artists.length > 0 && (
+          {studioArtists && studioArtists.length > 0 && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Artists</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {studio.artists.map((studioArtist) => (
+                {studioArtists.map((studioArtist) => (
                   <div key={studioArtist.id} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-gray-900">

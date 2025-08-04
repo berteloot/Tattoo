@@ -73,6 +73,7 @@ model ArtistProfile {
   flash              Flash[]
   services           Service[]          @relation("ArtistProfileToService")
   specialties        Specialty[]        @relation("ArtistProfileToSpecialty")
+  studios            StudioArtist[]
 
   @@map("artist_profiles")
 }
@@ -122,6 +123,7 @@ model Flash {
   sizePricing   Json?
   isAvailable   Boolean         @default(true)
   isApproved    Boolean         @default(true)
+  isHidden      Boolean         @default(false)
   tags          String[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -192,6 +194,8 @@ model Studio {
   verifiedAt         DateTime? @map("verified_at") @db.Timestamp(6)
   createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt          DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  
+  artists            StudioArtist[]
 
   @@map("studios")
 }
@@ -204,6 +208,9 @@ model StudioArtist {
   isActive Boolean?     @default(true) @map("is_active")
   joinedAt DateTime?    @default(now()) @map("joined_at") @db.Timestamp(6)
   leftAt   DateTime?    @map("left_at") @db.Timestamp(6)
+  
+  studio   Studio       @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  artist   ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@unique([studioId, artistId], map: "unique_studio_artist")
   @@map("studio_artists")

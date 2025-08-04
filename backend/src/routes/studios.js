@@ -84,8 +84,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get specific studio
-router.get('/:id', async (req, res) => {
+// Get artists for a studio
+router.get('/:id/artists', async (req, res) => {
   try {
     const studio = await prisma.studio.findUnique({
       where: { id: req.params.id }
@@ -98,15 +98,128 @@ router.get('/:id', async (req, res) => {
       });
     }
     
+    const studioArtists = await prisma.studioArtist.findMany({
+      where: {
+        studioId: req.params.id,
+        isActive: true
+      },
+      include: {
+        artist: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+                email: true
+              }
+            },
+            specialties: {
+              select: {
+                id: true,
+                name: true,
+                category: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        joinedAt: 'desc'
+      }
+    });
+    
     res.json({
       success: true,
-      data: studio
+      data: studioArtists
     });
   } catch (error) {
-    console.error('Error fetching studio:', error);
+    console.error('Error fetching studio artists:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch studio'
+      error: 'Failed to fetch studio artists'
+    });
+  }
+});
+
+// Artist leaves studio (self-service)
+router.post('/:id/leave', async (req, res) => {
+  try {
+    const { userId } = req.user; // From auth middleware
+    
+    // Check if user is an artist
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { artistProfile: true }
+    });
+    
+    if (!user || (user.role !== 'ARTIST' && user.role !== 'ARTIST_ADMIN')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only artists can leave studios'
+      });
+    }
+    
+    const studio = await prisma.studio.findUnique({
+      where: { id: req.params.id }
+    });
+    
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+    
+    // Check if artist is a member of this studio
+    const studioArtist = await prisma.studioArtist.findUnique({
+      where: {
+        studioId_artistId: {
+          studioId: req.params.id,
+          artistId: user.artistProfile.id
+        }
+      }
+    });
+    
+    if (!studioArtist) {
+      return res.status(404).json({
+        success: false,
+        error: 'You are not a member of this studio'
+      });
+    }
+    
+    // Don't allow owners to leave (they need to transfer ownership first)
+    if (studioArtist.role === 'OWNER') {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio owners cannot leave. Please transfer ownership first.'
+      });
+    }
+    
+    // Leave the studio
+    await prisma.studioArtist.update({
+      where: {
+        studioId_artistId: {
+          studioId: req.params.id,
+          artistId: user.artistProfile.id
+        }
+      },
+      data: {
+        isActive: false,
+        leftAt: new Date()
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: 'Successfully left the studio'
+    });
+  } catch (error) {
+    console.error('Error leaving studio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to leave studio'
     });
   }
 });
@@ -312,7 +425,7 @@ router.post('/:id/artists', async (req, res) => {
   }
 });
 
-// Remove artist from studio
+// Remove artist from studio (admin/owner only)
 router.delete('/:id/artists/:artistId', async (req, res) => {
   try {
     const { artistId } = req.params;
@@ -367,6 +480,114 @@ router.delete('/:id/artists/:artistId', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to remove artist from studio'
+    });
+  }
+});
+
+// Artist leaves studio (self-service)
+router.post('/:id/leave', async (req, res) => {
+  try {
+    const { userId } = req.user; // From auth middleware
+    
+    // Check if user is an artist
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { artistProfile: true }
+    });
+    
+    if (!user || (user.role !== 'ARTIST' && user.role !== 'ARTIST_ADMIN')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only artists can leave studios'
+      });
+    }
+    
+    const studio = await prisma.studio.findUnique({
+      where: { id: req.params.id }
+    });
+    
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+    
+    // Check if artist is a member of this studio
+    const studioArtist = await prisma.studioArtist.findUnique({
+      where: {
+        studioId_artistId: {
+          studioId: req.params.id,
+          artistId: user.artistProfile.id
+        }
+      }
+    });
+    
+    if (!studioArtist) {
+      return res.status(404).json({
+        success: false,
+        error: 'You are not a member of this studio'
+      });
+    }
+    
+    // Don't allow owners to leave (they need to transfer ownership first)
+    if (studioArtist.role === 'OWNER') {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio owners cannot leave. Please transfer ownership first.'
+      });
+    }
+    
+    // Leave the studio
+    await prisma.studioArtist.update({
+      where: {
+        studioId_artistId: {
+          studioId: req.params.id,
+          artistId: user.artistProfile.id
+        }
+      },
+      data: {
+        isActive: false,
+        leftAt: new Date()
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: 'Successfully left the studio'
+    });
+  } catch (error) {
+    console.error('Error leaving studio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to leave studio'
+    });
+  }
+});
+
+// Get specific studio
+router.get('/:id', async (req, res) => {
+  try {
+    const studio = await prisma.studio.findUnique({
+      where: { id: req.params.id }
+    });
+    
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: studio
+    });
+  } catch (error) {
+    console.error('Error fetching studio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch studio'
     });
   }
 });

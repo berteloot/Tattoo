@@ -31,6 +31,7 @@ export const ArtistProfile = () => {
   const { id } = useParams()
   const [artist, setArtist] = useState(null)
   const [reviews, setReviews] = useState([])
+  const [studios, setStudios] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
@@ -76,20 +77,25 @@ export const ArtistProfile = () => {
       setLoading(true)
       console.log('Fetching artist profile for ID:', id)
       
-      const result = await apiCallWithFallback(
-        () => artistsAPI.getById(id),
-        { artist: getDummyArtist(id), reviews: [] }
-      )
+      const [artistResult, studiosResult] = await Promise.all([
+        apiCallWithFallback(
+          () => artistsAPI.getById(id),
+          { artist: getDummyArtist(id), reviews: [] }
+        ),
+        artistsAPI.getStudios(id).catch(() => ({ data: { data: [] } }))
+      ])
       
-      if (result.isFallback) {
+      if (artistResult.isFallback) {
         console.log('Using fallback artist profile data')
-        setArtist(result.data.artist)
-        setReviews(result.data.reviews)
+        setArtist(artistResult.data.artist)
+        setReviews(artistResult.data.reviews)
       } else {
         console.log('Using API artist profile data')
-        setArtist(result.data.data.artist)
-        setReviews(result.data.data.reviews || [])
+        setArtist(artistResult.data.data.artist)
+        setReviews(artistResult.data.data.reviews || [])
       }
+      
+      setStudios(studiosResult.data.data || [])
     } catch (err) {
       console.error('Unexpected error in fetchArtistProfile:', err)
       setError('Failed to fetch artist profile')
@@ -245,6 +251,81 @@ export const ArtistProfile = () => {
                       )}
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Studios */}
+            {studios && studios.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Studios</h2>
+                <div className="space-y-4">
+                  {studios.map((studioArtist) => {
+                    const studio = studioArtist.studio;
+                    return (
+                      <div key={studioArtist.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-medium text-gray-900">{studio.title}</h3>
+                              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                                {studioArtist.role}
+                              </span>
+                            </div>
+                            
+                            {studio.address && (
+                              <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+                                <MapPin className="h-3 w-3" />
+                                <span>
+                                  {studio.address}
+                                  {studio.city && `, ${studio.city}`}
+                                  {studio.state && `, ${studio.state}`}
+                                </span>
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>Joined {new Date(studioArtist.joinedAt).toLocaleDateString()}</span>
+                              </div>
+                              
+                              {studio.isVerified && (
+                                <span className="text-green-600 font-medium">✓ Verified</span>
+                              )}
+                              
+                              {studio.isFeatured && (
+                                <span className="text-blue-600 font-medium">★ Featured</span>
+                              )}
+                            </div>
+                            
+                            {studio.website && (
+                              <div className="mt-2">
+                                <a
+                                  href={studio.website}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  Visit Website
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <Link
+                            to={`/studios/${studio.id}`}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            View Studio Details →
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

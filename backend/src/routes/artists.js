@@ -590,4 +590,71 @@ router.post('/:id/view', async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/artists/:id/studios
+ * @desc    Get studios for an artist
+ * @access  Public
+ */
+router.get('/:id/studios', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if artist profile exists
+    const artistProfile = await prisma.artistProfile.findUnique({
+      where: { id }
+    });
+
+    if (!artistProfile) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist profile not found'
+      });
+    }
+
+    // Get studios for this artist
+    const studioArtists = await prisma.studioArtist.findMany({
+      where: {
+        artistId: id,
+        isActive: true
+      },
+      include: {
+        studio: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            address: true,
+            city: true,
+            state: true,
+            zipCode: true,
+            country: true,
+            latitude: true,
+            longitude: true,
+            website: true,
+            phoneNumber: true,
+            email: true,
+            isVerified: true,
+            isFeatured: true,
+            verificationStatus: true
+          }
+        }
+      },
+      orderBy: {
+        joinedAt: 'desc'
+      }
+    });
+
+    res.json({
+      success: true,
+      data: studioArtists
+    });
+  } catch (error) {
+    console.error('Get artist studios error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while fetching artist studios'
+    });
+  }
+});
+
 module.exports = router; 
