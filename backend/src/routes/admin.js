@@ -1173,16 +1173,10 @@ router.post('/upload-studios-csv', protect, adminOnly, async (req, res) => {
     await prisma.adminAction.create({
       data: {
         adminId: req.user.id,
-        actionType: 'UPLOAD_STUDIOS_CSV',
+        action: 'UPLOAD_STUDIOS_CSV',
         targetType: 'STUDIO',
-        targetId: null,
-        details: `Uploaded ${results.successful} studios from CSV. ${results.failed} failed.`,
-        metadata: {
-          total: results.total,
-          successful: results.successful,
-          failed: results.failed,
-          errors: results.errors.slice(0, 10) // Limit error details
-        }
+        targetId: 'bulk-upload',
+        details: `Uploaded ${results.successful} studios from CSV. ${results.failed} failed.`
       }
     });
 

@@ -20,6 +20,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminArtistVerification from './pages/AdminArtistVerification'
 import AdminReviewModeration from './pages/AdminReviewModeration'
 import AdminAuditLog from './pages/AdminAuditLog'
+import AdminStudioUpload from './pages/AdminStudioUpload'
 import { Favorites } from './pages/Favorites'
 import Studios from './pages/Studios'
 import StudioDetail from './pages/StudioDetail'
@@ -78,6 +79,11 @@ function App() {
               <Route path="/admin/actions" element={
                 <ProtectedRoute requiredRole="ADMIN">
                   <AdminAuditLog />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/studios/upload" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminStudioUpload />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={

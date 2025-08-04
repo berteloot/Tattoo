@@ -15,7 +15,8 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  Upload
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -124,6 +125,14 @@ const AdminDashboard = () => {
       href: '/admin/actions',
       color: 'bg-red-500',
       hoverColor: 'hover:bg-red-600'
+    },
+    {
+      title: 'Studio CSV Upload',
+      description: 'Upload multiple studios from CSV file',
+      icon: Upload,
+      href: '/admin/studios/upload',
+      color: 'bg-indigo-500',
+      hoverColor: 'hover:bg-indigo-600'
     }
   ];
 
