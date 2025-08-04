@@ -64,10 +64,14 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       }
     } catch (error) {
       console.error('Error linking to studio:', error);
-      if (error.response?.data?.error) {
-        showToast(error.response.data.error, 'error');
-      } else {
-        showToast('Error linking to studio', 'error');
+      try {
+        if (error.response?.data?.error) {
+          showToast(error.response.data.error, 'error');
+        } else {
+          showToast('Error linking to studio', 'error');
+        }
+      } catch (toastError) {
+        console.error('Error showing toast:', toastError);
       }
     } finally {
       setIsLinking(false);
@@ -95,10 +99,14 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       }
     } catch (error) {
       console.error('Error claiming studio:', error);
-      if (error.response?.data?.error) {
-        showToast(error.response.data.error, 'error');
-      } else {
-        showToast('Error claiming studio', 'error');
+      try {
+        if (error.response?.data?.error) {
+          showToast(error.response.data.error, 'error');
+        } else {
+          showToast('Error claiming studio', 'error');
+        }
+      } catch (toastError) {
+        console.error('Error showing toast:', toastError);
       }
     } finally {
       setIsLinking(false);

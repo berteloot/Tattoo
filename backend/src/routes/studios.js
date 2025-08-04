@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { protect } = require('../middleware/auth');
 const prisma = new PrismaClient();
 
 // Get all studios with filtering
@@ -144,7 +145,7 @@ router.get('/:id/artists', async (req, res) => {
 });
 
 // Artist leaves studio (self-service)
-router.post('/:id/leave', async (req, res) => {
+router.post('/:id/leave', protect, async (req, res) => {
   try {
     const { userId } = req.user; // From auth middleware
     
@@ -225,7 +226,7 @@ router.post('/:id/leave', async (req, res) => {
 });
 
 // Claim studio (for artists)
-router.post('/:id/claim', async (req, res) => {
+router.post('/:id/claim', protect, async (req, res) => {
   try {
     const { userId } = req.user; // From auth middleware
     
@@ -239,6 +240,13 @@ router.post('/:id/claim', async (req, res) => {
       return res.status(403).json({
         success: false,
         error: 'Only artists can claim studios'
+      });
+    }
+    
+    if (!user.artistProfile) {
+      return res.status(400).json({
+        success: false,
+        error: 'You must have an artist profile to claim a studio'
       });
     }
     
@@ -293,55 +301,8 @@ router.post('/:id/claim', async (req, res) => {
   }
 });
 
-// Admin: Verify studio claim
-router.put('/:id/verify', async (req, res) => {
-  try {
-    const { isVerified, verificationNotes } = req.body;
-    
-    if (req.user.role !== 'ADMIN') {
-      return res.status(403).json({
-        success: false,
-        error: 'Admin access required'
-      });
-    }
-    
-    const studio = await prisma.studio.update({
-      where: { id: req.params.id },
-      data: {
-        isVerified,
-        verificationStatus: isVerified ? 'APPROVED' : 'REJECTED',
-        verifiedBy: req.user.id,
-        verifiedAt: new Date()
-      }
-    });
-    
-    // Log admin action
-    await prisma.adminAction.create({
-      data: {
-        adminId: req.user.id,
-        action: 'VERIFY_STUDIO',
-        targetType: 'STUDIO',
-        targetId: req.params.id,
-        details: `Studio verification ${isVerified ? 'approved' : 'rejected'}: ${verificationNotes || ''}`
-      }
-    });
-    
-    res.json({
-      success: true,
-      data: studio,
-      message: `Studio ${isVerified ? 'verified' : 'rejected'} successfully`
-    });
-  } catch (error) {
-    console.error('Error verifying studio:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to verify studio'
-    });
-  }
-});
-
 // Add artist to studio
-router.post('/:id/artists', async (req, res) => {
+router.post('/:id/artists', protect, async (req, res) => {
   try {
     const { artistId, role = 'ARTIST' } = req.body;
     
@@ -426,7 +387,7 @@ router.post('/:id/artists', async (req, res) => {
 });
 
 // Remove artist from studio (admin/owner only)
-router.delete('/:id/artists/:artistId', async (req, res) => {
+router.delete('/:id/artists/:artistId', protect, async (req, res) => {
   try {
     const { artistId } = req.params;
     
@@ -484,83 +445,49 @@ router.delete('/:id/artists/:artistId', async (req, res) => {
   }
 });
 
-// Artist leaves studio (self-service)
-router.post('/:id/leave', async (req, res) => {
+// Admin: Verify studio claim
+router.put('/:id/verify', protect, async (req, res) => {
   try {
-    const { userId } = req.user; // From auth middleware
+    const { isVerified, verificationNotes } = req.body;
     
-    // Check if user is an artist
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { artistProfile: true }
-    });
-    
-    if (!user || (user.role !== 'ARTIST' && user.role !== 'ARTIST_ADMIN')) {
+    if (req.user.role !== 'ADMIN') {
       return res.status(403).json({
         success: false,
-        error: 'Only artists can leave studios'
+        error: 'Admin access required'
       });
     }
     
-    const studio = await prisma.studio.findUnique({
-      where: { id: req.params.id }
-    });
-    
-    if (!studio) {
-      return res.status(404).json({
-        success: false,
-        error: 'Studio not found'
-      });
-    }
-    
-    // Check if artist is a member of this studio
-    const studioArtist = await prisma.studioArtist.findUnique({
-      where: {
-        studioId_artistId: {
-          studioId: req.params.id,
-          artistId: user.artistProfile.id
-        }
+    const studio = await prisma.studio.update({
+      where: { id: req.params.id },
+      data: {
+        isVerified,
+        verificationStatus: isVerified ? 'APPROVED' : 'REJECTED',
+        verifiedBy: req.user.id,
+        verifiedAt: new Date()
       }
     });
     
-    if (!studioArtist) {
-      return res.status(404).json({
-        success: false,
-        error: 'You are not a member of this studio'
-      });
-    }
-    
-    // Don't allow owners to leave (they need to transfer ownership first)
-    if (studioArtist.role === 'OWNER') {
-      return res.status(400).json({
-        success: false,
-        error: 'Studio owners cannot leave. Please transfer ownership first.'
-      });
-    }
-    
-    // Leave the studio
-    await prisma.studioArtist.update({
-      where: {
-        studioId_artistId: {
-          studioId: req.params.id,
-          artistId: user.artistProfile.id
-        }
-      },
+    // Log admin action
+    await prisma.adminAction.create({
       data: {
-        isActive: false,
-        leftAt: new Date()
+        adminId: req.user.id,
+        action: 'VERIFY_STUDIO',
+        targetType: 'STUDIO',
+        targetId: req.params.id,
+        details: `Studio verification ${isVerified ? 'approved' : 'rejected'}: ${verificationNotes || ''}`
       }
     });
     
     res.json({
       success: true,
-      message: 'Successfully left the studio'
+      data: studio,
+      message: `Studio ${isVerified ? 'verified' : 'rejected'} successfully`
     });
   } catch (error) {
-    console.error('Error leaving studio:', error);
+    console.error('Error verifying studio:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to leave studio'
+      error: 'Failed to verify studio'
     });
   }
 });
