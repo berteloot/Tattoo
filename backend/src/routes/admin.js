@@ -2076,16 +2076,36 @@ router.post('/studios', protect, adminOnly, async (req, res) => {
 });
 
 /**
- * @route   DELETE /api/admin/studios/:id
- * @desc    Deactivate a studio
+ * @route   POST /api/admin/studios/bulk-delete
+ * @desc    Permanently delete multiple studios
  * @access  Admin only
  */
-router.delete('/studios/:id', protect, adminOnly, async (req, res) => {
+router.post('/studios/bulk-delete', protect, adminOnly, async (req, res) => {
   try {
-    const studio = await prisma.studio.update({
-      where: { id: req.params.id },
-      data: {
-        isActive: false
+    const { studioIds } = req.body;
+    
+    if (!studioIds || !Array.isArray(studioIds) || studioIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio IDs array is required'
+      });
+    }
+    
+    // First, delete related studio artists for all studios
+    await prisma.studioArtist.deleteMany({
+      where: {
+        studioId: {
+          in: studioIds
+        }
+      }
+    });
+    
+    // Then delete all studios
+    const deletedStudios = await prisma.studio.deleteMany({
+      where: {
+        id: {
+          in: studioIds
+        }
       }
     });
     
@@ -2093,23 +2113,69 @@ router.delete('/studios/:id', protect, adminOnly, async (req, res) => {
     await prisma.adminAction.create({
       data: {
         adminId: req.user.id,
-        action: 'DEACTIVATE_STUDIO',
+        action: 'BULK_DELETE_STUDIOS',
+        targetType: 'STUDIO',
+        targetId: null,
+        details: `Bulk deleted ${deletedStudios.count} studios`
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        deletedCount: deletedStudios.count
+      },
+      message: `Successfully deleted ${deletedStudios.count} studios`
+    });
+  } catch (error) {
+    console.error('Error bulk deleting studios:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete studios'
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/studios/:id
+ * @desc    Permanently delete a studio
+ * @access  Admin only
+ */
+router.delete('/studios/:id', protect, adminOnly, async (req, res) => {
+  try {
+    // First, delete related studio artists
+    await prisma.studioArtist.deleteMany({
+      where: {
+        studioId: req.params.id
+      }
+    });
+    
+    // Then delete the studio
+    const studio = await prisma.studio.delete({
+      where: { id: req.params.id }
+    });
+    
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'DELETE_STUDIO',
         targetType: 'STUDIO',
         targetId: req.params.id,
-        details: 'Studio deactivated'
+        details: `Studio permanently deleted: ${studio.title}`
       }
     });
     
     res.json({
       success: true,
       data: studio,
-      message: 'Studio deactivated successfully'
+      message: 'Studio permanently deleted successfully'
     });
   } catch (error) {
-    console.error('Error deactivating studio:', error);
+    console.error('Error deleting studio:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to deactivate studio'
+      error: 'Failed to delete studio'
     });
   }
 });

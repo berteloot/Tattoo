@@ -153,7 +153,7 @@ const AdminStudioManagement = () => {
   };
 
   const handleDeactivateStudio = async (studioId) => {
-    if (!window.confirm('Are you sure you want to deactivate this studio?')) {
+    if (!window.confirm('Are you sure you want to PERMANENTLY DELETE this studio? This action cannot be undone.')) {
       return;
     }
     
@@ -162,8 +162,8 @@ const AdminStudioManagement = () => {
       showSuccessToast('Success', response.data.message);
       fetchStudios(pagination.page);
     } catch (error) {
-      console.error('Error deactivating studio:', error);
-      showErrorToast('Error', 'Failed to deactivate studio');
+      console.error('Error deleting studio:', error);
+      showErrorToast('Error', 'Failed to delete studio');
     }
   };
 
@@ -283,6 +283,36 @@ const AdminStudioManagement = () => {
     } catch (error) {
       console.error('Error bulk featuring studios:', error);
       const errorMessage = error.response?.data?.error || 'Failed to feature studios';
+      showErrorToast('Error', errorMessage);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE ${selectedStudios.size} studios? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await api.post('/admin/studios/bulk-delete', {
+        studioIds: Array.from(selectedStudios)
+      });
+
+      if (response.data.success) {
+        showSuccessToast('Success', response.data.message);
+      } else {
+        showErrorToast('Error', response.data.error);
+      }
+      
+      // Clear selection
+      setSelectedStudios(new Set());
+      setSelectAll(false);
+      setShowBulkActions(false);
+      
+      // Refresh the list
+      fetchStudios(pagination.page);
+    } catch (error) {
+      console.error('Error bulk deleting studios:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to delete studios';
       showErrorToast('Error', errorMessage);
     }
   };
@@ -459,6 +489,13 @@ const AdminStudioManagement = () => {
                 >
                   <Star className="w-4 h-4 mr-2" />
                   Feature All
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete All
                 </button>
               </div>
             </div>
