@@ -228,7 +228,7 @@ router.post('/:id/leave', protect, async (req, res) => {
 // Claim studio (for artists)
 router.post('/:id/claim', protect, async (req, res) => {
   try {
-    const { userId } = req.user; // From auth middleware
+    const userId = req.user.id; // From auth middleware
     
     // Check if user is an artist
     const user = await prisma.user.findUnique({

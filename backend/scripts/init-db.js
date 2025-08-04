@@ -93,6 +93,7 @@ async function initializeDatabase() {
         `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "sizePricing" JSONB;`,
         `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "isAvailable" BOOLEAN DEFAULT true;`,
         `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "isApproved" BOOLEAN DEFAULT true;`,
+        `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "isHidden" BOOLEAN DEFAULT false;`,
         `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "tags" TEXT[] DEFAULT '{}';`,
         `ALTER TABLE "flash" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;`
       ];
