@@ -255,3 +255,15 @@ enum studio_role {
   ARTIST
   GUEST
 }
+
+model GeocodeCache {
+  id             String   @id @default(cuid())
+  addressHash    String   @unique
+  originalAddress String
+  latitude       Float
+  longitude      Float
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("geocode_cache")
+}

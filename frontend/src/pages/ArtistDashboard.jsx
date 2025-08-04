@@ -987,7 +987,12 @@ export const ArtistDashboard = () => {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Find Your Studio</h2>
               <StudioSearch 
                 onStudioLinked={(studio) => {
-                  // Studio linked successfully
+                  // Update form data when studio is linked from this section
+                  setFormData(prev => ({
+                    ...prev,
+                    studioName: studio.title,
+                    studioId: studio.id
+                  }));
                 }}
                 currentArtistId={user.artistProfile.id}
               />

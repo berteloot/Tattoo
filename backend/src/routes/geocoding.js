@@ -1,15 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const NodeCache = require('node-cache');
+const { 
+  geocodeAddress, 
+  batchGeocode, 
+  getCacheStats, 
+  clearCache 
+} = require('../utils/geocodingService');
 
 const prisma = new PrismaClient();
-
-// Cache geocoding results for 24 hours to avoid repeated API calls
-const geocodeCache = new NodeCache({ stdTTL: 60 * 60 * 24 });
-
-// Google Geocoding API key (server-side key)
-const GEOCODE_API_KEY = process.env.GOOGLE_GEOCODE_API_KEY;
 
 /**
  * @route   POST /api/geocoding/geocode
@@ -27,65 +26,8 @@ router.post('/geocode', async (req, res) => {
       });
     }
 
-    if (!GEOCODE_API_KEY) {
-      console.warn('⚠️ GOOGLE_GEOCODE_API_KEY not configured, using fallback coordinates');
-      // Return Montreal coordinates as fallback
-      return res.json({
-        success: true,
-        address,
-        location: { lat: 45.5017, lng: -73.5673 },
-        cached: false,
-        fallback: true
-      });
-    }
-
-    // Check cache first
-    const cacheKey = `geocode:${address.toLowerCase().trim()}`;
-    const cached = geocodeCache.get(cacheKey);
-    if (cached) {
-      console.log(`📋 Cache hit for address: ${address}`);
-      return res.json({
-        success: true,
-        address,
-        location: cached,
-        cached: true
-      });
-    }
-
-    console.log(`🌍 Geocoding address: ${address}`);
-
-    // Call Google Geocoding API
-    const params = new URLSearchParams({
-      address: address,
-      key: GEOCODE_API_KEY
-    });
-
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?${params.toString()}`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.status === 'OK' && data.results.length > 0) {
-      const location = data.results[0].geometry.location;
-      
-      // Cache the result
-      geocodeCache.set(cacheKey, location);
-      
-      console.log(`✅ Geocoded successfully: ${address} → ${location.lat}, ${location.lng}`);
-      
-      res.json({
-        success: true,
-        address,
-        location,
-        cached: false
-      });
-    } else {
-      console.error(`❌ Geocoding failed for ${address}: ${data.status}`);
-      res.status(400).json({
-        success: false,
-        error: `Geocoding failed: ${data.status}`,
-        details: data.error_message || 'No results found'
-      });
-    }
+    const result = await geocodeAddress(address);
+    res.json(result);
 
   } catch (error) {
     console.error('❌ Geocoding error:', error);
@@ -113,46 +55,14 @@ router.post('/batch-geocode', async (req, res) => {
       });
     }
 
-    if (addresses.length > 10) {
+    if (addresses.length > 50) {
       return res.status(400).json({
         success: false,
-        error: 'Maximum 10 addresses per batch'
+        error: 'Maximum 50 addresses per batch'
       });
     }
 
-    console.log(`🌍 Batch geocoding ${addresses.length} addresses`);
-
-    const results = [];
-    
-    for (const address of addresses) {
-      try {
-        // Use the single geocode endpoint for each address
-        const response = await fetch(`${req.protocol}://${req.get('host')}/api/geocoding/geocode`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ address })
-        });
-        
-        const result = await response.json();
-        results.push({
-          address,
-          ...result
-        });
-        
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-      } catch (error) {
-        results.push({
-          address,
-          success: false,
-          error: error.message
-        });
-      }
-    }
-
+    const results = await batchGeocode(addresses);
     res.json({
       success: true,
       results
@@ -254,6 +164,50 @@ router.post('/update-studio-coordinates', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update studio coordinates',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/geocoding/cache-stats
+ * @desc    Get cache statistics
+ * @access  Admin only
+ */
+router.get('/cache-stats', async (req, res) => {
+  try {
+    const stats = getCacheStats();
+    res.json({
+      success: true,
+      stats
+    });
+  } catch (error) {
+    console.error('❌ Cache stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get cache statistics',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/geocoding/clear-cache
+ * @desc    Clear all cache
+ * @access  Admin only
+ */
+router.post('/clear-cache', async (req, res) => {
+  try {
+    await clearCache();
+    res.json({
+      success: true,
+      message: 'Cache cleared successfully'
+    });
+  } catch (error) {
+    console.error('❌ Clear cache error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear cache',
       details: error.message
     });
   }
