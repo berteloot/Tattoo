@@ -1541,7 +1541,7 @@ router.get('/studios', protect, adminOnly, async (req, res) => {
     
     const where = {};
     
-    if (search) {
+    if (search && search.trim() !== '') {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
         { address: { contains: search, mode: 'insensitive' } },
@@ -1550,15 +1550,15 @@ router.get('/studios', protect, adminOnly, async (req, res) => {
       ];
     }
     
-    if (verified !== undefined) {
+    if (verified !== undefined && verified !== '' && verified !== null) {
       where.isVerified = verified === 'true';
     }
     
-    if (featured !== undefined) {
+    if (featured !== undefined && featured !== '' && featured !== null) {
       where.isFeatured = featured === 'true';
     }
     
-    if (status) {
+    if (status && status.trim() !== '') {
       where.verificationStatus = status;
     }
     
