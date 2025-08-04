@@ -25,6 +25,7 @@ const Studios = () => {
       if (searchTerm) params.append('search', searchTerm);
       if (filterVerified) params.append('verified', 'true');
       if (filterFeatured) params.append('featured', 'true');
+      params.append('limit', '100'); // Show more studios
       
       const response = await api.get(`/studios?${params.toString()}`);
       if (response.data && response.data.success) {
