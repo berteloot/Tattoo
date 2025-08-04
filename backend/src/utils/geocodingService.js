@@ -1,4 +1,3 @@
-const PQueue = require('p-queue');
 const { PrismaClient } = require('@prisma/client');
 const NodeCache = require('node-cache');
 
@@ -7,12 +6,56 @@ const prisma = new PrismaClient();
 // In-memory cache for fast lookups (24 hour TTL)
 const memoryCache = new NodeCache({ stdTTL: 60 * 60 * 24 });
 
+// Custom rate limiting queue
+class RateLimitedQueue {
+  constructor(maxRequestsPerSecond = 10) {
+    this.maxRequestsPerSecond = maxRequestsPerSecond;
+    this.requestTimes = [];
+    this.processing = false;
+  }
+
+  async add(task) {
+    return new Promise((resolve, reject) => {
+      this.processTask(task, resolve, reject);
+    });
+  }
+
+  async processTask(task, resolve, reject) {
+    // Clean old request times (older than 1 second)
+    const now = Date.now();
+    this.requestTimes = this.requestTimes.filter(time => now - time < 1000);
+
+    // If we're at the rate limit, wait
+    if (this.requestTimes.length >= this.maxRequestsPerSecond) {
+      const oldestRequest = this.requestTimes[0];
+      const waitTime = 1000 - (now - oldestRequest);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      return this.processTask(task, resolve, reject);
+    }
+
+    // Add current request time
+    this.requestTimes.push(now);
+
+    // Execute the task
+    try {
+      const result = await task();
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    }
+  }
+
+  get size() {
+    return this.requestTimes.length;
+  }
+
+  get pending() {
+    return 0; // We don't track pending tasks in this simple implementation
+  }
+}
+
 // Rate-limited queue: max 10 requests per second
-const geocodeQueue = new PQueue({ 
-  interval: 1000, 
-  intervalCap: 10,
-  timeout: 30000 // 30 second timeout
-});
+const geocodeQueue = new RateLimitedQueue(10);
 
 // Google Geocoding API key (server-side key)
 const GEOCODE_API_KEY = process.env.GOOGLE_GEOCODE_API_KEY;
