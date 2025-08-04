@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Upload
+  Upload,
+  Building2
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -133,6 +134,14 @@ const AdminDashboard = () => {
       href: '/admin/studios/upload',
       color: 'bg-indigo-500',
       hoverColor: 'hover:bg-indigo-600'
+    },
+    {
+      title: 'Studio Management',
+      description: 'Manage and verify all studios',
+      icon: Building2,
+      href: '/admin/studios',
+      color: 'bg-teal-500',
+      hoverColor: 'hover:bg-teal-600'
     }
   ];
 

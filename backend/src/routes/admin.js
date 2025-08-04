@@ -1241,4 +1241,377 @@ function parseCSVLine(line) {
   return values.map(v => v.replace(/^"|"$/g, '')); // Remove surrounding quotes
 }
 
+/**
+ * @route   GET /api/admin/studios
+ * @desc    Get all studios with filtering and pagination
+ * @access  Admin only
+ */
+router.get('/studios', protect, adminOnly, async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 20, 
+      search, 
+      verified, 
+      featured,
+      status 
+    } = req.query;
+    
+    const where = {};
+    
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { address: { contains: search, mode: 'insensitive' } },
+        { city: { contains: search, mode: 'insensitive' } },
+        { state: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    
+    if (verified !== undefined) {
+      where.isVerified = verified === 'true';
+    }
+    
+    if (featured !== undefined) {
+      where.isFeatured = featured === 'true';
+    }
+    
+    if (status) {
+      where.verificationStatus = status;
+    }
+    
+    const [studios, total] = await Promise.all([
+      prisma.studio.findMany({
+        where,
+        include: {
+          artists: {
+            include: {
+              artist: {
+                include: {
+                  user: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                      email: true
+                    }
+                  }
+                }
+              }
+            },
+            where: {
+              isActive: true
+            }
+          },
+          claimedByUser: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          },
+          verifiedByUser: {
+            select: {
+              firstName: true,
+              lastName: true
+            }
+          },
+          _count: {
+            select: {
+              artists: {
+                where: {
+                  isActive: true
+                }
+              }
+            }
+          }
+        },
+        skip: (page - 1) * limit,
+        take: parseInt(limit),
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.studio.count({ where })
+    ]);
+    
+    res.json({
+      success: true,
+      data: {
+        studios,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching studios:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch studios'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/studios/:id
+ * @desc    Get specific studio details
+ * @access  Admin only
+ */
+router.get('/studios/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const studio = await prisma.studio.findUnique({
+      where: { id: req.params.id },
+      include: {
+        artists: {
+          include: {
+            artist: {
+              include: {
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        claimedByUser: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        verifiedByUser: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        }
+      }
+    });
+    
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: studio
+    });
+  } catch (error) {
+    console.error('Error fetching studio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch studio'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/studios/:id/verify
+ * @desc    Verify or reject a studio
+ * @access  Admin only
+ */
+router.put('/studios/:id/verify', protect, adminOnly, async (req, res) => {
+  try {
+    const { isVerified, verificationNotes } = req.body;
+    
+    const studio = await prisma.studio.update({
+      where: { id: req.params.id },
+      data: {
+        isVerified,
+        verificationStatus: isVerified ? 'APPROVED' : 'REJECTED',
+        verifiedBy: req.user.id,
+        verifiedAt: new Date()
+      }
+    });
+    
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'VERIFY_STUDIO',
+        targetType: 'STUDIO',
+        targetId: req.params.id,
+        details: `Studio verification ${isVerified ? 'approved' : 'rejected'}: ${verificationNotes || ''}`
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: studio,
+      message: `Studio ${isVerified ? 'verified' : 'rejected'} successfully`
+    });
+  } catch (error) {
+    console.error('Error verifying studio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to verify studio'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/studios/:id/feature
+ * @desc    Feature or unfeature a studio
+ * @access  Admin only
+ */
+router.put('/studios/:id/feature', protect, adminOnly, async (req, res) => {
+  try {
+    const { isFeatured } = req.body;
+    
+    const studio = await prisma.studio.update({
+      where: { id: req.params.id },
+      data: {
+        isFeatured
+      }
+    });
+    
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'FEATURE_STUDIO',
+        targetType: 'STUDIO',
+        targetId: req.params.id,
+        details: `Studio ${isFeatured ? 'featured' : 'unfeatured'}`
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: studio,
+      message: `Studio ${isFeatured ? 'featured' : 'unfeatured'} successfully`
+    });
+  } catch (error) {
+    console.error('Error featuring studio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to feature studio'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/studios/:id
+ * @desc    Update studio information
+ * @access  Admin only
+ */
+router.put('/studios/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const {
+      title,
+      website,
+      phoneNumber,
+      email,
+      facebookUrl,
+      instagramUrl,
+      twitterUrl,
+      linkedinUrl,
+      youtubeUrl,
+      address,
+      city,
+      state,
+      zipCode,
+      country,
+      latitude,
+      longitude,
+      isActive
+    } = req.body;
+    
+    const studio = await prisma.studio.update({
+      where: { id: req.params.id },
+      data: {
+        title,
+        website,
+        phoneNumber,
+        email,
+        facebookUrl,
+        instagramUrl,
+        twitterUrl,
+        linkedinUrl,
+        youtubeUrl,
+        address,
+        city,
+        state,
+        zipCode,
+        country,
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
+        isActive
+      }
+    });
+    
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'UPDATE_STUDIO',
+        targetType: 'STUDIO',
+        targetId: req.params.id,
+        details: 'Studio information updated'
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: studio,
+      message: 'Studio updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating studio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update studio'
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/studios/:id
+ * @desc    Deactivate a studio
+ * @access  Admin only
+ */
+router.delete('/studios/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const studio = await prisma.studio.update({
+      where: { id: req.params.id },
+      data: {
+        isActive: false
+      }
+    });
+    
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'DEACTIVATE_STUDIO',
+        targetType: 'STUDIO',
+        targetId: req.params.id,
+        details: 'Studio deactivated'
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: studio,
+      message: 'Studio deactivated successfully'
+    });
+  } catch (error) {
+    console.error('Error deactivating studio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to deactivate studio'
+    });
+  }
+});
+
 module.exports = router; 
