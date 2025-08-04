@@ -6,6 +6,7 @@ import ImageUpload from '../components/ImageUpload'
 import AddressAutocomplete from '../components/AddressAutocomplete'
 import StudioSearch from '../components/StudioSearch'
 import LinkedStudios from '../components/LinkedStudios'
+import { FavoriteClients } from '../components/FavoriteClients'
 
 export const ArtistDashboard = () => {
   const { user } = useAuth()
@@ -1098,6 +1099,13 @@ export const ArtistDashboard = () => {
                 refreshTrigger={studioRefreshTrigger}
               />
             </div>
+          </div>
+        )}
+
+        {/* Favorite Clients Management */}
+        {user?.artistProfile?.id && (
+          <div className="mt-8">
+            <FavoriteClients />
           </div>
         )}
 

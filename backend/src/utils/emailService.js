@@ -404,6 +404,66 @@ class EmailService {
 
     return this.sendEmail(client.email, subject, htmlContent)
   }
+
+  // Artist to client email (for favorite clients)
+  async sendArtistToClientEmail({ to, clientName, artistName, artistEmail, subject, message, studioName }) {
+    const emailSubject = subject || `Message from ${artistName} - Tattooed World`
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
+          <h1 style="margin: 0; font-size: 28px;">Message from ${artistName}</h1>
+          <p style="margin: 10px 0 0 0; opacity: 0.9;">${studioName}</p>
+        </div>
+        
+        <div style="padding: 40px; background: white;">
+          <h2 style="color: #333; margin-bottom: 20px;">Hi ${clientName},</h2>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+            <p style="color: #666; line-height: 1.6; margin: 0; font-style: italic;">
+              "${message}"
+            </p>
+          </div>
+          
+          <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #333; margin-top: 0;">Contact Information:</h3>
+            <ul style="color: #666; line-height: 1.8;">
+              <li>🎨 Artist: ${artistName}</li>
+              <li>🏢 Studio: ${studioName}</li>
+              <li>📧 Email: ${artistEmail}</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="mailto:${artistEmail}" 
+               style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Reply to ${artistName}
+            </a>
+          </div>
+          
+          <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+            <p style="color: #856404; margin: 0; font-size: 14px;">
+              <strong>Note:</strong> This message was sent through Tattooed World because you have ${artistName} in your favorites. 
+              You can reply directly to this email to contact the artist.
+            </p>
+          </div>
+          
+          <p style="color: #666; line-height: 1.6;">
+            Best regards,<br>
+            ${artistName}<br>
+            ${studioName}
+          </p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px;">
+          <p>© 2025 Tattooed World. All rights reserved.</p>
+          <p>This email was sent to ${to}</p>
+          <p>Sent via Tattooed World platform</p>
+        </div>
+      </div>
+    `
+
+    return this.sendEmail(to, emailSubject, htmlContent)
+  }
 }
 
 module.exports = new EmailService() 

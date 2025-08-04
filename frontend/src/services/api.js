@@ -65,6 +65,8 @@ export const artistsAPI = {
   createProfile: (profileData) => api.post('/artists', profileData),
   updateProfile: (id, profileData) => api.put(`/artists/${id}`, profileData),
   getStudios: (id) => api.get(`/artists/${id}/studios`),
+  getFavoriteClients: () => api.get('/artists/my-favorites'),
+  emailFavoriteClients: (data) => api.post('/artists/email-favorites', data),
 }
 
 export const flashAPI = {

@@ -657,4 +657,248 @@ router.get('/:id/studios', async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/artists/my-favorites
+ * @desc    Get clients who have favorited the current artist
+ * @access  Private (ARTIST only)
+ */
+router.get('/my-favorites', protect, authorize(['ARTIST', 'ARTIST_ADMIN']), async (req, res) => {
+  try {
+    const artistId = req.user.artistProfile?.id;
+
+    if (!artistId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist profile not found'
+      });
+    }
+
+    // Get all clients who have favorited this artist
+    const favorites = await prisma.favorite.findMany({
+      where: {
+        artistId: artistId
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatar: true,
+            createdAt: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // Get additional client information
+    const clientsWithDetails = await Promise.all(
+      favorites.map(async (favorite) => {
+        // Get client's review count and average rating given
+        const reviewsGiven = await prisma.review.findMany({
+          where: {
+            authorId: favorite.userId
+          }
+        });
+
+        const averageRating = reviewsGiven.length > 0
+          ? reviewsGiven.reduce((sum, review) => sum + review.rating, 0) / reviewsGiven.length
+          : 0;
+
+        return {
+          ...favorite,
+          client: {
+            ...favorite.user,
+            reviewCount: reviewsGiven.length,
+            averageRating: Math.round(averageRating * 10) / 10,
+            favoritedAt: favorite.createdAt
+          }
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      data: {
+        totalClients: clientsWithDetails.length,
+        clients: clientsWithDetails
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching favorite clients:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while fetching favorite clients'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/artists/email-favorites
+ * @desc    Send email to clients who have favorited the artist
+ * @access  Private (ARTIST only)
+ */
+router.post('/email-favorites', [
+  protect,
+  authorize(['ARTIST', 'ARTIST_ADMIN']),
+  body('subject').isString().notEmpty().withMessage('Subject is required'),
+  body('message').isString().notEmpty().withMessage('Message is required'),
+  body('clientIds').optional().isArray().withMessage('Client IDs must be an array'),
+  body('sendToAll').optional().isBoolean().withMessage('Send to all must be a boolean')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const artistId = req.user.artistProfile?.id;
+    const { subject, message, clientIds, sendToAll = false } = req.body;
+
+    if (!artistId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist profile not found'
+      });
+    }
+
+    // Get artist information
+    const artist = await prisma.artistProfile.findUnique({
+      where: { id: artistId },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist profile not found'
+      });
+    }
+
+    // Determine which clients to email
+    let targetClients = [];
+    
+    if (sendToAll) {
+      // Get all clients who have favorited this artist
+      const allFavorites = await prisma.favorite.findMany({
+        where: { artistId: artistId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
+        }
+      });
+      targetClients = allFavorites.map(fav => fav.user);
+    } else if (clientIds && clientIds.length > 0) {
+      // Get specific clients who have favorited this artist
+      const specificFavorites = await prisma.favorite.findMany({
+        where: {
+          artistId: artistId,
+          userId: { in: clientIds }
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
+        }
+      });
+      targetClients = specificFavorites.map(fav => fav.user);
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: 'Either sendToAll must be true or clientIds must be provided'
+      });
+    }
+
+    if (targetClients.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No clients found to email'
+      });
+    }
+
+    // Send emails to each client
+    const emailResults = [];
+    const artistName = `${artist.user.firstName} ${artist.user.lastName}`;
+
+    for (const client of targetClients) {
+      try {
+        const emailResult = await emailService.sendArtistToClientEmail({
+          to: client.email,
+          clientName: `${client.firstName} ${client.lastName}`,
+          artistName: artistName,
+          artistEmail: artist.user.email,
+          subject: subject,
+          message: message,
+          studioName: artist.studioName || 'My Studio'
+        });
+
+        emailResults.push({
+          clientId: client.id,
+          clientName: `${client.firstName} ${client.lastName}`,
+          clientEmail: client.email,
+          success: emailResult.success,
+          error: emailResult.error
+        });
+      } catch (error) {
+        emailResults.push({
+          clientId: client.id,
+          clientName: `${client.firstName} ${client.lastName}`,
+          clientEmail: client.email,
+          success: false,
+          error: error.message
+        });
+      }
+    }
+
+    // Count successful and failed emails
+    const successfulEmails = emailResults.filter(result => result.success).length;
+    const failedEmails = emailResults.filter(result => !result.success).length;
+
+    res.json({
+      success: true,
+      data: {
+        totalClients: targetClients.length,
+        successfulEmails,
+        failedEmails,
+        results: emailResults,
+        message: `Email sent to ${successfulEmails} out of ${targetClients.length} clients`
+      }
+    });
+  } catch (error) {
+    console.error('Error sending emails to favorite clients:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while sending emails'
+    });
+  }
+});
+
 module.exports = router; 
