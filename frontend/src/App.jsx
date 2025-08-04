@@ -18,6 +18,7 @@ import EmailVerification from './pages/EmailVerification'
 import AdminUserManagement from './pages/AdminUserManagement'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminArtistVerification from './pages/AdminArtistVerification'
+import AdminArtistManagement from './pages/AdminArtistManagement'
 import AdminReviewModeration from './pages/AdminReviewModeration'
 import AdminAuditLog from './pages/AdminAuditLog'
 import AdminStudioUpload from './pages/AdminStudioUpload'
@@ -66,6 +67,11 @@ function App() {
               <Route path="/admin/users" element={
                 <ProtectedRoute requiredRole="ADMIN">
                   <AdminUserManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/artists" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminArtistManagement />
                 </ProtectedRoute>
               } />
               <Route path="/admin/artists/pending" element={

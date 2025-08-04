@@ -544,6 +544,86 @@ router.get('/users/:id', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/admin/artists
+ * @desc    Get all artists with filtering and pagination
+ * @access  Admin only
+ */
+router.get('/artists', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search, verificationStatus, isFeatured, isVerified } = req.query;
+    const skip = (page - 1) * limit;
+
+    const where = {};
+    
+    // Search filter
+    if (search) {
+      where.OR = [
+        { user: { firstName: { contains: search, mode: 'insensitive' } } },
+        { user: { lastName: { contains: search, mode: 'insensitive' } } },
+        { user: { email: { contains: search, mode: 'insensitive' } } },
+        { studioName: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    // Verification status filter
+    if (verificationStatus) {
+      where.verificationStatus = verificationStatus;
+    }
+
+    // Featured filter
+    if (isFeatured !== undefined && isFeatured !== '' && isFeatured !== null) {
+      where.isFeatured = isFeatured === 'true';
+    }
+
+    // Verified filter
+    if (isVerified !== undefined && isVerified !== '' && isVerified !== null) {
+      where.isVerified = isVerified === 'true';
+    }
+
+    const [artists, total] = await Promise.all([
+      prisma.artistProfile.findMany({
+        where,
+        skip: parseInt(skip),
+        take: parseInt(limit),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              createdAt: true
+            }
+          }
+        }
+      }),
+      prisma.artistProfile.count({ where })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        artists,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get artists error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching artists'
+    });
+  }
+});
+
+/**
  * @route   GET /api/admin/artists/pending
  * @desc    Get pending artist verifications
  * @access  Admin only

@@ -140,13 +140,23 @@ const StudioDetail = () => {
           </div>
           
           <div className="flex space-x-2">
-            {studio.isVerified && (
+            {studio.verificationStatus === 'APPROVED' && (
               <span className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">
                 Verified
               </span>
             )}
-            {studio.isFeatured && (
+            {studio.verificationStatus === 'PENDING' && (
               <span className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-full">
+                Pending
+              </span>
+            )}
+            {studio.verificationStatus === 'REJECTED' && (
+              <span className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-full">
+                Rejected
+              </span>
+            )}
+            {studio.isFeatured && (
+              <span className="px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded-full">
                 Featured
               </span>
             )}

@@ -88,12 +88,20 @@ const AdminDashboard = () => {
       hoverColor: 'hover:bg-blue-600'
     },
     {
-      title: 'Artist Verification',
-      description: 'Review and approve pending artist applications',
+      title: 'Artist Management',
+      description: 'Manage all artists, featuring, and verification',
       icon: UserCheck,
-      href: '/admin/artists/pending',
+      href: '/admin/artists',
       color: 'bg-green-500',
       hoverColor: 'hover:bg-green-600'
+    },
+    {
+      title: 'Artist Verification',
+      description: 'Review and approve pending artist applications',
+      icon: Clock,
+      href: '/admin/artists/pending',
+      color: 'bg-orange-500',
+      hoverColor: 'hover:bg-orange-600'
     },
     {
       title: 'Review Moderation',
