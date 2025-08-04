@@ -115,6 +115,7 @@ export const ArtistDashboard = () => {
               twitter: artist.twitter || '',
               youtube: artist.youtube || '',
               linkedin: artist.linkedin || '',
+              pinterest: artist.pinterest || '',
               calendlyUrl: artist.calendlyUrl || '',
               address: artist.address || '',
               city: artist.city || '',
