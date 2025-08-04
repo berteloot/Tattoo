@@ -106,17 +106,10 @@ const validateArtistProfile = (isUpdate = false) => {
       .isLength({ max: 200 })
       .withMessage('Address must be less than 200 characters'),
 
-    // City validation - more flexible for updates
+    // City validation - optional for all cases
     body('city')
-      .if(() => isUpdate)
       .optional()
       .trim()
-      .isLength({ min: 1, max: 100 })
-      .withMessage('City must be between 1 and 100 characters')
-      .if(() => !isUpdate)
-      .trim()
-      .notEmpty()
-      .withMessage('City is required')
       .isLength({ max: 100 })
       .withMessage('City must be less than 100 characters'),
 

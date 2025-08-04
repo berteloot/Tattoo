@@ -77,10 +77,6 @@ const processArtistData = (data, isUpdate = false) => {
 
   if (data.city !== undefined) {
     processed.city = safeTrim(data.city);
-    // For updates, allow empty city if it's being cleared
-    if (!isUpdate && !processed.city) {
-      throw new Error('City is required');
-    }
   }
 
   if (data.state !== undefined) {
