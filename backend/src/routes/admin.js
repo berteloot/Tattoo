@@ -1283,59 +1283,36 @@ router.get('/studios', protect, adminOnly, async (req, res) => {
     const [studios, total] = await Promise.all([
       prisma.studio.findMany({
         where,
-        include: {
-          artists: {
-            include: {
-              artist: {
-                include: {
-                  user: {
-                    select: {
-                      firstName: true,
-                      lastName: true,
-                      email: true
-                    }
-                  }
-                }
-              }
-            },
-            where: {
-              isActive: true
-            }
-          },
-          claimedByUser: {
-            select: {
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          },
-          verifiedByUser: {
-            select: {
-              firstName: true,
-              lastName: true
-            }
-          },
-          _count: {
-            select: {
-              artists: {
-                where: {
-                  isActive: true
-                }
-              }
-            }
-          }
-        },
         skip: (page - 1) * limit,
         take: parseInt(limit),
         orderBy: { createdAt: 'desc' }
       }),
       prisma.studio.count({ where })
     ]);
+
+    // Get artist counts for each studio
+    const studiosWithArtistCounts = await Promise.all(
+      studios.map(async (studio) => {
+        const artistCount = await prisma.studioArtist.count({
+          where: {
+            studioId: studio.id,
+            isActive: true
+          }
+        });
+        
+        return {
+          ...studio,
+          _count: {
+            artists: artistCount
+          }
+        };
+      })
+    );
     
     res.json({
       success: true,
       data: {
-        studios,
+        studios: studiosWithArtistCounts,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
@@ -1346,9 +1323,12 @@ router.get('/studios', protect, adminOnly, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching studios:', error);
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch studios'
+      error: 'Failed to fetch studios',
+      details: error.message
     });
   }
 });

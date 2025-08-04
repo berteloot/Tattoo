@@ -28,11 +28,9 @@ model User {
   updatedAt               DateTime       @updatedAt
   adminActions            AdminAction[]  @relation("AdminPerformer")
   artistProfile           ArtistProfile?
+  favorites               Favorite[]     @relation("FavoriteUser")
   reviewsGiven            Review[]       @relation("ReviewAuthor")
   reviewsReceived         Review[]       @relation("ReviewRecipient")
-  favorites               Favorite[]     @relation("FavoriteUser")
-  claimedStudios          Studio[]       @relation("StudioClaimedBy")
-  verifiedStudios         Studio[]       @relation("StudioVerifiedBy")
 
   @@map("users")
 }
@@ -48,7 +46,6 @@ model ArtistProfile {
   twitter            String?
   youtube            String?
   linkedin           String?
-  pinterest          String?
   calendlyUrl        String?
   latitude           Float?
   longitude          Float?
@@ -70,12 +67,12 @@ model ArtistProfile {
   updatedAt          DateTime           @updatedAt
   lastViewedAt       DateTime?
   profileViews       Int                @default(0)
+  pinterest          String?            @db.VarChar(255)
   user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites          Favorite[]         @relation("FavoriteArtist")
   flash              Flash[]
   services           Service[]          @relation("ArtistProfileToService")
   specialties        Specialty[]        @relation("ArtistProfileToSpecialty")
-  favorites          Favorite[]         @relation("FavoriteArtist")
-  studioMemberships  StudioArtist[]
 
   @@map("artist_profiles")
 }
@@ -166,59 +163,62 @@ model AdminAction {
   @@map("admin_actions")
 }
 
-// Studio System Models
 model Studio {
-  id              String             @id @default(cuid())
-  title           String
-  slug            String             @unique
-  website         String?
-  phoneNumber     String?            @map("phone_number")
-  email           String?
-  facebookUrl     String?            @map("facebook_url")
-  instagramUrl    String?            @map("instagram_url")
-  twitterUrl      String?            @map("twitter_url")
-  linkedinUrl     String?            @map("linkedin_url")
-  youtubeUrl      String?            @map("youtube_url")
-  latitude        Float?
-  longitude       Float?
-  address         String?
-  city            String?
-  state           String?
-  zipCode         String?            @map("zip_code")
-  country         String?
-  isActive        Boolean            @default(true) @map("is_active")
-  isVerified      Boolean            @default(false) @map("is_verified")
-  isFeatured      Boolean            @default(false) @map("is_featured")
-  verificationStatus VerificationStatus @default(PENDING) @map("verification_status")
-  claimedBy       String?            @map("claimed_by")
-  claimedAt       DateTime?          @map("claimed_at")
-  verifiedBy      String?            @map("verified_by")
-  verifiedAt      DateTime?          @map("verified_at")
-  createdAt       DateTime           @default(now()) @map("created_at")
-  updatedAt       DateTime           @updatedAt @map("updated_at")
-  
-  // Relations
-  claimedByUser   User?              @relation("StudioClaimedBy", fields: [claimedBy], references: [id])
-  verifiedByUser  User?              @relation("StudioVerifiedBy", fields: [verifiedBy], references: [id])
-  artists         StudioArtist[]
+  id                 String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  title              String
+  slug               String    @unique
+  website            String?
+  phoneNumber        String?   @map("phone_number")
+  email              String?
+  facebookUrl        String?   @map("facebook_url")
+  instagramUrl       String?   @map("instagram_url")
+  twitterUrl         String?   @map("twitter_url")
+  linkedinUrl        String?   @map("linkedin_url")
+  youtubeUrl         String?   @map("youtube_url")
+  latitude           Float?
+  longitude          Float?
+  address            String?
+  city               String?
+  state              String?
+  zipCode            String?   @map("zip_code")
+  country            String?
+  isActive           Boolean?  @default(true) @map("is_active")
+  isVerified         Boolean?  @default(false) @map("is_verified")
+  isFeatured         Boolean?  @default(false) @map("is_featured")
+  verificationStatus String?   @default("PENDING") @map("verification_status")
+  claimedBy          String?   @map("claimed_by")
+  claimedAt          DateTime? @map("claimed_at") @db.Timestamp(6)
+  verifiedBy         String?   @map("verified_by")
+  verifiedAt         DateTime? @map("verified_at") @db.Timestamp(6)
+  createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt          DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
   @@map("studios")
 }
 
 model StudioArtist {
-  id          String        @id @default(cuid())
-  studioId    String        @map("studio_id")
-  artistId    String        @map("artist_id")
-  role        StudioRole    @default(ARTIST)
-  isActive    Boolean       @default(true) @map("is_active")
-  joinedAt    DateTime      @default(now()) @map("joined_at")
-  leftAt      DateTime?     @map("left_at")
-  
-  studio      Studio        @relation(fields: [studioId], references: [id], onDelete: Cascade)
-  artist      ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  
-  @@unique([studioId, artistId])
+  id       String       @id @default(dbgenerated("(gen_random_uuid())::text"))
+  studioId String       @map("studio_id")
+  artistId String       @map("artist_id")
+  role     studio_role? @default(ARTIST)
+  isActive Boolean?     @default(true) @map("is_active")
+  joinedAt DateTime?    @default(now()) @map("joined_at") @db.Timestamp(6)
+  leftAt   DateTime?    @map("left_at") @db.Timestamp(6)
+
+  @@unique([studioId, artistId], map: "unique_studio_artist")
   @@map("studio_artists")
+}
+
+model Favorite {
+  id        String        @id @default(cuid())
+  userId    String
+  artistId  String
+  createdAt DateTime      @default(now())
+  artist    ArtistProfile @relation("FavoriteArtist", fields: [artistId], references: [id], onDelete: Cascade)
+  user      User          @relation("FavoriteUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, artistId])
+  @@map("favorites")
 }
 
 enum UserRole {
@@ -242,22 +242,9 @@ enum FlashComplexity {
   MASTERPIECE
 }
 
-enum StudioRole {
+enum studio_role {
   OWNER
   MANAGER
   ARTIST
   GUEST
-}
-
-// Favorites model - for clients to favorite artists
-model Favorite {
-  id        String   @id @default(cuid())
-  userId    String
-  artistId  String
-  user      User     @relation("FavoriteUser", fields: [userId], references: [id], onDelete: Cascade)
-  artist    ArtistProfile @relation("FavoriteArtist", fields: [artistId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@unique([userId, artistId])
-  @@map("favorites")
 }
