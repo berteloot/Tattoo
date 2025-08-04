@@ -29,6 +29,7 @@ export const ArtistDashboard = () => {
     twitter: '',
     youtube: '',
     linkedin: '',
+    pinterest: '',
     calendlyUrl: '',
     address: '',
     city: '',
@@ -666,6 +667,22 @@ export const ArtistDashboard = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Pinterest
+                      </label>
+                      <input
+                        type="text"
+                        name="pinterest"
+                        value={formData.pinterest}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="pinterest.com/yourprofile"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Calendly URL
                       </label>
                       <input
@@ -831,7 +848,7 @@ export const ArtistDashboard = () => {
                   </div>
 
                   {/* Social Media */}
-                  {(profile?.instagram || profile?.facebook || profile?.twitter || profile?.youtube || profile?.linkedin) && (
+                  {(profile?.instagram || profile?.facebook || profile?.twitter || profile?.youtube || profile?.linkedin || profile?.pinterest) && (
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Social Media</h3>
                       <div className="space-y-2">
@@ -849,6 +866,9 @@ export const ArtistDashboard = () => {
                         )}
                         {profile?.linkedin && (
                           <p className="text-gray-600"><strong>LinkedIn:</strong> <a href={`https://linkedin.com/in/${profile.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{profile.linkedin}</a></p>
+                        )}
+                        {profile?.pinterest && (
+                          <p className="text-gray-600"><strong>Pinterest:</strong> <a href={`https://pinterest.com/${profile.pinterest}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{profile.pinterest}</a></p>
                         )}
                       </div>
                     </div>

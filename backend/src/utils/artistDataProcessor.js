@@ -63,6 +63,10 @@ const processArtistData = (data, isUpdate = false) => {
     processed.linkedin = safeTrim(data.linkedin);
   }
 
+  if (data.pinterest !== undefined) {
+    processed.pinterest = safeTrim(data.pinterest);
+  }
+
   if (data.calendlyUrl !== undefined) {
     processed.calendlyUrl = safeTrim(data.calendlyUrl);
   }

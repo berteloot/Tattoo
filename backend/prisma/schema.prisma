@@ -48,6 +48,7 @@ model ArtistProfile {
   twitter            String?
   youtube            String?
   linkedin           String?
+  pinterest          String?
   calendlyUrl        String?
   latitude           Float?
   longitude          Float?

@@ -73,6 +73,11 @@ const validateArtistProfile = (isUpdate = false) => {
     .trim()
     .isLength({ max: 100 })
     .withMessage('LinkedIn URL must be less than 100 characters'),
+  body('pinterest')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Pinterest URL must be less than 100 characters'),
 
     // Calendly URL with better validation
     body('calendlyUrl')

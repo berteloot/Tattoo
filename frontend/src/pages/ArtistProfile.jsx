@@ -17,7 +17,8 @@ import {
   ExternalLink,
   Calendar,
   MessageCircle,
-  Plus
+  Plus,
+  Pinterest
 } from 'lucide-react'
 import { LoadingSpinner } from '../components/UXComponents'
 import { CalendlyWidget } from '../components/CalendlyWidget'
@@ -473,6 +474,27 @@ export const ArtistProfile = () => {
                   </div>
                 )}
 
+                {/* Pinterest */}
+                {artist.pinterest && (
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-red-500 rounded-full flex items-center justify-center mr-3">
+                      <Pinterest className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">Pinterest</p>
+                      <a
+                        href={artist.pinterest.startsWith('http') ? artist.pinterest : `https://pinterest.com/${artist.pinterest}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block flex items-center"
+                      >
+                        {artist.pinterest.replace(/^https?:\/\/(www\.)?pinterest\.com\//, '')}
+                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
                 {/* Calendly Booking */}
                 {artist.calendlyUrl && (
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
@@ -496,7 +518,7 @@ export const ArtistProfile = () => {
 
                 {/* No contact info message */}
                 {!artist.user.phone && !artist.user.email && !artist.website && !artist.instagram && 
-                 !artist.facebook && !artist.twitter && !artist.youtube && !artist.linkedin && !artist.calendlyUrl && (
+                 !artist.facebook && !artist.twitter && !artist.youtube && !artist.linkedin && !artist.pinterest && !artist.calendlyUrl && (
                   <div className="text-center py-6">
                     <MessageCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-gray-500 text-sm">No contact information available</p>
