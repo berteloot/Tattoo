@@ -894,6 +894,288 @@ router.put('/reviews/:id/moderate', [
 });
 
 /**
+ * @route   GET /api/admin/content
+ * @desc    Get all flash items with filtering and pagination for admin
+ * @access  Admin only
+ */
+router.get('/content', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search, artist, isApproved, isHidden } = req.query;
+    const skip = (page - 1) * limit;
+
+    const where = {};
+    
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { tags: { hasSome: [search] } }
+      ];
+    }
+    
+    if (artist) {
+      where.artist = {
+        user: {
+          OR: [
+            { firstName: { contains: artist, mode: 'insensitive' } },
+            { lastName: { contains: artist, mode: 'insensitive' } }
+          ]
+        }
+      };
+    }
+    
+    if (isApproved !== undefined) {
+      where.isApproved = isApproved === 'true';
+    }
+    
+    if (isHidden !== undefined) {
+      where.isHidden = isHidden === 'true';
+    }
+
+    const [flashItems, total] = await Promise.all([
+      prisma.flash.findMany({
+        where,
+        skip: parseInt(skip),
+        take: parseInt(limit),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          artist: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true
+                }
+              }
+            }
+          }
+        }
+      }),
+      prisma.flash.count({ where })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        flashItems,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get content error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching content'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/content/:id/moderate
+ * @desc    Moderate flash item (approve/hide)
+ * @access  Admin only
+ */
+router.put('/content/:id/moderate', [
+  body('isApproved').optional().isBoolean(),
+  body('isHidden').optional().isBoolean(),
+  body('reason').optional().isString()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { isApproved, isHidden, reason } = req.body;
+
+    const flashItem = await prisma.flash.findUnique({
+      where: { id },
+      include: {
+        artist: {
+          include: {
+            user: { select: { firstName: true, lastName: true } }
+          }
+        }
+      }
+    });
+
+    if (!flashItem) {
+      return res.status(404).json({
+        success: false,
+        error: 'Flash item not found'
+      });
+    }
+
+    const updateData = {};
+    if (isApproved !== undefined) updateData.isApproved = isApproved;
+    if (isHidden !== undefined) updateData.isHidden = isHidden;
+
+    const updatedFlashItem = await prisma.flash.update({
+      where: { id },
+      data: updateData,
+      include: {
+        artist: {
+          include: {
+            user: { select: { firstName: true, lastName: true } }
+          }
+        }
+      }
+    });
+
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'MODERATE_CONTENT',
+        targetType: 'FLASH',
+        targetId: id,
+        details: `Content moderation: approved=${isApproved}, hidden=${isHidden}, reason=${reason || 'No reason'}`
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Content moderated successfully',
+      data: { flashItem: updatedFlashItem }
+    });
+  } catch (error) {
+    console.error('Moderate content error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error moderating content'
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/content/:id
+ * @desc    Delete flash item
+ * @access  Admin only
+ */
+router.delete('/content/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const flashItem = await prisma.flash.findUnique({
+      where: { id },
+      include: {
+        artist: {
+          include: {
+            user: { select: { firstName: true, lastName: true } }
+          }
+        }
+      }
+    });
+
+    if (!flashItem) {
+      return res.status(404).json({
+        success: false,
+        error: 'Flash item not found'
+      });
+    }
+
+    await prisma.flash.delete({
+      where: { id }
+    });
+
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'DELETE_CONTENT',
+        targetType: 'FLASH',
+        targetId: id,
+        details: `Content deleted: ${flashItem.title}`
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Content deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete content error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error deleting content'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/content/export
+ * @desc    Export content data as CSV
+ * @access  Admin only
+ */
+router.get('/content/export', async (req, res) => {
+  try {
+    const flashItems = await prisma.flash.findMany({
+      include: {
+        artist: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Create CSV content
+    const csvHeader = 'ID,Title,Description,Price,Tags,Artist,Studio,Status,Visibility,Created At\n';
+    const csvRows = flashItems.map(item => {
+      const artistName = `${item.artist?.user?.firstName || ''} ${item.artist?.user?.lastName || ''}`.trim();
+      const tags = Array.isArray(item.tags) ? item.tags.join(';') : '';
+      const status = item.isApproved ? 'Approved' : 'Pending';
+      const visibility = item.isHidden ? 'Hidden' : 'Visible';
+      
+      return [
+        item.id,
+        `"${item.title?.replace(/"/g, '""') || ''}"`,
+        `"${item.description?.replace(/"/g, '""') || ''}"`,
+        item.price || 0,
+        `"${tags}"`,
+        `"${artistName}"`,
+        `"${item.artist?.studioName || ''}"`,
+        status,
+        visibility,
+        item.createdAt.toISOString()
+      ].join(',');
+    }).join('\n');
+
+    const csvContent = csvHeader + csvRows;
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="content-export.csv"');
+    res.send(csvContent);
+
+  } catch (error) {
+    console.error('Export content error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error exporting content'
+    });
+  }
+});
+
+/**
  * @route   GET /api/admin/actions
  * @desc    Get admin action log
  * @access  Admin only
