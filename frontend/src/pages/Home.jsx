@@ -260,6 +260,34 @@ export const Home = () => {
         </div>
       </section>
 
+      {/* Map Section */}
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Find Artists Near You</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Explore our interactive map to discover talented tattoo artists in Montreal. 
+              Click on any marker to view artist details, get directions to their studio, 
+              and see estimated travel time and distance.
+            </p>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <ArtistMap />
+          </div>
+          
+          <div className="text-center mt-8">
+            <Link
+              to="/map"
+              className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              <MapPin className="w-5 h-5 mr-2" />
+              View Full Map
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="bg-primary-600 text-white py-16 rounded-lg">
         <div className="max-w-4xl mx-auto text-center">
