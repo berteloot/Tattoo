@@ -74,7 +74,7 @@ node verify-calendly-deployment.js
 **Expected Output:**
 ```
 🧪 Verifying Calendly Integration on Render...
-🌐 Testing URL: https://tattooed-world-app.onrender.com
+🌐 Testing URL: https://tattooed-world-backend.onrender.com
 
 1. Testing health endpoint...
 ✅ Health check passed
@@ -122,10 +122,10 @@ Found 5 artists
 ### 3. Test API Endpoints
 ```bash
 # Test artists endpoint
-curl https://tattooed-world-app.onrender.com/api/artists
+curl https://tattooed-world-backend.onrender.com/api/artists
 
 # Test specific artist endpoint
-curl https://tattooed-world-app.onrender.com/api/artists/[artist-id]
+curl https://tattooed-world-backend.onrender.com/api/artists/[artist-id]
 ```
 
 ## 📊 Post-Deployment Monitoring
@@ -236,6 +236,6 @@ npx prisma studio
 
 Once the verification script passes, your Calendly integration is live and ready for use. Artists can now connect their Calendly calendars, and clients can book appointments directly through the platform.
 
-**Live URL:** https://tattooed-world-app.onrender.com
+**Live URL:** https://tattooed-world-backend.onrender.com
 
 **Status:** ✅ **READY FOR PRODUCTION** 

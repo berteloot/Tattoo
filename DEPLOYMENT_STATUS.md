@@ -45,7 +45,7 @@ ALTER TABLE artist_profiles ADD COLUMN calendlyUrl VARCHAR(500);
 ## 🔍 Current Deployment Status
 
 **Render Service:** `tattooed-world-app`  
-**URL:** https://tattooed-world-app.onrender.com  
+**URL:** https://tattooed-world-backend.onrender.com  
 **Status:** Deployment in progress or service restarting
 
 ### Expected Behavior After Deployment

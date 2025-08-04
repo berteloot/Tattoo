@@ -31,8 +31,8 @@ cd backend && npm run start:prod
 
 **Environment Variables:**
 - `NODE_ENV`: `production`
-- `CORS_ORIGIN`: `https://tattooed-world-app.onrender.com`
-- `FRONTEND_URL`: `https://tattooed-world-app.onrender.com`
+- `CORS_ORIGIN`: `https://tattooed-world-backend.onrender.com`
+- `FRONTEND_URL`: `https://tattooed-world-backend.onrender.com`
 - `PORT`: `10000`
 
 #### Option B: Automatic Update via Git
@@ -49,8 +49,8 @@ NODE_ENV=production
 DATABASE_URL=postgresql://...
 JWT_SECRET=auto-generated
 PORT=10000
-CORS_ORIGIN=https://tattooed-world-app.onrender.com
-FRONTEND_URL=https://tattooed-world-app.onrender.com
+CORS_ORIGIN=https://tattooed-world-backend.onrender.com
+FRONTEND_URL=https://tattooed-world-backend.onrender.com
 ```
 
 **Optional:**
@@ -146,17 +146,17 @@ Test individual components:
 
 **Health Check:**
 ```bash
-curl https://tattooed-world-app.onrender.com/health
+curl https://tattooed-world-backend.onrender.com/health
 ```
 
 **API Info:**
 ```bash
-curl https://tattooed-world-app.onrender.com/api
+curl https://tattooed-world-backend.onrender.com/api
 ```
 
 **Frontend:**
 ```bash
-curl https://tattooed-world-app.onrender.com/
+curl https://tattooed-world-backend.onrender.com/
 ```
 
 ## Expected File Structure After Deployment

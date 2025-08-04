@@ -38,7 +38,7 @@ http://localhost:5177/*
 
 **For Production:**
 ```
-https://tattooed-world-app.onrender.com/*
+https://tattooed-world-backend.onrender.com/*
 ```
 
 ### 4. **Verify Billing is Enabled**

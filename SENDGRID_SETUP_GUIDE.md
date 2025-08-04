@@ -132,7 +132,7 @@ Required for SendGrid:
 ```
 SENDGRID_API_KEY = SG.your_api_key_here
 FROM_EMAIL = stan@altilead.com
-FRONTEND_URL = https://tattooed-world-app.onrender.com
+FRONTEND_URL = https://tattooed-world-backend.onrender.com
 ```
 
 ## Next Steps

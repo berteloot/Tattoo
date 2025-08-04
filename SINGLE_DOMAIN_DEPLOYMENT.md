@@ -1,7 +1,7 @@
 # Single Domain Deployment Guide
 
 ## Overview
-The Tattooed World app is now configured as a **single full-stack application** deployed on Render.com. Both the frontend (React) and backend (Node.js/Express) are served from the same URL: `https://tattooed-world-app.onrender.com`
+The Tattooed World app is now configured as a **single full-stack application** deployed on Render.com. Both the frontend (React) and backend (Node.js/Express) are served from the same URL: `https://tattooed-world-backend.onrender.com`
 
 ## Architecture
 
@@ -11,7 +11,7 @@ The Tattooed World app is now configured as a **single full-stack application** 
 - CORS issues, complex routing, separate deployments
 
 ### After (Single Service)
-- **Single URL**: `https://tattooed-world-app.onrender.com`
+- **Single URL**: `https://tattooed-world-backend.onrender.com`
 - Frontend and backend served from same domain
 - No CORS issues, simpler deployment, better performance
 
@@ -40,7 +40,7 @@ The backend server (`backend/src/server.js`) serves both:
 ## URL Structure
 
 ```
-https://tattooed-world-app.onrender.com/
+https://tattooed-world-backend.onrender.com/
 ├── /                    → React app (Home page)
 ├── /login              → React app (Login page)
 ├── /artists            → React app (Artists page)
@@ -77,8 +77,8 @@ NODE_ENV=production
 DATABASE_URL=postgresql://...
 JWT_SECRET=your-secret-key
 PORT=10000
-CORS_ORIGIN=https://tattooed-world-app.onrender.com
-FRONTEND_URL=https://tattooed-world-app.onrender.com
+CORS_ORIGIN=https://tattooed-world-backend.onrender.com
+FRONTEND_URL=https://tattooed-world-backend.onrender.com
 ```
 
 ### Optional
@@ -92,17 +92,17 @@ SENDGRID_API_KEY=your-email-key
 
 ### 1. Health Check
 ```bash
-curl https://tattooed-world-app.onrender.com/health
+curl https://tattooed-world-backend.onrender.com/health
 ```
 
 ### 2. API Test
 ```bash
-curl https://tattooed-world-app.onrender.com/api
+curl https://tattooed-world-backend.onrender.com/api
 ```
 
 ### 3. Frontend Test
 ```bash
-curl https://tattooed-world-app.onrender.com/
+curl https://tattooed-world-backend.onrender.com/
 ```
 
 ### 4. Automated Testing

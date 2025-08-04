@@ -390,7 +390,7 @@ Pending Artist: pending@example.com / pending123
 ```
 
 ## Production Status
-- ✅ **Live URL**: https://tattooed-world-app.onrender.com
+- ✅ **Live URL**: https://tattooed-world-backend.onrender.com
 - ✅ **Single Domain Architecture**: Frontend + Backend served from same URL
 - ✅ **Admin System**: Fully functional with complete user management
 - ✅ **Artist Dashboard**: Complete with analytics and location management

@@ -217,7 +217,7 @@ SENDGRID_API_KEY="your-sendgrid-api-key"
 FROM_EMAIL="noreply@tattoolocator.com"
 
 # Frontend URL for verification links
-FRONTEND_URL="https://tattooed-world-app.onrender.com"
+FRONTEND_URL="https://tattooed-world-backend.onrender.com"
 
 # JWT Configuration
 JWT_SECRET="your-jwt-secret"

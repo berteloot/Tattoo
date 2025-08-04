@@ -100,9 +100,9 @@ npm start
 ## 🌐 How It Works
 
 ### Production (Render)
-- **Single URL**: `https://tattooed-world-app.onrender.com`
-- **API**: `https://tattooed-world-app.onrender.com/api/*`
-- **Frontend**: `https://tattooed-world-app.onrender.com/*`
+- **Single URL**: `https://tattooed-world-backend.onrender.com`
+- **API**: `https://tattooed-world-backend.onrender.com/api/*`
+- **Frontend**: `https://tattooed-world-backend.onrender.com/*`
 
 ### Local Development
 - **Backend**: `http://localhost:3001`

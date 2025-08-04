@@ -64,8 +64,8 @@
 4. Verify service is "Live"
 
 ### **Step 3: Test Production**
-- [ ] **Homepage**: `https://tattooed-world-app.onrender.com`
-- [ ] **API Health**: `https://tattooed-world-app.onrender.com/health`
+- [ ] **Homepage**: `https://tattooed-world-backend.onrender.com`
+- [ ] **API Health**: `https://tattooed-world-backend.onrender.com/health`
 - [ ] **Admin Login**: `admin@tattoolocator.com` / `admin123`
 - [ ] **Artist Profiles**: Browse and view
 - [ ] **Reviews**: Create and view
@@ -92,9 +92,9 @@
 ## 🔧 **Technical Details**
 
 ### **URL Structure**
-- **Production**: `https://tattooed-world-app.onrender.com`
-- **API**: `https://tattooed-world-app.onrender.com/api/*`
-- **Frontend**: `https://tattooed-world-app.onrender.com/*`
+- **Production**: `https://tattooed-world-backend.onrender.com`
+- **API**: `https://tattooed-world-backend.onrender.com/api/*`
+- **Frontend**: `https://tattooed-world-backend.onrender.com/*`
 
 ### **File Structure**
 ```

@@ -147,7 +147,7 @@ complete-backup-YYYYMMDD-HHMMSS/
 
 ### Current Version: 1.0.0
 - **Status**: Production Ready ✅
-- **Live URL**: https://tattooed-world-app.onrender.com
+- **Live URL**: https://tattooed-world-backend.onrender.com
 - **Features**: Complete RBAC, Admin System, Artist Dashboard
 
 ### Features Included
@@ -208,7 +208,7 @@ complete-backup-YYYYMMDD-HHMMSS/
 ## 🚀 Deployment
 
 ### Render.com (Production)
-- **URL**: https://tattooed-world-app.onrender.com
+- **URL**: https://tattooed-world-backend.onrender.com
 - **Architecture**: Single domain (frontend + backend)
 - **Database**: PostgreSQL with Prisma ORM
 - **Configuration**: render.yaml with environment variables
@@ -281,7 +281,7 @@ Run the health check script in any backup directory:
 ## 📞 Support
 
 ### Live Application
-- **URL**: https://tattooed-world-app.onrender.com
+- **URL**: https://tattooed-world-backend.onrender.com
 - **Status**: Production Ready
 - **Uptime**: Monitored and maintained
 

@@ -114,7 +114,7 @@ cat > "BACKUP_SUMMARY.md" << EOF
 - **Use Case**: Code versioning and rollback
 
 ## Application Status
-- **Live URL**: https://tattooed-world-app.onrender.com
+- **Live URL**: https://tattooed-world-backend.onrender.com
 - **Features**: Complete RBAC, Admin System, Artist Dashboard
 - **Security**: JWT Auth, Rate Limiting, Input Validation
 - **Database**: PostgreSQL with Prisma ORM
@@ -161,7 +161,7 @@ $BACKUP_SESSION/
 \`\`\`
 
 ## Support
-- **Live Application**: https://tattooed-world-app.onrender.com
+- **Live Application**: https://tattooed-world-backend.onrender.com
 - **Documentation**: See individual backup directories
 - **Issues**: Check troubleshooting guides in backup files
 
@@ -320,7 +320,7 @@ echo "2. Application only: Use backup-stable-v1.0.0-* directory"
 echo "3. Database only: Use database-backup-* directory"
 echo "4. Version only: Use tattoo-app-v1.0.0-*.tar.gz"
 echo ""
-echo "🔗 Live Application: https://tattooed-world-app.onrender.com"
+echo "🔗 Live Application: https://tattooed-world-backend.onrender.com"
 echo "📚 Documentation: BACKUP_SUMMARY.md"
 echo ""
 echo "✅ Stable backup version v1.0.0 created successfully!"
