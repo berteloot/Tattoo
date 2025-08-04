@@ -35,48 +35,38 @@ router.get('/', async (req, res) => {
     
     const studios = await prisma.studio.findMany({
       where,
-      include: {
-        artists: {
-          include: {
-            artist: {
-              include: {
-                user: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                    avatar: true
-                  }
-                }
-              }
-            }
-          },
-          where: {
-            isActive: true
-          }
-        },
-        _count: {
-          select: {
-            artists: {
-              where: {
-                isActive: true
-              }
-            }
-          }
-        }
-      },
       skip: (page - 1) * limit,
       take: parseInt(limit),
       orderBy: {
         title: 'asc'
       }
     });
+
+    // Get artist counts for each studio
+    const studiosWithArtistCounts = await Promise.all(
+      studios.map(async (studio) => {
+        const artistCount = await prisma.studioArtist.count({
+          where: {
+            studioId: studio.id,
+            isActive: true
+          }
+        });
+        
+        return {
+          ...studio,
+          _count: {
+            artists: artistCount
+          }
+        };
+      })
+    );
     
     const total = await prisma.studio.count({ where });
     
     res.json({
       success: true,
       data: {
-        studios,
+        studios: studiosWithArtistCounts,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
@@ -98,36 +88,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const studio = await prisma.studio.findUnique({
-      where: { id: req.params.id },
-      include: {
-        artists: {
-          include: {
-            artist: {
-              include: {
-                user: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                    avatar: true
-                  }
-                },
-                specialties: true,
-                services: true
-              }
-            }
-          },
-          where: {
-            isActive: true
-          }
-        },
-        claimedByUser: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
-      }
+      where: { id: req.params.id }
     });
     
     if (!studio) {
