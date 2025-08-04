@@ -9,7 +9,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const { showToast } = useToast();
+  const { error: showError, success: showSuccess } = useToast();
 
   // Debounced search
   useEffect(() => {
@@ -37,7 +37,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       }
     } catch (error) {
       console.error('Studio search error:', error);
-      showToast('Error searching for studios', 'error');
+      showError('Error searching for studios', 'Failed to search for studios');
     } finally {
       setIsSearching(false);
     }
@@ -45,7 +45,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
 
   const handleLinkToStudio = async (studio) => {
     if (!currentArtistId) {
-      showToast('Artist profile not found', 'error');
+      showError('Artist profile not found', 'Please create an artist profile first');
       return;
     }
 
@@ -54,7 +54,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       // Add artist to studio
       await studiosAPI.addArtist(studio.id, currentArtistId, 'ARTIST');
       
-      showToast(`Successfully linked to ${studio.title}`, 'success');
+      showSuccess(`Successfully linked to ${studio.title}`, 'You are now a member of this studio');
       setShowResults(false);
       setSearchQuery('');
       
@@ -66,9 +66,9 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       console.error('Error linking to studio:', error);
       try {
         if (error.response?.data?.error) {
-          showToast(error.response.data.error, 'error');
+          showError('Error linking to studio', error.response.data.error);
         } else {
-          showToast('Error linking to studio', 'error');
+          showError('Error linking to studio', 'Failed to link to studio');
         }
       } catch (toastError) {
         console.error('Error showing toast:', toastError);
@@ -80,7 +80,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
 
   const handleClaimStudio = async (studio) => {
     if (!currentArtistId) {
-      showToast('Artist profile not found', 'error');
+      showError('Artist profile not found', 'Please create an artist profile first');
       return;
     }
 
@@ -89,7 +89,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       // Claim the studio
       await studiosAPI.claim(studio.id);
       
-      showToast(`Successfully claimed ${studio.title}`, 'success');
+      showSuccess(`Successfully claimed ${studio.title}`, 'You are now the owner of this studio');
       setShowResults(false);
       setSearchQuery('');
       
@@ -101,9 +101,9 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       console.error('Error claiming studio:', error);
       try {
         if (error.response?.data?.error) {
-          showToast(error.response.data.error, 'error');
+          showError('Error claiming studio', error.response.data.error);
         } else {
-          showToast('Error claiming studio', 'error');
+          showError('Error claiming studio', 'Failed to claim studio');
         }
       } catch (toastError) {
         console.error('Error showing toast:', toastError);
