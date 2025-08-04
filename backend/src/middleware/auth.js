@@ -83,6 +83,20 @@ const authorize = (...roles) => {
     const user = req.user.user || req.user;
     const userRole = user.role;
 
+    console.log('Authorization debug:', {
+      userRole,
+      allowedRoles: roles,
+      userObject: req.user,
+      processedUser: user
+    });
+
+    console.log('Authorization debug:', {
+      userRole,
+      allowedRoles: roles,
+      userObject: req.user,
+      processedUser: user
+    });
+
     if (!userRole) {
       return res.status(401).json({
         success: false,
