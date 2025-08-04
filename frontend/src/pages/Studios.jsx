@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, Users, ExternalLink, Phone, Mail, Facebook, Instagram, Twitter, Linkedin, Youtube } from 'lucide-react';
+import { Search, MapPin, Users, ExternalLink, Phone, Mail, Facebook, Instagram, Twitter, Linkedin, Youtube, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
@@ -11,25 +11,38 @@ const Studios = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterVerified, setFilterVerified] = useState(false);
   const [filterFeatured, setFilterFeatured] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    pages: 0
+  });
   const { user } = useAuth();
   const { showToast } = useToast();
 
   useEffect(() => {
-    fetchStudios();
+    fetchStudios(1); // Reset to page 1 when filters change
   }, [filterVerified, filterFeatured]);
 
-  const fetchStudios = async () => {
+  const fetchStudios = async (page = 1) => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (filterVerified) params.append('verified', 'true');
       if (filterFeatured) params.append('featured', 'true');
-      params.append('limit', '100'); // Show more studios
+      params.append('page', page.toString());
+      params.append('limit', pagination.limit.toString());
       
       const response = await api.get(`/studios?${params.toString()}`);
       if (response.data && response.data.success) {
         setStudios(response.data.data.studios || []);
+        setPagination({
+          page: response.data.data.pagination.page,
+          limit: response.data.data.pagination.limit,
+          total: response.data.data.pagination.total,
+          pages: response.data.data.pagination.pages
+        });
       } else {
         setStudios([]);
         showToast('Failed to load studios', 'error');
@@ -47,7 +60,7 @@ const Studios = () => {
     try {
       await api.post(`/studios/${studioId}/claim`);
       showToast('Studio claim request submitted successfully!', 'success');
-      fetchStudios(); // Refresh the list
+      fetchStudios(pagination.page); // Refresh the current page
     } catch (error) {
       console.error('Failed to claim studio:', error);
       showToast(error.response?.data?.error || 'Failed to claim studio', 'error');
@@ -56,12 +69,14 @@ const Studios = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchStudios();
+    fetchStudios(1); // Reset to page 1 when searching
   };
 
-  const filteredStudios = studios.filter(studio =>
-    studio.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.pages) {
+      fetchStudios(newPage);
+    }
+  };
 
   const getSocialIcon = (platform, url) => {
     if (!url) return null;
@@ -84,6 +99,86 @@ const Studios = () => {
       >
         {icons[platform.toLowerCase()]}
       </a>
+    );
+  };
+
+  // Pagination component
+  const Pagination = () => {
+    if (pagination.pages <= 1) return null;
+
+    const startPage = Math.max(1, pagination.page - 2);
+    const endPage = Math.min(pagination.pages, pagination.page + 2);
+    const pages = [];
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center space-x-2 mt-8">
+        {/* Previous button */}
+        <button
+          onClick={() => handlePageChange(pagination.page - 1)}
+          disabled={pagination.page <= 1}
+          className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          Previous
+        </button>
+
+        {/* Page numbers */}
+        {startPage > 1 && (
+          <>
+            <button
+              onClick={() => handlePageChange(1)}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              1
+            </button>
+            {startPage > 2 && (
+              <span className="px-3 py-2 text-sm text-gray-500">...</span>
+            )}
+          </>
+        )}
+
+        {pages.map((page) => (
+          <button
+            key={page}
+            onClick={() => handlePageChange(page)}
+            className={`px-3 py-2 text-sm font-medium rounded-md ${
+              page === pagination.page
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+
+        {endPage < pagination.pages && (
+          <>
+            {endPage < pagination.pages - 1 && (
+              <span className="px-3 py-2 text-sm text-gray-500">...</span>
+            )}
+            <button
+              onClick={() => handlePageChange(pagination.pages)}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              {pagination.pages}
+            </button>
+          </>
+        )}
+
+        {/* Next button */}
+        <button
+          onClick={() => handlePageChange(pagination.page + 1)}
+          disabled={pagination.page >= pagination.pages}
+          className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+          <ChevronRight className="w-4 h-4 ml-1" />
+        </button>
+      </div>
     );
   };
 
@@ -140,11 +235,19 @@ const Studios = () => {
             </label>
           </div>
         </div>
+
+        {/* Results count */}
+        <div className="mb-4">
+          <p className="text-sm text-gray-600">
+            Showing {studios.length} of {pagination.total} studios
+            {pagination.pages > 1 && ` (Page ${pagination.page} of ${pagination.pages})`}
+          </p>
+        </div>
       </div>
 
       {/* Studios Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredStudios.map((studio) => (
+        {studios.map((studio) => (
           <div key={studio.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -242,7 +345,10 @@ const Studios = () => {
         ))}
       </div>
 
-      {filteredStudios.length === 0 && !loading && (
+      {/* Pagination */}
+      <Pagination />
+
+      {studios.length === 0 && !loading && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No studios found matching your criteria.</p>
         </div>
