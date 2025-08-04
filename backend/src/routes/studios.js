@@ -161,7 +161,7 @@ router.post('/:id/claim', async (req, res) => {
       include: { artistProfile: true }
     });
     
-    if (!user || user.role !== 'ARTIST') {
+    if (!user || (user.role !== 'ARTIST' && user.role !== 'ARTIST_ADMIN')) {
       return res.status(403).json({
         success: false,
         error: 'Only artists can claim studios'

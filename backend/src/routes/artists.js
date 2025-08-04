@@ -95,7 +95,9 @@ router.get('/', optionalAuth, [
     // Build where clause
     const where = {
       user: {
-        role: 'ARTIST',
+        role: {
+          in: ['ARTIST', 'ARTIST_ADMIN']
+        },
         isActive: true
       },
       isVerified: true

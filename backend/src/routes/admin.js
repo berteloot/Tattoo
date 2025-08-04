@@ -25,7 +25,7 @@ router.get('/dashboard', async (req, res) => {
       recentAdminActions
     ] = await Promise.all([
       prisma.user.count(),
-      prisma.user.count({ where: { role: 'ARTIST' } }),
+              prisma.user.count({ where: { role: { in: ['ARTIST', 'ARTIST_ADMIN'] } } }),
       prisma.artistProfile.count({ where: { verificationStatus: 'PENDING' } }),
       prisma.review.count(),
       prisma.flash.count(),
@@ -1065,6 +1065,186 @@ router.post('/fix-test-accounts', protect, adminOnly, async (req, res) => {
   }
 })
 
+/**
+ * @route   POST /api/admin/upload-studios-csv
+ * @desc    Upload and process CSV file with studio data
+ * @access  Admin only
+ */
+router.post('/upload-studios-csv', protect, adminOnly, async (req, res) => {
+  try {
+    const { csvData } = req.body;
+    
+    if (!csvData) {
+      return res.status(400).json({
+        success: false,
+        error: 'CSV data is required'
+      });
+    }
 
+    // Parse CSV data
+    const lines = csvData.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    
+    // Validate required headers
+    const requiredHeaders = ['title', 'address', 'city', 'state'];
+    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+    
+    if (missingHeaders.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Missing required headers: ${missingHeaders.join(', ')}`,
+        requiredHeaders,
+        providedHeaders: headers
+      });
+    }
+
+    const results = {
+      total: lines.length - 1,
+      successful: 0,
+      failed: 0,
+      errors: []
+    };
+
+    // Process each line (skip header)
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      try {
+        // Parse CSV line (handle commas in quoted fields)
+        const values = parseCSVLine(line);
+        
+        if (values.length !== headers.length) {
+          results.failed++;
+          results.errors.push(`Line ${i + 1}: Column count mismatch`);
+          continue;
+        }
+
+        // Create studio data object
+        const studioData = {};
+        headers.forEach((header, index) => {
+          studioData[header] = values[index]?.trim() || null;
+        });
+
+        // Generate slug from title
+        const slug = studioData.title
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim('-');
+
+        // Validate and create studio
+        const studio = await prisma.studio.create({
+          data: {
+            title: studioData.title,
+            slug: slug,
+            website: studioData.website || null,
+            phoneNumber: studioData.phone || studioData.phonenumber || null,
+            email: studioData.email || null,
+            facebookUrl: studioData.facebook || studioData.facebookurl || null,
+            instagramUrl: studioData.instagram || studioData.instagramurl || null,
+            twitterUrl: studioData.twitter || studioData.twitterurl || null,
+            linkedinUrl: studioData.linkedin || studioData.linkedinurl || null,
+            youtubeUrl: studioData.youtube || studioData.youtubeurl || null,
+            latitude: studioData.latitude ? parseFloat(studioData.latitude) : null,
+            longitude: studioData.longitude ? parseFloat(studioData.longitude) : null,
+            address: studioData.address,
+            city: studioData.city,
+            state: studioData.state,
+            zipCode: studioData.zipcode || studioData.zip || null,
+            country: studioData.country || 'USA',
+            isActive: true,
+            isVerified: false,
+            isFeatured: false,
+            verificationStatus: 'PENDING'
+          }
+        });
+
+        results.successful++;
+
+      } catch (error) {
+        results.failed++;
+        results.errors.push(`Line ${i + 1}: ${error.message}`);
+      }
+    }
+
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        actionType: 'UPLOAD_STUDIOS_CSV',
+        targetType: 'STUDIO',
+        targetId: null,
+        details: `Uploaded ${results.successful} studios from CSV. ${results.failed} failed.`,
+        metadata: {
+          total: results.total,
+          successful: results.successful,
+          failed: results.failed,
+          errors: results.errors.slice(0, 10) // Limit error details
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      message: `CSV upload completed. ${results.successful} studios created, ${results.failed} failed.`,
+      data: results
+    });
+
+  } catch (error) {
+    console.error('CSV upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process CSV upload'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/studios-csv-template
+ * @desc    Get CSV template for studio upload
+ * @access  Admin only
+ */
+router.get('/studios-csv-template', protect, adminOnly, async (req, res) => {
+  try {
+    const template = `title,address,city,state,zipcode,country,phone,email,website,facebook,instagram,twitter,linkedin,youtube,latitude,longitude
+"Studio Name","123 Main St","New York","NY","10001","USA","555-123-4567","studio@example.com","https://studio.com","https://facebook.com/studio","https://instagram.com/studio","https://twitter.com/studio","https://linkedin.com/studio","https://youtube.com/studio","40.7128","-74.0060"`;
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="studios-template.csv"');
+    res.send(template);
+
+  } catch (error) {
+    console.error('Template error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate template'
+    });
+  }
+});
+
+// Helper function to parse CSV line with quoted fields
+function parseCSVLine(line) {
+  const values = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      values.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  values.push(current);
+  return values.map(v => v.replace(/^"|"$/g, '')); // Remove surrounding quotes
+}
 
 module.exports = router; 

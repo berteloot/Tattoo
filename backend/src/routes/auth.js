@@ -31,8 +31,8 @@ router.post('/register', [
     .withMessage('Last name is required'),
   body('role')
     .optional()
-    .isIn(['CLIENT', 'ARTIST'])
-    .withMessage('Role must be either CLIENT or ARTIST')
+    .isIn(['CLIENT', 'ARTIST', 'ARTIST_ADMIN'])
+    .withMessage('Role must be either CLIENT, ARTIST, or ARTIST_ADMIN')
 ], async (req, res) => {
   try {
     // Check for validation errors
