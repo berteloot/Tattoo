@@ -1,6 +1,6 @@
 const axios = require('axios')
 
-const RENDER_URL = 'https://tattooed-world-app.onrender.com'
+const RENDER_URL = 'https://tattooed-world-backend.onrender.com'
 
 async function verifyCalendlyDeployment() {
   console.log('🧪 Verifying Calendly Integration on Render...')

@@ -420,9 +420,11 @@ export const ArtistMap = () => {
                   </div>
                   
                   <div className="text-sm text-gray-600">
-                    <p className="mb-2">To: <strong>{selectedArtist?.studioName}</strong></p>
+                    <p className="mb-2">To: <strong>
+                      {selectedArtist ? `${selectedArtist.user.firstName} ${selectedArtist.user.lastName}` : selectedStudio?.title}
+                    </strong></p>
                     <p className="text-xs text-gray-500">
-                      {selectedArtist?.user.firstName} {selectedArtist?.user.lastName}
+                      {selectedArtist ? selectedArtist.studioName : `${selectedStudio?.address}, ${selectedStudio?.city}, ${selectedStudio?.state}`}
                     </p>
                   </div>
                   

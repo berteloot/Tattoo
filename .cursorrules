@@ -242,7 +242,7 @@ VITE_NODE_ENV="development"
 ## Deployment Architecture
 
 ### Single Domain Deployment ✅
-- **Production URL**: `https://tattooed-world-app.onrender.com`
+- **Production URL**: `https://tattooed-world-backend.onrender.com`
 - **Architecture**: Single full-stack service (frontend + backend)
 - **Benefits**: No CORS issues, simplified deployment, better performance
 - **Configuration**: `render.yaml` with unified build process

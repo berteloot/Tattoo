@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // Test configuration
-const API_BASE = 'https://tattooed-world-app.onrender.com/api';
+const API_BASE = 'https://tattooed-world-backend.onrender.com/api';
 const TEST_EMAIL = 'artist@example.com';
 const TEST_PASSWORD = 'artist123';
 

@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const API_URL = 'https://tattooed-world-app.onrender.com';
+const API_URL = 'https://tattooed-world-backend.onrender.com';
 
 async function testArtistEmailFeature() {
   try {

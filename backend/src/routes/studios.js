@@ -4,6 +4,77 @@ const { PrismaClient } = require('@prisma/client');
 const { protect } = require('../middleware/auth');
 const prisma = new PrismaClient();
 
+// Create a new studio
+router.post('/', protect, async (req, res) => {
+  try {
+    const { title, slug, website, phoneNumber, email, address, city, state, zipCode, country } = req.body;
+    
+    // Validate required fields
+    if (!title || !title.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio title is required'
+      });
+    }
+    
+    // Generate slug if not provided
+    const studioSlug = slug || title.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    
+    // Check if studio with same title or slug already exists
+    const existingStudio = await prisma.studio.findFirst({
+      where: {
+        OR: [
+          { title: { equals: title, mode: 'insensitive' } },
+          { slug: { equals: studioSlug, mode: 'insensitive' } }
+        ]
+      }
+    });
+    
+    if (existingStudio) {
+      return res.status(400).json({
+        success: false,
+        error: 'A studio with this name already exists'
+      });
+    }
+    
+    // Create the studio
+    const studio = await prisma.studio.create({
+      data: {
+        title: title.trim(),
+        slug: studioSlug,
+        website: website || null,
+        phoneNumber: phoneNumber || null,
+        email: email || null,
+        address: address || null,
+        city: city || null,
+        state: state || null,
+        zipCode: zipCode || null,
+        country: country || null,
+        isActive: true,
+        isVerified: false,
+        isFeatured: false,
+        verificationStatus: 'PENDING',
+        claimedBy: req.user.id,
+        claimedAt: new Date()
+      }
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        studio
+      },
+      message: 'Studio created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating studio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create studio'
+    });
+  }
+});
+
 // Get all studios with filtering
 router.get('/', async (req, res) => {
   try {

@@ -113,6 +113,60 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
     }
   };
 
+  const handleCreateStudio = async (studioName) => {
+    if (!currentArtistId) {
+      showError('Artist profile not found', 'Please create an artist profile first');
+      return;
+    }
+
+    setIsLinking(true);
+    try {
+      // Create a new studio with basic information
+      const newStudio = {
+        title: studioName,
+        slug: studioName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        website: '',
+        phoneNumber: '',
+        email: '',
+        isActive: true,
+        isVerified: false,
+        verificationStatus: 'PENDING'
+      };
+
+      // Create the studio
+      const response = await studiosAPI.create(newStudio);
+      
+      if (response.data.success) {
+        const createdStudio = response.data.data.studio;
+        
+        // Automatically claim the newly created studio
+        await studiosAPI.claim(createdStudio.id);
+        
+        showSuccess(`Successfully created and claimed ${createdStudio.title}`, 'You are now the owner of this studio');
+        setShowResults(false);
+        setSearchQuery('');
+        
+        // Callback to parent component
+        if (onStudioLinked) {
+          onStudioLinked(createdStudio);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating studio:', error);
+      try {
+        if (error.response?.data?.error) {
+          showError('Error creating studio', error.response.data.error);
+        } else {
+          showError('Error creating studio', 'Failed to create studio');
+        }
+      } catch (toastError) {
+        console.error('Error showing toast:', toastError);
+      }
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
   const getStudioStatus = (studio) => {
     if (studio.claimedBy) {
       return { text: 'Claimed', icon: CheckCircle, color: 'text-green-600' };
@@ -223,8 +277,18 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       {showResults && searchResults.length === 0 && searchQuery.trim().length >= 2 && !isSearching && (
         <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg p-4">
           <div className="text-center text-gray-500">
-            <p className="mb-2">No studios found for "{searchQuery}"</p>
-            <p className="text-sm">Try a different search term or contact support to add your studio</p>
+            <p className="mb-3">No studios found for "{searchQuery}"</p>
+            <div className="space-y-3">
+              <p className="text-sm">Would you like to create this studio?</p>
+              <button
+                onClick={() => handleCreateStudio(searchQuery)}
+                disabled={isLinking}
+                className="px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 mx-auto"
+              >
+                <Plus className="h-4 w-4" />
+                {isLinking ? 'Creating...' : 'Create Studio'}
+              </button>
+            </div>
           </div>
         </div>
       )}

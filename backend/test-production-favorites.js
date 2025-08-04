@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const PRODUCTION_URL = 'https://tattooed-world-app.onrender.com';
+const PRODUCTION_URL = 'https://tattooed-world-backend.onrender.com';
 
 async function testProductionFavorites() {
   try {

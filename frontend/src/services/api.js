@@ -108,6 +108,7 @@ export const studiosAPI = {
   getAll: (params) => api.get('/studios', { params }),
   getById: (id) => api.get(`/studios/${id}`),
   search: (query) => api.get('/studios', { params: { search: query } }),
+  create: (studioData) => api.post('/studios', studioData),
   claim: (studioId) => api.post(`/studios/${studioId}/claim`),
   addArtist: (studioId, artistId, role = 'ARTIST') => api.post(`/studios/${studioId}/artists`, { artistId, role }),
   removeArtist: (studioId, artistId) => api.delete(`/studios/${studioId}/artists/${artistId}`),

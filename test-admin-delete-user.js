@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // Test configuration
-const API_BASE = 'https://tattooed-world-app.onrender.com/api';
+const API_BASE = 'https://tattooed-world-backend.onrender.com/api';
 const ADMIN_EMAIL = 'berteloot@gmail.com';
 const ADMIN_PASSWORD = 'admin123';
 

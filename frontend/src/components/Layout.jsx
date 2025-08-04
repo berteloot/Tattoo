@@ -14,6 +14,7 @@ export const Layout = ({ children }) => {
     { name: 'Home', href: '/' },
     { name: 'Artists', href: '/artists' },
     { name: 'Studios', href: '/studios' },
+    { name: 'Map', href: '/map' },
     { name: 'Flash Gallery', href: '/flash' },
   ]
 

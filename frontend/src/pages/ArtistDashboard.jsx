@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
 import ImageUpload from '../components/ImageUpload'
+import { CheckCircle } from 'lucide-react'
 
 import StudioSearch from '../components/StudioSearch'
 import LinkedStudios from '../components/LinkedStudios'
@@ -27,6 +28,7 @@ export const ArtistDashboard = () => {
   const [formData, setFormData] = useState({
     bio: '',
     studioName: '',
+    studioId: '',
     website: '',
     instagram: '',
     facebook: '',
@@ -110,30 +112,31 @@ export const ArtistDashboard = () => {
             console.log('✅ Profile set:', artist)
             
             // Set form data with safety checks
-            setFormData({
-              bio: artist.bio || '',
-              studioName: artist.studioName || '',
-              website: artist.website || '',
-              instagram: artist.instagram || '',
-              facebook: artist.facebook || '',
-              twitter: artist.twitter || '',
-              youtube: artist.youtube || '',
-              linkedin: artist.linkedin || '',
-              pinterest: artist.pinterest || '',
-              calendlyUrl: artist.calendlyUrl || '',
-              address: artist.address || '',
-              city: artist.city || '',
-              state: artist.state || '',
-              zipCode: artist.zipCode || '',
-              country: artist.country || '',
-              latitude: artist.latitude || '',
-              longitude: artist.longitude || '',
-              hourlyRate: artist.hourlyRate || '',
-              minPrice: artist.minPrice || '',
-              maxPrice: artist.maxPrice || '',
-              specialtyIds: artist.specialties?.map(s => s.id) || [],
-              serviceIds: artist.services?.map(s => s.id) || []
-            })
+                    setFormData({
+          bio: artist.bio || '',
+          studioName: artist.studioName || '',
+          studioId: artist.studioId || '',
+          website: artist.website || '',
+          instagram: artist.instagram || '',
+          facebook: artist.facebook || '',
+          twitter: artist.twitter || '',
+          youtube: artist.youtube || '',
+          linkedin: artist.linkedin || '',
+          pinterest: artist.pinterest || '',
+          calendlyUrl: artist.calendlyUrl || '',
+          address: artist.address || '',
+          city: artist.city || '',
+          state: artist.state || '',
+          zipCode: artist.zipCode || '',
+          country: artist.country || '',
+          latitude: artist.latitude || '',
+          longitude: artist.longitude || '',
+          hourlyRate: artist.hourlyRate || '',
+          minPrice: artist.minPrice || '',
+          maxPrice: artist.maxPrice || '',
+          specialtyIds: artist.specialties?.map(s => s.id) || [],
+          serviceIds: artist.services?.map(s => s.id) || []
+        })
             console.log('✅ Form data set')
           }
         } catch (profileError) {
@@ -329,7 +332,8 @@ export const ArtistDashboard = () => {
     console.log('Form data:', formData)
     console.log('🔍 Bio field value:', formData.bio)
     console.log('🔍 Bio field length:', formData.bio?.length)
-    console.log('🔍 City field value:', formData.city)
+    console.log('🔍 Studio field value:', formData.studioName)
+    console.log('🔍 Studio ID:', formData.studioId)
     console.log('🔍 Specialty IDs:', formData.specialtyIds)
     console.log('🔍 Service IDs:', formData.serviceIds)
     
@@ -340,9 +344,9 @@ export const ArtistDashboard = () => {
       return
     }
     
-    if (!formData.city || formData.city.trim().length === 0) {
-      console.error('❌ City validation failed - empty')
-      showError('City is required')
+    if (!formData.studioName || !formData.studioId) {
+      console.error('❌ Studio validation failed - not linked to studio')
+      showError('You must be linked to a studio to create your artist profile')
       return
     }
     
@@ -530,6 +534,39 @@ export const ArtistDashboard = () => {
                     </p>
                   </div>
                   
+                  {/* Studio Search & Linking */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Studio <span className="text-red-500">*</span>
+                    </label>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                      <p className="text-sm text-blue-800 mb-3">
+                        <strong>Studio Requirement:</strong> You must be linked to a studio to create your artist profile. 
+                        Search for your studio below or create a new one if it doesn't exist.
+                      </p>
+                      <StudioSearch 
+                        onStudioLinked={(studio) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            studioName: studio.title,
+                            studioId: studio.id
+                          }));
+                        }}
+                        currentArtistId={user?.artistProfile?.id}
+                      />
+                    </div>
+                    {formData.studioName && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                        <div className="flex items-center">
+                          <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                          <span className="text-sm text-green-800">
+                            Linked to: <strong>{formData.studioName}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* About Me */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
