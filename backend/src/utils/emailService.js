@@ -56,8 +56,10 @@ class EmailService {
       // Use localhost for development, production URL for production
       const frontendUrl = process.env.NODE_ENV === 'development' 
         ? 'http://localhost:5173' 
-        : (process.env.FRONTEND_URL || 'https://tattooed-world-app.onrender.com');
+        : (process.env.FRONTEND_URL || 'https://tattooed-world-backend.onrender.com');
+      
       const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`
+      
       const subject = 'Verify Your Email - Tattooed World 🎨'
       const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

@@ -27,6 +27,7 @@ import AdminContent from './pages/AdminContent'
 import { Favorites } from './pages/Favorites'
 import Studios from './pages/Studios'
 import StudioDetail from './pages/StudioDetail'
+import Map from './pages/Map'
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
               <Route path="/flash" element={<FlashGallery />} />
               <Route path="/studios" element={<Studios />} />
               <Route path="/studios/:id" element={<StudioDetail />} />
+              <Route path="/map" element={<Map />} />
               
               {/* Protected routes */}
               <Route path="/profile" element={

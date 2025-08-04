@@ -26,7 +26,7 @@ services:
       - key: PORT
         value: 10000
       - key: CORS_ORIGIN
-        value: https://tattooed-world-app.onrender.com
+        value: https://tattooed-world-backend.onrender.com
       - key: RATE_LIMIT_WINDOW_MS
         value: 900000
       - key: RATE_LIMIT_MAX_REQUESTS
@@ -36,7 +36,7 @@ services:
       - key: ALLOWED_FILE_TYPES
         value: image/jpeg,image/png,image/webp
       - key: FRONTEND_URL
-        value: https://tattooed-world-app.onrender.com
+        value: https://tattooed-world-backend.onrender.com
       # Optional environment variables (can be set later)
       - key: GOOGLE_MAPS_API_KEY
         sync: false

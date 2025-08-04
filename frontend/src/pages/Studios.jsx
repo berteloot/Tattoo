@@ -254,6 +254,31 @@ const Studios = () => {
                 {studio.title}
               </h3>
               
+              {/* Address */}
+              {(studio.address || studio.city || studio.state) && (
+                <div className="flex items-center text-sm text-gray-600 mb-4">
+                  <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                  <span className="flex-1">
+                    {studio.address && studio.address}
+                    {studio.city && studio.address && ', '}
+                    {studio.city && studio.city}
+                    {studio.state && (studio.address || studio.city) && ', '}
+                    {studio.state && studio.state}
+                    {studio.zipCode && ' '}
+                    {studio.zipCode && studio.zipCode}
+                  </span>
+                  {studio.latitude && studio.longitude && (
+                    <Link
+                      to="/map"
+                      className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                      title="View on map"
+                    >
+                      <MapPin className="w-4 h-4" />
+                    </Link>
+                  )}
+                </div>
+              )}
+              
               {/* Contact Info */}
               <div className="space-y-2 mb-4">
                 {studio.phoneNumber && (

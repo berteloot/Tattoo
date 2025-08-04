@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { GoogleMap, LoadScript, Marker, InfoWindow, DirectionsRenderer } from '@react-google-maps/api'
-import { MapPin, Star, Clock, DollarSign, Users, Map, Navigation, X, Search } from 'lucide-react'
-import { artistsAPI } from '../services/api'
+import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, Phone, Mail } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 
 const mapContainerStyle = {
   width: '100%',
-  height: '500px'
+  height: '600px'
 }
 
 const center = {
@@ -14,10 +14,8 @@ const center = {
   lng: -73.5673
 }
 
-export const ArtistMap = () => {
-  const [artists, setArtists] = useState([])
+export const StudioMap = () => {
   const [studios, setStudios] = useState([])
-  const [selectedArtist, setSelectedArtist] = useState(null)
   const [selectedStudio, setSelectedStudio] = useState(null)
   const [loading, setLoading] = useState(true)
   const [mapError, setMapError] = useState(false)
@@ -34,7 +32,6 @@ export const ArtistMap = () => {
   useEffect(() => {
     // Check API health first
     checkApiHealth().then(() => {
-      fetchArtists()
       fetchStudios()
     })
   }, [])
@@ -46,7 +43,7 @@ export const ArtistMap = () => {
       directionsRenderer.current = new window.google.maps.DirectionsRenderer({
         suppressMarkers: true, // We'll handle our own markers
         polylineOptions: {
-          strokeColor: '#DC2626',
+          strokeColor: '#3B82F6',
           strokeWeight: 6,
           strokeOpacity: 0.9
         },
@@ -103,15 +100,15 @@ export const ArtistMap = () => {
     })
   }
 
-  // Get directions to selected artist or studio
-  const getDirections = async (destination, originAddress = null) => {
+  // Get directions to selected studio
+  const getDirections = async (studio, originAddress = null) => {
     if (!directionsService.current) {
       alert('Directions service not available')
       return
     }
 
-    if (!destination.latitude || !destination.longitude) {
-      alert('Location not available')
+    if (!studio.latitude || !studio.longitude) {
+      alert('Studio location not available')
       return
     }
 
@@ -145,8 +142,8 @@ export const ArtistMap = () => {
       const request = {
         origin: origin,
         destination: {
-          lat: parseFloat(destination.latitude),
-          lng: parseFloat(destination.longitude)
+          lat: parseFloat(studio.latitude),
+          lng: parseFloat(studio.longitude)
         },
         travelMode: window.google.maps.TravelMode.DRIVING
       }
@@ -177,8 +174,8 @@ export const ArtistMap = () => {
       const bounds = new window.google.maps.LatLngBounds()
       bounds.extend(origin)
       bounds.extend({
-        lat: parseFloat(destination.latitude),
-        lng: parseFloat(destination.longitude)
+        lat: parseFloat(studio.latitude),
+        lng: parseFloat(studio.longitude)
       })
       
       // Get map instance and fit to bounds
@@ -212,75 +209,59 @@ export const ArtistMap = () => {
       alert('Please enter a starting address')
       return
     }
-    const destination = selectedArtist || selectedStudio
-    if (destination) {
-      getDirections(destination, fromAddress.trim())
-    }
+    getDirections(selectedStudio, fromAddress.trim())
   }
 
-  const getDummyArtists = () => [
+  const getDummyStudios = () => [
     {
       id: '1',
-      user: { firstName: 'Sarah', lastName: 'Chen' },
-      studioName: 'Ink & Soul Studio',
+      title: 'Ink & Soul Studio',
+      address: '123 Main Street',
       city: 'Montreal',
       state: 'Quebec',
+      zipCode: 'H2X 1Y1',
       latitude: 45.5017,
       longitude: -73.5673,
-      averageRating: 4.9,
-      reviewCount: 127,
-      specialties: [{ name: 'Traditional' }, { name: 'Japanese' }],
-      isVerified: true
+      phoneNumber: '+1-514-555-0101',
+      email: 'info@inkandsoul.com',
+      website: 'https://inkandsoul.com',
+      isVerified: true,
+      isFeatured: true,
+      _count: { artists: 5 }
     },
     {
       id: '2',
-      user: { firstName: 'Marcus', lastName: 'Rodriguez' },
-      studioName: 'Black Canvas Tattoo',
+      title: 'Black Canvas Tattoo',
+      address: '456 Oak Avenue',
       city: 'Montreal',
       state: 'Quebec',
+      zipCode: 'H3A 2B2',
       latitude: 45.5048,
       longitude: -73.5732,
-      averageRating: 4.8,
-      reviewCount: 89,
-      specialties: [{ name: 'Black & Grey' }],
-      isVerified: true
+      phoneNumber: '+1-514-555-0202',
+      email: 'hello@blackcanvas.com',
+      website: 'https://blackcanvas.com',
+      isVerified: true,
+      isFeatured: false,
+      _count: { artists: 3 }
     },
     {
       id: '3',
-      user: { firstName: 'Emma', lastName: 'Thompson' },
-      studioName: 'Simple Lines Studio',
+      title: 'Simple Lines Studio',
+      address: '789 Pine Street',
       city: 'Montreal',
       state: 'Quebec',
+      zipCode: 'H4B 3C3',
       latitude: 45.4972,
       longitude: -73.5784,
-      averageRating: 4.7,
-      reviewCount: 156,
-      specialties: [{ name: 'Minimalist' }, { name: 'Neo-Traditional' }],
-      isVerified: true
+      phoneNumber: '+1-514-555-0303',
+      email: 'contact@simplelines.com',
+      website: 'https://simplelines.com',
+      isVerified: true,
+      isFeatured: true,
+      _count: { artists: 4 }
     }
   ]
-
-  const fetchArtists = async () => {
-    try {
-      console.log('Fetching artists for map...')
-      
-      const result = await apiCallWithFallback(
-        () => artistsAPI.getAll({ limit: 10 }),
-        { artists: getDummyArtists() }
-      )
-      
-      if (result.isFallback) {
-        console.log('Using fallback artists data for map')
-        setArtists(result.data.artists)
-      } else {
-        console.log('Using API artists data for map')
-        setArtists(result.data.data.artists || [])
-      }
-    } catch (error) {
-      console.error('Unexpected error in fetchArtists for map:', error)
-      setArtists(getDummyArtists())
-    }
-  }
 
   const fetchStudios = async () => {
     try {
@@ -301,7 +282,7 @@ export const ArtistMap = () => {
     } catch (error) {
       console.error('Error fetching studios for map:', error)
       console.log('Using fallback studios data for map')
-      setStudios([])
+      setStudios(getDummyStudios())
     } finally {
       setLoading(false)
     }
@@ -322,7 +303,6 @@ export const ArtistMap = () => {
   console.log('Google Maps API Key available:', !!googleMapsApiKey)
   console.log('API Key length:', googleMapsApiKey?.length || 0)
   console.log('Environment:', import.meta.env.MODE)
-  console.log('API URL:', '/api') // Hardcode since env var not working in production
 
   // If no API key, show fallback
   if (!googleMapsApiKey) {
@@ -333,13 +313,15 @@ export const ArtistMap = () => {
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Unavailable</h3>
           <p className="text-gray-500 mb-4">Google Maps API key not configured</p>
           <div className="space-y-2">
-            {(artists || []).map((artist) => (
-              <div key={artist.id} className="bg-white p-3 rounded border">
-                <h4 className="font-medium">{artist.user.firstName} {artist.user.lastName}</h4>
-                <p className="text-sm text-gray-600">{artist.studioName}</p>
-                {artist.latitude && artist.longitude && (
+            {(studios || []).map((studio) => (
+              <div key={studio.id} className="bg-white p-3 rounded border">
+                <h4 className="font-medium">{studio.title}</h4>
+                <p className="text-sm text-gray-600">
+                  {studio.address}, {studio.city}, {studio.state}
+                </p>
+                {studio.latitude && studio.longitude && (
                   <p className="text-xs text-gray-500">
-                    📍 {artist.latitude}, {artist.longitude}
+                    📍 {studio.latitude}, {studio.longitude}
                   </p>
                 )}
               </div>
@@ -372,13 +354,15 @@ export const ArtistMap = () => {
               <p className="text-gray-500 mb-4">Google Maps failed to load</p>
               <p className="text-sm text-gray-400">Domain may need to be authorized in Google Cloud Console</p>
               <div className="mt-4 space-y-2">
-                {(artists || []).map((artist) => (
-                  <div key={artist.id} className="bg-white p-3 rounded border">
-                    <h4 className="font-medium">{artist.user.firstName} {artist.user.lastName}</h4>
-                    <p className="text-sm text-gray-600">{artist.studioName}</p>
-                    {artist.latitude && artist.longitude && (
+                {(studios || []).map((studio) => (
+                  <div key={studio.id} className="bg-white p-3 rounded border">
+                    <h4 className="font-medium">{studio.title}</h4>
+                    <p className="text-sm text-gray-600">
+                      {studio.address}, {studio.city}, {studio.state}
+                    </p>
+                    {studio.latitude && studio.longitude && (
                       <p className="text-xs text-gray-500">
-                        📍 {artist.latitude}, {artist.longitude}
+                        📍 {studio.latitude}, {studio.longitude}
                       </p>
                     )}
                   </div>
@@ -420,9 +404,9 @@ export const ArtistMap = () => {
                   </div>
                   
                   <div className="text-sm text-gray-600">
-                    <p className="mb-2">To: <strong>{selectedArtist?.studioName}</strong></p>
+                    <p className="mb-2">To: <strong>{selectedStudio?.title}</strong></p>
                     <p className="text-xs text-gray-500">
-                      {selectedArtist?.user.firstName} {selectedArtist?.user.lastName}
+                      {selectedStudio?.address}, {selectedStudio?.city}, {selectedStudio?.state}
                     </p>
                   </div>
                   
@@ -447,7 +431,7 @@ export const ArtistMap = () => {
                     
                     <button
                       type="button"
-                      onClick={() => getDirections(selectedArtist)}
+                      onClick={() => getDirections(selectedStudio)}
                       disabled={isGettingDirections}
                       className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                       title="Use my current location"
@@ -521,53 +505,18 @@ export const ArtistMap = () => {
               />
             )}
 
-            {/* Artist Markers */}
-            {(artists || []).map((artist) => {
-              // Only show artists with coordinates
-              if (!artist.latitude || !artist.longitude) return null;
-              
-              return (
-                <Marker
-                  key={`artist-${artist.id}`}
-                  position={{
-                    lat: parseFloat(artist.latitude),
-                    lng: parseFloat(artist.longitude)
-                  }}
-                  onClick={() => {
-                    setSelectedArtist(artist)
-                    setSelectedStudio(null)
-                  }}
-                  icon={{
-                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="16" cy="16" r="16" fill="#DC2626"/>
-                        <circle cx="16" cy="16" r="12" fill="white"/>
-                        <circle cx="16" cy="16" r="8" fill="#DC2626"/>
-                      </svg>
-                    `),
-                    scaledSize: window.google?.maps ? new window.google.maps.Size(32, 32) : undefined,
-                    anchor: window.google?.maps ? new window.google.maps.Point(16, 16) : undefined
-                  }}
-                />
-              );
-            })}
-
-            {/* Studio Markers */}
             {(studios || []).map((studio) => {
               // Only show studios with coordinates
               if (!studio.latitude || !studio.longitude) return null;
               
               return (
                 <Marker
-                  key={`studio-${studio.id}`}
+                  key={studio.id}
                   position={{
                     lat: parseFloat(studio.latitude),
                     lng: parseFloat(studio.longitude)
                   }}
-                  onClick={() => {
-                    setSelectedStudio(studio)
-                    setSelectedArtist(null)
-                  }}
+                  onClick={() => setSelectedStudio(studio)}
                   icon={{
                     url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
                       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -582,75 +531,6 @@ export const ArtistMap = () => {
                 />
               );
             })}
-
-            {selectedArtist && (
-              <InfoWindow
-                position={{
-                  lat: parseFloat(selectedArtist.latitude),
-                  lng: parseFloat(selectedArtist.longitude)
-                }}
-                onCloseClick={() => setSelectedArtist(null)}
-              >
-                <div className="p-2 max-w-xs">
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    {selectedArtist.user.firstName} {selectedArtist.user.lastName}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-2">{selectedArtist.studioName}</p>
-                  
-                  {selectedArtist.averageRating && (
-                    <div className="flex items-center space-x-1 mb-2">
-                      <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                      <span className="text-xs text-gray-600">
-                        {selectedArtist.averageRating.toFixed(1)} ({selectedArtist.reviewCount} reviews)
-                      </span>
-                    </div>
-                  )}
-
-                  {selectedArtist.specialties && selectedArtist.specialties.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {selectedArtist.specialties.slice(0, 2).map((specialty) => (
-                        <span 
-                          key={specialty.id}
-                          className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full"
-                        >
-                          {specialty.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {selectedArtist.hourlyRate && (
-                    <div className="flex items-center space-x-1 mb-2">
-                      <DollarSign className="w-3 h-3 text-green-600" />
-                      <span className="text-xs text-gray-600">${selectedArtist.hourlyRate}/hr</span>
-                    </div>
-                  )}
-
-                  <div className="flex flex-col space-y-2">
-                    <button
-                      onClick={() => {
-                        setShowDirectionsForm(true)
-                        setFromAddress('')
-                      }}
-                      className="w-full px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition-colors flex items-center justify-center space-x-1"
-                    >
-                      <Navigation className="w-3 h-3" />
-                      <span>Get Directions</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        window.location.href = `/artists/${selectedArtist.id}`;
-                        setSelectedArtist(null);
-                      }}
-                      className="w-full px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200 transition-colors"
-                    >
-                      View Profile
-                    </button>
-                  </div>
-                </div>
-              </InfoWindow>
-            )}
 
             {selectedStudio && (
               <InfoWindow
@@ -670,6 +550,32 @@ export const ArtistMap = () => {
                     <p>{selectedStudio.city}, {selectedStudio.state} {selectedStudio.zipCode}</p>
                   </div>
                   
+                  {/* Contact Info */}
+                  <div className="space-y-1 mb-2">
+                    {selectedStudio.phoneNumber && (
+                      <div className="flex items-center space-x-1">
+                        <Phone className="w-3 h-3 text-gray-500" />
+                        <a 
+                          href={`tel:${selectedStudio.phoneNumber}`}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          {selectedStudio.phoneNumber}
+                        </a>
+                      </div>
+                    )}
+                    {selectedStudio.email && (
+                      <div className="flex items-center space-x-1">
+                        <Mail className="w-3 h-3 text-gray-500" />
+                        <a 
+                          href={`mailto:${selectedStudio.email}`}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          {selectedStudio.email}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Status Badges */}
                   <div className="flex flex-wrap gap-1 mb-2">
                     {selectedStudio.isVerified && (
@@ -702,15 +608,25 @@ export const ArtistMap = () => {
                       <span>Get Directions</span>
                     </button>
                     
-                    <button
-                      onClick={() => {
-                        window.location.href = `/studios/${selectedStudio.id}`;
-                        setSelectedStudio(null);
-                      }}
-                      className="w-full px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200 transition-colors"
+                    <Link
+                      to={`/studios/${selectedStudio.id}`}
+                      className="w-full px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200 transition-colors text-center"
+                      onClick={() => setSelectedStudio(null)}
                     >
                       View Details
-                    </button>
+                    </Link>
+                    
+                    {selectedStudio.website && (
+                      <a
+                        href={selectedStudio.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded hover:bg-blue-200 transition-colors text-center flex items-center justify-center space-x-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>Visit Website</span>
+                      </a>
+                    )}
                   </div>
                 </div>
               </InfoWindow>
