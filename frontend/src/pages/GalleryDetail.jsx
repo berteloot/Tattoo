@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Eye, Share2, ArrowLeft, Star, Clock, MapPin, Tag } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import api from '../services/api';
+import { api } from '../services/api';
 
 const GalleryDetail = () => {
   const { id } = useParams();
@@ -25,7 +25,7 @@ const GalleryDetail = () => {
   const fetchGalleryItem = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/gallery/${id}`);
+      const response = await galleryAPI.getById(id);
       if (response.data.success) {
         setGalleryItem(response.data.data);
       }

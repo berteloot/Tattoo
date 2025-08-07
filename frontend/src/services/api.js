@@ -114,4 +114,23 @@ export const studiosAPI = {
   removeArtist: (studioId, artistId) => api.delete(`/studios/${studioId}/artists/${artistId}`),
   getArtists: (studioId) => api.get(`/studios/${studioId}/artists`),
   leaveStudio: (studioId) => api.post(`/studios/${studioId}/leave`),
+}
+
+export const galleryAPI = {
+  getAll: (params) => api.get('/gallery', { params }),
+  getById: (id) => api.get(`/gallery/${id}`),
+  create: (formData) => api.post('/gallery', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
+  update: (id, formData) => api.put(`/gallery/${id}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
+  delete: (id) => api.delete(`/gallery/${id}`),
+  like: (id) => api.post(`/gallery/${id}/like`),
+  addComment: (id, comment) => api.post(`/gallery/${id}/comments`, { comment }),
+  getStats: (artistId) => api.get(`/gallery/stats/artist/${artistId}`),
 } 

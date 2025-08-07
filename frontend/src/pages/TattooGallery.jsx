@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Eye, Filter, Search, Grid, List, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import api from '../services/api';
+import { api, galleryAPI } from '../services/api';
 
 const TattooGallery = () => {
   const [galleryItems, setGalleryItems] = useState([]);
@@ -73,7 +73,7 @@ const TattooGallery = () => {
         params.append('search', searchTerm);
       }
 
-      const response = await api.get(`/gallery?${params}`);
+      const response = await galleryAPI.getAll(params);
       
       if (response.data.success) {
         if (reset) {
@@ -113,7 +113,7 @@ const TattooGallery = () => {
     }
 
     try {
-      const response = await api.post(`/gallery/${itemId}/like`);
+      const response = await galleryAPI.like(itemId);
       if (response.data.success) {
         setGalleryItems(prev => 
           prev.map(item => 

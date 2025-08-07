@@ -1,8 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { PrismaClient } = require('@prisma/client');
-const auth = require('../middleware/auth');
-const protect = require('../middleware/protect');
+const { protect, authorize } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 
@@ -157,8 +156,8 @@ router.get('/:id', async (req, res) => {
 
 // Create gallery item (ARTIST only)
 router.post('/', 
-  auth, 
-  protect(['ARTIST', 'ADMIN']), 
+  protect, 
+  authorize('ARTIST', 'ADMIN'), 
   upload.single('image'),
   [
     body('title').trim().isLength({ min: 1, max: 255 }).withMessage('Title is required and must be less than 255 characters'),
@@ -272,8 +271,8 @@ router.post('/',
 
 // Update gallery item (owner or admin only)
 router.put('/:id', 
-  auth, 
-  protect(['ARTIST', 'ADMIN']), 
+  protect, 
+  authorize('ARTIST', 'ADMIN'), 
   upload.single('image'),
   [
     body('title').optional().trim().isLength({ min: 1, max: 255 }).withMessage('Title must be less than 255 characters'),
@@ -375,8 +374,8 @@ router.put('/:id',
 
 // Delete gallery item (owner or admin only)
 router.delete('/:id', 
-  auth, 
-  protect(['ARTIST', 'ADMIN']), 
+  protect, 
+  authorize('ARTIST', 'ADMIN'), 
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -409,7 +408,7 @@ router.delete('/:id',
 );
 
 // Like/unlike gallery item
-router.post('/:id/like', auth, async (req, res) => {
+router.post('/:id/like', protect, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -446,7 +445,7 @@ router.post('/:id/like', auth, async (req, res) => {
 
 // Add comment to gallery item
 router.post('/:id/comments', 
-  auth, 
+  protect, 
   [
     body('comment').trim().isLength({ min: 1, max: 1000 }).withMessage('Comment must be between 1 and 1000 characters')
   ],
