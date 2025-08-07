@@ -125,7 +125,7 @@
   }
 
   .category-tag {
-    @apply inline-block px-4 py-2 bg-yellow-400 text-black font-bold text-sm uppercase tracking-wide;
+    @apply inline-block px-4 py-2 bg-[#fedd33] text-black font-bold text-sm uppercase tracking-wide;
   }
 
   .black-line-box {

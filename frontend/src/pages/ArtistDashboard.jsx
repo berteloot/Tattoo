@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
 import ImageUpload from '../components/ImageUpload'
+import ProfilePictureUpload from '../components/ProfilePictureUpload'
 import { CheckCircle } from 'lucide-react'
 
 import StudioSearch from '../components/StudioSearch'
@@ -49,6 +50,9 @@ export const ArtistDashboard = () => {
     specialtyIds: [],
     serviceIds: []
   })
+
+  // Profile picture state
+  const [profilePictureData, setProfilePictureData] = useState(null)
 
   const [flashFormData, setFlashFormData] = useState({
     title: '',
@@ -111,31 +115,50 @@ export const ArtistDashboard = () => {
             console.log('✅ Profile set:', artist)
             
             // Set form data with safety checks
-                    setFormData({
-          bio: artist.bio || '',
-          studioName: artist.studioName || '',
-          studioId: artist.studioId || '',
-          website: artist.website || '',
-          instagram: artist.instagram || '',
-          facebook: artist.facebook || '',
-          twitter: artist.twitter || '',
-          youtube: artist.youtube || '',
-          linkedin: artist.linkedin || '',
-          pinterest: artist.pinterest || '',
-          calendlyUrl: artist.calendlyUrl || '',
-          address: artist.address || '',
-          city: artist.city || '',
-          state: artist.state || '',
-          zipCode: artist.zipCode || '',
-          country: artist.country || '',
-          latitude: artist.latitude || '',
-          longitude: artist.longitude || '',
-          hourlyRate: artist.hourlyRate || '',
-          minPrice: artist.minPrice || '',
-          maxPrice: artist.maxPrice || '',
-          specialtyIds: artist.specialties?.map(s => s.id) || [],
-          serviceIds: artist.services?.map(s => s.id) || []
-        })
+            setFormData({
+              bio: artist.bio || '',
+              studioName: artist.studioName || '',
+              studioId: artist.studioId || '',
+              website: artist.website || '',
+              instagram: artist.instagram || '',
+              facebook: artist.facebook || '',
+              twitter: artist.twitter || '',
+              youtube: artist.youtube || '',
+              linkedin: artist.linkedin || '',
+              pinterest: artist.pinterest || '',
+              calendlyUrl: artist.calendlyUrl || '',
+              address: artist.address || '',
+              city: artist.city || '',
+              state: artist.state || '',
+              zipCode: artist.zipCode || '',
+              country: artist.country || '',
+              latitude: artist.latitude || '',
+              longitude: artist.longitude || '',
+              hourlyRate: artist.hourlyRate || '',
+              minPrice: artist.minPrice || '',
+              maxPrice: artist.maxPrice || '',
+              specialtyIds: artist.specialties?.map(s => s.id) || [],
+              serviceIds: artist.services?.map(s => s.id) || [],
+              // Profile picture fields
+              profilePictureUrl: artist.profilePictureUrl || null,
+              profilePicturePublicId: artist.profilePicturePublicId || null,
+              profilePictureWidth: artist.profilePictureWidth || null,
+              profilePictureHeight: artist.profilePictureHeight || null,
+              profilePictureFormat: artist.profilePictureFormat || null,
+              profilePictureBytes: artist.profilePictureBytes || null
+            })
+
+            // Set profile picture data if exists
+            if (artist.profilePictureUrl) {
+              setProfilePictureData({
+                url: artist.profilePictureUrl,
+                publicId: artist.profilePicturePublicId,
+                width: artist.profilePictureWidth,
+                height: artist.profilePictureHeight,
+                format: artist.profilePictureFormat,
+                bytes: artist.profilePictureBytes
+              })
+            }
             console.log('✅ Form data set')
           }
         } catch (profileError) {
@@ -272,6 +295,33 @@ export const ArtistDashboard = () => {
       imageHeight: null,
       imageFormat: '',
       imageBytes: null
+    }))
+  }
+
+  // Profile picture handlers
+  const handleProfilePictureUpload = (imageData) => {
+    setProfilePictureData(imageData)
+    setFormData(prev => ({
+      ...prev,
+      profilePictureUrl: imageData.url,
+      profilePicturePublicId: imageData.publicId,
+      profilePictureWidth: imageData.width,
+      profilePictureHeight: imageData.height,
+      profilePictureFormat: imageData.format,
+      profilePictureBytes: imageData.bytes
+    }))
+  }
+
+  const handleProfilePictureRemove = () => {
+    setProfilePictureData(null)
+    setFormData(prev => ({
+      ...prev,
+      profilePictureUrl: null,
+      profilePicturePublicId: null,
+      profilePictureWidth: null,
+      profilePictureHeight: null,
+      profilePictureFormat: null,
+      profilePictureBytes: null
     }))
   }
 
@@ -600,6 +650,22 @@ export const ArtistDashboard = () => {
                     />
                   </div>
 
+                  {/* Profile Picture */}
+                  <ProfilePictureUpload
+                    onImageUpload={handleProfilePictureUpload}
+                    onImageRemove={handleProfilePictureRemove}
+                    currentImageUrl={profile?.profilePictureUrl || formData.profilePictureUrl}
+                    currentImageData={profilePictureData || {
+                      url: profile?.profilePictureUrl,
+                      publicId: profile?.profilePicturePublicId,
+                      width: profile?.profilePictureWidth,
+                      height: profile?.profilePictureHeight,
+                      format: profile?.profilePictureFormat,
+                      bytes: profile?.profilePictureBytes
+                    }}
+                    disabled={loading}
+                  />
+
                   {/* Studio Information */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -863,6 +929,25 @@ export const ArtistDashboard = () => {
                 </form>
               ) : (
                 <div className="space-y-6">
+                  {/* Profile Picture */}
+                  {profile?.profilePictureUrl && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Picture</h3>
+                      <div className="flex items-center space-x-4">
+                        <img
+                          src={profile.profilePictureUrl}
+                          alt="Profile"
+                          className="w-24 h-24 object-cover rounded-full border-4 border-white shadow-lg"
+                        />
+                        <div className="text-sm text-gray-500">
+                          <div>Size: {profile.profilePictureWidth} × {profile.profilePictureHeight}</div>
+                          <div>Format: {profile.profilePictureFormat?.toUpperCase()}</div>
+                          <div>File size: {Math.round(profile.profilePictureBytes / 1024)} KB</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* About Me */}
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">About Me</h3>

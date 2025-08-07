@@ -1,6 +1,3 @@
--- Tattoo Gallery System - Pure SQL Commands
--- Copy and paste ONLY this content into pgAdmin Query Tool
-
 CREATE TABLE IF NOT EXISTS tattoo_gallery (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     artist_id TEXT NOT NULL,

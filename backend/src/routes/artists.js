@@ -5,6 +5,8 @@ const { validateArtistProfile } = require('../middleware/artistValidation');
 const { processArtistData, createArtistProfileData, updateArtistProfileData } = require('../utils/artistDataProcessor');
 const emailService = require('../utils/emailService');
 const { prisma } = require('../utils/prisma');
+const { handleUpload } = require('../middleware/upload');
+const { uploadImage, deleteImage } = require('../utils/cloudinary');
 
 const router = express.Router();
 
@@ -986,5 +988,132 @@ router.post('/email-favorites', [
     });
   }
 });
+
+/**
+ * @route   POST /api/artists/profile-picture/upload
+ * @desc    Upload artist profile picture
+ * @access  Private (ARTIST only)
+ */
+router.post('/profile-picture/upload', protect, authorize(['ARTIST', 'ARTIST_ADMIN']), handleUpload, async (req, res) => {
+  try {
+    const { uploadedFile } = req;
+    
+    if (!uploadedFile) {
+      return res.status(400).json({
+        success: false,
+        error: 'No image file provided'
+      });
+    }
+
+    // Upload to Cloudinary
+    const uploadResult = await uploadImage(uploadedFile.buffer, {
+      folder: 'artist-profiles',
+      transformation: [
+        { width: 400, height: 400, crop: 'fill', gravity: 'face' },
+        { quality: 'auto', fetch_format: 'auto' }
+      ]
+    });
+
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to upload image to Cloudinary'
+      });
+    }
+
+    // Get image dimensions
+    const dimensions = await getImageDimensions(uploadedFile.buffer);
+
+    res.json({
+      success: true,
+      data: {
+        url: uploadResult.data.secure_url,
+        publicId: uploadResult.data.public_id,
+        width: dimensions.width,
+        height: dimensions.height,
+        format: uploadedFile.mimetype.split('/')[1],
+        bytes: uploadedFile.size
+      }
+    });
+
+  } catch (error) {
+    console.error('Profile picture upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to upload profile picture'
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/artists/profile-picture
+ * @desc    Remove artist profile picture
+ * @access  Private (ARTIST only)
+ */
+router.delete('/profile-picture', protect, authorize(['ARTIST', 'ARTIST_ADMIN']), async (req, res) => {
+  try {
+    const artistProfile = await prisma.artistProfile.findUnique({
+      where: { userId: req.user.id },
+      select: { profilePicturePublicId: true }
+    });
+
+    if (!artistProfile) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist profile not found'
+      });
+    }
+
+    // Delete from Cloudinary if public ID exists
+    if (artistProfile.profilePicturePublicId) {
+      try {
+        await deleteImage(artistProfile.profilePicturePublicId);
+      } catch (cloudinaryError) {
+        console.error('Cloudinary delete error:', cloudinaryError);
+        // Continue with database update even if Cloudinary delete fails
+      }
+    }
+
+    // Update database to remove profile picture
+    await prisma.artistProfile.update({
+      where: { userId: req.user.id },
+      data: {
+        profilePictureUrl: null,
+        profilePicturePublicId: null,
+        profilePictureWidth: null,
+        profilePictureHeight: null,
+        profilePictureFormat: null,
+        profilePictureBytes: null
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Profile picture removed successfully'
+    });
+
+  } catch (error) {
+    console.error('Profile picture removal error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to remove profile picture'
+    });
+  }
+});
+
+// Helper function to get image dimensions using sharp
+const sharp = require('sharp');
+const getImageDimensions = async (buffer) => {
+  try {
+    const metadata = await sharp(buffer).metadata();
+    return {
+      width: metadata.width,
+      height: metadata.height
+    };
+  } catch (error) {
+    console.error('Error getting image dimensions:', error);
+    return { width: 0, height: 0 };
+  }
+};
 
 module.exports = router; 
