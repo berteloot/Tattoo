@@ -39,6 +39,9 @@ router.get('/studios', async (req, res) => {
         country: true,
         latitude: true,
         longitude: true,
+        website: true,
+        phoneNumber: true,
+        email: true,
         isVerified: true,
         isFeatured: true
       },
@@ -56,21 +59,17 @@ router.get('/studios', async (req, res) => {
         },
         properties: {
           id: studio.id,
-          name: studio.title,
+          title: studio.title,
           address: studio.address,
           city: studio.city,
           state: studio.state,
-          zip_code: studio.zipCode,
+          zipCode: studio.zipCode,
           country: studio.country,
-          is_verified: studio.isVerified,
-          is_featured: studio.isFeatured,
-          full_address: [
-            studio.address,
-            studio.city,
-            studio.state,
-            studio.zipCode,
-            studio.country
-          ].filter(Boolean).join(', ')
+          website: studio.website,
+          phoneNumber: studio.phoneNumber,
+          email: studio.email,
+          isVerified: studio.isVerified,
+          isFeatured: studio.isFeatured
         }
       }))
     };
