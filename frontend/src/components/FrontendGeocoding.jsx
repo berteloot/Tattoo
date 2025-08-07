@@ -152,8 +152,8 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
     }
   };
 
-  const processNextStudio = async () => {
-    if (currentIndex >= pendingStudios.length) {
+  const processNextStudio = async (index = currentIndex) => {
+    if (index >= pendingStudios.length) {
       setIsGeocoding(false);
       toast.success('Geocoding completed!');
       fetchPendingStudios(); // Refresh the list
@@ -164,8 +164,8 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
       return;
     }
 
-    const studio = pendingStudios[currentIndex];
-    console.log(`🌍 [${currentIndex + 1}/${pendingStudios.length}] Processing: ${studio.title}`);
+    const studio = pendingStudios[index];
+    console.log(`🌍 [${index + 1}/${pendingStudios.length}] Processing: ${studio.title}`);
 
     try {
       // Geocode the address
@@ -189,12 +189,13 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
     }
 
     // Move to next studio
-    setCurrentIndex(prev => prev + 1);
-    setProgress(((currentIndex + 1) / pendingStudios.length) * 100);
+    const nextIndex = index + 1;
+    setCurrentIndex(nextIndex);
+    setProgress((nextIndex / pendingStudios.length) * 100);
 
     // Add delay to respect rate limits (increased to avoid 429 errors)
     setTimeout(() => {
-      processNextStudio();
+      processNextStudio(nextIndex);
     }, 3000); // 3 second delay to avoid rate limiting
   };
 
