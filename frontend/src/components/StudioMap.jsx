@@ -14,7 +14,7 @@ const center = {
   lng: -73.5673
 }
 
-export const StudioMap = () => {
+export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatured = false }) => {
   const [studios, setStudios] = useState([])
   const [selectedStudio, setSelectedStudio] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -34,7 +34,7 @@ export const StudioMap = () => {
     checkApiHealth().then(() => {
       fetchStudios()
     })
-  }, [])
+  }, [searchTerm, filterVerified, filterFeatured])
 
   // Initialize directions service and geocoder when map loads
   const onMapLoad = (map) => {
@@ -266,9 +266,16 @@ export const StudioMap = () => {
   const fetchStudios = async () => {
     try {
       console.log('Fetching studios for map...')
+      console.log('Search params:', { searchTerm, filterVerified, filterFeatured })
+      
+      // Build query parameters
+      const params = new URLSearchParams()
+      if (searchTerm) params.append('search', searchTerm)
+      if (filterVerified) params.append('verified', 'true')
+      if (filterFeatured) params.append('featured', 'true')
       
       // Use the geocoding API to get only studios with coordinates
-      const response = await fetch('/api/geocoding/studios')
+      const response = await fetch(`/api/geocoding/studios?${params.toString()}`)
       if (response.ok) {
         const result = await response.json()
         if (result.success) {

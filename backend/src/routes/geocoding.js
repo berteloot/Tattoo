@@ -6,14 +6,34 @@ const prisma = new PrismaClient();
 // Get all studios with coordinates for map display
 router.get('/studios', async (req, res) => {
   try {
-    const { lat_min, lat_max, lng_min, lng_max, limit = 100 } = req.query;
+    const { lat_min, lat_max, lng_min, lng_max, limit = 100, search, verified, featured } = req.query;
     
-    // Build query with optional bounding box filter
+    // Build query with optional filters
     let whereClause = {
       isActive: true,
       latitude: { not: null },
       longitude: { not: null }
     };
+    
+    // Add search filter
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { address: { contains: search, mode: 'insensitive' } },
+        { city: { contains: search, mode: 'insensitive' } },
+        { state: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    
+    // Add verified filter
+    if (verified === 'true') {
+      whereClause.isVerified = true;
+    }
+    
+    // Add featured filter
+    if (featured === 'true') {
+      whereClause.isFeatured = true;
+    }
     
     // Add bounding box filter if provided
     if (lat_min && lat_max && lng_min && lng_max) {

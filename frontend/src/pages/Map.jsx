@@ -1,7 +1,19 @@
 import { StudioMap } from '../components/StudioMap'
 import { MapPin, Search, Filter } from 'lucide-react'
+import { useState } from 'react'
 
 const Map = () => {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterVerified, setFilterVerified] = useState(false)
+  const [filterFeatured, setFilterFeatured] = useState(false)
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    // TODO: Implement search functionality for map
+    console.log('Searching for:', searchTerm)
+    console.log('Filters:', { verified: filterVerified, featured: filterFeatured })
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -20,19 +32,48 @@ const Map = () => {
               </div>
               
               <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search studios..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-                
-                <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
-                  <Filter className="w-4 h-4" />
-                  <span>Filters</span>
-                </button>
+                <form onSubmit={handleSearch} className="flex items-center gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search studios..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={filterVerified}
+                        onChange={(e) => setFilterVerified(e.target.checked)}
+                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-gray-700">Verified Only</span>
+                    </label>
+                    
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={filterFeatured}
+                        onChange={(e) => setFilterFeatured(e.target.checked)}
+                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-gray-700">Featured Only</span>
+                    </label>
+                  </div>
+                  
+                  <button 
+                    type="submit"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    <Search className="w-4 h-4" />
+                    <span>Search</span>
+                  </button>
+                </form>
               </div>
             </div>
           </div>
@@ -42,7 +83,7 @@ const Map = () => {
       {/* Map Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <StudioMap />
+          <StudioMap searchTerm={searchTerm} filterVerified={filterVerified} filterFeatured={filterFeatured} />
         </div>
         
         {/* Map Legend */}
@@ -73,6 +114,8 @@ const Map = () => {
             <li>• Studios with coordinates are shown on the map</li>
             <li>• Verified studios are marked with a green badge</li>
             <li>• Featured studios are highlighted with a yellow badge</li>
+            <li>• Use the search bar to find specific studios by name</li>
+            <li>• Filter by verified or featured studios using the checkboxes</li>
           </ul>
         </div>
       </div>
