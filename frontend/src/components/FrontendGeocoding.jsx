@@ -230,7 +230,7 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
       const data = await response.json();
       
       if (data.success) {
-        toast.success(`Cache cleared: ${data.data.deleted_count} entries removed`);
+        toast.success(data.data.message || 'Cache cleared');
         fetchGeocodingStats();
       } else {
         toast.error('Failed to clear cache');

@@ -222,101 +222,36 @@ router.get('/pending', async (req, res) => {
   }
 });
 
-// Get cached geocoding result
+// Get cached geocoding result (temporarily disabled)
 router.get('/cache/:addressHash', async (req, res) => {
-  try {
-    const { addressHash } = req.params;
-    
-    const cached = await prisma.geocodeCache.findUnique({
-      where: { addressHash }
-    });
-    
-    if (cached) {
-      res.json({
-        success: true,
-        data: {
-          latitude: cached.latitude,
-          longitude: cached.longitude,
-          original_address: cached.originalAddress,
-          cached: true
-        }
-      });
-    } else {
-      res.json({
-        success: false,
-        data: null,
-        message: 'No cached result found'
-      });
-    }
-    
-  } catch (error) {
-    console.error('Error fetching cached result:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch cached result'
-    });
-  }
+  res.json({
+    success: false,
+    data: null,
+    message: 'Cache temporarily disabled - geocode_cache table needs to be fixed'
+  });
 });
 
-// Clear geocoding cache
+// Clear geocoding cache (temporarily disabled)
 router.delete('/cache', async (req, res) => {
-  try {
-    // Clear cache older than 7 days
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    
-    const deleted = await prisma.geocodeCache.deleteMany({
-      where: {
-        updatedAt: {
-          lt: sevenDaysAgo
-        }
-      }
-    });
-    
-    res.json({
-      success: true,
-      data: {
-        deleted_count: deleted.count,
-        message: 'Cache cleared successfully'
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error clearing cache:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to clear cache'
-    });
-  }
+  res.json({
+    success: true,
+    data: {
+      deleted_count: 0,
+      message: 'Cache temporarily disabled - no cache to clear'
+    }
+  });
 });
 
-// Get cache statistics
+// Get cache statistics (temporarily disabled)
 router.get('/cache-stats', async (req, res) => {
-  try {
-    const totalCache = await prisma.geocodeCache.count();
-    const recentCache = await prisma.geocodeCache.count({
-      where: {
-        updatedAt: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-        }
-      }
-    });
-    
-    res.json({
-      success: true,
-      data: {
-        total_cached: totalCache,
-        recent_cached: recentCache,
-        cache_age_hours: 24
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error fetching cache stats:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch cache statistics'
-    });
-  }
+  res.json({
+    success: true,
+    data: {
+      total_cached: 0,
+      recent_cached: 0,
+      cache_age_hours: 24
+    }
+  });
 });
 
 module.exports = router; 
