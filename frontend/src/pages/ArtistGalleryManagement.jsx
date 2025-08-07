@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Eye, Star, Upload, Image, Clock, MapPin, Tag } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { api } from '../services/api';
+import { api, galleryAPI } from '../services/api';
 
 const ArtistGalleryManagement = () => {
   const navigate = useNavigate();
@@ -91,8 +91,8 @@ const ArtistGalleryManagement = () => {
   const fetchGalleryItems = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/gallery', {
-        params: { artistId: user?.artistProfile?.id }
+      const response = await galleryAPI.getAll({
+        artistId: user?.artistProfile?.id
       });
       
       if (response.data.success) {
@@ -161,9 +161,7 @@ const ArtistGalleryManagement = () => {
         if (afterFile) data.append('afterImage', afterFile);
       }
 
-      const response = await api.post('/gallery', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await galleryAPI.create(data);
 
       if (response.data.success) {
         showToast('Gallery item uploaded successfully', 'success');
@@ -207,7 +205,7 @@ const ArtistGalleryManagement = () => {
     }
 
     try {
-      const response = await api.delete(`/gallery/${itemId}`);
+      const response = await galleryAPI.delete(itemId);
       if (response.data.success) {
         showToast('Gallery item deleted successfully', 'success');
         fetchGalleryItems();

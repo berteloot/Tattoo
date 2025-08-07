@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Eye, Share2, ArrowLeft, Star, Clock, MapPin, Tag } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { api } from '../services/api';
+import { galleryAPI } from '../services/api';
 
 const GalleryDetail = () => {
   const { id } = useParams();
@@ -45,7 +45,7 @@ const GalleryDetail = () => {
     }
 
     try {
-      const response = await api.post(`/gallery/${id}/like`);
+      const response = await galleryAPI.like(id);
       if (response.data.success) {
         setGalleryItem(prev => ({
           ...prev,
@@ -75,7 +75,7 @@ const GalleryDetail = () => {
 
     try {
       setSubmittingComment(true);
-      const response = await api.post(`/gallery/${id}/comments`, { comment });
+      const response = await galleryAPI.addComment(id, comment);
       if (response.data.success) {
         setGalleryItem(prev => ({
           ...prev,
