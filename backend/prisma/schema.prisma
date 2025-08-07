@@ -31,6 +31,8 @@ model User {
   favorites               Favorite[]     @relation("FavoriteUser")
   reviewsGiven            Review[]       @relation("ReviewAuthor")
   reviewsReceived         Review[]       @relation("ReviewRecipient")
+  galleryLikes            TattooGalleryLike[]
+  galleryComments         TattooGalleryComment[]
 
   @@map("users")
 }
@@ -73,6 +75,7 @@ model ArtistProfile {
   flash              Flash[]
   services           Service[]          @relation("ArtistProfileToService")
   specialties        Specialty[]        @relation("ArtistProfileToSpecialty")
+  gallery            TattooGallery[]
 
   @@map("artist_profiles")
 }
@@ -266,4 +269,100 @@ enum studio_role {
   MANAGER
   ARTIST
   GUEST
+}
+
+model TattooGallery {
+  id                    String                  @id @default(cuid())
+  artistId              String
+  title                 String
+  description           String?
+  imageUrl              String
+  imagePublicId         String?
+  imageWidth            Int?
+  imageHeight           Int?
+  imageFormat           String?
+  imageBytes            Int?
+  thumbnailUrl          String?
+  tattooStyle           String?
+  bodyLocation          String?
+  tattooSize            String?
+  colorType             String?
+  sessionCount          Int                     @default(1)
+  hoursSpent            Int?
+  clientConsent         Boolean                 @default(false)
+  clientAnonymous       Boolean                 @default(true)
+  clientAgeVerified     Boolean                 @default(false)
+  isBeforeAfter         Boolean                 @default(false)
+  beforeImageUrl        String?
+  beforeImagePublicId   String?
+  afterImageUrl         String?
+  afterImagePublicId    String?
+  isFeatured            Boolean                 @default(false)
+  isApproved            Boolean                 @default(false)
+  isHidden              Boolean                 @default(false)
+  tags                  String[]
+  categories            String[]
+  completedAt           DateTime?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  artist                ArtistProfile           @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  likes                 TattooGalleryLike[]
+  comments              TattooGalleryComment[]
+  views                 TattooGalleryView[]
+
+  @@index([artistId])
+  @@index([tattooStyle])
+  @@index([bodyLocation])
+  @@index([isFeatured])
+  @@index([isApproved])
+  @@index([createdAt])
+  @@index([tags])
+  @@index([categories])
+  @@map("tattoo_gallery")
+}
+
+model TattooGalleryLike {
+  id            String        @id @default(cuid())
+  galleryItemId String
+  userId        String
+  createdAt     DateTime      @default(now())
+  galleryItem   TattooGallery @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([galleryItemId, userId])
+  @@index([galleryItemId])
+  @@index([userId])
+  @@map("tattoo_gallery_likes")
+}
+
+model TattooGalleryComment {
+  id            String        @id @default(cuid())
+  galleryItemId String
+  userId        String
+  comment       String
+  isApproved    Boolean       @default(true)
+  isHidden      Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  galleryItem   TattooGallery @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([galleryItemId])
+  @@index([userId])
+  @@index([isApproved])
+  @@map("tattoo_gallery_comments")
+}
+
+model TattooGalleryView {
+  id            String        @id @default(cuid())
+  galleryItemId String
+  viewerIp      String?
+  userAgent     String?
+  referrer      String?
+  viewedAt      DateTime      @default(now())
+  galleryItem   TattooGallery @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
+
+  @@index([galleryItemId])
+  @@index([viewedAt])
+  @@map("tattoo_gallery_views")
 }
