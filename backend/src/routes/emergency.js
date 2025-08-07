@@ -473,4 +473,45 @@ router.post('/create-gallery-tables', async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/emergency/regenerate-prisma
+ * @desc    Emergency endpoint to regenerate Prisma client
+ * @access  Public (for emergency use only)
+ */
+router.post('/regenerate-prisma', async (req, res) => {
+  try {
+    console.log('🔧 Emergency Prisma client regeneration requested...');
+    
+    const { execSync } = require('child_process');
+    
+    // Regenerate Prisma client
+    console.log('🔄 Regenerating Prisma client...');
+    const result = execSync('npx prisma generate', { 
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      stdio: 'pipe'
+    });
+    
+    console.log('✅ Prisma client regenerated successfully');
+    console.log('Output:', result);
+    
+    res.json({
+      success: true,
+      message: 'Prisma client regenerated successfully',
+      data: {
+        output: result
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error regenerating Prisma client:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to regenerate Prisma client',
+      details: error.message,
+      output: error.stdout || error.stderr
+    });
+  }
+});
+
 module.exports = router; 
