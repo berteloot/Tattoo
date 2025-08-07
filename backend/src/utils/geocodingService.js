@@ -1,348 +1,401 @@
+const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
-const NodeCache = require('node-cache');
 
 const prisma = new PrismaClient();
 
-// In-memory cache for fast lookups (24 hour TTL)
-const memoryCache = new NodeCache({ stdTTL: 60 * 60 * 24 });
-
-// Custom rate limiting queue
-class RateLimitedQueue {
-  constructor(maxRequestsPerSecond = 10) {
-    this.maxRequestsPerSecond = maxRequestsPerSecond;
-    this.requestTimes = [];
-    this.processing = false;
-  }
-
-  async add(task) {
-    return new Promise((resolve, reject) => {
-      this.processTask(task, resolve, reject);
-    });
-  }
-
-  async processTask(task, resolve, reject) {
-    // Clean old request times (older than 1 second)
-    const now = Date.now();
-    this.requestTimes = this.requestTimes.filter(time => now - time < 1000);
-
-    // If we're at the rate limit, wait
-    if (this.requestTimes.length >= this.maxRequestsPerSecond) {
-      const oldestRequest = this.requestTimes[0];
-      const waitTime = 1000 - (now - oldestRequest);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-      return this.processTask(task, resolve, reject);
-    }
-
-    // Add current request time
-    this.requestTimes.push(now);
-
-    // Execute the task
-    try {
-      const result = await task();
-      resolve(result);
-    } catch (error) {
-      reject(error);
-    }
-  }
-
-  get size() {
-    return this.requestTimes.length;
-  }
-
-  get pending() {
-    return 0; // We don't track pending tasks in this simple implementation
-  }
-}
-
-// Rate-limited queue: max 10 requests per second
-const geocodeQueue = new RateLimitedQueue(10);
-
-// Google Geocoding API key (server-side key)
-// Try backend key first, fallback to frontend key if not available
-const GEOCODE_API_KEY = process.env.GOOGLE_GEOCODE_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
-
-// Flag to track if database cache is available
-let databaseCacheAvailable = true;
+// Cache for geocoding results
+const geocodeCache = new Map();
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 /**
- * Normalize address for consistent cache keying
- */
-function normalizeAddress(address) {
-  return address
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-    .replace(/[^\w\s,.-]/g, '') // Remove special characters except commas, dots, hyphens
-    .replace(/\s*,\s*/g, ', ') // Normalize comma spacing
-    .replace(/\s*\.\s*/g, '. ') // Normalize dot spacing
-    .replace(/\s*-\s*/g, '-'); // Normalize hyphen spacing
-}
-
-/**
- * Generate cache key for address
- */
-function getCacheKey(address) {
-  return `geocode:${normalizeAddress(address)}`;
-}
-
-/**
- * Check cache for geocoding result
- */
-async function getFromCache(address) {
-  const cacheKey = getCacheKey(address);
-  
-  // Check memory cache first (fastest)
-  const memoryResult = memoryCache.get(cacheKey);
-  if (memoryResult) {
-    console.log(`📋 Memory cache hit for: ${address}`);
-    return memoryResult;
-  }
-  
-  // Check database cache (only if available)
-  if (databaseCacheAvailable) {
-    try {
-      const dbResult = await prisma.geocodeCache.findUnique({
-        where: { addressHash: cacheKey }
-      });
-      
-      if (dbResult) {
-        const result = {
-          lat: dbResult.latitude,
-          lng: dbResult.longitude,
-          cached: true,
-          source: 'database'
-        };
-        
-        // Store in memory cache for future fast access
-        memoryCache.set(cacheKey, result);
-        console.log(`📋 Database cache hit for: ${address}`);
-        return result;
-      }
-    } catch (error) {
-      // If database cache fails, disable it for future requests
-      if (error.code === 'P2021') {
-        console.warn('⚠️ Database cache table not available, using memory cache only');
-        databaseCacheAvailable = false;
-      } else {
-        console.error('Error checking database cache:', error.message);
-      }
-    }
-  }
-  
-  return null;
-}
-
-/**
- * Store geocoding result in cache
- */
-async function storeInCache(address, lat, lng) {
-  const cacheKey = getCacheKey(address);
-  
-  // Store in memory cache
-  const result = { lat, lng, cached: false, source: 'api' };
-  memoryCache.set(cacheKey, result);
-  
-  // Store in database cache (only if available)
-  if (databaseCacheAvailable) {
-    try {
-      await prisma.geocodeCache.upsert({
-        where: { addressHash: cacheKey },
-        update: {
-          latitude: lat,
-          longitude: lng,
-          updatedAt: new Date()
-        },
-        create: {
-          addressHash: cacheKey,
-          originalAddress: address,
-          latitude: lat,
-          longitude: lng,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      });
-      console.log(`💾 Cached geocoding result for: ${address}`);
-    } catch (error) {
-      // If database cache fails, disable it for future requests
-      if (error.code === 'P2021') {
-        console.warn('⚠️ Database cache table not available, using memory cache only');
-        databaseCacheAvailable = false;
-      } else {
-        console.error('Error storing in database cache:', error.message);
-      }
-    }
-  }
-  
-  return result;
-}
-
-/**
- * Call Google Geocoding API
- */
-async function callGeocodeAPI(address) {
-  if (!GEOCODE_API_KEY) {
-    console.warn('⚠️ No Google API key configured (neither GOOGLE_GEOCODE_API_KEY nor VITE_GOOGLE_MAPS_API_KEY), using fallback coordinates');
-    return { lat: 45.5017, lng: -73.5673, fallback: true };
-  }
-
-  try {
-    console.log(`🌍 Calling Google Geocoding API for: ${address}`);
-    
-    const params = new URLSearchParams({
-      address: address,
-      key: GEOCODE_API_KEY
-    });
-
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?${params.toString()}`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.status === 'OK' && data.results.length > 0) {
-      const location = data.results[0].geometry.location;
-      console.log(`✅ Geocoded successfully: ${address} → ${location.lat}, ${location.lng}`);
-      return { lat: location.lat, lng: location.lng };
-    } else {
-      console.error(`❌ Geocoding failed for ${address}: ${data.status}`);
-      throw new Error(`Geocoding failed: ${data.status}`);
-    }
-  } catch (error) {
-    console.error(`❌ Geocoding API error for ${address}:`, error.message);
-    throw error;
-  }
-}
-
-/**
- * Main geocoding function with caching and rate limiting
+ * Geocode a single address using Google Maps API
+ * @param {string} address - The address to geocode
+ * @returns {Promise<Object>} - Geocoding result
  */
 async function geocodeAddress(address) {
-  if (!address || typeof address !== 'string') {
-    throw new Error('Valid address string is required');
-  }
+    try {
+        // Check cache first
+        const cacheKey = address.toLowerCase().trim();
+        const cachedResult = geocodeCache.get(cacheKey);
+        
+        if (cachedResult && (Date.now() - cachedResult.timestamp) < CACHE_DURATION) {
+            console.log(`📍 Using cached geocoding result for: ${address}`);
+            return cachedResult.data;
+        }
 
-  // Check cache first
-  const cachedResult = await getFromCache(address);
-  if (cachedResult) {
-    return {
-      success: true,
-      address,
-      location: { lat: cachedResult.lat, lng: cachedResult.lng },
-      cached: cachedResult.cached,
-      source: cachedResult.source
-    };
-  }
+        // Check database cache
+        const dbCache = await checkDatabaseCache(address);
+        if (dbCache) {
+            console.log(`📍 Using database cached result for: ${address}`);
+            // Update memory cache
+            geocodeCache.set(cacheKey, {
+                data: dbCache,
+                timestamp: Date.now()
+            });
+            return dbCache;
+        }
 
-  // If not in cache, add to rate-limited queue
-  try {
-    const result = await geocodeQueue.add(() => callGeocodeAPI(address));
-    
-    // Store successful result in cache
-    await storeInCache(address, result.lat, result.lng);
-    
-    return {
-      success: true,
-      address,
-      location: { lat: result.lat, lng: result.lng },
-      cached: false,
-      fallback: result.fallback || false
-    };
-  } catch (error) {
-    console.error(`❌ Geocoding failed for ${address}:`, error.message);
-    return {
-      success: false,
-      address,
-      error: error.message
-    };
-  }
+        console.log(`🌍 Geocoding address: ${address}`);
+
+        // Get API key from environment
+        const apiKey = process.env.GOOGLE_MAPS_API_KEY || 'AIzaSyDcV1CcJSHKOtZilY7al23ev7Gs7MMgoBQ';
+        
+        if (!apiKey) {
+            throw new Error('Google Maps API key not configured');
+        }
+
+        // Make request to Google Maps Geocoding API
+        const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+            params: {
+                address: address,
+                key: apiKey
+            },
+            timeout: 10000 // 10 second timeout
+        });
+
+        const data = response.data;
+
+        if (data.status === 'OK' && data.results && data.results.length > 0) {
+            const result = data.results[0];
+            const location = result.geometry.location;
+            
+            const geocodeResult = {
+                success: true,
+                location: {
+                    lat: location.lat,
+                    lng: location.lng
+                },
+                formatted_address: result.formatted_address,
+                address_components: result.address_components,
+                original_address: address
+            };
+
+            // Cache the result
+            geocodeCache.set(cacheKey, {
+                data: geocodeResult,
+                timestamp: Date.now()
+            });
+
+            // Save to database cache
+            await saveToDatabaseCache(address, geocodeResult);
+
+            console.log(`✅ Successfully geocoded: ${address} → ${location.lat}, ${location.lng}`);
+            return geocodeResult;
+
+        } else {
+            const errorMessage = data.error_message || data.status || 'Unknown error';
+            console.log(`❌ Geocoding failed for: ${address} - ${errorMessage}`);
+            
+            const errorResult = {
+                success: false,
+                error: errorMessage,
+                original_address: address
+            };
+
+            // Cache error result for a shorter time to avoid repeated failures
+            geocodeCache.set(cacheKey, {
+                data: errorResult,
+                timestamp: Date.now()
+            });
+
+            return errorResult;
+        }
+
+    } catch (error) {
+        console.error(`❌ Geocoding error for ${address}:`, error.message);
+        
+        const errorResult = {
+            success: false,
+            error: error.message,
+            original_address: address
+        };
+
+        return errorResult;
+    }
 }
 
 /**
- * Batch geocode addresses with proper rate limiting
+ * Check if geocoding result exists in database cache
+ */
+async function checkDatabaseCache(address) {
+    try {
+        const addressHash = createAddressHash(address);
+        const cached = await prisma.geocodeCache.findUnique({
+            where: { addressHash }
+        });
+
+        if (cached && (Date.now() - new Date(cached.updatedAt).getTime()) < CACHE_DURATION) {
+            return {
+                success: true,
+                location: {
+                    lat: cached.latitude,
+                    lng: cached.longitude
+                },
+                original_address: cached.originalAddress
+            };
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error checking database cache:', error);
+        return null;
+    }
+}
+
+/**
+ * Save geocoding result to database cache
+ */
+async function saveToDatabaseCache(address, result) {
+    try {
+        if (!result.success) return;
+
+        const addressHash = createAddressHash(address);
+        
+        await prisma.geocodeCache.upsert({
+            where: { addressHash },
+            update: {
+                latitude: result.location.lat,
+                longitude: result.location.lng,
+                updatedAt: new Date()
+            },
+            create: {
+                addressHash,
+                originalAddress: address,
+                latitude: result.location.lat,
+                longitude: result.location.lng
+            }
+        });
+    } catch (error) {
+        console.error('Error saving to database cache:', error);
+    }
+}
+
+/**
+ * Create a hash for the address to use as cache key
+ */
+function createAddressHash(address) {
+    const crypto = require('crypto');
+    return crypto.createHash('md5').update(address.toLowerCase().trim()).digest('hex');
+}
+
+/**
+ * Batch geocode multiple addresses with rate limiting
+ * @param {Array<string>} addresses - Array of addresses to geocode
+ * @returns {Promise<Array>} - Array of geocoding results
  */
 async function batchGeocode(addresses) {
-  if (!Array.isArray(addresses)) {
-    throw new Error('Addresses must be an array');
-  }
+    const results = [];
+    const delay = 1000; // 1 second delay between requests
 
-  if (addresses.length > 50) {
-    throw new Error('Maximum 50 addresses per batch');
-  }
+    for (let i = 0; i < addresses.length; i++) {
+        const address = addresses[i];
+        console.log(`🌍 [${i + 1}/${addresses.length}] Processing: ${address}`);
+        
+        try {
+            const result = await geocodeAddress(address);
+            results.push({
+                address,
+                ...result
+            });
 
-  console.log(`🌍 Batch geocoding ${addresses.length} addresses`);
+            // Add delay between requests to respect rate limits
+            if (i < addresses.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
 
-  const results = [];
-  
-  // Process addresses in smaller chunks to avoid overwhelming the queue
-  const chunkSize = 10;
-  for (let i = 0; i < addresses.length; i += chunkSize) {
-    const chunk = addresses.slice(i, i + chunkSize);
-    
-    const chunkPromises = chunk.map(async (address) => {
-      try {
-        return await geocodeAddress(address);
-      } catch (error) {
-        return {
-          success: false,
-          address,
-          error: error.message
-        };
-      }
-    });
-    
-    const chunkResults = await Promise.all(chunkPromises);
-    results.push(...chunkResults);
-    
-    // Small delay between chunks
-    if (i + chunkSize < addresses.length) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+            console.error(`❌ Error geocoding ${address}:`, error.message);
+            results.push({
+                address,
+                success: false,
+                error: error.message
+            });
+        }
     }
-  }
 
-  return results;
+    return results;
+}
+
+/**
+ * Update studio coordinates using geocoding
+ * @param {string} studioId - Studio ID to update
+ * @returns {Promise<Object>} - Update result
+ */
+async function updateStudioCoordinates(studioId) {
+    try {
+        // Get studio information
+        const studio = await prisma.studio.findUnique({
+            where: { id: studioId }
+        });
+
+        if (!studio) {
+            return {
+                success: false,
+                error: 'Studio not found'
+            };
+        }
+
+        // Build address string
+        const addressParts = [
+            studio.address,
+            studio.city,
+            studio.state,
+            studio.zipCode,
+            studio.country
+        ].filter(Boolean);
+
+        const address = addressParts.join(', ');
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Studio has no address information'
+            };
+        }
+
+        // Geocode the address
+        const geocodeResult = await geocodeAddress(address);
+
+        if (geocodeResult.success) {
+            // Update studio with coordinates
+            const updatedStudio = await prisma.studio.update({
+                where: { id: studioId },
+                data: {
+                    latitude: geocodeResult.location.lat,
+                    longitude: geocodeResult.location.lng,
+                    updatedAt: new Date()
+                }
+            });
+
+            console.log(`✅ Updated studio coordinates: ${studio.title} → ${geocodeResult.location.lat}, ${geocodeResult.location.lng}`);
+
+            return {
+                success: true,
+                studio: updatedStudio,
+                geocoded: geocodeResult
+            };
+        } else {
+            return {
+                success: false,
+                error: 'Failed to geocode address',
+                details: geocodeResult.error
+            };
+        }
+
+    } catch (error) {
+        console.error('❌ Update studio coordinates error:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+/**
+ * Batch update all studios without coordinates
+ * @returns {Promise<Array>} - Array of update results
+ */
+async function batchUpdateStudioCoordinates() {
+    try {
+        // Get all studios without coordinates
+        const studios = await prisma.studio.findMany({
+            where: {
+                isActive: true,
+                OR: [
+                    { latitude: null },
+                    { longitude: null }
+                ]
+            }
+        });
+
+        console.log(`🔄 Found ${studios.length} studios needing geocoding`);
+
+        const results = [];
+        const delay = 2000; // 2 second delay between requests
+
+        for (let i = 0; i < studios.length; i++) {
+            const studio = studios[i];
+            console.log(`🌍 [${i + 1}/${studios.length}] Processing: ${studio.title}`);
+            
+            try {
+                const result = await updateStudioCoordinates(studio.id);
+                results.push({
+                    studioId: studio.id,
+                    studioName: studio.title,
+                    ...result
+                });
+
+                // Add delay between requests
+                if (i < studios.length - 1) {
+                    console.log(`⏳ Waiting ${delay/1000}s before next request...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+
+            } catch (error) {
+                console.error(`❌ Error updating ${studio.title}:`, error.message);
+                results.push({
+                    studioId: studio.id,
+                    studioName: studio.title,
+                    success: false,
+                    error: error.message
+                });
+            }
+        }
+
+        return results;
+
+    } catch (error) {
+        console.error('❌ Batch update error:', error);
+        throw error;
+    }
 }
 
 /**
  * Get cache statistics
+ * @returns {Object} - Cache statistics
  */
 function getCacheStats() {
-  const memoryStats = memoryCache.getStats();
-  return {
-    memory: {
-      hits: memoryStats.hits,
-      misses: memoryStats.misses,
-      keys: memoryStats.keys,
-      ksize: memoryStats.ksize,
-      vsize: memoryStats.vsize
-    },
-    queue: {
-      size: geocodeQueue.size,
-      pending: geocodeQueue.pending
-    },
-    database: {
-      available: databaseCacheAvailable
-    }
-  };
+    const now = Date.now();
+    const validEntries = Array.from(geocodeCache.values()).filter(
+        entry => (now - entry.timestamp) < CACHE_DURATION
+    );
+
+    return {
+        totalEntries: geocodeCache.size,
+        validEntries: validEntries.length,
+        expiredEntries: geocodeCache.size - validEntries.length,
+        cacheDuration: CACHE_DURATION
+    };
 }
 
 /**
- * Clear cache (for testing/admin purposes)
+ * Clear all cache
  */
 async function clearCache() {
-  memoryCache.flushAll();
-  
-  if (databaseCacheAvailable) {
+    geocodeCache.clear();
+    
     try {
-      await prisma.geocodeCache.deleteMany({});
-      console.log('🗑️ Cache cleared successfully');
+        // Clear database cache older than 7 days
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        await prisma.geocodeCache.deleteMany({
+            where: {
+                updatedAt: {
+                    lt: sevenDaysAgo
+                }
+            }
+        });
+        
+        console.log('✅ Cache cleared successfully');
     } catch (error) {
-      console.error('Error clearing database cache:', error.message);
+        console.error('❌ Error clearing database cache:', error);
     }
-  }
 }
 
 module.exports = {
-  geocodeAddress,
-  batchGeocode,
-  getCacheStats,
-  clearCache,
-  normalizeAddress
+    geocodeAddress,
+    batchGeocode,
+    updateStudioCoordinates,
+    batchUpdateStudioCoordinates,
+    getCacheStats,
+    clearCache
 }; 

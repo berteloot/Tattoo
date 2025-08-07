@@ -1,214 +1,338 @@
 const express = require('express');
-const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { 
-  geocodeAddress, 
-  batchGeocode, 
-  getCacheStats, 
-  clearCache 
-} = require('../utils/geocodingService');
-
+const router = express.Router();
 const prisma = new PrismaClient();
 
-/**
- * @route   POST /api/geocoding/geocode
- * @desc    Geocode a single address
- * @access  Public
- */
-router.post('/geocode', async (req, res) => {
+// Get all studios with coordinates for map display
+router.get('/studios', async (req, res) => {
   try {
-    const { address } = req.body;
+    const { lat_min, lat_max, lng_min, lng_max, limit = 100 } = req.query;
     
-    if (!address) {
-      return res.status(400).json({
-        success: false,
-        error: 'Address is required'
-      });
+    // Build query with optional bounding box filter
+    let whereClause = {
+      isActive: true,
+      latitude: { not: null },
+      longitude: { not: null }
+    };
+    
+    // Add bounding box filter if provided
+    if (lat_min && lat_max && lng_min && lng_max) {
+      whereClause.latitude = {
+        gte: parseFloat(lat_min),
+        lte: parseFloat(lat_max)
+      };
+      whereClause.longitude = {
+        gte: parseFloat(lng_min),
+        lte: parseFloat(lng_max)
+      };
     }
-
-    const result = await geocodeAddress(address);
-    res.json(result);
-
-  } catch (error) {
-    console.error('❌ Geocoding error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Geocoding service error',
-      details: error.message
+    
+    const studios = await prisma.studio.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        title: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        country: true,
+        latitude: true,
+        longitude: true,
+        isVerified: true,
+        isFeatured: true
+      },
+      take: parseInt(limit)
     });
-  }
-});
-
-/**
- * @route   POST /api/geocoding/batch-geocode
- * @desc    Geocode multiple addresses
- * @access  Public
- */
-router.post('/batch-geocode', async (req, res) => {
-  try {
-    const { addresses } = req.body;
     
-    if (!Array.isArray(addresses)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Addresses array is required'
-      });
-    }
-
-    if (addresses.length > 50) {
-      return res.status(400).json({
-        success: false,
-        error: 'Maximum 50 addresses per batch'
-      });
-    }
-
-    const results = await batchGeocode(addresses);
+    // Convert to GeoJSON format
+    const geojson = {
+      type: 'FeatureCollection',
+      features: studios.map(studio => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [studio.longitude, studio.latitude]
+        },
+        properties: {
+          id: studio.id,
+          name: studio.title,
+          address: studio.address,
+          city: studio.city,
+          state: studio.state,
+          zip_code: studio.zipCode,
+          country: studio.country,
+          is_verified: studio.isVerified,
+          is_featured: studio.isFeatured,
+          full_address: [
+            studio.address,
+            studio.city,
+            studio.state,
+            studio.zipCode,
+            studio.country
+          ].filter(Boolean).join(', ')
+        }
+      }))
+    };
+    
     res.json({
       success: true,
-      results
+      data: geojson,
+      count: studios.length
     });
-
+    
   } catch (error) {
-    console.error('❌ Batch geocoding error:', error);
+    console.error('Error fetching studios with geocoding:', error);
     res.status(500).json({
       success: false,
-      error: 'Batch geocoding service error',
-      details: error.message
+      error: 'Failed to fetch studios with geocoding'
     });
   }
 });
 
-/**
- * @route   POST /api/geocoding/update-studio-coordinates
- * @desc    Update studio coordinates based on address
- * @access  Admin only (for security)
- */
-router.post('/update-studio-coordinates', async (req, res) => {
+// Get geocoding status
+router.get('/status', async (req, res) => {
   try {
-    const { studioId } = req.body;
-    
-    if (!studioId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Studio ID is required'
-      });
-    }
-
-    // Get studio details
-    const studio = await prisma.studio.findUnique({
-      where: { id: studioId }
-    });
-
-    if (!studio) {
-      return res.status(404).json({
-        success: false,
-        error: 'Studio not found'
-      });
-    }
-
-    // Build address string
-    const addressParts = [
-      studio.address,
-      studio.city,
-      studio.state,
-      studio.zipCode
-    ].filter(Boolean);
-    
-    const address = addressParts.join(', ');
-    
-    if (!address) {
-      return res.status(400).json({
-        success: false,
-        error: 'Studio has no address information'
-      });
-    }
-
-    // Geocode the address
-    const geocodeResponse = await fetch(`${req.protocol}://${req.get('host')}/api/geocoding/geocode`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ address })
+    const totalStudios = await prisma.studio.count({
+      where: { isActive: true }
     });
     
-    const geocodeResult = await geocodeResponse.json();
+    const geocodedStudios = await prisma.studio.count({
+      where: {
+        isActive: true,
+        latitude: { not: null },
+        longitude: { not: null }
+      }
+    });
     
-    if (!geocodeResult.success) {
+    const missingCoordinates = totalStudios - geocodedStudios;
+    const percentageComplete = totalStudios > 0 ? (geocodedStudios / totalStudios) * 100 : 0;
+    
+    res.json({
+      success: true,
+      data: {
+        total_studios: totalStudios,
+        geocoded_studios: geocodedStudios,
+        missing_coordinates: missingCoordinates,
+        percentage_complete: Math.round(percentageComplete * 100) / 100
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error fetching geocoding status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch geocoding status'
+    });
+  }
+});
+
+// Save geocoding result from frontend
+router.post('/save-result', async (req, res) => {
+  try {
+    const { studioId, latitude, longitude, address } = req.body;
+    
+    if (!studioId || !latitude || !longitude) {
       return res.status(400).json({
         success: false,
-        error: 'Failed to geocode address',
-        details: geocodeResult.error
+        error: 'Studio ID, latitude, and longitude are required'
       });
     }
-
-    // Update studio with coordinates
+    
+    // Update studio coordinates
     const updatedStudio = await prisma.studio.update({
       where: { id: studioId },
       data: {
-        latitude: geocodeResult.location.lat,
-        longitude: geocodeResult.location.lng
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        updatedAt: new Date()
       }
     });
-
-    console.log(`✅ Updated studio coordinates: ${studio.title} → ${geocodeResult.location.lat}, ${geocodeResult.location.lng}`);
-
+    
+    // Save to geocode cache
+    if (address) {
+      const crypto = require('crypto');
+      const addressHash = crypto.createHash('md5').update(address.toLowerCase().trim()).digest('hex');
+      
+      await prisma.geocodeCache.upsert({
+        where: { addressHash },
+        update: {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
+          updatedAt: new Date()
+        },
+        create: {
+          addressHash,
+          originalAddress: address,
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude)
+        }
+      });
+    }
+    
     res.json({
       success: true,
-      studio: updatedStudio,
-      geocoded: geocodeResult
+      data: {
+        studio: updatedStudio,
+        message: 'Coordinates saved successfully'
+      }
     });
-
+    
   } catch (error) {
-    console.error('❌ Update studio coordinates error:', error);
+    console.error('Error saving geocoding result:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to update studio coordinates',
-      details: error.message
+      error: 'Failed to save geocoding result'
     });
   }
 });
 
-/**
- * @route   GET /api/geocoding/cache-stats
- * @desc    Get cache statistics
- * @access  Admin only
- */
+// Get studios that need geocoding
+router.get('/pending', async (req, res) => {
+  try {
+    const { limit = 50 } = req.query;
+    
+    const studios = await prisma.studio.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { latitude: null },
+          { longitude: null }
+        ],
+        address: { not: null }
+      },
+      select: {
+        id: true,
+        title: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        country: true
+      },
+      take: parseInt(limit)
+    });
+    
+    // Add full address for each studio
+    const studiosWithAddress = studios.map(studio => ({
+      ...studio,
+      full_address: [
+        studio.address,
+        studio.city,
+        studio.state,
+        studio.zipCode,
+        studio.country
+      ].filter(Boolean).join(', ')
+    }));
+    
+    res.json({
+      success: true,
+      data: studiosWithAddress,
+      count: studiosWithAddress.length
+    });
+    
+  } catch (error) {
+    console.error('Error fetching pending studios:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch pending studios'
+    });
+  }
+});
+
+// Get cached geocoding result
+router.get('/cache/:addressHash', async (req, res) => {
+  try {
+    const { addressHash } = req.params;
+    
+    const cached = await prisma.geocodeCache.findUnique({
+      where: { addressHash }
+    });
+    
+    if (cached) {
+      res.json({
+        success: true,
+        data: {
+          latitude: cached.latitude,
+          longitude: cached.longitude,
+          original_address: cached.originalAddress,
+          cached: true
+        }
+      });
+    } else {
+      res.json({
+        success: false,
+        data: null,
+        message: 'No cached result found'
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error fetching cached result:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch cached result'
+    });
+  }
+});
+
+// Clear geocoding cache
+router.delete('/cache', async (req, res) => {
+  try {
+    // Clear cache older than 7 days
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    const deleted = await prisma.geocodeCache.deleteMany({
+      where: {
+        updatedAt: {
+          lt: sevenDaysAgo
+        }
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        deleted_count: deleted.count,
+        message: 'Cache cleared successfully'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear cache'
+    });
+  }
+});
+
+// Get cache statistics
 router.get('/cache-stats', async (req, res) => {
   try {
-    const stats = getCacheStats();
+    const totalCache = await prisma.geocodeCache.count();
+    const recentCache = await prisma.geocodeCache.count({
+      where: {
+        updatedAt: {
+          gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+        }
+      }
+    });
+    
     res.json({
       success: true,
-      stats
+      data: {
+        total_cached: totalCache,
+        recent_cached: recentCache,
+        cache_age_hours: 24
+      }
     });
+    
   } catch (error) {
-    console.error('❌ Cache stats error:', error);
+    console.error('Error fetching cache stats:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get cache statistics',
-      details: error.message
-    });
-  }
-});
-
-/**
- * @route   POST /api/geocoding/clear-cache
- * @desc    Clear all cache
- * @access  Admin only
- */
-router.post('/clear-cache', async (req, res) => {
-  try {
-    await clearCache();
-    res.json({
-      success: true,
-      message: 'Cache cleared successfully'
-    });
-  } catch (error) {
-    console.error('❌ Clear cache error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to clear cache',
-      details: error.message
+      error: 'Failed to fetch cache statistics'
     });
   }
 });

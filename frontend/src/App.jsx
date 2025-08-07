@@ -23,7 +23,7 @@ import AdminReviewModeration from './pages/AdminReviewModeration'
 import AdminAuditLog from './pages/AdminAuditLog'
 import AdminStudioUpload from './pages/AdminStudioUpload'
 import AdminStudioManagement from './pages/AdminStudioManagement'
-import AdminGeocodingManagement from './pages/AdminGeocodingManagement'
+import AdminGeocoding from './pages/AdminGeocoding'
 import AdminContent from './pages/AdminContent'
 import { Favorites } from './pages/Favorites'
 import Studios from './pages/Studios'
@@ -104,7 +104,7 @@ function App() {
               } />
               <Route path="/admin/geocoding" element={
                 <ProtectedRoute requiredRole="ADMIN">
-                  <AdminGeocodingManagement />
+                  <AdminGeocoding />
                 </ProtectedRoute>
               } />
               <Route path="/admin/content" element={

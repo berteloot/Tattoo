@@ -17,7 +17,8 @@ import {
   CheckCircle,
   Clock,
   Upload,
-  Building2
+  Building2,
+  MapPin
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -150,6 +151,14 @@ const AdminDashboard = () => {
       href: '/admin/studios',
       color: 'bg-teal-500',
       hoverColor: 'hover:bg-teal-600'
+    },
+    {
+      title: 'Studio Geocoding',
+      description: 'Geocode studio addresses for map display',
+      icon: MapPin,
+      href: '/admin/geocoding',
+      color: 'bg-pink-500',
+      hoverColor: 'hover:bg-pink-600'
     }
   ];
 
