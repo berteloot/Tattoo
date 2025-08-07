@@ -273,38 +273,38 @@ enum studio_role {
 
 model TattooGallery {
   id                    String                  @id @default(cuid())
-  artistId              String
+  artistId              String                  @map("artist_id")
   title                 String
   description           String?
-  imageUrl              String
-  imagePublicId         String?
-  imageWidth            Int?
-  imageHeight           Int?
-  imageFormat           String?
-  imageBytes            Int?
-  thumbnailUrl          String?
-  tattooStyle           String?
-  bodyLocation          String?
-  tattooSize            String?
-  colorType             String?
-  sessionCount          Int                     @default(1)
-  hoursSpent            Int?
-  clientConsent         Boolean                 @default(false)
-  clientAnonymous       Boolean                 @default(true)
-  clientAgeVerified     Boolean                 @default(false)
-  isBeforeAfter         Boolean                 @default(false)
-  beforeImageUrl        String?
-  beforeImagePublicId   String?
-  afterImageUrl         String?
-  afterImagePublicId    String?
-  isFeatured            Boolean                 @default(false)
-  isApproved            Boolean                 @default(false)
-  isHidden              Boolean                 @default(false)
+  imageUrl              String                  @map("image_url")
+  imagePublicId         String?                 @map("image_public_id")
+  imageWidth            Int?                    @map("image_width")
+  imageHeight           Int?                    @map("image_height")
+  imageFormat           String?                 @map("image_format")
+  imageBytes            Int?                    @map("image_bytes")
+  thumbnailUrl          String?                 @map("thumbnail_url")
+  tattooStyle           String?                 @map("tattoo_style")
+  bodyLocation          String?                 @map("body_location")
+  tattooSize            String?                 @map("tattoo_size")
+  colorType             String?                 @map("color_type")
+  sessionCount          Int                     @default(1) @map("session_count")
+  hoursSpent            Int?                    @map("hours_spent")
+  clientConsent         Boolean                 @default(false) @map("client_consent")
+  clientAnonymous       Boolean                 @default(true) @map("client_anonymous")
+  clientAgeVerified     Boolean                 @default(false) @map("client_age_verified")
+  isBeforeAfter         Boolean                 @default(false) @map("is_before_after")
+  beforeImageUrl        String?                 @map("before_image_url")
+  beforeImagePublicId   String?                 @map("before_image_public_id")
+  afterImageUrl         String?                 @map("after_image_url")
+  afterImagePublicId    String?                 @map("after_image_public_id")
+  isFeatured            Boolean                 @default(false) @map("is_featured")
+  isApproved            Boolean                 @default(false) @map("is_approved")
+  isHidden              Boolean                 @default(false) @map("is_hidden")
   tags                  String[]
   categories            String[]
-  completedAt           DateTime?
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
+  completedAt           DateTime?               @map("completed_at")
+  createdAt             DateTime                @default(now()) @map("created_at")
+  updatedAt             DateTime                @updatedAt @map("updated_at")
   artist                ArtistProfile           @relation(fields: [artistId], references: [id], onDelete: Cascade)
   likes                 TattooGalleryLike[]
   comments              TattooGalleryComment[]
@@ -323,9 +323,9 @@ model TattooGallery {
 
 model TattooGalleryLike {
   id            String        @id @default(cuid())
-  galleryItemId String
-  userId        String
-  createdAt     DateTime      @default(now())
+  galleryItemId String        @map("gallery_item_id")
+  userId        String        @map("user_id")
+  createdAt     DateTime      @default(now()) @map("created_at")
   galleryItem   TattooGallery @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -337,13 +337,13 @@ model TattooGalleryLike {
 
 model TattooGalleryComment {
   id            String        @id @default(cuid())
-  galleryItemId String
-  userId        String
+  galleryItemId String        @map("gallery_item_id")
+  userId        String        @map("user_id")
   comment       String
-  isApproved    Boolean       @default(true)
-  isHidden      Boolean       @default(false)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  isApproved    Boolean       @default(true) @map("is_approved")
+  isHidden      Boolean       @default(false) @map("is_hidden")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
   galleryItem   TattooGallery @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -355,11 +355,11 @@ model TattooGalleryComment {
 
 model TattooGalleryView {
   id            String        @id @default(cuid())
-  galleryItemId String
-  viewerIp      String?
-  userAgent     String?
+  galleryItemId String        @map("gallery_item_id")
+  viewerIp      String?       @map("viewer_ip")
+  userAgent     String?       @map("user_agent")
   referrer      String?
-  viewedAt      DateTime      @default(now())
+  viewedAt      DateTime      @default(now()) @map("viewed_at")
   galleryItem   TattooGallery @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
 
   @@index([galleryItemId])
