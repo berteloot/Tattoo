@@ -1,8 +1,7 @@
 import axios from 'axios'
 
-// Create axios instance - use relative URLs for same-domain deployment
-// Frontend and backend are served from the same domain on Render
-const API_URL = '/api'
+// Create axios instance - use environment variable or fallback to relative URL
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 
 export const api = axios.create({
   baseURL: API_URL,
