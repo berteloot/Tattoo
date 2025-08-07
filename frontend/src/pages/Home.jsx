@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
-import { MapPin, Users, Star, Palette, Search, Filter } from 'lucide-react'
-import { ArtistMap } from '../components/ArtistMap'
+import { MapPin, Users, Star, Palette, Search, Filter, Plus, Building2 } from 'lucide-react'
+import { StudioMap } from '../components/StudioMap'
 import { useState, useEffect } from 'react'
 import { api } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
@@ -85,60 +85,74 @@ export const Home = () => {
 
   return (
     <div className="space-y-16">
-      {/* Hero Section */}
-      <section className="text-center py-16">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Find Your Perfect
-            <span className="text-primary-600"> Tattoo Artist</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Discover talented tattoo artists in Montreal. Browse portfolios, read reviews, 
-            and book your next piece with confidence.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/artists"
-              className="btn btn-primary btn-lg"
-            >
-              Find Artists
-            </Link>
-            <Link
-              to="/register"
-              className="btn btn-outline btn-lg"
-            >
-              Join as Artist
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Map Section */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Find Artists Near You</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Explore our interactive map to discover talented tattoo artists in Montreal. 
-              Click on any marker to view artist details, get directions to their studio, 
-              and see estimated travel time and distance.
-            </p>
-          </div>
+      {/* Hero Section with Map */}
+      <section className="relative">
+        {/* Map Container */}
+        <div className="h-[600px] relative">
+          <StudioMap />
           
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 text-gray-600">
-                  <MapPin className="w-5 h-5" />
-                  <span className="font-medium">Montreal, Quebec</span>
-                </div>
-                <div className="flex items-center space-x-2 text-gray-600">
-                  <Star className="w-5 h-5 text-yellow-500" />
-                  <span className="font-medium">5 Verified Artists</span>
+          {/* Overlay with CTA */}
+          <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/50 to-transparent z-10">
+            <div className="max-w-4xl mx-auto px-4 py-16">
+              <div className="text-center text-white">
+                <h1 className="text-4xl md:text-6xl font-bold mb-6">
+                  Find Your Perfect
+                  <span className="text-primary-300"> Tattoo Studio</span>
+                </h1>
+                <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+                  Discover talented tattoo artists and studios in Montreal. Browse portfolios, read reviews, 
+                  and book your next piece with confidence.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link
+                    to="/map"
+                    className="btn btn-primary btn-lg bg-primary-600 hover:bg-primary-700"
+                  >
+                    <MapPin className="w-5 h-5 mr-2" />
+                    Explore Studios
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="btn btn-outline btn-lg border-white text-white hover:bg-white hover:text-gray-900"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Join as Artist
+                  </Link>
                 </div>
               </div>
             </div>
-            <ArtistMap />
+          </div>
+        </div>
+        
+        {/* Bottom CTA Bar */}
+        <div className="bg-white shadow-lg">
+          <div className="max-w-6xl mx-auto px-4 py-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-center md:text-left">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  Can't find your studio?
+                </h3>
+                <p className="text-gray-600">
+                  Register as an artist and add your studio to our platform
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  to="/register"
+                  className="btn btn-primary"
+                >
+                  <Building2 className="w-4 h-4 mr-2" />
+                  Add Your Studio
+                </Link>
+                <Link
+                  to="/artists"
+                  className="btn btn-outline"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Browse All Artists
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -260,55 +274,29 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* Map Section */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Find Artists Near You</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Explore our interactive map to discover talented tattoo artists in Montreal. 
-              Click on any marker to view artist details, get directions to their studio, 
-              and see estimated travel time and distance.
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <ArtistMap />
-          </div>
-          
-          <div className="text-center mt-8">
-            <Link
-              to="/map"
-              className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              <MapPin className="w-5 h-5 mr-2" />
-              View Full Map
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="bg-primary-600 text-white py-16 rounded-lg">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">
-            Ready to Find Your Artist?
+            Ready to Find Your Perfect Studio?
           </h2>
           <p className="text-xl mb-8 opacity-90">
             Join thousands of clients who have found their perfect tattoo artist through our platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/artists"
+              to="/map"
               className="btn bg-white text-primary-600 hover:bg-gray-100 btn-lg"
             >
-              Browse Artists
+              <MapPin className="w-5 h-5 mr-2" />
+              Explore Studios Map
             </Link>
             <Link
-              to="/flash"
+              to="/register"
               className="btn btn-outline border-white text-white hover:bg-white hover:text-primary-600 btn-lg"
             >
-              View Flash Gallery
+              <Plus className="w-5 h-5 mr-2" />
+              Register as Artist
             </Link>
           </div>
         </div>
