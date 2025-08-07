@@ -123,4 +123,36 @@
   .editorial-accent {
     @apply text-editorial-600;
   }
+
+  .category-tag {
+    @apply inline-block px-4 py-2 bg-yellow-400 text-black font-bold text-sm uppercase tracking-wide;
+  }
+
+  .black-line-box {
+    @apply bg-black text-white px-4 py-2 font-bold text-sm uppercase tracking-wide;
+  }
+
+  .highlighted-title {
+    @apply font-display text-2xl md:text-3xl font-bold text-black leading-tight;
+  }
+
+  .featured-title {
+    @apply font-display text-xl md:text-2xl font-semibold text-black leading-tight;
+  }
+
+  .editorial-logo {
+    @apply font-bold text-3xl md:text-4xl text-black tracking-tight;
+  }
+
+  .editorial-tagline {
+    @apply text-sm text-gray-600 font-medium uppercase tracking-wide;
+  }
+
+  .editorial-nav {
+    @apply font-bold text-sm uppercase tracking-wide text-black;
+  }
+
+  .editorial-date {
+    @apply text-xs text-gray-500 uppercase tracking-wide;
+  }
 } 

@@ -97,132 +97,122 @@ export const HomeEditorial = () => {
         </div>
       </div>
 
-      {/* Hero Section - Editorial Style */}
-      <section className="editorial-hero text-center py-20">
-        <div className="max-w-4xl mx-auto px-4">
-          <h1 className="editorial-title mb-6">
-            Le goût de l'art corporel
-          </h1>
-          <p className="editorial-subtitle mb-8">
-            Découvrez les meilleurs artistes tatoueurs de Montréal. 
-            Du traditionnel au contemporain, trouvez l'artiste qui saura donner vie à vos idées.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/map"
-              className="btn bg-editorial-600 text-white hover:bg-editorial-700 btn-lg"
-            >
-              <MapPin className="w-5 h-5 mr-2" />
-              Explorer les studios
-            </Link>
-            <Link
-              to="/register"
-              className="btn border-editorial-600 text-editorial-600 hover:bg-editorial-50 btn-lg"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Rejoindre comme artiste
-            </Link>
+      {/* Header with Logo and Navigation */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="text-center mb-6">
+            <p className="editorial-tagline mb-2">The Art of Body Expression</p>
+            <h1 className="editorial-logo mb-2">TATTOOED WORLD®</h1>
           </div>
+          <nav className="flex flex-wrap justify-center gap-6">
+            <a href="/artists" className="editorial-nav">ARTISTS</a>
+            <a href="/studios" className="editorial-nav">STUDIOS</a>
+            <a href="/flash" className="editorial-nav">PORTFOLIO</a>
+            <a href="/map" className="editorial-nav">MAP</a>
+            <a href="/reviews" className="editorial-nav">REVIEWS</a>
+            <a href="/about" className="editorial-nav">ABOUT</a>
+          </nav>
         </div>
-      </section>
+      </header>
 
-      {/* Map Section */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="editorial-subtitle mb-4">Trouvez des studios près de chez vous</h2>
-            <p className="editorial-text max-w-2xl mx-auto">
-              Explorez notre carte interactive pour découvrir les studios de tatouage talentueux à Montréal. 
-              Cliquez sur n'importe quel marqueur pour voir les détails du studio et obtenir des directions.
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <StudioMap />
-          </div>
-        </div>
-      </section>
+      {/* Main Content Grid */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content - Left Column */}
+          <div className="lg:col-span-2">
+            {/* Featured Article */}
+            <article className="bg-white mb-8">
+              <div className="p-6">
+                <span className="category-tag mb-4 inline-block">FEATURED ARTIST</span>
+                <h2 className="highlighted-title mb-4">The Summer's Must-See Studio</h2>
+                <div className="bg-gradient-to-br from-editorial-500 to-editorial-700 h-64 rounded-lg flex items-center justify-center mb-4">
+                  <span className="text-white text-6xl">🎨</span>
+                </div>
+                <p className="text-gray-700 mb-4 leading-relaxed">
+                  Discover the hottest tattoo destination this season. Our featured artist combines traditional techniques 
+                  with modern innovation, creating pieces that tell your unique story. From minimalist designs to bold 
+                  statement pieces, this studio is redefining body art in Montreal.
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="editorial-date">AUGUST 5, 2025</span>
+                  <Link to="/artists" className="text-editorial-600 font-medium hover:text-editorial-700">
+                    READ MORE →
+                  </Link>
+                </div>
+              </div>
+            </article>
 
-      {/* CTA Bar */}
-      <section className="bg-white shadow-lg border-t border-cream-200">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-center md:text-left">
-              <h3 className="text-xl font-display font-semibold text-cream-900 mb-2">
-                Vous ne trouvez pas votre studio ?
-              </h3>
-              <p className="text-cream-600">
-                Inscrivez-vous comme artiste et ajoutez votre studio à notre plateforme
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                to="/register"
-                className="btn bg-editorial-600 text-white hover:bg-editorial-700"
-              >
-                <Building2 className="w-4 h-4 mr-2" />
-                Ajouter votre studio
-              </Link>
-              <Link
-                to="/artists"
-                className="btn border-editorial-600 text-editorial-600 hover:bg-editorial-50"
-              >
-                <Search className="w-4 h-4 mr-2" />
-                Parcourir tous les artistes
-              </Link>
-            </div>
+            {/* Map Section */}
+            <section className="bg-white mb-8">
+              <div className="p-6">
+                <h2 className="highlighted-title mb-4">Find Studios Near You</h2>
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                  Explore our interactive map to discover talented tattoo studios in Montreal. 
+                  Click on any marker to view studio details and get directions.
+                </p>
+                <div className="bg-gray-100 rounded-lg overflow-hidden h-64">
+                  <StudioMap />
+                </div>
+              </div>
+            </section>
           </div>
-        </div>
-      </section>
 
-      {/* Features Section */}
-      <section className="editorial-section py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="editorial-subtitle text-center mb-12">
-            Pourquoi choisir Tattooed World ?
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-editorial-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="h-8 w-8 text-editorial-600" />
+          {/* Sidebar - Right Column */}
+          <div className="lg:col-span-1">
+            {/* Featured Artists Section */}
+            <section className="bg-white mb-8">
+              <div className="relative">
+                <div className="bg-gradient-to-br from-editorial-500 to-editorial-700 h-48 rounded-t-lg flex items-center justify-center">
+                  <span className="text-white text-4xl">👤</span>
+                </div>
+                <div className="black-line-box absolute bottom-0 left-0 right-0">
+                  FEATURED ARTISTS
+                </div>
               </div>
-              <h3 className="text-xl font-display font-semibold text-cream-900 mb-2">
-                Recherche par localisation
-              </h3>
-              <p className="editorial-text">
-                Trouvez des artistes près de chez vous avec notre carte interactive et nos filtres géolocalisés.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-editorial-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-editorial-600" />
+              <div className="p-6">
+                <h3 className="featured-title mb-4">Top Artists This Month</h3>
+                <p className="text-gray-700 mb-4 leading-relaxed">
+                  Meet the most talented tattoo artists in Montreal. Each brings their unique style 
+                  and expertise to create stunning body art that tells your story.
+                </p>
+                <div className="editorial-date mb-4">AUGUST 4, 2025</div>
+                <Link to="/artists" className="text-editorial-600 font-medium hover:text-editorial-700">
+                  VIEW ALL ARTISTS →
+                </Link>
               </div>
-              <h3 className="text-xl font-display font-semibold text-cream-900 mb-2">
-                Avis vérifiés
-              </h3>
-              <p className="editorial-text">
-                Lisez des avis authentiques de vrais clients pour prendre des décisions éclairées.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-editorial-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Palette className="h-8 w-8 text-editorial-600" />
+            </section>
+
+            {/* Quick Stats */}
+            <section className="bg-white mb-8">
+              <div className="p-6">
+                <h3 className="featured-title mb-4">Platform Stats</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Active Artists</span>
+                    <span className="font-bold text-black">127</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Studios Listed</span>
+                    <span className="font-bold text-black">89</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Reviews</span>
+                    <span className="font-bold text-black">2,456</span>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-display font-semibold text-cream-900 mb-2">
-                Portfolio d'artistes
-              </h3>
-              <p className="editorial-text">
-                Parcourez les portfolios d'artistes et les designs flash pour trouver votre style parfait.
-              </p>
-            </div>
+            </section>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Artist Showcase - Editorial Style */}
-      <section className="py-16">
+      <section className="bg-white py-16">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="editorial-subtitle text-center mb-12">Artistes en vedette</h2>
+          <div className="text-center mb-12">
+            <span className="category-tag mb-4 inline-block">ARTIST SHOWCASE</span>
+            <h2 className="highlighted-title">Featured Artists</h2>
+          </div>
           
           {loading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -251,9 +241,9 @@ export const HomeEditorial = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="editorial-text mb-4">Aucun artiste en vedette disponible pour le moment.</p>
+              <p className="editorial-text mb-4">No featured artists available at the moment.</p>
               <Link to="/artists" className="btn bg-editorial-600 text-white hover:bg-editorial-700">
-                Parcourir tous les artistes
+                Browse All Artists
               </Link>
             </div>
           )}
@@ -264,10 +254,10 @@ export const HomeEditorial = () => {
       <section className="bg-editorial-600 text-white py-16">
         <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-3xl font-display font-bold mb-4">
-            Prêt à trouver votre studio parfait ?
+            Ready to Find Your Perfect Studio?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Rejoignez des milliers de clients qui ont trouvé leur artiste tatoueur parfait grâce à notre plateforme.
+            Join thousands of clients who have found their perfect tattoo artist through our platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -275,14 +265,14 @@ export const HomeEditorial = () => {
               className="btn bg-white text-editorial-600 hover:bg-cream-50 btn-lg"
             >
               <MapPin className="w-5 h-5 mr-2" />
-              Explorer la carte des studios
+              Explore Studios Map
             </Link>
             <Link
               to="/register"
               className="btn border-white text-white hover:bg-white hover:text-editorial-600 btn-lg"
             >
               <Plus className="w-5 h-5 mr-2" />
-              S'inscrire comme artiste
+              Register as Artist
             </Link>
           </div>
         </div>
