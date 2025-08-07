@@ -23,6 +23,10 @@ export const FavoriteButton = ({ artistId, className = '', size = 'w-6 h-6', onF
     } catch (error) {
       console.error('Error checking favorite status:', error)
       // Don't show error toast for this, just log it
+      // Set to false if there's an authentication error
+      if (error.response?.status === 401) {
+        setIsFavorited(false)
+      }
     }
   }
 
@@ -57,8 +61,14 @@ export const FavoriteButton = ({ artistId, className = '', size = 'w-6 h-6', onF
       }
     } catch (error) {
       console.error('Error toggling favorite:', error)
-      const errorMessage = error.response?.data?.error || 'Failed to update favorite'
-      toast.error(errorMessage)
+      
+      // Handle different types of errors
+      if (error.response?.status === 401) {
+        toast.error('Please log in to favorite artists')
+      } else {
+        const errorMessage = error.response?.data?.error || 'Failed to update favorite'
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

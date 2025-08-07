@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { MapPin, Menu, X, LogOut, User, Heart } from 'lucide-react'
+import { MapPin, Menu, X, LogOut, User } from 'lucide-react'
 import { SkipToMainContent } from './UXComponents'
+import { FavoritesCount } from './FavoritesCount'
 
 export const Layout = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -67,8 +68,7 @@ export const Layout = ({ children }) => {
                       to="/favorites"
                       className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
                     >
-                      <Heart className="h-4 w-4" />
-                      <span>Favorites</span>
+                      <FavoritesCount />
                     </Link>
                   )}
                   {isArtist && (
@@ -173,8 +173,7 @@ export const Layout = ({ children }) => {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div className="flex items-center space-x-2">
-                        <Heart className="h-4 w-4" />
-                        <span>Favorites</span>
+                        <FavoritesCount />
                       </div>
                     </Link>
                   )}

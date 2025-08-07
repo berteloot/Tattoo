@@ -24,12 +24,21 @@ export const Favorites = () => {
   const fetchFavorites = async () => {
     try {
       setLoading(true)
+      setError(null)
       const response = await favoritesAPI.getAll()
       setFavorites(response.data.data.favorites)
     } catch (error) {
       console.error('Error fetching favorites:', error)
-      setError('Failed to load your favorite artists')
-      toast.error('Failed to load favorites')
+      
+      // Handle different types of errors
+      if (error.response?.status === 401) {
+        // Authentication error - redirect to login
+        setError('Please log in to view your favorites')
+      } else {
+        const errorMessage = error.response?.data?.error || 'Failed to load your favorite artists'
+        setError(errorMessage)
+        toast.error('Failed to load favorites')
+      }
     } finally {
       setLoading(false)
     }
