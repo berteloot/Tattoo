@@ -131,6 +131,13 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
         })
       });
 
+      if (response.status === 429) {
+        // Rate limited - wait longer and retry
+        console.log('⚠️ Rate limited, waiting 10 seconds before retry...');
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        return await saveGeocodingResult(studioId, latitude, longitude, address);
+      }
+
       const data = await response.json();
       
       if (data.success) {
@@ -185,10 +192,10 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
     setCurrentIndex(prev => prev + 1);
     setProgress(((currentIndex + 1) / pendingStudios.length) * 100);
 
-    // Add delay to respect rate limits
+    // Add delay to respect rate limits (increased to avoid 429 errors)
     setTimeout(() => {
       processNextStudio();
-    }, 1000); // 1 second delay
+    }, 3000); // 3 second delay to avoid rate limiting
   };
 
   const startGeocoding = () => {
@@ -380,7 +387,8 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
         <ul className="text-sm text-gray-600 space-y-1">
           <li>• Uses Google Maps Geocoding API from the frontend (works with referer restrictions)</li>
           <li>• Automatically saves results to the database</li>
-          <li>• Includes rate limiting (1 second delay between requests)</li>
+          <li>• Includes rate limiting (3 second delay between requests to avoid server limits)</li>
+          <li>• Automatically retries if rate limited (10 second wait)</li>
           <li>• Caches results to avoid duplicate API calls</li>
           <li>• Shows real-time progress and statistics</li>
         </ul>
