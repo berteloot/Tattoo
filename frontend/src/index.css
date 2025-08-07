@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -69,5 +70,57 @@
   
   .card-footer {
     @apply flex items-center p-6 pt-0;
+  }
+
+  .editorial-title {
+    @apply font-display text-4xl md:text-5xl font-semibold leading-tight text-cream-900;
+  }
+  
+  .editorial-subtitle {
+    @apply font-display text-xl md:text-2xl font-medium text-cream-700 leading-relaxed;
+  }
+  
+  .editorial-text {
+    @apply text-cream-700 leading-relaxed;
+  }
+  
+  .editorial-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-editorial-100 text-editorial-800;
+  }
+  
+  .editorial-card {
+    @apply bg-white rounded-lg shadow-sm border border-cream-200 overflow-hidden hover:shadow-md transition-shadow duration-200;
+  }
+  
+  .editorial-card-image {
+    @apply w-full h-48 md:h-64 object-cover;
+  }
+  
+  .editorial-card-content {
+    @apply p-6;
+  }
+  
+  .editorial-card-title {
+    @apply font-display text-xl font-semibold text-cream-900 mb-2;
+  }
+  
+  .editorial-card-description {
+    @apply text-cream-600 text-sm leading-relaxed mb-4;
+  }
+  
+  .editorial-card-meta {
+    @apply flex items-center justify-between text-xs text-cream-500;
+  }
+
+  .editorial-hero {
+    @apply bg-gradient-to-br from-cream-50 to-editorial-50;
+  }
+
+  .editorial-section {
+    @apply bg-cream-50;
+  }
+
+  .editorial-accent {
+    @apply text-editorial-600;
   }
 } 

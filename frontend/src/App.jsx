@@ -29,6 +29,7 @@ import { Favorites } from './pages/Favorites'
 import Studios from './pages/Studios'
 import StudioDetail from './pages/StudioDetail'
 import Map from './pages/Map'
+import { HomeEditorial } from './pages/HomeEditorial'
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Home />} />
+              <Route path="/editorial" element={<HomeEditorial />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

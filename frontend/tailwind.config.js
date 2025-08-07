@@ -30,10 +30,37 @@ export default {
           700: '#334155',
           800: '#1e293b',
           900: '#0f172a',
+        },
+        // Editorial colors inspired by Le Fooding
+        editorial: {
+          50: '#fef7f0',
+          100: '#fdecd4',
+          200: '#fbd5a8',
+          300: '#f8b871',
+          400: '#f59338',
+          500: '#f2751a',
+          600: '#e35d10',
+          700: '#bc4510',
+          800: '#963714',
+          900: '#7a2f14',
+        },
+        cream: {
+          50: '#faf9f6',
+          100: '#f4f2ed',
+          200: '#e8e4db',
+          300: '#d6cfc2',
+          400: '#b8ad9a',
+          500: '#9a8f7a',
+          600: '#7d7260',
+          700: '#635a4b',
+          800: '#4f483d',
+          900: '#423d35',
         }
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        'editorial': ['Playfair Display', 'Georgia', 'serif'],
+        'display': ['Playfair Display', 'serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
