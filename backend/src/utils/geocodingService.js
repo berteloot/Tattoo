@@ -58,7 +58,8 @@ class RateLimitedQueue {
 const geocodeQueue = new RateLimitedQueue(10);
 
 // Google Geocoding API key (server-side key)
-const GEOCODE_API_KEY = process.env.GOOGLE_GEOCODE_API_KEY;
+// Try backend key first, fallback to frontend key if not available
+const GEOCODE_API_KEY = process.env.GOOGLE_GEOCODE_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
 
 // Flag to track if database cache is available
 let databaseCacheAvailable = true;
@@ -180,7 +181,7 @@ async function storeInCache(address, lat, lng) {
  */
 async function callGeocodeAPI(address) {
   if (!GEOCODE_API_KEY) {
-    console.warn('⚠️ GOOGLE_GEOCODE_API_KEY not configured, using fallback coordinates');
+    console.warn('⚠️ No Google API key configured (neither GOOGLE_GEOCODE_API_KEY nor VITE_GOOGLE_MAPS_API_KEY), using fallback coordinates');
     return { lat: 45.5017, lng: -73.5673, fallback: true };
   }
 
