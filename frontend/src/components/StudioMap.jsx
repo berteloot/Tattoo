@@ -14,7 +14,7 @@ const center = {
   lng: -73.5673
 }
 
-export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatured = false }) => {
+export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatured = false, focusStudioId = null }) => {
   const [studios, setStudios] = useState([])
   const [selectedStudio, setSelectedStudio] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -26,6 +26,8 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const [showDirectionsForm, setShowDirectionsForm] = useState(false)
   const [fromAddress, setFromAddress] = useState('')
   const [geocoder, setGeocoder] = useState(null)
+  const [mapCenter, setMapCenter] = useState(center)
+  const [mapZoom, setMapZoom] = useState(10)
   const directionsService = useRef(null)
   const directionsRenderer = useRef(null)
 
@@ -34,7 +36,22 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     checkApiHealth().then(() => {
       fetchStudios()
     })
-  }, [searchTerm, filterVerified, filterFeatured])
+  }, [searchTerm, filterVerified, filterFeatured, focusStudioId])
+
+  // Focus on specific studio when focusStudioId changes
+  useEffect(() => {
+    if (focusStudioId && studios.length > 0) {
+      const focusStudio = studios.find(s => s.id === focusStudioId)
+      if (focusStudio && focusStudio.latitude && focusStudio.longitude) {
+        setMapCenter({
+          lat: focusStudio.latitude,
+          lng: focusStudio.longitude
+        })
+        setMapZoom(15)
+        setSelectedStudio(focusStudio)
+      }
+    }
+  }, [focusStudioId, studios])
 
   // Initialize directions service and geocoder when map loads
   const onMapLoad = (map) => {
@@ -266,23 +283,36 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const fetchStudios = async () => {
     try {
       console.log('Fetching studios for map...')
-      console.log('Search params:', { searchTerm, filterVerified, filterFeatured })
+      console.log('Search params:', { searchTerm, filterVerified, filterFeatured, focusStudioId })
       
-      // Build query parameters
-      const params = new URLSearchParams()
-      if (searchTerm) params.append('search', searchTerm)
-      if (filterVerified) params.append('verified', 'true')
-      if (filterFeatured) params.append('featured', 'true')
+      let response
       
-      // Use the geocoding API to get only studios with coordinates
-      const response = await fetch(`/api/geocoding/studios?${params.toString()}`)
+      // If focusing on a specific studio, fetch just that studio
+      if (focusStudioId) {
+        response = await fetch(`/api/geocoding/studios/${focusStudioId}`)
+      } else {
+        // Build query parameters for all studios
+        const params = new URLSearchParams()
+        if (searchTerm) params.append('search', searchTerm)
+        if (filterVerified) params.append('verified', 'true')
+        if (filterFeatured) params.append('featured', 'true')
+        
+        response = await fetch(`/api/geocoding/studios?${params.toString()}`)
+      }
+      
       if (response.ok) {
         const result = await response.json()
         if (result.success) {
           console.log('Using geocoded studios data for map')
           console.log('Studios with coordinates:', result.data.features?.length || 0)
+          console.log('Stats:', { 
+            total: result.count || result.data.features?.length || 0,
+            withCoordinates: result.withCoordinates || 0,
+            withoutCoordinates: result.withoutCoordinates || 0
+          })
+          
           // Convert GeoJSON features to studio objects
-          const studiosWithCoordinates = result.data.features?.map(feature => ({
+          const studiosData = result.data.features?.map(feature => ({
             id: feature.properties.id,
             title: feature.properties.title,
             address: feature.properties.address,
@@ -290,15 +320,26 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
             state: feature.properties.state,
             zipCode: feature.properties.zipCode,
             country: feature.properties.country,
-            latitude: feature.geometry.coordinates[1], // GeoJSON uses [lng, lat]
-            longitude: feature.geometry.coordinates[0],
+            latitude: feature.geometry?.coordinates?.[1] || null, // GeoJSON uses [lng, lat]
+            longitude: feature.geometry?.coordinates?.[0] || null,
             website: feature.properties.website,
             phoneNumber: feature.properties.phoneNumber,
             email: feature.properties.email,
             isVerified: feature.properties.isVerified,
-            isFeatured: feature.properties.isFeatured
+            isFeatured: feature.properties.isFeatured,
+            hasCoordinates: feature.properties.hasCoordinates,
+            needsGeocoding: feature.properties.needsGeocoding
           })) || []
+          
+          // Filter out studios without coordinates for map display
+          const studiosWithCoordinates = studiosData.filter(studio => studio.hasCoordinates)
           setStudios(studiosWithCoordinates)
+          
+          // Log studios that need geocoding
+          const studiosNeedingGeocoding = studiosData.filter(studio => studio.needsGeocoding)
+          if (studiosNeedingGeocoding.length > 0) {
+            console.log('Studios needing geocoding:', studiosNeedingGeocoding.map(s => s.title))
+          }
         } else {
           throw new Error('Geocoding API returned error')
         }
@@ -500,8 +541,8 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
             <GoogleMap
               mapContainerStyle={mapContainerStyle}
-              center={center}
-              zoom={12}
+              center={mapCenter}
+              zoom={mapZoom}
               onLoad={onMapLoad}
               options={{
                 styles: [

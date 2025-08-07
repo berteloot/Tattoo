@@ -10,9 +10,7 @@ router.get('/studios', async (req, res) => {
     
     // Build query with optional filters
     let whereClause = {
-      isActive: true,
-      latitude: { not: null },
-      longitude: { not: null }
+      isActive: true
     };
     
     // Add search filter
@@ -68,15 +66,97 @@ router.get('/studios', async (req, res) => {
       take: parseInt(limit)
     });
     
-    // Convert to GeoJSON format
+    // Convert to GeoJSON format, including studios without coordinates
     const geojson = {
       type: 'FeatureCollection',
-      features: studios.map(studio => ({
+      features: studios.map(studio => {
+        const hasCoordinates = studio.latitude && studio.longitude;
+        
+        return {
+          type: 'Feature',
+          geometry: hasCoordinates ? {
+            type: 'Point',
+            coordinates: [studio.longitude, studio.latitude]
+          } : null,
+          properties: {
+            id: studio.id,
+            title: studio.title,
+            address: studio.address,
+            city: studio.city,
+            state: studio.state,
+            zipCode: studio.zipCode,
+            country: studio.country,
+            website: studio.website,
+            phoneNumber: studio.phoneNumber,
+            email: studio.email,
+            isVerified: studio.isVerified,
+            isFeatured: studio.isFeatured,
+            hasCoordinates: hasCoordinates,
+            needsGeocoding: !hasCoordinates
+          }
+        };
+      })
+    };
+    
+    res.json({
+      success: true,
+      data: geojson,
+      count: studios.length,
+      withCoordinates: studios.filter(s => s.latitude && s.longitude).length,
+      withoutCoordinates: studios.filter(s => !s.latitude || !s.longitude).length
+    });
+    
+  } catch (error) {
+    console.error('Error fetching studios with geocoding:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch studios with geocoding'
+    });
+  }
+});
+
+// Get a specific studio for map focusing
+router.get('/studios/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const studio = await prisma.studio.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        country: true,
+        latitude: true,
+        longitude: true,
+        website: true,
+        phoneNumber: true,
+        email: true,
+        isVerified: true,
+        isFeatured: true
+      }
+    });
+    
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+    
+    const hasCoordinates = studio.latitude && studio.longitude;
+    
+    const geojson = {
+      type: 'FeatureCollection',
+      features: [{
         type: 'Feature',
-        geometry: {
+        geometry: hasCoordinates ? {
           type: 'Point',
           coordinates: [studio.longitude, studio.latitude]
-        },
+        } : null,
         properties: {
           id: studio.id,
           title: studio.title,
@@ -89,22 +169,25 @@ router.get('/studios', async (req, res) => {
           phoneNumber: studio.phoneNumber,
           email: studio.email,
           isVerified: studio.isVerified,
-          isFeatured: studio.isFeatured
+          isFeatured: studio.isFeatured,
+          hasCoordinates: hasCoordinates,
+          needsGeocoding: !hasCoordinates
         }
-      }))
+      }]
     };
     
     res.json({
       success: true,
       data: geojson,
-      count: studios.length
+      studio: studio,
+      hasCoordinates: hasCoordinates
     });
     
   } catch (error) {
-    console.error('Error fetching studios with geocoding:', error);
+    console.error('Error fetching studio for map:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch studios with geocoding'
+      error: 'Failed to fetch studio for map'
     });
   }
 });

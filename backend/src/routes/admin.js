@@ -1465,6 +1465,7 @@ router.post('/upload-studios-csv', protect, adminOnly, async (req, res) => {
       total: lines.length - 1,
       successful: 0,
       failed: 0,
+      skipped: 0,
       errors: []
     };
 
@@ -1496,6 +1497,22 @@ router.post('/upload-studios-csv', protect, adminOnly, async (req, res) => {
           .replace(/\s+/g, '-')
           .replace(/-+/g, '-')
           .trim('-');
+
+        // Check for existing studio with same title or slug (duplicate detection)
+        const existingStudio = await prisma.studio.findFirst({
+          where: {
+            OR: [
+              { title: { equals: studioData.title, mode: 'insensitive' } },
+              { slug: { equals: slug, mode: 'insensitive' } }
+            ]
+          }
+        });
+
+        if (existingStudio) {
+          results.skipped++;
+          results.errors.push(`Line ${i + 1}: Studio "${studioData.title}" already exists (ID: ${existingStudio.id})`);
+          continue;
+        }
 
         // Validate and create studio
         const studio = await prisma.studio.create({
@@ -1539,13 +1556,13 @@ router.post('/upload-studios-csv', protect, adminOnly, async (req, res) => {
         action: 'UPLOAD_STUDIOS_CSV',
         targetType: 'STUDIO',
         targetId: 'bulk-upload',
-        details: `Uploaded ${results.successful} studios from CSV. ${results.failed} failed.`
+        details: `Uploaded ${results.successful} studios from CSV. ${results.failed} failed, ${results.skipped} skipped (duplicates).`
       }
     });
 
     res.json({
       success: true,
-      message: `CSV upload completed. ${results.successful} studios created, ${results.failed} failed.`,
+      message: `CSV upload completed. ${results.successful} studios created, ${results.failed} failed, ${results.skipped} skipped (duplicates).`,
       data: results
     });
 
