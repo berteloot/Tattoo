@@ -4,7 +4,8 @@ import { useToast } from '../contexts/ToastContext'
 import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
 import ImageUpload from '../components/ImageUpload'
 import ProfilePictureUpload from '../components/ProfilePictureUpload'
-import { CheckCircle } from 'lucide-react'
+import { CheckCircle, Image as ImageIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 import StudioSearch from '../components/StudioSearch'
 import { FavoriteClients } from '../components/FavoriteClients'
@@ -1440,6 +1441,60 @@ export const ArtistDashboard = () => {
             </div>
           </div>
         )}
+
+        {/* Tattoo Gallery Management */}
+        <div className="mt-8 bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Tattoo Gallery</h2>
+              {/* Only show gallery management if user has artist profile */}
+              {user?.artistProfile?.id ? (
+                <Link 
+                  to="/dashboard/gallery"
+                  className="px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-500 flex items-center space-x-2"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Manage Gallery</span>
+                </Link>
+              ) : (
+                <p className="text-sm text-gray-500">Create your artist profile first to manage your gallery</p>
+              )}
+            </div>
+          </div>
+          <div className="p-6">
+            {user?.artistProfile?.id ? (
+              <div className="text-center py-8">
+                <div className="text-gray-400 text-4xl mb-4">🎨</div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Manage Your Tattoo Portfolio</h3>
+                <p className="text-gray-600 mb-6">
+                  Upload and showcase your completed tattoo work. Build a professional portfolio to attract clients.
+                </p>
+                <Link
+                  to="/dashboard/gallery"
+                  className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  <ImageIcon className="w-5 h-5" />
+                  <span>Go to Gallery Management</span>
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-gray-400 text-4xl mb-4">🎨</div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Tattoo Gallery Management</h3>
+                <p className="text-gray-600 mb-6">
+                  Create your artist profile to start building your tattoo portfolio and showcase your work.
+                </p>
+                <button
+                  onClick={() => setEditing(true)}
+                  className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Create Artist Profile</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

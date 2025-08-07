@@ -86,27 +86,28 @@ export const Home = () => {
   return (
     <div className="space-y-16">
       {/* Hero Section */}
-      <section className="text-center py-16 bg-gradient-to-br from-primary-50 to-primary-100">
+      <section className="text-center py-16 bg-gradient-to-br from-cream-50 to-editorial-50">
         <div className="max-w-4xl mx-auto px-4">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          <span className="category-tag mb-4 inline-block">FEATURED DESTINATION</span>
+          <h1 className="highlighted-title mb-6">
             Find Your Perfect
-            <span className="text-primary-600"> Tattoo Studio</span>
+            <span className="text-[#fedd33]"> Tattoo Studio</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="editorial-text text-xl mb-8 max-w-2xl mx-auto">
             Discover talented tattoo artists and studios in Montreal. Browse portfolios, read reviews, 
             and book your next piece with confidence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/map"
-              className="btn btn-primary btn-lg"
+              className="btn bg-[#fedd33] text-black hover:bg-yellow-400 btn-lg font-bold"
             >
               <MapPin className="w-5 h-5 mr-2" />
               Explore Studios
             </Link>
             <Link
               to="/register"
-              className="btn btn-outline btn-lg"
+              className="btn border-[#fedd33] text-[#fedd33] hover:bg-[#fedd33] hover:text-black btn-lg font-bold"
             >
               <Plus className="w-5 h-5 mr-2" />
               Join as Artist
@@ -119,8 +120,9 @@ export const Home = () => {
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Find Studios Near You</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <span className="category-tag mb-4 inline-block">LOCATION SEARCH</span>
+            <h2 className="highlighted-title mb-4">Find Studios Near You</h2>
+            <p className="editorial-text max-w-2xl mx-auto">
               Explore our interactive map to discover talented tattoo studios in Montreal. 
               Click on any marker to view studio details and get directions.
             </p>
@@ -137,24 +139,24 @@ export const Home = () => {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-center md:text-left">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="featured-title mb-2">
                 Can't find your studio?
               </h3>
-              <p className="text-gray-600">
+              <p className="editorial-text">
                 Register as an artist and add your studio to our platform
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 to="/register"
-                className="btn btn-primary"
+                className="btn bg-[#fedd33] text-black hover:bg-yellow-400 font-bold"
               >
                 <Building2 className="w-4 h-4 mr-2" />
                 Add Your Studio
               </Link>
               <Link
                 to="/artists"
-                className="btn btn-outline"
+                className="btn border-[#fedd33] text-[#fedd33] hover:bg-[#fedd33] hover:text-black font-bold"
               >
                 <Search className="w-4 h-4 mr-2" />
                 Browse All Artists
@@ -167,40 +169,41 @@ export const Home = () => {
       {/* Features Section */}
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Why Choose Tattooed World?
-          </h2>
+          <div className="text-center mb-12">
+            <span className="category-tag mb-4 inline-block">WHY CHOOSE US</span>
+            <h2 className="highlighted-title">Why Choose Tattooed World?</h2>
+          </div>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="h-8 w-8 text-primary-600" />
+              <div className="bg-[#fedd33] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="h-8 w-8 text-black" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="featured-title mb-2">
                 Location-Based Search
               </h3>
-              <p className="text-gray-600">
+              <p className="editorial-text">
                 Find artists near you with our interactive map and location-based filtering.
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-primary-600" />
+              <div className="bg-[#fedd33] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-black" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="featured-title mb-2">
                 Verified Reviews
               </h3>
-              <p className="text-gray-600">
+              <p className="editorial-text">
                 Read authentic reviews from real clients to make informed decisions.
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Palette className="h-8 w-8 text-primary-600" />
+              <div className="bg-[#fedd33] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Palette className="h-8 w-8 text-black" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="featured-title mb-2">
                 Portfolio Showcase
               </h3>
-              <p className="text-gray-600">
+              <p className="editorial-text">
                 Browse artist portfolios and flash designs to find your perfect style match.
               </p>
             </div>
@@ -211,7 +214,10 @@ export const Home = () => {
       {/* Artist Showcase */}
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Featured Artists</h2>
+          <div className="text-center mb-12">
+            <span className="category-tag mb-4 inline-block">ARTIST SHOWCASE</span>
+            <h2 className="highlighted-title">Featured Artists</h2>
+          </div>
           
           {loading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -232,36 +238,36 @@ export const Home = () => {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {(featuredArtists || []).map((artist) => (
                 <div key={artist.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <div className="h-48 bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-                    <span className="text-white text-6xl">🎨</span>
+                  <div className="h-48 bg-gradient-to-br from-[#fedd33] to-yellow-500 flex items-center justify-center">
+                    <span className="text-black text-6xl">🎨</span>
                   </div>
                   <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">
+                    <h3 className="featured-title mb-2">
                       {artist.user.firstName} {artist.user.lastName}
                     </h3>
-                    <p className="text-gray-600 mb-3">{artist.studioName}</p>
+                    <p className="editorial-text mb-3">{artist.studioName}</p>
                     <div className="flex items-center space-x-2 mb-3">
-                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                      <span className="text-sm text-gray-600">
+                      <Star className="w-4 h-4 text-[#fedd33] fill-current" />
+                      <span className="text-sm editorial-text">
                         {artist.averageRating ? `${artist.averageRating.toFixed(1)}` : 'New'} 
                         ({artist.reviewCount || 0} reviews)
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2 mb-4">
                       {artist.specialties?.slice(0, 2).map((specialty) => (
-                        <span key={specialty.id} className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full">
+                        <span key={specialty.id} className="px-2 py-1 bg-[#fedd33] text-black text-xs rounded-full font-bold">
                           {specialty.name}
                         </span>
                       ))}
                     </div>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    <p className="editorial-text text-sm mb-4 line-clamp-2">
                       {artist.bio}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-primary-600 font-semibold">${artist.hourlyRate}/hr</span>
+                      <span className="text-[#fedd33] font-bold">${artist.hourlyRate}/hr</span>
                       <Link
                         to={`/artists/${artist.id}`}
-                        className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+                        className="text-[#fedd33] hover:text-yellow-500 font-bold text-sm"
                       >
                         View Profile →
                       </Link>
@@ -272,8 +278,8 @@ export const Home = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600 mb-4">No featured artists available at the moment.</p>
-              <Link to="/artists" className="btn btn-primary">
+              <p className="editorial-text mb-4">No featured artists available at the moment.</p>
+              <Link to="/artists" className="btn bg-[#fedd33] text-black hover:bg-yellow-400 font-bold">
                 Browse All Artists
               </Link>
             </div>
@@ -282,9 +288,9 @@ export const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-primary-600 text-white py-16 rounded-lg">
+      <section className="bg-black text-white py-16 rounded-lg">
         <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-3xl font-bold mb-4">
+          <h2 className="highlighted-title text-white mb-4">
             Ready to Find Your Perfect Studio?
           </h2>
           <p className="text-xl mb-8 opacity-90">
@@ -293,14 +299,14 @@ export const Home = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/map"
-              className="btn bg-white text-primary-600 hover:bg-gray-100 btn-lg"
+              className="btn bg-[#fedd33] text-black hover:bg-yellow-400 btn-lg font-bold"
             >
               <MapPin className="w-5 h-5 mr-2" />
               Explore Studios Map
             </Link>
             <Link
               to="/register"
-              className="btn btn-outline border-white text-white hover:bg-white hover:text-primary-600 btn-lg"
+              className="btn border-[#fedd33] text-[#fedd33] hover:bg-[#fedd33] hover:text-black btn-lg font-bold"
             >
               <Plus className="w-5 h-5 mr-2" />
               Register as Artist

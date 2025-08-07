@@ -17,6 +17,7 @@ export const Layout = ({ children }) => {
     { name: 'Studios', href: '/studios' },
     { name: 'Map', href: '/map' },
     { name: 'Flash Gallery', href: '/flash' },
+    { name: 'Tattoo Gallery', href: '/gallery' },
   ]
 
   const isActive = (path) => location.pathname === path

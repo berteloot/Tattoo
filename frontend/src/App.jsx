@@ -30,6 +30,9 @@ import Studios from './pages/Studios'
 import StudioDetail from './pages/StudioDetail'
 import Map from './pages/Map'
 import { HomeEditorial } from './pages/HomeEditorial'
+import TattooGallery from './pages/TattooGallery'
+import GalleryDetail from './pages/GalleryDetail'
+import ArtistGalleryManagement from './pages/ArtistGalleryManagement'
 
 function App() {
   return (
@@ -52,6 +55,8 @@ function App() {
               <Route path="/studios" element={<Studios />} />
               <Route path="/studios/:id" element={<StudioDetail />} />
               <Route path="/map" element={<Map />} />
+              <Route path="/gallery" element={<TattooGallery />} />
+              <Route path="/gallery/:id" element={<GalleryDetail />} />
               
               {/* Protected routes */}
               <Route path="/profile" element={
@@ -67,6 +72,11 @@ function App() {
               <Route path="/dashboard" element={
                 <ProtectedRoute requiredRole="ARTIST">
                   <ArtistDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/gallery" element={
+                <ProtectedRoute requiredRole="ARTIST">
+                  <ArtistGalleryManagement />
                 </ProtectedRoute>
               } />
               <Route path="/admin/users" element={
