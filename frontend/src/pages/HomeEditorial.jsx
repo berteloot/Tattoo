@@ -86,6 +86,17 @@ export const HomeEditorial = () => {
 
   return (
     <div className="min-h-screen bg-cream-50">
+      {/* Test Section to verify styles */}
+      <div className="bg-editorial-600 text-white p-4 text-center">
+        <h1 className="font-display text-2xl">Editorial Style Test</h1>
+        <p className="text-editorial-100">If you can see this, the editorial styles are working!</p>
+        <div className="mt-4 space-x-4">
+          <span className="bg-editorial-500 px-3 py-1 rounded">Editorial 500</span>
+          <span className="bg-cream-500 px-3 py-1 rounded">Cream 500</span>
+          <span className="bg-editorial-100 text-editorial-800 px-3 py-1 rounded">Editorial 100</span>
+        </div>
+      </div>
+
       {/* Hero Section - Editorial Style */}
       <section className="editorial-hero text-center py-20">
         <div className="max-w-4xl mx-auto px-4">
