@@ -267,20 +267,39 @@ export const StudioMap = () => {
     try {
       console.log('Fetching studios for map...')
       
-      const response = await fetch('/api/studios?limit=50')
+      // Use the geocoding API to get only studios with coordinates
+      const response = await fetch('/api/geocoding/studios')
       if (response.ok) {
         const result = await response.json()
         if (result.success) {
-          console.log('Using API studios data for map')
-          setStudios(result.data.studios || [])
+          console.log('Using geocoded studios data for map')
+          console.log('Studios with coordinates:', result.data.features?.length || 0)
+          // Convert GeoJSON features to studio objects
+          const studiosWithCoordinates = result.data.features?.map(feature => ({
+            id: feature.properties.id,
+            title: feature.properties.title,
+            address: feature.properties.address,
+            city: feature.properties.city,
+            state: feature.properties.state,
+            zipCode: feature.properties.zipCode,
+            country: feature.properties.country,
+            latitude: feature.geometry.coordinates[1], // GeoJSON uses [lng, lat]
+            longitude: feature.geometry.coordinates[0],
+            website: feature.properties.website,
+            phoneNumber: feature.properties.phoneNumber,
+            email: feature.properties.email,
+            isVerified: feature.properties.isVerified,
+            isFeatured: feature.properties.isFeatured
+          })) || []
+          setStudios(studiosWithCoordinates)
         } else {
-          throw new Error('API returned error')
+          throw new Error('Geocoding API returned error')
         }
       } else {
-        throw new Error('API request failed')
+        throw new Error('Geocoding API request failed')
       }
     } catch (error) {
-      console.error('Error fetching studios for map:', error)
+      console.error('Error fetching geocoded studios for map:', error)
       console.log('Using fallback studios data for map')
       setStudios(getDummyStudios())
     } finally {
