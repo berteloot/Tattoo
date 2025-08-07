@@ -293,75 +293,14 @@ export const ArtistMap = () => {
           console.log('Using API studios data for map')
           const studiosData = result.data.studios || []
           
-          // Filter studios that need geocoding
+          // Note: Geocoding is now handled by the dedicated FrontendGeocoding component
+          // Studios without coordinates will be handled separately via /admin/geocoding
           const studiosWithoutCoords = studiosData.filter(studio => 
             !studio.latitude || !studio.longitude
           )
           
           if (studiosWithoutCoords.length > 0) {
-            console.log(`Found ${studiosWithoutCoords.length} studios without coordinates, geocoding...`)
-            
-            // Build addresses for geocoding
-            const addresses = studiosWithoutCoords.map(studio => {
-              const addressParts = [
-                studio.address,
-                studio.city,
-                studio.state,
-                studio.zipCode
-              ].filter(Boolean)
-              return addressParts.join(', ')
-            }).filter(Boolean)
-            
-            if (addresses.length > 0) {
-              // Geocode addresses in batches
-              const batchSize = 5
-              for (let i = 0; i < addresses.length; i += batchSize) {
-                const batch = addresses.slice(i, i + batchSize)
-                
-                try {
-                  const geocodeResponse = await fetch('/api/geocoding/batch-geocode', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ addresses: batch })
-                  })
-                  
-                  if (geocodeResponse.ok) {
-                    const geocodeResult = await geocodeResponse.json()
-                    
-                    // Update studios with geocoded coordinates
-                    for (let j = 0; j < batch.length; j++) {
-                      const address = batch[j]
-                      const geocodeData = geocodeResult.results[j]
-                      const studioIndex = studiosData.findIndex(studio => {
-                        const studioAddress = [
-                          studio.address,
-                          studio.city,
-                          studio.state,
-                          studio.zipCode
-                        ].filter(Boolean).join(', ')
-                        return studioAddress === address
-                      })
-                      
-                      if (studioIndex !== -1 && geocodeData.success) {
-                        studiosData[studioIndex].latitude = geocodeData.location.lat
-                        studiosData[studioIndex].longitude = geocodeData.location.lng
-                        console.log(`✅ Geocoded: ${address} → ${geocodeData.location.lat}, ${geocodeData.location.lng}`)
-                      }
-                    }
-                  }
-                  
-                  // Small delay between batches to avoid rate limiting
-                  if (i + batchSize < addresses.length) {
-                    await new Promise(resolve => setTimeout(resolve, 500))
-                  }
-                  
-                } catch (error) {
-                  console.error('Error geocoding batch:', error)
-                }
-              }
-            }
+            console.log(`Found ${studiosWithoutCoords.length} studios without coordinates. Use the geocoding tool at /admin/geocoding to process them.`)
           }
           
           setStudios(studiosData)
