@@ -36,44 +36,50 @@ model User {
 }
 
 model ArtistProfile {
-  id                 String             @id @default(cuid())
-  userId             String             @unique
-  bio                String?
-  studioName         String?
-  website            String?
-  instagram          String?
-  facebook           String?
-  twitter            String?
-  youtube            String?
-  linkedin           String?
-  calendlyUrl        String?
-  latitude           Float?
-  longitude          Float?
-  address            String?
-  city               String?
-  state              String?
-  zipCode            String?
-  country            String?
-  hourlyRate         Float?
-  minPrice           Float?
-  maxPrice           Float?
-  isVerified         Boolean            @default(false)
-  isFeatured         Boolean            @default(false)
-  verificationStatus VerificationStatus @default(PENDING)
-  verificationNotes  String?
-  verifiedAt         DateTime?
-  verifiedBy         String?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  lastViewedAt       DateTime?
-  profileViews       Int                @default(0)
-  pinterest          String?            @db.VarChar(255)
-  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  favorites          Favorite[]         @relation("FavoriteArtist")
-  flash              Flash[]
-  services           Service[]          @relation("ArtistProfileToService")
-  specialties        Specialty[]        @relation("ArtistProfileToSpecialty")
-  studios            StudioArtist[]
+  id                      String             @id @default(cuid())
+  userId                  String             @unique
+  bio                     String?
+  studioName              String?
+  website                 String?
+  instagram               String?
+  facebook                String?
+  twitter                 String?
+  youtube                 String?
+  linkedin                String?
+  calendlyUrl             String?
+  latitude                Float?
+  longitude               Float?
+  address                 String?
+  city                    String?
+  state                   String?
+  zipCode                 String?
+  country                 String?
+  hourlyRate              Float?
+  minPrice                Float?
+  maxPrice                Float?
+  profilePictureUrl       String?
+  profilePicturePublicId  String?
+  profilePictureWidth     Int?
+  profilePictureHeight    Int?
+  profilePictureFormat    String?
+  profilePictureBytes     Int?
+  isVerified              Boolean            @default(false)
+  isFeatured              Boolean            @default(false)
+  verificationStatus      VerificationStatus @default(PENDING)
+  verificationNotes       String?
+  verifiedAt              DateTime?
+  verifiedBy              String?
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+  lastViewedAt            DateTime?
+  profileViews            Int                @default(0)
+  pinterest               String?            @db.VarChar(255)
+  user                    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites               Favorite[]         @relation("FavoriteArtist")
+  flash                   Flash[]
+  services                Service[]          @relation("ArtistProfileToService")
+  specialties             Specialty[]        @relation("ArtistProfileToSpecialty")
+  studios                 StudioArtist[]
 
   @@map("artist_profiles")
 }
