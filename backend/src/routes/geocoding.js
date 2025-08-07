@@ -148,26 +148,9 @@ router.post('/save-result', async (req, res) => {
       }
     });
     
-    // Save to geocode cache
-    if (address) {
-      const crypto = require('crypto');
-      const addressHash = crypto.createHash('md5').update(address.toLowerCase().trim()).digest('hex');
-      
-      await prisma.geocodeCache.upsert({
-        where: { addressHash },
-        update: {
-          latitude: parseFloat(latitude),
-          longitude: parseFloat(longitude),
-          updatedAt: new Date()
-        },
-        create: {
-          addressHash,
-          originalAddress: address,
-          latitude: parseFloat(latitude),
-          longitude: parseFloat(longitude)
-        }
-      });
-    }
+    // Note: Geocode cache temporarily disabled due to database schema mismatch
+    // TODO: Fix geocode_cache table structure in production
+    console.log(`📝 Would cache: ${address} → ${latitude}, ${longitude}`);
     
     res.json({
       success: true,
