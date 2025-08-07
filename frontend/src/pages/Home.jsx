@@ -85,73 +85,80 @@ export const Home = () => {
 
   return (
     <div className="space-y-16">
-      {/* Hero Section with Map */}
-      <section className="relative">
-        {/* Map Container */}
-        <div className="h-[600px] relative">
-          <StudioMap />
-          
-          {/* Overlay with CTA */}
-          <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/50 to-transparent z-10">
-            <div className="max-w-4xl mx-auto px-4 py-16">
-              <div className="text-center text-white">
-                <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                  Find Your Perfect
-                  <span className="text-primary-300"> Tattoo Studio</span>
-                </h1>
-                <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-                  Discover talented tattoo artists and studios in Montreal. Browse portfolios, read reviews, 
-                  and book your next piece with confidence.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link
-                    to="/map"
-                    className="btn btn-primary btn-lg bg-primary-600 hover:bg-primary-700"
-                  >
-                    <MapPin className="w-5 h-5 mr-2" />
-                    Explore Studios
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="btn btn-outline btn-lg border-white text-white hover:bg-white hover:text-gray-900"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Join as Artist
-                  </Link>
-                </div>
-              </div>
-            </div>
+      {/* Hero Section */}
+      <section className="text-center py-16 bg-gradient-to-br from-primary-50 to-primary-100">
+        <div className="max-w-4xl mx-auto px-4">
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            Find Your Perfect
+            <span className="text-primary-600"> Tattoo Studio</span>
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Discover talented tattoo artists and studios in Montreal. Browse portfolios, read reviews, 
+            and book your next piece with confidence.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/map"
+              className="btn btn-primary btn-lg"
+            >
+              <MapPin className="w-5 h-5 mr-2" />
+              Explore Studios
+            </Link>
+            <Link
+              to="/register"
+              className="btn btn-outline btn-lg"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Join as Artist
+            </Link>
           </div>
         </div>
-        
-        {/* Bottom CTA Bar */}
-        <div className="bg-white shadow-lg">
-          <div className="max-w-6xl mx-auto px-4 py-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="text-center md:text-left">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  Can't find your studio?
-                </h3>
-                <p className="text-gray-600">
-                  Register as an artist and add your studio to our platform
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link
-                  to="/register"
-                  className="btn btn-primary"
-                >
-                  <Building2 className="w-4 h-4 mr-2" />
-                  Add Your Studio
-                </Link>
-                <Link
-                  to="/artists"
-                  className="btn btn-outline"
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Browse All Artists
-                </Link>
-              </div>
+      </section>
+
+      {/* Map Section */}
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Find Studios Near You</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Explore our interactive map to discover talented tattoo studios in Montreal. 
+              Click on any marker to view studio details and get directions.
+            </p>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <StudioMap />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Bar */}
+      <section className="bg-white shadow-lg border-t border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Can't find your studio?
+              </h3>
+              <p className="text-gray-600">
+                Register as an artist and add your studio to our platform
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                to="/register"
+                className="btn btn-primary"
+              >
+                <Building2 className="w-4 h-4 mr-2" />
+                Add Your Studio
+              </Link>
+              <Link
+                to="/artists"
+                className="btn btn-outline"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Browse All Artists
+              </Link>
             </div>
           </div>
         </div>
@@ -159,7 +166,7 @@ export const Home = () => {
 
       {/* Features Section */}
       <section className="py-16">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Why Choose Tattooed World?
           </h2>
@@ -203,7 +210,7 @@ export const Home = () => {
 
       {/* Artist Showcase */}
       <section className="py-16">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Featured Artists</h2>
           
           {loading ? (
@@ -276,7 +283,7 @@ export const Home = () => {
 
       {/* CTA Section */}
       <section className="bg-primary-600 text-white py-16 rounded-lg">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-3xl font-bold mb-4">
             Ready to Find Your Perfect Studio?
           </h2>
