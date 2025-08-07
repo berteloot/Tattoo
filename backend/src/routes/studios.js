@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const { protect } = require('../middleware/auth');
+const studioGeocodingTrigger = require('../utils/studioGeocodingTrigger');
 const prisma = new PrismaClient();
 
 // Create a new studio
@@ -59,12 +60,20 @@ router.post('/', protect, async (req, res) => {
       }
     });
     
+    // Trigger automatic geocoding for the new studio
+    try {
+      await studioGeocodingTrigger.triggerGeocodingForStudio(studio.id);
+    } catch (geocodingError) {
+      console.error('Warning: Auto-geocoding failed for new studio:', geocodingError.message);
+      // Don't fail the studio creation if geocoding fails
+    }
+
     res.status(201).json({
       success: true,
       data: {
         studio
       },
-      message: 'Studio created successfully'
+      message: 'Studio created successfully. Geocoding will be processed automatically.'
     });
   } catch (error) {
     console.error('Error creating studio:', error);

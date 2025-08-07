@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { prisma } = require('../utils/prisma');
 const { protect, adminOnly, requireOwnership } = require('../middleware/auth');
+const studioGeocodingTrigger = require('../utils/studioGeocodingTrigger');
 
 const router = express.Router();
 
@@ -2256,6 +2257,183 @@ router.delete('/studios/:id', protect, adminOnly, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete studio'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/geocoding/status
+ * @desc    Get automated geocoding system status
+ * @access  Admin only
+ */
+router.get('/geocoding/status', async (req, res) => {
+  try {
+    const status = studioGeocodingTrigger.getStatus();
+    
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    console.error('Error getting geocoding status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get geocoding status'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/geocoding/trigger
+ * @desc    Manually trigger geocoding for a studio
+ * @access  Admin only
+ */
+router.post('/geocoding/trigger', [
+  body('studioId').isString().notEmpty()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio ID is required'
+      });
+    }
+
+    const { studioId } = req.body;
+    
+    // Verify studio exists
+    const studio = await prisma.studio.findUnique({
+      where: { id: studioId }
+    });
+    
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+    
+    // Trigger geocoding
+    await studioGeocodingTrigger.triggerGeocodingForStudio(studioId);
+    
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'TRIGGER_GEOCODING',
+        targetType: 'STUDIO',
+        targetId: studioId,
+        details: `Manually triggered geocoding for studio: ${studio.title}`
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: `Geocoding triggered for studio: ${studio.title}`
+    });
+  } catch (error) {
+    console.error('Error triggering geocoding:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to trigger geocoding'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/geocoding/clear-queue
+ * @desc    Clear the pending geocoding queue
+ * @access  Admin only
+ */
+router.post('/geocoding/clear-queue', async (req, res) => {
+  try {
+    const status = studioGeocodingTrigger.getStatus();
+    const clearedCount = status.pendingCount;
+    
+    studioGeocodingTrigger.clearPendingQueue();
+    
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'CLEAR_GEOCODING_QUEUE',
+        targetType: 'SYSTEM',
+        targetId: null,
+        details: `Cleared geocoding queue with ${clearedCount} pending studios`
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: `Cleared geocoding queue with ${clearedCount} pending studios`
+    });
+  } catch (error) {
+    console.error('Error clearing geocoding queue:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear geocoding queue'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/geocoding/process-all
+ * @desc    Process all studios that need geocoding
+ * @access  Admin only
+ */
+router.post('/geocoding/process-all', async (req, res) => {
+  try {
+    // Find all studios that need geocoding
+    const studiosNeedingGeocoding = await prisma.studio.findMany({
+      where: {
+        OR: [
+          { latitude: null },
+          { longitude: null },
+          {
+            AND: [
+              { latitude: 45.5017 },
+              { longitude: -73.5673 }
+            ]
+          }
+        ],
+        AND: [
+          { address: { not: null } },
+          { city: { not: null } }
+        ]
+      },
+      select: { id: true, title: true }
+    });
+    
+    // Add all to the queue
+    for (const studio of studiosNeedingGeocoding) {
+      studioGeocodingTrigger.triggerGeocodingForStudio(studio.id);
+    }
+    
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'PROCESS_ALL_GEOCODING',
+        targetType: 'SYSTEM',
+        targetId: null,
+        details: `Triggered geocoding for ${studiosNeedingGeocoding.length} studios`
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: `Triggered geocoding for ${studiosNeedingGeocoding.length} studios`,
+      data: {
+        studiosCount: studiosNeedingGeocoding.length,
+        studios: studiosNeedingGeocoding
+      }
+    });
+  } catch (error) {
+    console.error('Error processing all geocoding:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process all geocoding'
     });
   }
 });
