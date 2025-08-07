@@ -994,7 +994,7 @@ router.post('/email-favorites', [
  * @desc    Upload artist profile picture
  * @access  Private (ARTIST only)
  */
-router.post('/profile-picture/upload', protect, authorize(['ARTIST', 'ARTIST_ADMIN']), handleUpload, async (req, res) => {
+router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN'), handleUpload, async (req, res) => {
   try {
     const { uploadedFile } = req;
     
@@ -1014,21 +1014,14 @@ router.post('/profile-picture/upload', protect, authorize(['ARTIST', 'ARTIST_ADM
       ]
     });
 
-    if (!uploadResult.success) {
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to upload image to Cloudinary'
-      });
-    }
-
     // Get image dimensions
     const dimensions = await getImageDimensions(uploadedFile.buffer);
 
     res.json({
       success: true,
       data: {
-        url: uploadResult.data.secure_url,
-        publicId: uploadResult.data.public_id,
+        url: uploadResult.url,
+        publicId: uploadResult.public_id,
         width: dimensions.width,
         height: dimensions.height,
         format: uploadedFile.mimetype.split('/')[1],
@@ -1050,7 +1043,7 @@ router.post('/profile-picture/upload', protect, authorize(['ARTIST', 'ARTIST_ADM
  * @desc    Remove artist profile picture
  * @access  Private (ARTIST only)
  */
-router.delete('/profile-picture', protect, authorize(['ARTIST', 'ARTIST_ADMIN']), async (req, res) => {
+router.delete('/profile-picture', protect, authorize('ARTIST', 'ADMIN'), async (req, res) => {
   try {
     const artistProfile = await prisma.artistProfile.findUnique({
       where: { userId: req.user.id },
