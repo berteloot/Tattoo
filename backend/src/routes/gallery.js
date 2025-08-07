@@ -3,7 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { PrismaClient } = require('@prisma/client');
 const { protect, authorize } = require('../middleware/auth');
 const { handleUpload } = require('../middleware/upload');
-const { uploadImage } = require('../utils/cloudinary');
+const { uploadImage, deleteImage } = require('../utils/cloudinary');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -16,27 +16,19 @@ router.get('/', async (req, res) => {
       style,
       location,
       featured,
-      beforeAfter,
       limit = 20,
-      offset = 0,
-      sort = 'createdAt',
-      order = 'desc'
+      offset = 0
     } = req.query;
 
     const where = {
       isApproved: true,
-      isHidden: false,
-      clientConsent: true
+      isHidden: false
     };
 
     if (artistId) where.artistId = artistId;
     if (style) where.tattooStyle = style;
     if (location) where.bodyLocation = location;
     if (featured === 'true') where.isFeatured = true;
-    if (beforeAfter === 'true') where.isBeforeAfter = true;
-
-    const orderBy = {};
-    orderBy[sort] = order;
 
     const galleryItems = await prisma.tattooGallery.findMany({
       where,
@@ -51,16 +43,9 @@ router.get('/', async (req, res) => {
               }
             }
           }
-        },
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-            views: true
-          }
         }
       },
-      orderBy,
+      orderBy: { createdAt: 'desc' },
       take: parseInt(limit),
       skip: parseInt(offset)
     });
@@ -89,9 +74,6 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const userIp = req.ip || req.connection.remoteAddress;
-    const userAgent = req.get('User-Agent');
-    const referrer = req.get('Referrer');
 
     const galleryItem = await prisma.tattooGallery.findUnique({
       where: { id },
@@ -106,29 +88,6 @@ router.get('/:id', async (req, res) => {
               }
             }
           }
-        },
-        comments: {
-          where: {
-            isApproved: true,
-            isHidden: false
-          },
-          include: {
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
-                avatar: true
-              }
-            }
-          },
-          orderBy: { createdAt: 'desc' }
-        },
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-            views: true
-          }
         }
       }
     });
@@ -136,16 +95,6 @@ router.get('/:id', async (req, res) => {
     if (!galleryItem) {
       return res.status(404).json({ success: false, error: 'Gallery item not found' });
     }
-
-    // Record view
-    await prisma.tattooGalleryView.create({
-      data: {
-        galleryItemId: id,
-        viewerIp: userIp,
-        userAgent,
-        referrer
-      }
-    });
 
     res.json({ success: true, data: galleryItem });
   } catch (error) {
@@ -157,23 +106,14 @@ router.get('/:id', async (req, res) => {
 // Create gallery item (ARTIST only)
 router.post('/', 
   protect, 
-  authorize('ARTIST', 'ADMIN'), 
+  authorize(['ARTIST', 'ARTIST_ADMIN']), 
   handleUpload,
   [
     body('title').trim().isLength({ min: 1, max: 255 }).withMessage('Title is required and must be less than 255 characters'),
     body('description').optional().trim(),
     body('tattooStyle').optional().trim(),
     body('bodyLocation').optional().trim(),
-    body('tattooSize').optional().trim(),
-    body('colorType').optional().trim(),
-    body('sessionCount').optional().isInt({ min: 1 }).withMessage('Session count must be at least 1'),
-    body('hoursSpent').optional().isInt({ min: 1 }).withMessage('Hours spent must be at least 1'),
-    body('clientConsent').isBoolean().withMessage('Client consent is required'),
-    body('clientAnonymous').isBoolean().withMessage('Client anonymous setting is required'),
-    body('clientAgeVerified').isBoolean().withMessage('Client age verification is required'),
-    body('isBeforeAfter').isBoolean().withMessage('Before/after setting is required'),
-    body('tags').optional().isArray().withMessage('Tags must be an array'),
-    body('categories').optional().isArray().withMessage('Categories must be an array')
+    body('tags').optional().isArray().withMessage('Tags must be an array')
   ],
   async (req, res) => {
     try {
@@ -196,45 +136,32 @@ router.post('/',
       }
 
       // Upload image to Cloudinary
-      const uploadResult = await uploadImage(req.uploadedFile.buffer, 'tattoo-gallery');
-      
-      let beforeImageUrl = null;
-      let afterImageUrl = null;
-      let beforeImagePublicId = null;
-      let afterImagePublicId = null;
+      const uploadResult = await uploadImage(req.uploadedFile.buffer, {
+        folder: 'tattoo-gallery',
+        transformation: [
+          { width: 800, height: 800, crop: 'limit' },
+          { quality: 'auto', fetch_format: 'auto' }
+        ]
+      });
 
-      // Note: Before/after images would need to be handled separately with additional upload middleware
-      // For now, we'll focus on the main image upload
+      if (!uploadResult.success) {
+        return res.status(500).json({ success: false, error: 'Failed to upload image' });
+      }
 
       const galleryItem = await prisma.tattooGallery.create({
         data: {
           artistId: artistProfile.id,
           title: req.body.title,
           description: req.body.description,
-          imageUrl: uploadResult.url,
-          imagePublicId: uploadResult.public_id,
-          imageWidth: uploadResult.width,
-          imageHeight: uploadResult.height,
-          imageFormat: uploadResult.format,
-          imageBytes: uploadResult.bytes,
-          thumbnailUrl: uploadResult.url.replace('/upload/', '/upload/c_thumb,w_300,h_300/'),
+          imageUrl: uploadResult.data.secure_url,
+          imagePublicId: uploadResult.data.public_id,
+          imageWidth: uploadResult.data.width,
+          imageHeight: uploadResult.data.height,
+          imageFormat: uploadResult.data.format,
+          imageBytes: uploadResult.data.bytes,
           tattooStyle: req.body.tattooStyle,
           bodyLocation: req.body.bodyLocation,
-          tattooSize: req.body.tattooSize,
-          colorType: req.body.colorType,
-          sessionCount: parseInt(req.body.sessionCount) || 1,
-          hoursSpent: req.body.hoursSpent ? parseInt(req.body.hoursSpent) : null,
-          clientConsent: req.body.clientConsent === 'true',
-          clientAnonymous: req.body.clientAnonymous === 'true',
-          clientAgeVerified: req.body.clientAgeVerified === 'true',
-          isBeforeAfter: req.body.isBeforeAfter === 'true',
-          beforeImageUrl,
-          beforeImagePublicId,
-          afterImageUrl,
-          afterImagePublicId,
-          tags: req.body.tags ? JSON.parse(req.body.tags) : [],
-          categories: req.body.categories ? JSON.parse(req.body.categories) : [],
-          completedAt: req.body.completedAt ? new Date(req.body.completedAt) : null
+          tags: req.body.tags ? JSON.parse(req.body.tags) : []
         },
         include: {
           artist: {
@@ -262,20 +189,14 @@ router.post('/',
 // Update gallery item (owner or admin only)
 router.put('/:id', 
   protect, 
-  authorize('ARTIST', 'ADMIN'), 
+  authorize(['ARTIST', 'ARTIST_ADMIN', 'ADMIN']), 
   handleUpload,
   [
     body('title').optional().trim().isLength({ min: 1, max: 255 }).withMessage('Title must be less than 255 characters'),
     body('description').optional().trim(),
     body('tattooStyle').optional().trim(),
     body('bodyLocation').optional().trim(),
-    body('tattooSize').optional().trim(),
-    body('colorType').optional().trim(),
-    body('sessionCount').optional().isInt({ min: 1 }).withMessage('Session count must be at least 1'),
-    body('hoursSpent').optional().isInt({ min: 1 }).withMessage('Hours spent must be at least 1'),
-    body('isHidden').optional().isBoolean().withMessage('Hidden setting must be boolean'),
-    body('tags').optional().isArray().withMessage('Tags must be an array'),
-    body('categories').optional().isArray().withMessage('Categories must be an array')
+    body('tags').optional().isArray().withMessage('Tags must be an array')
   ],
   async (req, res) => {
     try {
@@ -311,29 +232,26 @@ router.put('/:id',
       if (req.body.description !== undefined) updateData.description = req.body.description;
       if (req.body.tattooStyle) updateData.tattooStyle = req.body.tattooStyle;
       if (req.body.bodyLocation) updateData.bodyLocation = req.body.bodyLocation;
-      if (req.body.tattooSize) updateData.tattooSize = req.body.tattooSize;
-      if (req.body.colorType) updateData.colorType = req.body.colorType;
-      if (req.body.sessionCount) updateData.sessionCount = parseInt(req.body.sessionCount);
-      if (req.body.hoursSpent) updateData.hoursSpent = parseInt(req.body.hoursSpent);
       if (req.body.tags) updateData.tags = JSON.parse(req.body.tags);
-      if (req.body.categories) updateData.categories = JSON.parse(req.body.categories);
-      if (req.body.completedAt) updateData.completedAt = new Date(req.body.completedAt);
-
-      // Admin can update approval status
-      if (isAdmin && req.body.isApproved !== undefined) {
-        updateData.isApproved = req.body.isApproved === 'true';
-      }
 
       // Handle image upload
       if (req.uploadedFile) {
-        const uploadResult = await uploadImage(req.uploadedFile.buffer, 'tattoo-gallery');
-        updateData.imageUrl = uploadResult.url;
-        updateData.imagePublicId = uploadResult.public_id;
-        updateData.imageWidth = uploadResult.width;
-        updateData.imageHeight = uploadResult.height;
-        updateData.imageFormat = uploadResult.format;
-        updateData.imageBytes = uploadResult.bytes;
-        updateData.thumbnailUrl = uploadResult.url.replace('/upload/', '/upload/c_thumb,w_300,h_300/');
+        const uploadResult = await uploadImage(req.uploadedFile.buffer, {
+          folder: 'tattoo-gallery',
+          transformation: [
+            { width: 800, height: 800, crop: 'limit' },
+            { quality: 'auto', fetch_format: 'auto' }
+          ]
+        });
+
+        if (uploadResult.success) {
+          updateData.imageUrl = uploadResult.data.secure_url;
+          updateData.imagePublicId = uploadResult.data.public_id;
+          updateData.imageWidth = uploadResult.data.width;
+          updateData.imageHeight = uploadResult.data.height;
+          updateData.imageFormat = uploadResult.data.format;
+          updateData.imageBytes = uploadResult.data.bytes;
+        }
       }
 
       const updatedItem = await prisma.tattooGallery.update({
@@ -365,7 +283,7 @@ router.put('/:id',
 // Delete gallery item (owner or admin only)
 router.delete('/:id', 
   protect, 
-  authorize('ARTIST', 'ADMIN'), 
+  authorize(['ARTIST', 'ARTIST_ADMIN', 'ADMIN']), 
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -387,6 +305,16 @@ router.delete('/:id',
         return res.status(403).json({ success: false, error: 'Not authorized to delete this gallery item' });
       }
 
+      // Delete from Cloudinary if public ID exists
+      if (galleryItem.imagePublicId) {
+        try {
+          await deleteImage(galleryItem.imagePublicId);
+        } catch (cloudinaryError) {
+          console.error('Cloudinary delete error:', cloudinaryError);
+          // Continue with database deletion even if Cloudinary delete fails
+        }
+      }
+
       await prisma.tattooGallery.delete({ where: { id } });
 
       res.json({ success: true, message: 'Gallery item deleted successfully' });
@@ -396,162 +324,5 @@ router.delete('/:id',
     }
   }
 );
-
-// Like/unlike gallery item
-router.post('/:id/like', protect, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const existingLike = await prisma.tattooGalleryLike.findUnique({
-      where: {
-        galleryItemId_userId: {
-          galleryItemId: id,
-          userId: req.user.id
-        }
-      }
-    });
-
-    if (existingLike) {
-      // Unlike
-      await prisma.tattooGalleryLike.delete({
-        where: { id: existingLike.id }
-      });
-      res.json({ success: true, liked: false });
-    } else {
-      // Like
-      await prisma.tattooGalleryLike.create({
-        data: {
-          galleryItemId: id,
-          userId: req.user.id
-        }
-      });
-      res.json({ success: true, liked: true });
-    }
-  } catch (error) {
-    console.error('Gallery like error:', error);
-    res.status(500).json({ success: false, error: 'Failed to toggle like' });
-  }
-});
-
-// Add comment to gallery item
-router.post('/:id/comments', 
-  protect, 
-  [
-    body('comment').trim().isLength({ min: 1, max: 1000 }).withMessage('Comment must be between 1 and 1000 characters')
-  ],
-  async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array()[0].msg });
-      }
-
-      const { id } = req.params;
-      const { comment } = req.body;
-
-      const newComment = await prisma.tattooGalleryComment.create({
-        data: {
-          galleryItemId: id,
-          userId: req.user.id,
-          comment
-        },
-        include: {
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              avatar: true
-            }
-          }
-        }
-      });
-
-      res.status(201).json({ success: true, data: newComment });
-    } catch (error) {
-      console.error('Gallery comment error:', error);
-      res.status(500).json({ success: false, error: 'Failed to add comment' });
-    }
-  }
-);
-
-// Get artist gallery statistics
-router.get('/stats/artist/:artistId', async (req, res) => {
-  try {
-    const { artistId } = req.params;
-
-    const stats = await prisma.tattooGallery.aggregate({
-      where: {
-        artistId,
-        isApproved: true,
-        isHidden: false
-      },
-      _count: {
-        id: true
-      },
-      _avg: {
-        hoursSpent: true
-      },
-      _sum: {
-        hoursSpent: true
-      }
-    });
-
-    const featuredCount = await prisma.tattooGallery.count({
-      where: {
-        artistId,
-        isApproved: true,
-        isHidden: false,
-        isFeatured: true
-      }
-    });
-
-    const beforeAfterCount = await prisma.tattooGallery.count({
-      where: {
-        artistId,
-        isApproved: true,
-        isHidden: false,
-        isBeforeAfter: true
-      }
-    });
-
-    const uniqueStyles = await prisma.tattooGallery.findMany({
-      where: {
-        artistId,
-        isApproved: true,
-        isHidden: false,
-        tattooStyle: { not: null }
-      },
-      select: { tattooStyle: true },
-      distinct: ['tattooStyle']
-    });
-
-    const uniqueLocations = await prisma.tattooGallery.findMany({
-      where: {
-        artistId,
-        isApproved: true,
-        isHidden: false,
-        bodyLocation: { not: null }
-      },
-      select: { bodyLocation: true },
-      distinct: ['bodyLocation']
-    });
-
-    res.json({
-      success: true,
-      data: {
-        totalItems: stats._count.id,
-        featuredItems: featuredCount,
-        beforeAfterItems: beforeAfterCount,
-        avgHoursPerPiece: stats._avg.hoursSpent,
-        totalHoursWorked: stats._sum.hoursSpent,
-        uniqueStyles: uniqueStyles.length,
-        uniqueLocations: uniqueLocations.length
-      }
-    });
-  } catch (error) {
-    console.error('Gallery stats error:', error);
-    res.status(500).json({ success: false, error: 'Failed to fetch gallery statistics' });
-  }
-});
 
 module.exports = router; 
