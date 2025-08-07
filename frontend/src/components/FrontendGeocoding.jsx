@@ -7,9 +7,44 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [progress, setProgress] = useState(0);
   const [stats, setStats] = useState(null);
+  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
 
   // Get Google Maps API key from environment
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  // Load Google Maps API
+  useEffect(() => {
+    const loadGoogleMapsAPI = () => {
+      if (window.google && window.google.maps) {
+        setGoogleMapsLoaded(true);
+        return;
+      }
+
+      if (!googleMapsApiKey) {
+        console.error('Google Maps API key not configured');
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=geocoding`;
+      script.async = true;
+      script.defer = true;
+      
+      script.onload = () => {
+        console.log('✅ Google Maps API loaded for geocoding');
+        setGoogleMapsLoaded(true);
+      };
+      
+      script.onerror = () => {
+        console.error('❌ Failed to load Google Maps API');
+        toast.error('Failed to load Google Maps API');
+      };
+
+      document.head.appendChild(script);
+    };
+
+    loadGoogleMapsAPI();
+  }, [googleMapsApiKey]);
 
   useEffect(() => {
     fetchPendingStudios();
@@ -49,6 +84,11 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
   const geocodeAddress = async (address) => {
     if (!googleMapsApiKey) {
       throw new Error('Google Maps API key not configured');
+    }
+
+    // Wait for Google Maps API to be loaded
+    if (!googleMapsLoaded) {
+      throw new Error('Google Maps API not loaded yet. Please wait...');
     }
 
     // Ensure Google Maps API is loaded
@@ -157,6 +197,11 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
       return;
     }
 
+    if (!googleMapsLoaded) {
+      toast.error('Google Maps API not loaded yet. Please wait a moment and try again.');
+      return;
+    }
+
     setIsGeocoding(true);
     setCurrentIndex(0);
     setProgress(0);
@@ -207,6 +252,23 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold mb-4">🗺️ Frontend Geocoding</h2>
+      
+      {/* Google Maps API Status */}
+      <div className={`mb-4 p-3 rounded-lg ${googleMapsLoaded ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
+        <div className="flex items-center">
+          <span className={`mr-2 ${googleMapsLoaded ? 'text-green-600' : 'text-yellow-600'}`}>
+            {googleMapsLoaded ? '✅' : '⏳'}
+          </span>
+          <span className={`font-medium ${googleMapsLoaded ? 'text-green-800' : 'text-yellow-800'}`}>
+            {googleMapsLoaded ? 'Google Maps API Ready' : 'Loading Google Maps API...'}
+          </span>
+        </div>
+        {!googleMapsLoaded && (
+          <p className="text-sm text-yellow-700 mt-1">
+            Please wait for the API to load before starting geocoding.
+          </p>
+        )}
+      </div>
       
       {/* Stats */}
       {stats && (
@@ -283,10 +345,10 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
         {!isGeocoding ? (
           <button
             onClick={startGeocoding}
-            disabled={pendingStudios.length === 0}
+            disabled={pendingStudios.length === 0 || !googleMapsLoaded}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            🚀 Start Geocoding
+            {googleMapsLoaded ? '🚀 Start Geocoding' : '⏳ Loading API...'}
           </button>
         ) : (
           <button
