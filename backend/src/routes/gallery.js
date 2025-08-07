@@ -2,8 +2,8 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { PrismaClient } = require('@prisma/client');
 const { protect, authorize } = require('../middleware/auth');
-const upload = require('../middleware/upload');
-const { uploadToCloudinary } = require('../utils/cloudinary');
+const { handleUpload } = require('../middleware/upload');
+const { uploadImage } = require('../utils/cloudinary');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -158,7 +158,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', 
   protect, 
   authorize('ARTIST', 'ADMIN'), 
-  upload.single('image'),
+  handleUpload,
   [
     body('title').trim().isLength({ min: 1, max: 255 }).withMessage('Title is required and must be less than 255 characters'),
     body('description').optional().trim(),
@@ -182,7 +182,7 @@ router.post('/',
         return res.status(400).json({ success: false, error: errors.array()[0].msg });
       }
 
-      if (!req.file) {
+      if (!req.uploadedFile) {
         return res.status(400).json({ success: false, error: 'Image is required' });
       }
 
@@ -196,38 +196,28 @@ router.post('/',
       }
 
       // Upload image to Cloudinary
-      const uploadResult = await uploadToCloudinary(req.file.path, 'tattoo-gallery');
+      const uploadResult = await uploadImage(req.uploadedFile.buffer, 'tattoo-gallery');
       
       let beforeImageUrl = null;
       let afterImageUrl = null;
       let beforeImagePublicId = null;
       let afterImagePublicId = null;
 
-      if (req.body.isBeforeAfter === 'true') {
-        if (req.files && req.files.beforeImage) {
-          const beforeResult = await uploadToCloudinary(req.files.beforeImage[0].path, 'tattoo-gallery');
-          beforeImageUrl = beforeResult.secure_url;
-          beforeImagePublicId = beforeResult.public_id;
-        }
-        if (req.files && req.files.afterImage) {
-          const afterResult = await uploadToCloudinary(req.files.afterImage[0].path, 'tattoo-gallery');
-          afterImageUrl = afterResult.secure_url;
-          afterImagePublicId = afterResult.public_id;
-        }
-      }
+      // Note: Before/after images would need to be handled separately with additional upload middleware
+      // For now, we'll focus on the main image upload
 
       const galleryItem = await prisma.tattooGallery.create({
         data: {
           artistId: artistProfile.id,
           title: req.body.title,
           description: req.body.description,
-          imageUrl: uploadResult.secure_url,
+          imageUrl: uploadResult.url,
           imagePublicId: uploadResult.public_id,
           imageWidth: uploadResult.width,
           imageHeight: uploadResult.height,
           imageFormat: uploadResult.format,
           imageBytes: uploadResult.bytes,
-          thumbnailUrl: uploadResult.secure_url.replace('/upload/', '/upload/c_thumb,w_300,h_300/'),
+          thumbnailUrl: uploadResult.url.replace('/upload/', '/upload/c_thumb,w_300,h_300/'),
           tattooStyle: req.body.tattooStyle,
           bodyLocation: req.body.bodyLocation,
           tattooSize: req.body.tattooSize,
@@ -273,7 +263,7 @@ router.post('/',
 router.put('/:id', 
   protect, 
   authorize('ARTIST', 'ADMIN'), 
-  upload.single('image'),
+  handleUpload,
   [
     body('title').optional().trim().isLength({ min: 1, max: 255 }).withMessage('Title must be less than 255 characters'),
     body('description').optional().trim(),
@@ -335,15 +325,15 @@ router.put('/:id',
       }
 
       // Handle image upload
-      if (req.file) {
-        const uploadResult = await uploadToCloudinary(req.file.path, 'tattoo-gallery');
-        updateData.imageUrl = uploadResult.secure_url;
+      if (req.uploadedFile) {
+        const uploadResult = await uploadImage(req.uploadedFile.buffer, 'tattoo-gallery');
+        updateData.imageUrl = uploadResult.url;
         updateData.imagePublicId = uploadResult.public_id;
         updateData.imageWidth = uploadResult.width;
         updateData.imageHeight = uploadResult.height;
         updateData.imageFormat = uploadResult.format;
         updateData.imageBytes = uploadResult.bytes;
-        updateData.thumbnailUrl = uploadResult.secure_url.replace('/upload/', '/upload/c_thumb,w_300,h_300/');
+        updateData.thumbnailUrl = uploadResult.url.replace('/upload/', '/upload/c_thumb,w_300,h_300/');
       }
 
       const updatedItem = await prisma.tattooGallery.update({
