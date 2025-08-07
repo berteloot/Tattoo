@@ -76,16 +76,37 @@ CREATE TABLE IF NOT EXISTS "tattoo_gallery_views" (
     CONSTRAINT "tattoo_gallery_views_pkey" PRIMARY KEY ("id")
 );
 
--- Add foreign key constraints
-ALTER TABLE "tattoo_gallery" ADD CONSTRAINT "tattoo_gallery_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artist_profiles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
-ALTER TABLE "tattoo_gallery_likes" ADD CONSTRAINT "tattoo_gallery_likes_galleryItemId_fkey" FOREIGN KEY ("galleryItemId") REFERENCES "tattoo_gallery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "tattoo_gallery_likes" ADD CONSTRAINT "tattoo_gallery_likes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE "tattoo_gallery_comments" ADD CONSTRAINT "tattoo_gallery_comments_galleryItemId_fkey" FOREIGN KEY ("galleryItemId") REFERENCES "tattoo_gallery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "tattoo_gallery_comments" ADD CONSTRAINT "tattoo_gallery_comments_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE "tattoo_gallery_views" ADD CONSTRAINT "tattoo_gallery_views_galleryItemId_fkey" FOREIGN KEY ("galleryItemId") REFERENCES "tattoo_gallery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- Add foreign key constraints (with error handling)
+DO $$
+BEGIN
+    -- Add foreign key for tattoo_gallery.artistId
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'tattoo_gallery_artistId_fkey') THEN
+        ALTER TABLE "tattoo_gallery" ADD CONSTRAINT "tattoo_gallery_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artist_profiles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    END IF;
+    
+    -- Add foreign keys for tattoo_gallery_likes
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'tattoo_gallery_likes_galleryItemId_fkey') THEN
+        ALTER TABLE "tattoo_gallery_likes" ADD CONSTRAINT "tattoo_gallery_likes_galleryItemId_fkey" FOREIGN KEY ("galleryItemId") REFERENCES "tattoo_gallery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'tattoo_gallery_likes_userId_fkey') THEN
+        ALTER TABLE "tattoo_gallery_likes" ADD CONSTRAINT "tattoo_gallery_likes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+    
+    -- Add foreign keys for tattoo_gallery_comments
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'tattoo_gallery_comments_galleryItemId_fkey') THEN
+        ALTER TABLE "tattoo_gallery_comments" ADD CONSTRAINT "tattoo_gallery_comments_galleryItemId_fkey" FOREIGN KEY ("galleryItemId") REFERENCES "tattoo_gallery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'tattoo_gallery_comments_userId_fkey') THEN
+        ALTER TABLE "tattoo_gallery_comments" ADD CONSTRAINT "tattoo_gallery_comments_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+    
+    -- Add foreign key for tattoo_gallery_views
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'tattoo_gallery_views_galleryItemId_fkey') THEN
+        ALTER TABLE "tattoo_gallery_views" ADD CONSTRAINT "tattoo_gallery_views_galleryItemId_fkey" FOREIGN KEY ("galleryItemId") REFERENCES "tattoo_gallery"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS "idx_tattoo_gallery_artist_id" ON "tattoo_gallery"("artistId");
@@ -108,7 +129,12 @@ CREATE INDEX IF NOT EXISTS "idx_tattoo_gallery_views_item" ON "tattoo_gallery_vi
 CREATE INDEX IF NOT EXISTS "idx_tattoo_gallery_views_date" ON "tattoo_gallery_views"("viewedAt");
 
 -- Create unique constraints
-CREATE UNIQUE INDEX IF NOT EXISTS "tattoo_gallery_likes_galleryItemId_userId_key" ON "tattoo_gallery_likes"("galleryItemId", "userId");
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'tattoo_gallery_likes_galleryItemId_userId_key') THEN
+        CREATE UNIQUE INDEX "tattoo_gallery_likes_galleryItemId_userId_key" ON "tattoo_gallery_likes"("galleryItemId", "userId");
+    END IF;
+END $$;
 
 -- Add profile picture fields to artist_profiles table if they don't exist
 ALTER TABLE "artist_profiles" ADD COLUMN IF NOT EXISTS "profilePictureUrl" TEXT;
