@@ -85,34 +85,41 @@ const ArtistGalleryManagement = () => {
   ];
 
   useEffect(() => {
-    fetchGalleryItems();
-  }, []);
+    const artistId = user?.artistProfile?.id;
+    if (!artistId) return;
+    fetchGalleryItems(artistId);
+  }, [user?.artistProfile?.id]);
 
-  const fetchGalleryItems = async () => {
+  const fetchGalleryItems = async (artistId) => {
     try {
       setLoading(true);
-      const response = await galleryAPI.getAll({
-        artistId: user?.artistProfile?.id
-      });
-      
-      if (response.data.success) {
-        setGalleryItems(response.data.data.items);
-      }
-    } catch (error) {
-      console.error('Error fetching gallery items:', error);
+      const response = await galleryAPI.getAll({ artistId });
+      if (response.data?.success) setGalleryItems(response.data.data.items || []);
+    } catch (err) {
+      console.error('Error fetching gallery items:', err);
       showToast('Failed to load gallery items', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  const MAX_MB = 12;
+  const ALLOWED = ['image/jpeg','image/png','image/webp','image/avif'];
+
   const handleFileChange = (e, type) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (type === 'main') setSelectedFile(file);
-      else if (type === 'before') setBeforeFile(file);
-      else if (type === 'after') setAfterFile(file);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED.includes(file.type)) {
+      showToast('Only JPG, PNG, WebP, or AVIF', 'warning');
+      return;
     }
+    if (file.size > MAX_MB * 1024 * 1024) {
+      showToast(`Max file size is ${MAX_MB} MB`, 'warning');
+      return;
+    }
+    if (type === 'main') setSelectedFile(file);
+    if (type === 'before') setBeforeFile(file);
+    if (type === 'after') setAfterFile(file);
   };
 
   const handleInputChange = (e) => {
@@ -138,61 +145,45 @@ const ArtistGalleryManagement = () => {
       return;
     }
 
-    if (!selectedFile) {
-      showToast('Please select a main image', 'warning');
-      return;
-    }
-
-    if (!formData.clientConsent) {
-      showToast('Client consent is required', 'warning');
-      return;
+    if (!formData.title.trim()) return showToast('Title is required', 'warning');
+    if (!selectedFile) return showToast('Please select a main image', 'warning');
+    if (!formData.clientConsent) return showToast('Client consent is required', 'warning');
+    if (formData.isBeforeAfter && (!beforeFile || !afterFile)) {
+      return showToast('Provide both before and after images', 'warning');
     }
 
     try {
       setUploading(true);
       
+      const append = (k, v) => data.append(k, String(v));
+
       const data = new FormData();
       data.append('image', selectedFile);
-      data.append('title', formData.title);
-      data.append('description', formData.description);
-      data.append('tattooStyle', formData.tattooStyle);
-      data.append('bodyLocation', formData.bodyLocation);
-      data.append('tattooSize', formData.tattooSize);
-      data.append('colorType', formData.colorType);
-      data.append('sessionCount', formData.sessionCount);
-      data.append('hoursSpent', formData.hoursSpent);
-      data.append('clientConsent', formData.clientConsent);
-      data.append('clientAnonymous', formData.clientAnonymous);
-      data.append('clientAgeVerified', formData.clientAgeVerified);
-      data.append('isBeforeAfter', formData.isBeforeAfter);
-      // Convert tags and categories to JSON strings if they exist
+      append('title', formData.title);
+      append('description', formData.description);
+      append('tattooStyle', formData.tattooStyle);
+      append('bodyLocation', formData.bodyLocation);
+      append('tattooSize', formData.tattooSize);
+      append('colorType', formData.colorType);
+      append('sessionCount', Number(formData.sessionCount || 1));
+      append('hoursSpent', Number(formData.hoursSpent || 0));
+      append('clientConsent', !!formData.clientConsent);
+      append('clientAnonymous', !!formData.clientAnonymous);
+      append('clientAgeVerified', !!formData.clientAgeVerified);
+      append('isBeforeAfter', !!formData.isBeforeAfter);
+
       if (formData.tags) {
-        const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-        data.append('tags', JSON.stringify(tagsArray));
+        const tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
+        data.append('tags', JSON.stringify(tags));
       }
       if (formData.categories) {
-        const categoriesArray = formData.categories.split(',').map(cat => cat.trim()).filter(cat => cat);
-        data.append('categories', JSON.stringify(categoriesArray));
+        const categories = formData.categories.split(',').map(c => c.trim()).filter(Boolean);
+        data.append('categories', JSON.stringify(categories));
       }
 
       if (formData.isBeforeAfter) {
         if (beforeFile) data.append('beforeImage', beforeFile);
         if (afterFile) data.append('afterImage', afterFile);
-      }
-
-      console.log('Uploading gallery item with data:', {
-        title: formData.title,
-        description: formData.description,
-        tattooStyle: formData.tattooStyle,
-        bodyLocation: formData.bodyLocation,
-        clientConsent: formData.clientConsent,
-        userRole: user.role
-      });
-
-      console.log('selectedFile:', selectedFile);
-      console.log('FormData contents:');
-      for (let [key, value] of data.entries()) {
-        console.log(`${key}:`, value, typeof value);
       }
 
       const response = await galleryAPI.create(data);
