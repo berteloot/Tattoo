@@ -95,8 +95,8 @@ const addSecurityHeaders = (req, res, next) => {
   // Referrer policy
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   
-  // Content Security Policy - allow blob URLs for image uploads
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: blob:https: blob:https://tattooed-world-backend.onrender.com; connect-src 'self' https://maps.googleapis.com;");
+  // Content Security Policy - allow blob URLs for image uploads and data: URLs for fonts
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob: blob:https: blob:https://tattooed-world-backend.onrender.com; connect-src 'self' https://maps.googleapis.com;");
   
   next();
 };

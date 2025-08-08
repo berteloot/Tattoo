@@ -1100,20 +1100,12 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN', 'AR
     }
 
     // Upload to Cloudinary
-    const uploadResult = await uploadImage(uploadedFile.buffer, {
-      folder: 'artist-profiles',
+    const uploadResult = await uploadImage(uploadedFile.buffer, 'artist-profiles', {
       transformation: [
         { width: 400, height: 400, crop: 'fill', gravity: 'face' },
         { quality: 'auto', fetch_format: 'auto' }
       ]
     });
-
-    if (!uploadResult.success) {
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to upload image to Cloudinary'
-      });
-    }
 
     // Get image dimensions
     const dimensions = await getImageDimensions(uploadedFile.buffer);
@@ -1122,8 +1114,8 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN', 'AR
     const updatedProfile = await prisma.artistProfile.update({
       where: { userId: req.user.id },
       data: {
-        profilePictureUrl: uploadResult.data.secure_url,
-        profilePicturePublicId: uploadResult.data.public_id,
+        profilePictureUrl: uploadResult.url,
+        profilePicturePublicId: uploadResult.public_id,
         profilePictureWidth: dimensions.width,
         profilePictureHeight: dimensions.height,
         profilePictureFormat: uploadedFile.mimetype.split('/')[1],
@@ -1133,15 +1125,15 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN', 'AR
 
     console.log('✅ Profile picture uploaded successfully:', {
       userId: req.user.id,
-      imageUrl: uploadResult.data.secure_url,
-      publicId: uploadResult.data.public_id
+      imageUrl: uploadResult.url,
+      publicId: uploadResult.public_id
     });
 
     res.json({
       success: true,
       data: {
-        url: uploadResult.data.secure_url,
-        publicId: uploadResult.data.public_id,
+        url: uploadResult.url,
+        publicId: uploadResult.public_id,
         width: dimensions.width,
         height: dimensions.height,
         format: uploadedFile.mimetype.split('/')[1],
