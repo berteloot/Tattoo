@@ -21,11 +21,17 @@ router.get('/', async (req, res) => {
     } = req.query;
 
     const where = {
-      isApproved: true,
       isHidden: false
     };
 
-    if (artistId) where.artistId = artistId;
+    // If artistId is provided (artist viewing their own gallery), show all their items
+    // Otherwise, only show approved items (public gallery view)
+    if (artistId) {
+      where.artistId = artistId;
+      // Don't filter by isApproved for artist's own gallery
+    } else {
+      where.isApproved = true;
+    }
     if (style) where.tattooStyle = style;
     if (location) where.bodyLocation = location;
     if (featured === 'true') where.isFeatured = true;

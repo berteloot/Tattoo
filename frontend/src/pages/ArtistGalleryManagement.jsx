@@ -285,7 +285,15 @@ const ArtistGalleryManagement = () => {
         resetForm();
         
         console.log('✅ Fetching gallery items...');
-        fetchGalleryItems();
+        console.log('🔍 Current user:', user);
+        console.log('🔍 Current artist profile:', user?.artistProfile);
+        console.log('🔍 Artist ID for fetch:', user?.artistProfile?.id);
+        
+        if (user?.artistProfile?.id) {
+          fetchGalleryItems(user.artistProfile.id);
+        } else {
+          console.log('❌ No artist ID available for fetch');
+        }
       } else {
         throw new Error('Upload failed - invalid response');
       }
