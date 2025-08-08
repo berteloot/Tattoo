@@ -189,6 +189,12 @@ const ArtistGalleryManagement = () => {
         userRole: user.role
       });
 
+      console.log('selectedFile:', selectedFile);
+      console.log('FormData contents:');
+      for (let [key, value] of data.entries()) {
+        console.log(`${key}:`, value, typeof value);
+      }
+
       const response = await galleryAPI.create(data);
 
       if (response.data.success) {
