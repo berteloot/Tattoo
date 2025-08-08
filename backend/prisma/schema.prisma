@@ -76,6 +76,7 @@ model ArtistProfile {
   services           Service[]          @relation("ArtistProfileToService")
   specialties        Specialty[]        @relation("ArtistProfileToSpecialty")
   gallery            TattooGallery[]
+  studios            StudioArtist[]     @relation("ArtistStudios")
 
   @@map("artist_profiles")
 }
@@ -197,6 +198,9 @@ model Studio {
   createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt          DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
+  // Relationships
+  artists StudioArtist[] @relation("StudioArtists")
+
   @@index([latitude, longitude], map: "idx_studios_coordinates")
   @@map("studios")
 }
@@ -209,6 +213,9 @@ model StudioArtist {
   isActive Boolean?     @default(true) @map("is_active")
   joinedAt DateTime?    @default(now()) @map("joined_at") @db.Timestamp(6)
   leftAt   DateTime?    @map("left_at") @db.Timestamp(6)
+
+  studio   Studio        @relation("StudioArtists", fields: [studioId], references: [id], onDelete: Cascade)
+  artist   ArtistProfile @relation("ArtistStudios", fields: [artistId], references: [id], onDelete: Cascade)
 
   @@unique([studioId, artistId], map: "unique_studio_artist")
   @@map("studio_artists")

@@ -4,6 +4,7 @@ import { Search, MapPin, Users, ExternalLink, Phone, Mail, Facebook, Instagram, 
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
+import ProtectedEmail from '../components/ProtectedEmail';
 
 const Studios = () => {
   const [studios, setStudios] = useState([]);
@@ -290,12 +291,7 @@ const Studios = () => {
                   </div>
                 )}
                 {studio.email && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Mail className="w-4 h-4 mr-2" />
-                    <a href={`mailto:${studio.email}`} className="hover:text-blue-600">
-                      {studio.email}
-                    </a>
-                  </div>
+                  <ProtectedEmail email={studio.email} className="text-sm text-gray-600" />
                 )}
               </div>
 

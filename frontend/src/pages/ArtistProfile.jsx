@@ -26,6 +26,7 @@ import { ReviewForm } from '../components/ReviewForm'
 import { FavoriteButton } from '../components/FavoriteButton'
 import { artistsAPI, api } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
+import ProtectedEmail from '../components/ProtectedEmail'
 
 export const ArtistProfile = () => {
   const { id } = useParams()
@@ -428,12 +429,11 @@ export const ArtistProfile = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-500">Email</p>
-                      <a 
-                        href={`mailto:${artist.user.email}`}
-                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block"
-                      >
-                        {artist.user.email}
-                      </a>
+                      <ProtectedEmail 
+                        email={artist.user.email} 
+                        showIcon={false}
+                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors"
+                      />
                     </div>
                   </div>
                 )}

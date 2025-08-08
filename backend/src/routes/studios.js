@@ -3,6 +3,7 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const { protect } = require('../middleware/auth');
 const studioGeocodingTrigger = require('../utils/studioGeocodingTrigger');
+const { studioArtistLimiter, detectScraping } = require('../middleware/antiScraping');
 const prisma = new PrismaClient();
 
 // Create a new studio
@@ -166,7 +167,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get artists for a studio
-router.get('/:id/artists', async (req, res) => {
+router.get('/:id/artists', detectScraping, studioArtistLimiter, async (req, res) => {
   try {
     const studio = await prisma.studio.findUnique({
       where: { id: req.params.id }
@@ -544,7 +545,7 @@ router.put('/:id/verify', protect, async (req, res) => {
 });
 
 // Get specific studio
-router.get('/:id', async (req, res) => {
+router.get('/:id', detectScraping, studioArtistLimiter, async (req, res) => {
   try {
     const studio = await prisma.studio.findUnique({
       where: { id: req.params.id }

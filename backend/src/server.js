@@ -27,6 +27,7 @@ const galleryRoutes = require('./routes/gallery');
 // Import middleware
 const { errorHandler } = require('./middleware/errorHandler');
 const { notFound } = require('./middleware/notFound');
+const { addSecurityHeaders } = require('./middleware/antiScraping');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -69,6 +70,9 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Add security headers
+app.use(addSecurityHeaders);
 
 // Rate limiting with proper proxy handling for Render.com
 const limiter = rateLimit({

@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { api, studiosAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
+import ProtectedEmail from '../components/ProtectedEmail';
 
 const StudioDetail = () => {
   const { id } = useParams();
@@ -198,12 +199,7 @@ const StudioDetail = () => {
                 </div>
               )}
               {studio.email && (
-                <div className="flex items-center">
-                  <Mail className="w-5 h-5 text-gray-400 mr-3" />
-                  <a href={`mailto:${studio.email}`} className="text-blue-600 hover:text-blue-800">
-                    {studio.email}
-                  </a>
-                </div>
+                <ProtectedEmail email={studio.email} />
               )}
               {studio.website && (
                 <div className="flex items-center">
