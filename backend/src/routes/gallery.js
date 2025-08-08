@@ -125,6 +125,13 @@ router.get('/:id', async (req, res) => {
               }
             }
           }
+        },
+        _count: {
+          select: {
+            views: true,
+            likes: true,
+            comments: true
+          }
         }
       }
     });
@@ -133,7 +140,25 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Gallery item not found' });
     }
 
-    res.json({ success: true, data: galleryItem });
+    // Check if user has liked this item
+    let userLiked = false;
+    if (req.user && req.user.id) {
+      const existingLike = await prisma.tattooGalleryLike.findFirst({
+        where: {
+          galleryItemId: id,
+          userId: req.user.id
+        }
+      });
+      userLiked = !!existingLike;
+    }
+
+    // Add userLiked property
+    const galleryItemWithUserLike = {
+      ...galleryItem,
+      userLiked
+    };
+
+    res.json({ success: true, data: galleryItemWithUserLike });
   } catch (error) {
     console.error('Gallery item fetch error:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch gallery item' });
