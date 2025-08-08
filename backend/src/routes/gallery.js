@@ -106,7 +106,7 @@ router.get('/:id', async (req, res) => {
 // Create gallery item (ARTIST only)
 router.post('/', 
   protect, 
-  authorize(['ARTIST', 'ARTIST_ADMIN']), 
+  authorize('ARTIST', 'ARTIST_ADMIN'), 
   handleUpload,
   [
     body('title').trim().isLength({ min: 1, max: 255 }).withMessage('Title is required and must be less than 255 characters'),
@@ -189,7 +189,7 @@ router.post('/',
 // Update gallery item (owner or admin only)
 router.put('/:id', 
   protect, 
-  authorize(['ARTIST', 'ARTIST_ADMIN', 'ADMIN']), 
+  authorize('ARTIST', 'ARTIST_ADMIN', 'ADMIN'), 
   handleUpload,
   [
     body('title').optional().trim().isLength({ min: 1, max: 255 }).withMessage('Title must be less than 255 characters'),
@@ -283,7 +283,7 @@ router.put('/:id',
 // Delete gallery item (owner or admin only)
 router.delete('/:id', 
   protect, 
-  authorize(['ARTIST', 'ARTIST_ADMIN', 'ADMIN']), 
+  authorize('ARTIST', 'ARTIST_ADMIN', 'ADMIN'), 
   async (req, res) => {
     try {
       const { id } = req.params;
