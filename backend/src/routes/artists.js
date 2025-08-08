@@ -1081,8 +1081,15 @@ router.post('/email-favorites', [
  * @desc    Upload artist profile picture
  * @access  Private (ARTIST only)
  */
-router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN'), handleUpload, async (req, res) => {
+router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN', 'ARTIST_ADMIN'), handleUpload, async (req, res) => {
   try {
+    console.log('🔍 Profile picture upload request:', {
+      userId: req.user.id,
+      userRole: req.user.role,
+      hasArtistProfile: !!req.user.artistProfile,
+      artistProfileId: req.user.artistProfile?.id
+    });
+
     const { uploadedFile } = req;
     
     if (!uploadedFile) {
@@ -1101,14 +1108,40 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN'), ha
       ]
     });
 
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to upload image to Cloudinary'
+      });
+    }
+
     // Get image dimensions
     const dimensions = await getImageDimensions(uploadedFile.buffer);
+
+    // Update the artist profile with the new image data
+    const updatedProfile = await prisma.artistProfile.update({
+      where: { userId: req.user.id },
+      data: {
+        profilePictureUrl: uploadResult.data.secure_url,
+        profilePicturePublicId: uploadResult.data.public_id,
+        profilePictureWidth: dimensions.width,
+        profilePictureHeight: dimensions.height,
+        profilePictureFormat: uploadedFile.mimetype.split('/')[1],
+        profilePictureBytes: uploadedFile.size
+      }
+    });
+
+    console.log('✅ Profile picture uploaded successfully:', {
+      userId: req.user.id,
+      imageUrl: uploadResult.data.secure_url,
+      publicId: uploadResult.data.public_id
+    });
 
     res.json({
       success: true,
       data: {
-        url: uploadResult.url,
-        publicId: uploadResult.public_id,
+        url: uploadResult.data.secure_url,
+        publicId: uploadResult.data.public_id,
         width: dimensions.width,
         height: dimensions.height,
         format: uploadedFile.mimetype.split('/')[1],
@@ -1120,7 +1153,7 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN'), ha
     console.error('Profile picture upload error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to upload profile picture'
+      error: 'Failed to upload profile picture: ' + error.message
     });
   }
 });
