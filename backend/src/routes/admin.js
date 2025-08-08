@@ -2455,4 +2455,250 @@ router.post('/geocoding/process-all', async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/admin/gallery
+ * @desc    Get all tattoo gallery items with filtering and pagination
+ * @access  Admin only
+ */
+router.get('/gallery', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search, artist, isApproved, isHidden } = req.query;
+    const skip = (page - 1) * limit;
+
+    const where = {};
+    
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { tags: { hasSome: [search] } }
+      ];
+    }
+    
+    if (artist) {
+      where.artist = {
+        user: {
+          OR: [
+            { firstName: { contains: artist, mode: 'insensitive' } },
+            { lastName: { contains: artist, mode: 'insensitive' } }
+          ]
+        }
+      };
+    }
+    
+    if (isApproved !== undefined) {
+      where.isApproved = isApproved === 'true';
+    }
+    
+    if (isHidden !== undefined) {
+      where.isHidden = isHidden === 'true';
+    }
+
+    const [galleryItems, total] = await Promise.all([
+      prisma.tattooGallery.findMany({
+        where,
+        skip: parseInt(skip),
+        take: parseInt(limit),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          artist: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true
+                }
+              }
+            }
+          }
+        }
+      }),
+      prisma.tattooGallery.count({ where })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        galleryItems,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get gallery error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching gallery items'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/gallery/:id/moderate
+ * @desc    Moderate gallery item (approve/hide)
+ * @access  Admin only
+ */
+router.put('/gallery/:id/moderate', [
+  body('isApproved').optional().isBoolean(),
+  body('isHidden').optional().isBoolean(),
+  body('clientConsent').optional().isBoolean(),
+  body('reason').optional().isString()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { isApproved, isHidden, clientConsent, reason } = req.body;
+
+    const galleryItem = await prisma.tattooGallery.findUnique({
+      where: { id },
+      include: {
+        artist: {
+          include: {
+            user: { select: { firstName: true, lastName: true } }
+          }
+        }
+      }
+    });
+
+    if (!galleryItem) {
+      return res.status(404).json({
+        success: false,
+        error: 'Gallery item not found'
+      });
+    }
+
+    const updateData = {};
+    if (isApproved !== undefined) updateData.isApproved = isApproved;
+    if (isHidden !== undefined) updateData.isHidden = isHidden;
+    if (clientConsent !== undefined) updateData.clientConsent = clientConsent;
+
+    const updatedGalleryItem = await prisma.tattooGallery.update({
+      where: { id },
+      data: updateData,
+      include: {
+        artist: {
+          include: {
+            user: { select: { firstName: true, lastName: true } }
+          }
+        }
+      }
+    });
+
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'MODERATE_GALLERY',
+        targetType: 'GALLERY',
+        targetId: id,
+        details: `Gallery moderation: approved=${isApproved}, hidden=${isHidden}, consent=${clientConsent}, reason=${reason || 'No reason'}`
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Gallery item moderated successfully',
+      data: { galleryItem: updatedGalleryItem }
+    });
+  } catch (error) {
+    console.error('Moderate gallery error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error moderating gallery item'
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/gallery/approve-all
+ * @desc    Approve all unapproved gallery items
+ * @access  Admin only
+ */
+router.put('/gallery/approve-all', async (req, res) => {
+  try {
+    // Get all unapproved gallery items
+    const unapprovedItems = await prisma.tattooGallery.findMany({
+      where: {
+        OR: [
+          { isApproved: false },
+          { clientConsent: false }
+        ]
+      },
+      include: {
+        artist: {
+          include: {
+            user: { select: { firstName: true, lastName: true } }
+          }
+        }
+      }
+    });
+
+    if (unapprovedItems.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No unapproved gallery items found',
+        data: { count: 0 }
+      });
+    }
+
+    // Approve all items
+    const result = await prisma.tattooGallery.updateMany({
+      where: {
+        OR: [
+          { isApproved: false },
+          { clientConsent: false }
+        ]
+      },
+      data: {
+        isApproved: true,
+        clientConsent: true
+      }
+    });
+
+    // Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminId: req.user.id,
+        action: 'APPROVE_ALL_GALLERY',
+        targetType: 'GALLERY',
+        targetId: 'BULK',
+        details: `Approved ${result.count} gallery items in bulk`
+      }
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully approved ${result.count} gallery items`,
+      data: { 
+        count: result.count,
+        items: unapprovedItems.map(item => ({
+          id: item.id,
+          title: item.title,
+          artist: `${item.artist.user.firstName} ${item.artist.user.lastName}`
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Approve all gallery error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error approving gallery items'
+    });
+  }
+});
+
 module.exports = router; 
