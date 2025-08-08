@@ -136,29 +136,19 @@ router.post('/',
       }
 
       // Upload image to Cloudinary
-      const uploadResult = await uploadImage(req.uploadedFile.buffer, {
-        folder: 'tattoo-gallery',
-        transformation: [
-          { width: 800, height: 800, crop: 'limit' },
-          { quality: 'auto', fetch_format: 'auto' }
-        ]
-      });
-
-      if (!uploadResult.success) {
-        return res.status(500).json({ success: false, error: 'Failed to upload image' });
-      }
+      const uploadResult = await uploadImage(req.uploadedFile.buffer, 'tattoo-gallery');
 
       const galleryItem = await prisma.tattooGallery.create({
         data: {
           artistId: artistProfile.id,
           title: req.body.title,
           description: req.body.description,
-          imageUrl: uploadResult.data.secure_url,
-          imagePublicId: uploadResult.data.public_id,
-          imageWidth: uploadResult.data.width,
-          imageHeight: uploadResult.data.height,
-          imageFormat: uploadResult.data.format,
-          imageBytes: uploadResult.data.bytes,
+          imageUrl: uploadResult.url,
+          imagePublicId: uploadResult.public_id,
+          imageWidth: uploadResult.width,
+          imageHeight: uploadResult.height,
+          imageFormat: uploadResult.format,
+          imageBytes: uploadResult.bytes,
           tattooStyle: req.body.tattooStyle,
           bodyLocation: req.body.bodyLocation,
           tags: req.body.tags ? JSON.parse(req.body.tags) : []
@@ -236,22 +226,14 @@ router.put('/:id',
 
       // Handle image upload
       if (req.uploadedFile) {
-        const uploadResult = await uploadImage(req.uploadedFile.buffer, {
-          folder: 'tattoo-gallery',
-          transformation: [
-            { width: 800, height: 800, crop: 'limit' },
-            { quality: 'auto', fetch_format: 'auto' }
-          ]
-        });
-
-        if (uploadResult.success) {
-          updateData.imageUrl = uploadResult.data.secure_url;
-          updateData.imagePublicId = uploadResult.data.public_id;
-          updateData.imageWidth = uploadResult.data.width;
-          updateData.imageHeight = uploadResult.data.height;
-          updateData.imageFormat = uploadResult.data.format;
-          updateData.imageBytes = uploadResult.data.bytes;
-        }
+        const uploadResult = await uploadImage(req.uploadedFile.buffer, 'tattoo-gallery');
+        
+        updateData.imageUrl = uploadResult.url;
+        updateData.imagePublicId = uploadResult.public_id;
+        updateData.imageWidth = uploadResult.width;
+        updateData.imageHeight = uploadResult.height;
+        updateData.imageFormat = uploadResult.format;
+        updateData.imageBytes = uploadResult.bytes;
       }
 
       const updatedItem = await prisma.tattooGallery.update({
