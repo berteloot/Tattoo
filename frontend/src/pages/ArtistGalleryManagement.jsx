@@ -191,11 +191,14 @@ const ArtistGalleryManagement = () => {
       console.log('Response status:', response.status);
       console.log('Response data:', response.data);
 
-      if (response.data.success) {
+      // Check if response is successful (201 status) or has success flag
+      if (response.status === 201 || response.data?.success) {
         showToast('Gallery item uploaded successfully', 'success');
         setShowUploadForm(false);
         resetForm();
         fetchGalleryItems();
+      } else {
+        throw new Error('Upload failed');
       }
     } catch (error) {
       console.error('Error uploading gallery item:', error);
