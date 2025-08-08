@@ -48,9 +48,19 @@ if (missingEnvVars.length > 0) {
 
 console.log('✅ All required environment variables are configured');
 
-// Security middleware - temporarily disable CSP for images to fix blob URL issue
+// Security middleware
 app.use(helmet({
-  contentSecurityPolicy: false, // Disable CSP temporarily to fix blob URL issue
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      imgSrc: ["'self'", "data:", "https:", "blob:", "blob:https:", "blob:https://tattooed-world-backend.onrender.com", "blob:*"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://maps.googleapis.com", "https://maps.gstatic.com"],
+      scriptSrcElem: ["'self'", "'unsafe-inline'", "https://maps.googleapis.com", "https://maps.gstatic.com"],
+      connectSrc: ["'self'", "https://maps.googleapis.com", "wss:", "ws:"],
+    },
+  },
 }));
 
 // CORS configuration - simplified since everything is on same domain
