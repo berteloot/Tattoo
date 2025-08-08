@@ -126,6 +126,18 @@ const ArtistGalleryManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Check if user is authenticated
+    if (!user) {
+      showToast('Please log in to upload gallery items', 'error');
+      return;
+    }
+
+    // Check if user is an artist
+    if (user.role !== 'ARTIST' && user.role !== 'ARTIST_ADMIN') {
+      showToast('Only artists can upload gallery items', 'error');
+      return;
+    }
+
     if (!selectedFile) {
       showToast('Please select a main image', 'warning');
       return;
@@ -161,6 +173,15 @@ const ArtistGalleryManagement = () => {
         if (afterFile) data.append('afterImage', afterFile);
       }
 
+      console.log('Uploading gallery item with data:', {
+        title: formData.title,
+        description: formData.description,
+        tattooStyle: formData.tattooStyle,
+        bodyLocation: formData.bodyLocation,
+        clientConsent: formData.clientConsent,
+        userRole: user.role
+      });
+
       const response = await galleryAPI.create(data);
 
       if (response.data.success) {
@@ -171,7 +192,20 @@ const ArtistGalleryManagement = () => {
       }
     } catch (error) {
       console.error('Error uploading gallery item:', error);
-      showToast('Failed to upload gallery item', 'error');
+      
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        showToast('Please log in to upload gallery items', 'error');
+      } else if (error.response?.status === 403) {
+        showToast('You do not have permission to upload gallery items. Please ensure you have an artist profile.', 'error');
+      } else if (error.response?.status === 400) {
+        const errorMessage = error.response.data.error || 'Invalid data provided';
+        showToast(errorMessage, 'error');
+      } else if (error.response?.status === 500) {
+        showToast('Server error. Please try again later.', 'error');
+      } else {
+        showToast('Failed to upload gallery item. Please try again.', 'error');
+      }
     } finally {
       setUploading(false);
     }
