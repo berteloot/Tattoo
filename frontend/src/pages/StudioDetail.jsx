@@ -25,7 +25,7 @@ const StudioDetail = () => {
   const [studioArtists, setStudioArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const { success, error: showError } = useToast();
+  const { success, error, warning } = useToast();
 
   useEffect(() => {
     fetchStudio();
@@ -43,7 +43,7 @@ const StudioDetail = () => {
       setStudioArtists(artistsResponse.data.data);
     } catch (error) {
       console.error('Failed to fetch studio:', error);
-      showToast('Failed to load studio details', 'error');
+      error('Error', 'Failed to load studio details');
     } finally {
       setLoading(false);
     }
@@ -52,11 +52,11 @@ const StudioDetail = () => {
   const handleClaimStudio = async () => {
     try {
       await api.post(`/studios/${id}/claim`);
-      showToast('Studio claim request submitted successfully!', 'success');
+      success('Success', 'Studio claim request submitted successfully!');
       fetchStudio(); // Refresh studio data
     } catch (error) {
       console.error('Failed to claim studio:', error);
-      showToast(error.response?.data?.error || 'Failed to claim studio', 'error');
+      error('Error', error.response?.data?.error || 'Failed to claim studio');
     }
   };
 
