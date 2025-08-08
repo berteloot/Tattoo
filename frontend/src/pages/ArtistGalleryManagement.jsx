@@ -182,6 +182,11 @@ const ArtistGalleryManagement = () => {
         userRole: user.role
       });
 
+      console.log('FormData contents:');
+      for (let [key, value] of data.entries()) {
+        console.log(`${key}:`, value);
+      }
+
       const response = await galleryAPI.create(data);
 
       if (response.data.success) {
@@ -192,6 +197,8 @@ const ArtistGalleryManagement = () => {
       }
     } catch (error) {
       console.error('Error uploading gallery item:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
       
       // Handle specific error cases
       if (error.response?.status === 401) {
@@ -200,6 +207,7 @@ const ArtistGalleryManagement = () => {
         showToast('You do not have permission to upload gallery items. Please ensure you have an artist profile.', 'error');
       } else if (error.response?.status === 400) {
         const errorMessage = error.response.data.error || 'Invalid data provided';
+        console.error('400 Error message:', errorMessage);
         showToast(errorMessage, 'error');
       } else if (error.response?.status === 500) {
         showToast('Server error. Please try again later.', 'error');
