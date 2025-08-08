@@ -8,31 +8,31 @@ datasource db {
 }
 
 model User {
-  id                      String         @id @default(cuid())
-  email                   String         @unique
+  id                      String                 @id @default(cuid())
+  email                   String                 @unique
   password                String
-  role                    UserRole       @default(CLIENT)
+  role                    UserRole               @default(CLIENT)
   firstName               String
   lastName                String
   phone                   String?
   avatar                  String?
-  isActive                Boolean        @default(true)
-  isVerified              Boolean        @default(false)
-  emailVerified           Boolean        @default(false)
+  isActive                Boolean                @default(true)
+  isVerified              Boolean                @default(false)
+  emailVerified           Boolean                @default(false)
   emailVerificationToken  String?
   emailVerificationExpiry DateTime?
   resetToken              String?
   resetTokenExpiry        DateTime?
   lastLoginAt             DateTime?
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
-  adminActions            AdminAction[]  @relation("AdminPerformer")
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  adminActions            AdminAction[]          @relation("AdminPerformer")
   artistProfile           ArtistProfile?
-  favorites               Favorite[]     @relation("FavoriteUser")
-  reviewsGiven            Review[]       @relation("ReviewAuthor")
-  reviewsReceived         Review[]       @relation("ReviewRecipient")
-  galleryLikes            TattooGalleryLike[]
+  favorites               Favorite[]             @relation("FavoriteUser")
+  reviewsGiven            Review[]               @relation("ReviewAuthor")
+  reviewsReceived         Review[]               @relation("ReviewRecipient")
   galleryComments         TattooGalleryComment[]
+  galleryLikes            TattooGalleryLike[]
 
   @@map("users")
 }
@@ -73,10 +73,9 @@ model ArtistProfile {
   user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites          Favorite[]         @relation("FavoriteArtist")
   flash              Flash[]
+  gallery            TattooGallery[]
   services           Service[]          @relation("ArtistProfileToService")
   specialties        Specialty[]        @relation("ArtistProfileToSpecialty")
-  gallery            TattooGallery[]
-  studios            StudioArtist[]     @relation("ArtistStudios")
 
   @@map("artist_profiles")
 }
@@ -198,9 +197,6 @@ model Studio {
   createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt          DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
-  // Relationships
-  artists StudioArtist[] @relation("StudioArtists")
-
   @@index([latitude, longitude], map: "idx_studios_coordinates")
   @@map("studios")
 }
@@ -213,9 +209,6 @@ model StudioArtist {
   isActive Boolean?     @default(true) @map("is_active")
   joinedAt DateTime?    @default(now()) @map("joined_at") @db.Timestamp(6)
   leftAt   DateTime?    @map("left_at") @db.Timestamp(6)
-
-  studio   Studio        @relation("StudioArtists", fields: [studioId], references: [id], onDelete: Cascade)
-  artist   ArtistProfile @relation("ArtistStudios", fields: [artistId], references: [id], onDelete: Cascade)
 
   @@unique([studioId, artistId], map: "unique_studio_artist")
   @@map("studio_artists")
@@ -250,72 +243,44 @@ model GeocodeCache {
   @@map("geocode_cache")
 }
 
-enum UserRole {
-  CLIENT
-  ARTIST
-  ADMIN
-  ARTIST_ADMIN
-}
-
-enum VerificationStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  SUSPENDED
-}
-
-enum FlashComplexity {
-  SIMPLE
-  MEDIUM
-  COMPLEX
-  MASTERPIECE
-}
-
-enum studio_role {
-  OWNER
-  MANAGER
-  ARTIST
-  GUEST
-}
-
 model TattooGallery {
-  id                    String                  @id @default(cuid())
-  artistId              String
-  title                 String
-  description           String?
-  imageUrl              String
-  imagePublicId         String?
-  imageWidth            Int?
-  imageHeight           Int?
-  imageFormat           String?
-  imageBytes            Int?
-  thumbnailUrl          String?
-  tattooStyle           String?
-  bodyLocation          String?
-  tattooSize            String?
-  colorType             String?
-  sessionCount          Int                     @default(1)
-  hoursSpent            Int?
-  clientConsent         Boolean                 @default(false)
-  clientAnonymous       Boolean                 @default(true)
-  clientAgeVerified     Boolean                 @default(false)
-  isBeforeAfter         Boolean                 @default(false)
-  beforeImageUrl        String?
-  beforeImagePublicId   String?
-  afterImageUrl         String?
-  afterImagePublicId    String?
-  isFeatured            Boolean                 @default(false)
-  isApproved            Boolean                 @default(true)
-  isHidden              Boolean                 @default(false)
-  tags                  String[]
-  categories            String[]
-  completedAt           DateTime?
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
-  artist                ArtistProfile           @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  likes                 TattooGalleryLike[]
-  comments              TattooGalleryComment[]
-  views                 TattooGalleryView[]
+  id                  String                 @id @default(cuid())
+  artistId            String
+  title               String
+  description         String?
+  imageUrl            String
+  imagePublicId       String?
+  imageWidth          Int?
+  imageHeight         Int?
+  imageFormat         String?
+  imageBytes          Int?
+  thumbnailUrl        String?
+  tattooStyle         String?
+  bodyLocation        String?
+  tattooSize          String?
+  colorType           String?
+  sessionCount        Int                    @default(1)
+  hoursSpent          Int?
+  clientConsent       Boolean                @default(false)
+  clientAnonymous     Boolean                @default(true)
+  clientAgeVerified   Boolean                @default(false)
+  isBeforeAfter       Boolean                @default(false)
+  beforeImageUrl      String?
+  beforeImagePublicId String?
+  afterImageUrl       String?
+  afterImagePublicId  String?
+  isFeatured          Boolean                @default(false)
+  isApproved          Boolean                @default(false)
+  isHidden            Boolean                @default(false)
+  tags                String[]
+  categories          String[]
+  completedAt         DateTime?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  artist              ArtistProfile          @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  comments            TattooGalleryComment[]
+  likes               TattooGalleryLike[]
+  views               TattooGalleryView[]
 
   @@index([artistId])
   @@index([tattooStyle])
@@ -372,4 +337,32 @@ model TattooGalleryView {
   @@index([galleryItemId])
   @@index([viewedAt])
   @@map("tattoo_gallery_views")
+}
+
+enum UserRole {
+  CLIENT
+  ARTIST
+  ADMIN
+  ARTIST_ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum FlashComplexity {
+  SIMPLE
+  MEDIUM
+  COMPLEX
+  MASTERPIECE
+}
+
+enum studio_role {
+  OWNER
+  MANAGER
+  ARTIST
+  GUEST
 }
