@@ -360,17 +360,9 @@ router.post('/:id/artists', protect, async (req, res) => {
   try {
     const { artistId, role = 'ARTIST' } = req.body;
     
-    // Check if user has permission (studio owner or admin)
+    // Check if studio exists
     const studio = await prisma.studio.findUnique({
-      where: { id: req.params.id },
-      include: {
-        artists: {
-          where: {
-            artistId: req.user.artistProfile?.id,
-            role: { in: ['OWNER', 'MANAGER'] }
-          }
-        }
-      }
+      where: { id: req.params.id }
     });
     
     if (!studio) {
@@ -380,11 +372,24 @@ router.post('/:id/artists', protect, async (req, res) => {
       });
     }
     
-    if (req.user.role !== 'ADMIN' && studio.artists.length === 0) {
-      return res.status(403).json({
-        success: false,
-        error: 'Only studio owners/managers or admins can add artists'
+    // Allow ADMIN, ARTIST, and ARTIST_ADMIN users to link themselves to studios
+    // Only restrict if user is trying to add someone else (and they're not admin)
+    if (req.user.role !== 'ADMIN' && artistId !== req.user.artistProfile?.id) {
+      // Check if user is studio owner/manager
+      const userStudioMembership = await prisma.studioArtist.findFirst({
+        where: {
+          studioId: req.params.id,
+          artistId: req.user.artistProfile?.id,
+          role: { in: ['OWNER', 'MANAGER'] }
+        }
       });
+      
+      if (!userStudioMembership) {
+        return res.status(403).json({
+          success: false,
+          error: 'Only studio owners/managers or admins can add other artists'
+        });
+      }
     }
     
     // Check if artist is already in studio
