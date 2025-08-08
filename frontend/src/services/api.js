@@ -19,6 +19,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // Don't set Content-Type for FormData - let the browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
+    
     return config
   },
   (error) => {
@@ -74,11 +80,7 @@ export const flashAPI = {
   create: (flashData) => api.post('/flash', flashData),
   update: (id, flashData) => api.put(`/flash/${id}`, flashData),
   delete: (id) => api.delete(`/flash/${id}`),
-  uploadImage: (formData) => api.post('/flash/upload', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  }),
+  uploadImage: (formData) => api.post('/flash/upload', formData),
 }
 
 export const reviewsAPI = {
@@ -118,16 +120,8 @@ export const studiosAPI = {
 export const galleryAPI = {
   getAll: (params) => api.get('/gallery', { params }),
   getById: (id) => api.get(`/gallery/${id}`),
-  create: (formData) => api.post('/gallery', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  }),
-  update: (id, formData) => api.put(`/gallery/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  }),
+  create: (formData) => api.post('/gallery', formData),
+  update: (id, formData) => api.put(`/gallery/${id}`, formData),
   delete: (id) => api.delete(`/gallery/${id}`),
   like: (id) => api.post(`/gallery/${id}/like`),
   addComment: (id, comment) => api.post(`/gallery/${id}/comments`, { comment }),
