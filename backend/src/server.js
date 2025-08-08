@@ -48,6 +48,9 @@ if (missingEnvVars.length > 0) {
 
 console.log('✅ All required environment variables are configured');
 
+// Force server restart to pick up new Prisma client with profile picture fields
+console.log('🔄 Server restarting to load updated Prisma client...');
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
