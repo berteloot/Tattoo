@@ -2,6 +2,7 @@ const express = require('express');
 const { prisma } = require('../utils/prisma');
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
+const { execSync } = require('child_process');
 
 const router = express.Router();
 
@@ -475,41 +476,69 @@ router.post('/create-gallery-tables', async (req, res) => {
 
 /**
  * @route   POST /api/emergency/regenerate-prisma
- * @desc    Emergency endpoint to regenerate Prisma client
- * @access  Public (for emergency use only)
+ * @desc    Regenerate Prisma client (temporary emergency endpoint)
+ * @access  Private (ADMIN only)
  */
 router.post('/regenerate-prisma', async (req, res) => {
   try {
-    console.log('🔧 Emergency Prisma client regeneration requested...');
-    
-    const { execSync } = require('child_process');
+    console.log('🔄 Emergency Prisma client regeneration requested...');
     
     // Regenerate Prisma client
-    console.log('🔄 Regenerating Prisma client...');
-    const result = execSync('npx prisma generate', { 
-      cwd: process.cwd(),
-      encoding: 'utf8',
-      stdio: 'pipe'
-    });
-    
-    console.log('✅ Prisma client regenerated successfully');
-    console.log('Output:', result);
-    
-    res.json({
-      success: true,
-      message: 'Prisma client regenerated successfully',
-      data: {
-        output: result
-      }
-    });
-    
+    console.log('📥 Pulling latest schema from database...');
+    try {
+      execSync('npx prisma db pull', { stdio: 'inherit' });
+      console.log('✅ Database schema pulled successfully');
+    } catch (error) {
+      console.log('⚠️ Could not pull schema:', error.message);
+    }
+
+    console.log('🔧 Generating Prisma client...');
+    execSync('npx prisma generate', { stdio: 'inherit' });
+    console.log('✅ Prisma client generated successfully');
+
+    // Test the new client
+    console.log('🧪 Testing new Prisma client...');
+    const prisma = new PrismaClient();
+
+    try {
+      await prisma.$connect();
+      
+      const result = await prisma.artistProfile.findFirst({
+        select: {
+          id: true,
+          profilePictureUrl: true,
+          profilePicturePublicId: true,
+          profilePictureWidth: true,
+          profilePictureHeight: true,
+          profilePictureFormat: true,
+          profilePictureBytes: true
+        }
+      });
+      
+      console.log('✅ Prisma client now recognizes profile picture fields');
+      console.log('📊 Test query result:', result);
+      
+      res.json({
+        success: true,
+        message: 'Prisma client regenerated successfully',
+        testResult: result
+      });
+      
+    } catch (error) {
+      console.log('❌ Prisma client still has issues:', error.message);
+      res.status(500).json({
+        success: false,
+        error: 'Prisma client regeneration failed: ' + error.message
+      });
+    } finally {
+      await prisma.$disconnect();
+    }
+
   } catch (error) {
     console.error('❌ Error regenerating Prisma client:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to regenerate Prisma client',
-      details: error.message,
-      output: error.stdout || error.stderr
+      error: 'Failed to regenerate Prisma client: ' + error.message
     });
   }
 });
