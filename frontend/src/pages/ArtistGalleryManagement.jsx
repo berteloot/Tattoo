@@ -194,6 +194,10 @@ const ArtistGalleryManagement = () => {
         console.log(`${key}:`, value);
       }
 
+      console.log('galleryAPI:', galleryAPI);
+      console.log('galleryAPI.create:', galleryAPI.create);
+      console.log('typeof galleryAPI.create:', typeof galleryAPI.create);
+
       const response = await galleryAPI.create(data);
 
       if (response.data.success) {
