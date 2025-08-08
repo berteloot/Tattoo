@@ -226,13 +226,13 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
                           {studio.state && `, ${studio.state}`}
                         </span>
                         {studio.latitude && studio.longitude && (
-                          <Link
-                            to="/map"
+                          <button
+                            onClick={() => window.open(`/map?lat=${studio.latitude}&lng=${studio.longitude}`, '_blank')}
                             className="text-blue-600 hover:text-blue-800 transition-colors"
                             title="View on map"
                           >
                             <MapPin className="h-3 w-3" />
-                          </Link>
+                          </button>
                         )}
                       </div>
                     )}
