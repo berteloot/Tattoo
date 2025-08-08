@@ -9,7 +9,7 @@ const GalleryDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { error, warning } = useToast();
+  const { error, warning, success, info } = useToast();
 
   const [galleryItem, setGalleryItem] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ const GalleryDetail = () => {
 
   const handleLike = async () => {
     if (!user) {
-      showToast('Please login to like gallery items', 'warning');
+      warning('Login Required', 'Please login to like gallery items');
       return;
     }
 
@@ -52,24 +52,25 @@ const GalleryDetail = () => {
           _count: {
             ...prev._count,
             likes: response.data.liked ? prev._count.likes + 1 : prev._count.likes - 1
-          }
+          },
+          userLiked: response.data.liked
         }));
       }
     } catch (error) {
       console.error('Error toggling like:', error);
-      showToast('Failed to update like', 'error');
+      error('Error', 'Failed to update like');
     }
   };
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
-      showToast('Please login to comment', 'warning');
+      warning('Login Required', 'Please login to comment');
       return;
     }
 
     if (!comment.trim()) {
-      showToast('Please enter a comment', 'warning');
+      warning('Comment Required', 'Please enter a comment');
       return;
     }
 
@@ -86,11 +87,11 @@ const GalleryDetail = () => {
           }
         }));
         setComment('');
-        showToast('Comment added successfully', 'success');
+        success('Success', 'Comment added successfully');
       }
     } catch (error) {
       console.error('Error adding comment:', error);
-      showToast('Failed to add comment', 'error');
+      error('Error', 'Failed to add comment');
     } finally {
       setSubmittingComment(false);
     }
@@ -111,10 +112,10 @@ const GalleryDetail = () => {
       // Fallback: copy to clipboard
       try {
         await navigator.clipboard.writeText(window.location.href);
-        showToast('Link copied to clipboard', 'success');
+        success('Success', 'Link copied to clipboard');
       } catch (error) {
         console.error('Error copying to clipboard:', error);
-        showToast('Failed to copy link', 'error');
+        error('Error', 'Failed to copy link');
       }
     }
   };
