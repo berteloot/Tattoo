@@ -8,7 +8,24 @@ import { api, galleryAPI } from '../services/api';
 const ArtistGalleryManagement = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { success, error, warning, info } = useToast();
+  
+  // Create a showToast function that maps to the correct toast methods
+  const showToast = (message, type = 'info') => {
+    switch (type) {
+      case 'success':
+        success('Success', message);
+        break;
+      case 'error':
+        error('Error', message);
+        break;
+      case 'warning':
+        warning('Warning', message);
+        break;
+      default:
+        info('Info', message);
+    }
+  };
 
   const [galleryItems, setGalleryItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -133,49 +150,67 @@ const ArtistGalleryManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Check if user is authenticated
-    if (!user) {
-      showToast('Please log in to upload gallery items', 'error');
+    console.log('🔍 Starting gallery upload process...');
+    console.log('Form data:', formData);
+    console.log('Selected file:', selectedFile);
+    console.log('Before file:', beforeFile);
+    console.log('After file:', afterFile);
+    
+    if (!selectedFile && !formData.isBeforeAfter) {
+      console.error('❌ No image file selected');
+      showToast('Please select an image file', 'error');
       return;
     }
 
-    // Check if user is an artist
-    if (user.role !== 'ARTIST' && user.role !== 'ARTIST_ADMIN') {
-      showToast('Only artists can upload gallery items', 'error');
-      return;
-    }
-
-    if (!formData.title.trim()) return showToast('Title is required', 'warning');
-    if (!selectedFile) return showToast('Please select a main image', 'warning');
-    if (!formData.clientConsent) return showToast('Client consent is required', 'warning');
     if (formData.isBeforeAfter && (!beforeFile || !afterFile)) {
-      return showToast('Provide both before and after images', 'warning');
+      console.error('❌ Before/After images required');
+      showToast('Please select both before and after images', 'error');
+      return;
     }
 
+    setUploading(true);
+    
     try {
-      setUploading(true);
-      
-      const append = (k, v) => data.append(k, String(v));
-
+      console.log('📋 Creating FormData...');
       const data = new FormData();
-      data.append('image', selectedFile);
+      
+      // Helper function to safely append data
+      const append = (k, v) => {
+        try {
+          console.log(`Appending ${k}:`, v);
+          data.append(k, String(v));
+        } catch (error) {
+          console.error(`Error appending ${k}:`, error);
+        }
+      };
+
+      // Append form fields
       append('title', formData.title);
       append('description', formData.description);
       append('tattooStyle', formData.tattooStyle);
       append('bodyLocation', formData.bodyLocation);
       append('tattooSize', formData.tattooSize);
       append('colorType', formData.colorType);
-      append('sessionCount', Number(formData.sessionCount || 1));
-      append('hoursSpent', Number(formData.hoursSpent || 0));
-      append('clientConsent', !!formData.clientConsent);
-      append('clientAnonymous', !!formData.clientAnonymous);
-      append('clientAgeVerified', !!formData.clientAgeVerified);
-      append('isBeforeAfter', !!formData.isBeforeAfter);
+      append('sessionCount', formData.sessionCount);
+      append('hoursSpent', formData.hoursSpent);
+      append('clientConsent', formData.clientConsent);
+      append('clientAnonymous', formData.clientAnonymous);
+      append('clientAgeVerified', formData.clientAgeVerified);
+      append('isBeforeAfter', formData.isBeforeAfter);
+      append('tags', formData.tags);
+      append('categories', formData.categories);
+
+      // Append image files
+      if (!formData.isBeforeAfter && selectedFile) {
+        console.log('📋 Appending main image file...');
+        data.append('image', selectedFile);
+      }
 
       if (formData.tags) {
         const tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
         data.append('tags', JSON.stringify(tags));
       }
+
       if (formData.categories) {
         const categories = formData.categories.split(',').map(c => c.trim()).filter(Boolean);
         data.append('categories', JSON.stringify(categories));
@@ -186,40 +221,95 @@ const ArtistGalleryManagement = () => {
         if (afterFile) data.append('afterImage', afterFile);
       }
 
+      console.log('📋 FormData created successfully');
+      console.log('FormData entries:');
+      for (let [key, value] of data.entries()) {
+        console.log(`  ${key}: ${typeof value === 'object' ? '[File/Buffer]' : value}`);
+      }
+
+      console.log('🚀 Calling galleryAPI.create...');
+      console.log('galleryAPI object:', typeof galleryAPI);
+      console.log('galleryAPI.create:', typeof galleryAPI?.create);
+      
+      if (typeof galleryAPI?.create !== 'function') {
+        throw new Error('galleryAPI.create is not a function');
+      }
+
       const response = await galleryAPI.create(data);
-      console.log('Response received:', response);
+      console.log('✅ Response received:', response);
       console.log('Response status:', response.status);
       console.log('Response data:', response.data);
 
       // Check if response is successful (201 status) or has success flag
       if (response.status === 201 || response.data?.success) {
-        showToast('Gallery item uploaded successfully', 'success');
+        console.log('✅ Upload successful, showing success toast...');
+        try {
+          showToast('Gallery item uploaded successfully', 'success');
+        } catch (toastError) {
+          console.error('❌ Error showing success toast:', toastError);
+        }
+        
+        console.log('✅ Setting showUploadForm to false...');
         setShowUploadForm(false);
+        
+        console.log('✅ Resetting form...');
         resetForm();
+        
+        console.log('✅ Fetching gallery items...');
         fetchGalleryItems();
       } else {
-        throw new Error('Upload failed');
+        throw new Error('Upload failed - invalid response');
       }
     } catch (error) {
-      console.error('Error uploading gallery item:', error);
+      console.error('❌ Error uploading gallery item:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error constructor:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       console.error('Error response:', error.response);
       console.error('Error response data:', error.response?.data);
       
       // Handle specific error cases
       if (error.response?.status === 401) {
-        showToast('Please log in to upload gallery items', 'error');
+        console.log('📋 Handling 401 error...');
+        try {
+          showToast('Please log in to upload gallery items', 'error');
+        } catch (toastError) {
+          console.error('❌ Error showing 401 toast:', toastError);
+        }
       } else if (error.response?.status === 403) {
-        showToast('You do not have permission to upload gallery items. Please ensure you have an artist profile.', 'error');
+        console.log('📋 Handling 403 error...');
+        try {
+          showToast('You do not have permission to upload gallery items. Please ensure you have an artist profile.', 'error');
+        } catch (toastError) {
+          console.error('❌ Error showing 403 toast:', toastError);
+        }
       } else if (error.response?.status === 400) {
+        console.log('📋 Handling 400 error...');
         const errorMessage = error.response.data.error || 'Invalid data provided';
         console.error('400 Error message:', errorMessage);
-        showToast(errorMessage, 'error');
+        try {
+          showToast(errorMessage, 'error');
+        } catch (toastError) {
+          console.error('❌ Error showing 400 toast:', toastError);
+        }
       } else if (error.response?.status === 500) {
-        showToast('Server error. Please try again later.', 'error');
+        console.log('📋 Handling 500 error...');
+        try {
+          showToast('Server error. Please try again later.', 'error');
+        } catch (toastError) {
+          console.error('❌ Error showing 500 toast:', toastError);
+        }
       } else {
-        showToast('Failed to upload gallery item. Please try again.', 'error');
+        console.log('📋 Handling generic error...');
+        try {
+          showToast('Failed to upload gallery item. Please try again.', 'error');
+        } catch (toastError) {
+          console.error('❌ Error showing generic toast:', toastError);
+        }
       }
     } finally {
+      console.log('📋 Setting uploading to false...');
       setUploading(false);
     }
   };
