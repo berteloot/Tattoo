@@ -3,6 +3,9 @@ import axios from 'axios'
 // Create axios instance - use environment variable or fallback to relative URL
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 
+console.log('API_URL:', API_URL);
+console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,6 +14,10 @@ export const api = axios.create({
   // Ensure credentials are sent with requests
   withCredentials: true,
 })
+
+console.log('api object created:', api);
+console.log('api.post:', api.post);
+console.log('typeof api.post:', typeof api.post);
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
