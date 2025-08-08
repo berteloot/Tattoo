@@ -49,6 +49,13 @@ router.get('/', async (req, res) => {
               }
             }
           }
+        },
+        _count: {
+          select: {
+            views: true,
+            likes: true,
+            comments: true
+          }
         }
       },
       orderBy: { createdAt: 'desc' },
