@@ -9,6 +9,7 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 // Get all gallery items with filtering
+// PRODUCTION DEBUG: This endpoint should work after database schema fix
 router.get('/', async (req, res) => {
   try {
     console.log('🎨 Gallery endpoint called - Production Debug');
