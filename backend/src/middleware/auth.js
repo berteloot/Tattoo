@@ -73,6 +73,7 @@ const protect = async (req, res, next) => {
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
+      console.log('❌ Authorization failed: No user found');
       return res.status(401).json({
         success: false,
         error: 'Not authorized, no user found'
@@ -83,21 +84,17 @@ const authorize = (...roles) => {
     const user = req.user.user || req.user;
     const userRole = user.role;
 
-    console.log('Authorization debug:', {
+    console.log('🔍 Authorization check:', {
       userRole,
       allowedRoles: roles,
       userObject: req.user,
-      processedUser: user
-    });
-
-    console.log('Authorization debug:', {
-      userRole,
-      allowedRoles: roles,
-      userObject: req.user,
-      processedUser: user
+      processedUser: user,
+      hasArtistProfile: !!req.user.artistProfile,
+      artistProfileId: req.user.artistProfile?.id
     });
 
     if (!userRole) {
+      console.log('❌ Authorization failed: User role not found');
       return res.status(401).json({
         success: false,
         error: 'User role not found'
@@ -105,12 +102,17 @@ const authorize = (...roles) => {
     }
 
     if (!roles.includes(userRole)) {
+      console.log('❌ Authorization failed: User role not authorized', {
+        userRole,
+        allowedRoles: roles
+      });
       return res.status(403).json({
         success: false,
-        error: `User role '${userRole}' is not authorized to access this route`
+        error: `User role '${userRole}' is not authorized to access this route. Allowed roles: ${roles.join(', ')}`
       });
     }
 
+    console.log('✅ Authorization successful for role:', userRole);
     next();
   };
 };

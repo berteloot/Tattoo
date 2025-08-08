@@ -11,8 +11,8 @@ async function debugUserStatus() {
     console.log('🔐 Logging in...');
     
     const loginResponse = await axios.post(`${baseURL}/auth/login`, {
-      email: 'stan@sharemymeals.org',
-      password: 'your-password-here' // Replace with actual password
+      email: 'artist@example.com',
+      password: 'artist123'
     });
 
     if (!loginResponse.data.success) {
@@ -74,6 +74,7 @@ async function debugUserStatus() {
       console.log('✅ Profile picture upload endpoint accessible');
     } catch (error) {
       console.log('❌ Profile picture upload authorization failed:', error.response?.status, error.response?.data?.error);
+      console.log('🔍 Full error details:', error.response?.data);
     }
 
   } catch (error) {

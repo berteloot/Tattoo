@@ -83,14 +83,7 @@ const ProfilePictureUpload = ({
       const dimensions = await getImageDimensions(file);
       setImageDimensions(dimensions);
 
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreviewUrl(e.target.result);
-      };
-      reader.readAsDataURL(file);
-
-      // Upload to server
+      // Upload to server first, then set preview to the uploaded URL
       const formData = new FormData();
       formData.append('image', file);
 
@@ -131,6 +124,9 @@ const ProfilePictureUpload = ({
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Upload failed');
       }
+
+      // Set preview to the uploaded image URL (not blob URL)
+      setPreviewUrl(uploadResult.data.url);
 
       // Call the callback with the uploaded image data
       const imageData = {

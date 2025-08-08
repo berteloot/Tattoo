@@ -192,7 +192,9 @@ router.post('/',
           tattooStyle: req.body.tattooStyle,
           bodyLocation: req.body.bodyLocation,
           tags: req.body.tags ? JSON.parse(req.body.tags) : [],
-          categories: req.body.categories ? JSON.parse(req.body.categories) : []
+          categories: req.body.categories ? JSON.parse(req.body.categories) : [],
+          isApproved: true,
+          clientConsent: true
         },
         include: {
           artist: {
