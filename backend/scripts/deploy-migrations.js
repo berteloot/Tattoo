@@ -19,6 +19,9 @@ async function deployMigrations() {
     console.log('🔄 Initializing database...');
     await require('./init-db.js');
     
+    console.log('🔄 Recreating test users...');
+    await require('./recreate-test-users.js');
+    
     console.log('✅ All deployment migrations completed successfully!');
     
   } catch (error) {
