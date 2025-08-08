@@ -1110,18 +1110,19 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN', 'AR
     // Get image dimensions
     const dimensions = await getImageDimensions(uploadedFile.buffer);
 
-    // Update the artist profile with the new image data
-    const updatedProfile = await prisma.artistProfile.update({
-      where: { userId: req.user.id },
-      data: {
-        profilePictureUrl: uploadResult.url,
-        profilePicturePublicId: uploadResult.public_id,
-        profilePictureWidth: dimensions.width,
-        profilePictureHeight: dimensions.height,
-        profilePictureFormat: uploadedFile.mimetype.split('/')[1],
-        profilePictureBytes: uploadedFile.size
-      }
-    });
+    // Update the artist profile with the new image data using raw SQL
+    const updatedProfile = await prisma.$executeRaw`
+      UPDATE artist_profiles 
+      SET 
+        profile_picture_url = ${uploadResult.url},
+        profile_picture_public_id = ${uploadResult.public_id},
+        profile_picture_width = ${dimensions.width},
+        profile_picture_height = ${dimensions.height},
+        profile_picture_format = ${uploadedFile.mimetype.split('/')[1]},
+        profile_picture_bytes = ${uploadedFile.size},
+        updated_at = NOW()
+      WHERE user_id = ${req.user.id}
+    `;
 
     console.log('✅ Profile picture uploaded successfully:', {
       userId: req.user.id,
@@ -1157,40 +1158,44 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN', 'AR
  */
 router.delete('/profile-picture', protect, authorize('ARTIST', 'ADMIN'), async (req, res) => {
   try {
-    const artistProfile = await prisma.artistProfile.findUnique({
-      where: { userId: req.user.id },
-      select: { profilePicturePublicId: true }
-    });
+    const artistProfile = await prisma.$queryRaw`
+      SELECT profile_picture_public_id 
+      FROM artist_profiles 
+      WHERE user_id = ${req.user.id}
+    `;
 
-    if (!artistProfile) {
+    if (!artistProfile || artistProfile.length === 0) {
       return res.status(404).json({
         success: false,
         error: 'Artist profile not found'
       });
     }
 
+    const profile = artistProfile[0];
+
     // Delete from Cloudinary if public ID exists
-    if (artistProfile.profilePicturePublicId) {
-      try {
-        await deleteImage(artistProfile.profilePicturePublicId);
+    if (profile.profile_picture_public_id) {
+              try {
+          await deleteImage(profile.profile_picture_public_id);
       } catch (cloudinaryError) {
         console.error('Cloudinary delete error:', cloudinaryError);
         // Continue with database update even if Cloudinary delete fails
       }
     }
 
-    // Update database to remove profile picture
-    await prisma.artistProfile.update({
-      where: { userId: req.user.id },
-      data: {
-        profilePictureUrl: null,
-        profilePicturePublicId: null,
-        profilePictureWidth: null,
-        profilePictureHeight: null,
-        profilePictureFormat: null,
-        profilePictureBytes: null
-      }
-    });
+    // Update database to remove profile picture using raw SQL
+    await prisma.$executeRaw`
+      UPDATE artist_profiles 
+      SET 
+        profile_picture_url = NULL,
+        profile_picture_public_id = NULL,
+        profile_picture_width = NULL,
+        profile_picture_height = NULL,
+        profile_picture_format = NULL,
+        profile_picture_bytes = NULL,
+        updated_at = NOW()
+      WHERE user_id = ${req.user.id}
+    `;
 
     res.json({
       success: true,
