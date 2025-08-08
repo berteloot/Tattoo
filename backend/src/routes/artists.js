@@ -1157,25 +1157,22 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN', 'AR
  */
 router.delete('/profile-picture', protect, authorize('ARTIST', 'ADMIN'), async (req, res) => {
   try {
-    const artistProfile = await prisma.$queryRaw`
-      SELECT profile_picture_public_id 
-      FROM artist_profiles 
-      WHERE "userId" = ${req.user.id}
-    `;
+    const artistProfile = await prisma.artistProfile.findUnique({
+      where: { userId: req.user.id },
+      select: { profilePicturePublicId: true }
+    });
 
-    if (!artistProfile || artistProfile.length === 0) {
+        if (!artistProfile) {
       return res.status(404).json({
         success: false,
         error: 'Artist profile not found'
       });
     }
 
-    const profile = artistProfile[0];
-
     // Delete from Cloudinary if public ID exists
-    if (profile.profile_picture_public_id) {
-              try {
-          await deleteImage(profile.profile_picture_public_id);
+    if (artistProfile.profilePicturePublicId) {
+      try {
+        await deleteImage(artistProfile.profilePicturePublicId);
       } catch (cloudinaryError) {
         console.error('Cloudinary delete error:', cloudinaryError);
         // Continue with database update even if Cloudinary delete fails
