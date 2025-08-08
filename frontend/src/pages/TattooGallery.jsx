@@ -94,8 +94,8 @@ const TattooGallery = () => {
           }));
         }
       }
-    } catch (error) {
-      console.error('Error fetching gallery items:', error);
+    } catch (err) {
+      console.error('Error fetching gallery items:', err);
       error('Error', 'Failed to load gallery items');
     } finally {
       setLoading(false);
@@ -132,8 +132,8 @@ const TattooGallery = () => {
           )
         );
       }
-    } catch (error) {
-      console.error('Error toggling like:', error);
+    } catch (err) {
+      console.error('Error toggling like:', err);
       error('Error', 'Failed to update like');
     }
   };

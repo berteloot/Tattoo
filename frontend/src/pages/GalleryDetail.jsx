@@ -29,8 +29,8 @@ const GalleryDetail = () => {
       if (response.data.success) {
         setGalleryItem(response.data.data);
       }
-    } catch (error) {
-      console.error('Error fetching gallery item:', error);
+    } catch (err) {
+      console.error('Error fetching gallery item:', err);
       error('Error', 'Failed to load gallery item');
       navigate('/gallery');
     } finally {
@@ -56,8 +56,8 @@ const GalleryDetail = () => {
           userLiked: response.data.liked
         }));
       }
-    } catch (error) {
-      console.error('Error toggling like:', error);
+    } catch (err) {
+      console.error('Error toggling like:', err);
       error('Error', 'Failed to update like');
     }
   };
@@ -89,8 +89,8 @@ const GalleryDetail = () => {
         setComment('');
         success('Success', 'Comment added successfully');
       }
-    } catch (error) {
-      console.error('Error adding comment:', error);
+    } catch (err) {
+      console.error('Error adding comment:', err);
       error('Error', 'Failed to add comment');
     } finally {
       setSubmittingComment(false);
@@ -105,16 +105,16 @@ const GalleryDetail = () => {
           text: galleryItem.description,
           url: window.location.href
         });
-      } catch (error) {
-        console.error('Error sharing:', error);
+      } catch (err) {
+        console.error('Error sharing:', err);
       }
     } else {
       // Fallback: copy to clipboard
       try {
         await navigator.clipboard.writeText(window.location.href);
         success('Success', 'Link copied to clipboard');
-      } catch (error) {
-        console.error('Error copying to clipboard:', error);
+      } catch (err) {
+        console.error('Error copying to clipboard:', err);
         error('Error', 'Failed to copy link');
       }
     }

@@ -1110,19 +1110,18 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN', 'AR
     // Get image dimensions
     const dimensions = await getImageDimensions(uploadedFile.buffer);
 
-    // Update the artist profile with the new image data using raw SQL
-    const updatedProfile = await prisma.$executeRaw`
-      UPDATE artist_profiles 
-      SET 
-        profile_picture_url = ${uploadResult.url},
-        profile_picture_public_id = ${uploadResult.public_id},
-        profile_picture_width = ${dimensions.width},
-        profile_picture_height = ${dimensions.height},
-        profile_picture_format = ${uploadedFile.mimetype.split('/')[1]},
-        profile_picture_bytes = ${uploadedFile.size},
-        "updatedAt" = NOW()
-      WHERE "userId" = ${req.user.id}
-    `;
+    // Update the artist profile with the new image data
+    const updatedProfile = await prisma.artistProfile.update({
+      where: { userId: req.user.id },
+      data: {
+        profilePictureUrl: uploadResult.url,
+        profilePicturePublicId: uploadResult.public_id,
+        profilePictureWidth: dimensions.width,
+        profilePictureHeight: dimensions.height,
+        profilePictureFormat: uploadedFile.mimetype.split('/')[1],
+        profilePictureBytes: uploadedFile.size
+      }
+    });
 
     console.log('✅ Profile picture uploaded successfully:', {
       userId: req.user.id,
@@ -1183,19 +1182,18 @@ router.delete('/profile-picture', protect, authorize('ARTIST', 'ADMIN'), async (
       }
     }
 
-    // Update database to remove profile picture using raw SQL
-    await prisma.$executeRaw`
-      UPDATE artist_profiles 
-      SET 
-        profile_picture_url = NULL,
-        profile_picture_public_id = NULL,
-        profile_picture_width = NULL,
-        profile_picture_height = NULL,
-        profile_picture_format = NULL,
-        profile_picture_bytes = NULL,
-        "updatedAt" = NOW()
-      WHERE "userId" = ${req.user.id}
-    `;
+    // Update database to remove profile picture
+    await prisma.artistProfile.update({
+      where: { userId: req.user.id },
+      data: {
+        profilePictureUrl: null,
+        profilePicturePublicId: null,
+        profilePictureWidth: null,
+        profilePictureHeight: null,
+        profilePictureFormat: null,
+        profilePictureBytes: null
+      }
+    });
 
     res.json({
       success: true,

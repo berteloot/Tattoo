@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Star, MapPin, DollarSign, Eye, Heart, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 import { favoritesAPI } from '../services/api'
 import { LoadingSpinner } from '../components/UXComponents'
 import { FavoriteButton } from '../components/FavoriteButton'
-import toast from 'react-hot-toast'
 
 export const Favorites = () => {
   const { user, isAuthenticated } = useAuth()
+  const { error: showError } = useToast()
   const [favorites, setFavorites] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -27,17 +28,17 @@ export const Favorites = () => {
       setError(null)
       const response = await favoritesAPI.getAll()
       setFavorites(response.data.data.favorites)
-    } catch (error) {
-      console.error('Error fetching favorites:', error)
+    } catch (err) {
+      console.error('Error fetching favorites:', err)
       
       // Handle different types of errors
-      if (error.response?.status === 401) {
+      if (err.response?.status === 401) {
         // Authentication error - redirect to login
         setError('Please log in to view your favorites')
       } else {
-        const errorMessage = error.response?.data?.error || 'Failed to load your favorite artists'
+        const errorMessage = err.response?.data?.error || 'Failed to load your favorite artists'
         setError(errorMessage)
-        toast.error('Failed to load favorites')
+        showError('Error', 'Failed to load favorites')
       }
     } finally {
       setLoading(false)
