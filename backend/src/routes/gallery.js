@@ -64,12 +64,35 @@ router.get('/', async (req, res) => {
       skip: parseInt(offset)
     });
 
+    // If user is authenticated, check which items they've liked
+    let userLikes = new Set();
+    if (req.user) {
+      const userLikeItems = await prisma.tattooGalleryLike.findMany({
+        where: {
+          userId: req.user.id,
+          galleryItemId: {
+            in: galleryItems.map(item => item.id)
+          }
+        },
+        select: {
+          galleryItemId: true
+        }
+      });
+      userLikes = new Set(userLikeItems.map(like => like.galleryItemId));
+    }
+
+    // Add userLiked property to each item
+    const itemsWithUserLikes = galleryItems.map(item => ({
+      ...item,
+      userLiked: userLikes.has(item.id)
+    }));
+
     const total = await prisma.tattooGallery.count({ where });
 
     res.json({
       success: true,
       data: {
-        items: galleryItems,
+        items: itemsWithUserLikes,
         pagination: {
           total,
           limit: parseInt(limit),
@@ -315,6 +338,66 @@ router.put('/:id',
     } catch (error) {
       console.error('Gallery item update error:', error);
       res.status(500).json({ success: false, error: 'Failed to update gallery item' });
+    }
+  }
+);
+
+// Like/unlike gallery item (authenticated users only)
+router.post('/:id/like', 
+  protect, 
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      // Check if gallery item exists
+      const galleryItem = await prisma.tattooGallery.findUnique({
+        where: { id }
+      });
+
+      if (!galleryItem) {
+        return res.status(404).json({ success: false, error: 'Gallery item not found' });
+      }
+
+      // Check if user already liked this item
+      const existingLike = await prisma.tattooGalleryLike.findFirst({
+        where: {
+          galleryItemId: id,
+          userId: userId
+        }
+      });
+
+      if (existingLike) {
+        // Unlike: remove the like
+        await prisma.tattooGalleryLike.delete({
+          where: {
+            id: existingLike.id
+          }
+        });
+
+        res.json({ 
+          success: true, 
+          liked: false,
+          message: 'Gallery item unliked successfully' 
+        });
+      } else {
+        // Like: add the like
+        await prisma.tattooGalleryLike.create({
+          data: {
+            galleryItemId: id,
+            userId: userId
+          }
+        });
+
+        res.json({ 
+          success: true, 
+          liked: true,
+          message: 'Gallery item liked successfully' 
+        });
+      }
+    } catch (error) {
+      console.error('Gallery like error:', error);
+      res.status(500).json({ success: false, error: 'Failed to toggle like' });
     }
   }
 );
