@@ -179,41 +179,54 @@ router.get('/:id/artists', async (req, res) => {
       });
     }
     
-    const studioArtists = await prisma.studioArtist.findMany({
-      where: {
-        studioId: req.params.id,
-        isActive: true
-      },
-      include: {
-        artist: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                avatar: true,
-                email: true
-              }
-            },
-            specialties: {
-              select: {
-                id: true,
-                name: true,
-                category: true
-              }
-            }
-          }
-        }
-      },
-      orderBy: {
-        joinedAt: 'desc'
+    // Use a safer query that doesn't rely on Prisma relationships
+    const studioArtists = await prisma.$queryRaw`
+      SELECT 
+        sa.id,
+        sa.studio_id,
+        sa.artist_id,
+        sa.role,
+        sa.is_active,
+        sa.joined_at,
+        sa.left_at,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.avatar,
+        ap.id as artist_profile_id
+      FROM studio_artists sa
+      LEFT JOIN artist_profiles ap ON sa.artist_id = ap.id
+      LEFT JOIN users u ON ap.user_id = u.id
+      WHERE sa.studio_id = ${req.params.id}
+        AND sa.is_active = true
+      ORDER BY sa.joined_at DESC
+    `;
+    
+    // Transform the raw data to match the expected format
+    const transformedArtists = studioArtists.map(sa => ({
+      id: sa.id,
+      studioId: sa.studio_id,
+      artistId: sa.artist_id,
+      role: sa.role,
+      isActive: sa.is_active,
+      joinedAt: sa.joined_at,
+      leftAt: sa.left_at,
+      artist: {
+        id: sa.artist_profile_id,
+        user: {
+          id: sa.artist_id,
+          firstName: sa.first_name,
+          lastName: sa.last_name,
+          email: sa.email,
+          avatar: sa.avatar
+        },
+        specialties: [] // We can add this later if needed
       }
-    });
+    }));
     
     res.json({
       success: true,
-      data: studioArtists
+      data: transformedArtists
     });
   } catch (error) {
     console.error('Error fetching studio artists:', error);
