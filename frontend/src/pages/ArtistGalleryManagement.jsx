@@ -165,8 +165,15 @@ const ArtistGalleryManagement = () => {
       data.append('clientAnonymous', formData.clientAnonymous);
       data.append('clientAgeVerified', formData.clientAgeVerified);
       data.append('isBeforeAfter', formData.isBeforeAfter);
-      data.append('tags', formData.tags);
-      data.append('categories', formData.categories);
+      // Convert tags and categories to JSON strings if they exist
+      if (formData.tags) {
+        const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+        data.append('tags', JSON.stringify(tagsArray));
+      }
+      if (formData.categories) {
+        const categoriesArray = formData.categories.split(',').map(cat => cat.trim()).filter(cat => cat);
+        data.append('categories', JSON.stringify(categoriesArray));
+      }
 
       if (formData.isBeforeAfter) {
         if (beforeFile) data.append('beforeImage', beforeFile);

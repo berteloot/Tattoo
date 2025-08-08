@@ -113,7 +113,34 @@ router.post('/',
     body('description').optional().trim(),
     body('tattooStyle').optional().trim(),
     body('bodyLocation').optional().trim(),
-    body('tags').optional().isArray().withMessage('Tags must be an array')
+    body('tags').optional().trim().custom((value) => {
+      if (value && value !== '') {
+        try {
+          const parsed = JSON.parse(value);
+          if (!Array.isArray(parsed)) {
+            throw new Error('Tags must be a valid JSON array');
+          }
+          return true;
+        } catch (error) {
+          throw new Error('Tags must be a valid JSON array');
+        }
+      }
+      return true;
+    }).withMessage('Tags must be a valid JSON array'),
+    body('categories').optional().trim().custom((value) => {
+      if (value && value !== '') {
+        try {
+          const parsed = JSON.parse(value);
+          if (!Array.isArray(parsed)) {
+            throw new Error('Categories must be a valid JSON array');
+          }
+          return true;
+        } catch (error) {
+          throw new Error('Categories must be a valid JSON array');
+        }
+      }
+      return true;
+    }).withMessage('Categories must be a valid JSON array')
   ],
   async (req, res) => {
     try {
@@ -151,7 +178,8 @@ router.post('/',
           imageBytes: uploadResult.bytes,
           tattooStyle: req.body.tattooStyle,
           bodyLocation: req.body.bodyLocation,
-          tags: req.body.tags ? JSON.parse(req.body.tags) : []
+          tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+          categories: req.body.categories ? JSON.parse(req.body.categories) : []
         },
         include: {
           artist: {
@@ -186,7 +214,20 @@ router.put('/:id',
     body('description').optional().trim(),
     body('tattooStyle').optional().trim(),
     body('bodyLocation').optional().trim(),
-    body('tags').optional().isArray().withMessage('Tags must be an array')
+    body('tags').optional().trim().custom((value) => {
+      if (value && value !== '') {
+        try {
+          const parsed = JSON.parse(value);
+          if (!Array.isArray(parsed)) {
+            throw new Error('Tags must be a valid JSON array');
+          }
+          return true;
+        } catch (error) {
+          throw new Error('Tags must be a valid JSON array');
+        }
+      }
+      return true;
+    }).withMessage('Tags must be a valid JSON array')
   ],
   async (req, res) => {
     try {
