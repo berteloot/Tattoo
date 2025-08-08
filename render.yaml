@@ -10,7 +10,9 @@ services:
       npm install
       cd backend && npm install && npx prisma generate && npx prisma migrate deploy && node scripts/deploy-migrations.js
       cd ../frontend && npm install && npm run build
-      cd ..
+      cd .. && ls -la frontend/dist/
+      echo "Frontend build completed. Files in dist:"
+      ls -la frontend/dist/assets/ || echo "No assets directory found"
     startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV

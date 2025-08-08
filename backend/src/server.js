@@ -145,6 +145,56 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Debug endpoint to check file system in production
+app.get('/debug-paths', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  
+  try {
+    const currentDir = __dirname;
+    const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
+    const backendDir = path.join(__dirname, '..');
+    const rootDir = path.join(__dirname, '../..');
+    
+    const debugInfo = {
+      currentDir,
+      frontendBuildPath,
+      paths: {
+        currentDirExists: fs.existsSync(currentDir),
+        frontendBuildExists: fs.existsSync(frontendBuildPath),
+        backendDirExists: fs.existsSync(backendDir),
+        rootDirExists: fs.existsSync(rootDir),
+      },
+      listings: {}
+    };
+    
+    // List contents of various directories
+    if (fs.existsSync(rootDir)) {
+      debugInfo.listings.root = fs.readdirSync(rootDir);
+    }
+    
+    if (fs.existsSync(backendDir)) {
+      debugInfo.listings.backend = fs.readdirSync(backendDir);
+    }
+    
+    const frontendDir = path.join(__dirname, '../../frontend');
+    if (fs.existsSync(frontendDir)) {
+      debugInfo.listings.frontend = fs.readdirSync(frontendDir);
+    }
+    
+    if (fs.existsSync(frontendBuildPath)) {
+      debugInfo.listings.frontendBuild = fs.readdirSync(frontendBuildPath);
+    }
+    
+    res.json(debugInfo);
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to get debug info',
+      message: error.message
+    });
+  }
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/artists', artistRoutes);
