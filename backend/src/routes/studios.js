@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { body, validationResult } = require('express-validator');
 const { protect } = require('../middleware/auth');
 const studioGeocodingTrigger = require('../utils/studioGeocodingTrigger');
-const { studioArtistLimiter, detectScraping } = require('../middleware/antiScraping');
+const { studioArtistLimiter, contactInfoLimiter, detectScraping } = require('../middleware/antiScraping');
+const emailService = require('../utils/emailService');
 const prisma = new PrismaClient();
 
 // Create a new studio
