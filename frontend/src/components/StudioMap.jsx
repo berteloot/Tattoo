@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { GoogleMap, LoadScript, Marker, InfoWindow, DirectionsRenderer } from '@react-google-maps/api'
-import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, Phone, Mail } from 'lucide-react'
+import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, Phone, Mail, MessageSquare } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
+import { StudioMessageForm } from './StudioMessageForm'
 
 const mapContainerStyle = {
   width: '100%',
@@ -28,6 +29,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const [geocoder, setGeocoder] = useState(null)
   const [mapCenter, setMapCenter] = useState(center)
   const [mapZoom, setMapZoom] = useState(10)
+  const [showMessageForm, setShowMessageForm] = useState(false)
   const directionsService = useRef(null)
   const directionsRenderer = useRef(null)
 
@@ -632,13 +634,13 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                     )}
                     {selectedStudio.email && (
                       <div className="flex items-center space-x-1">
-                        <Mail className="w-3 h-3 text-gray-500" />
-                        <a 
-                          href={`mailto:${selectedStudio.email}`}
-                          className="text-xs text-blue-600 hover:text-blue-800"
+                        <MessageSquare className="w-3 h-3 text-gray-500" />
+                        <button
+                          onClick={() => setShowMessageForm(true)}
+                          className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
                         >
-                          {selectedStudio.email}
-                        </a>
+                          Send Message
+                        </button>
                       </div>
                     )}
                   </div>
@@ -702,6 +704,13 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
           </div>
         )}
       </LoadScript>
+      
+      {/* Studio Message Form */}
+      <StudioMessageForm
+        studio={selectedStudio}
+        isOpen={showMessageForm}
+        onClose={() => setShowMessageForm(false)}
+      />
     </div>
   )
 } 
