@@ -8,9 +8,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'https://tattooed-world-backend.onrender.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
     },
   },
