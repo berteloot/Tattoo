@@ -1120,8 +1120,8 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN', 'AR
         profile_picture_height = ${dimensions.height},
         profile_picture_format = ${uploadedFile.mimetype.split('/')[1]},
         profile_picture_bytes = ${uploadedFile.size},
-        updated_at = NOW()
-      WHERE user_id = ${req.user.id}
+        "updatedAt" = NOW()
+      WHERE "userId" = ${req.user.id}
     `;
 
     console.log('✅ Profile picture uploaded successfully:', {
@@ -1161,7 +1161,7 @@ router.delete('/profile-picture', protect, authorize('ARTIST', 'ADMIN'), async (
     const artistProfile = await prisma.$queryRaw`
       SELECT profile_picture_public_id 
       FROM artist_profiles 
-      WHERE user_id = ${req.user.id}
+      WHERE "userId" = ${req.user.id}
     `;
 
     if (!artistProfile || artistProfile.length === 0) {
@@ -1193,8 +1193,8 @@ router.delete('/profile-picture', protect, authorize('ARTIST', 'ADMIN'), async (
         profile_picture_height = NULL,
         profile_picture_format = NULL,
         profile_picture_bytes = NULL,
-        updated_at = NOW()
-      WHERE user_id = ${req.user.id}
+        "updatedAt" = NOW()
+      WHERE "userId" = ${req.user.id}
     `;
 
     res.json({
