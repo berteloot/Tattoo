@@ -11,6 +11,8 @@ const prisma = new PrismaClient();
 // Get all gallery items with filtering
 router.get('/', async (req, res) => {
   try {
+    console.log('🎨 Gallery endpoint called - Production Debug');
+    
     const {
       artistId,
       style,
@@ -37,6 +39,7 @@ router.get('/', async (req, res) => {
     if (location) where.bodyLocation = location;
     if (featured === 'true') where.isFeatured = true;
 
+    console.log('🎨 Gallery query starting...');
     const galleryItems = await prisma.tattooGallery.findMany({
       where,
       include: {
@@ -64,6 +67,8 @@ router.get('/', async (req, res) => {
       skip: parseInt(offset)
     });
 
+    console.log(`🎨 Gallery query successful: ${galleryItems.length} items found`);
+
     // If user is authenticated, check which items they've liked
     let userLikes = new Set();
     if (req.user && req.user.id) {
@@ -88,6 +93,8 @@ router.get('/', async (req, res) => {
     }));
 
     const total = await prisma.tattooGallery.count({ where });
+
+    console.log(`🎨 Gallery response ready: ${itemsWithUserLikes.length} items, ${total} total`);
 
     res.json({
       success: true,
