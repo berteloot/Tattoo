@@ -7,12 +7,36 @@ services:
     env: node
     plan: starter
     buildCommand: |
+      echo "=== Starting build process ==="
+      pwd
+      ls -la
       npm install
+      echo "=== Backend setup ==="
       cd backend && npm install && npx prisma generate && npx prisma migrate deploy && node scripts/deploy-migrations.js
-      cd ../frontend && npm install && npm run build
-      cd .. && ls -la frontend/dist/
-      echo "Frontend build completed. Files in dist:"
-      ls -la frontend/dist/assets/ || echo "No assets directory found"
+      echo "=== Frontend build ==="
+      cd ../frontend
+      pwd
+      ls -la
+      npm install
+      echo "Running npm run build..."
+      npm run build
+      echo "Build command completed. Checking results..."
+      ls -la
+      if [ -d "dist" ]; then
+        echo "✅ Frontend dist directory created successfully"
+        ls -la dist/
+        if [ -d "dist/assets" ]; then
+          echo "✅ Assets directory found"
+          ls -la dist/assets/
+        else
+          echo "❌ No assets directory found in dist"
+        fi
+      else
+        echo "❌ Frontend dist directory NOT created"
+        echo "Checking for any build errors..."
+        npm run build || echo "Build failed with error"
+      fi
+      cd ..
     startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
@@ -52,6 +76,13 @@ services:
         sync: false
       - key: FROM_EMAIL
         value: stan@berteloot.org
+      # Frontend build environment variables
+      - key: VITE_API_URL
+        value: https://tattooed-world-backend.onrender.com
+      - key: VITE_GOOGLE_MAPS_API_KEY
+        value: AIzaSyDcV1CcJSHKOtZilY7al23ev7Gs7MMgoBQ
+      - key: VITE_NODE_ENV
+        value: production
 
 databases:
   # PostgreSQL Database
