@@ -199,7 +199,11 @@ const StudioDetail = () => {
                 </div>
               )}
               {studio.email && (
-                <ProtectedEmail email={studio.email} />
+                <ProtectedEmail 
+                  email={studio.email} 
+                  recipient={studio}
+                  recipientType="studio"
+                />
               )}
               {studio.website && (
                 <div className="flex items-center">

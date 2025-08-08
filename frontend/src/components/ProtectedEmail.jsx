@@ -1,9 +1,18 @@
 import React, { useState } from 'react';
-import { Mail, Eye, EyeOff } from 'lucide-react';
+import { Mail, Eye, EyeOff, MessageSquare } from 'lucide-react';
+import ContactEmailModal from './ContactEmailModal';
 
-const ProtectedEmail = ({ email, className = "", showIcon = true, children }) => {
+const ProtectedEmail = ({ 
+  email, 
+  className = "", 
+  showIcon = true, 
+  children,
+  recipient = null,
+  recipientType = 'artist'
+}) => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   // Split email into parts for obfuscation
   const [localPart, domain] = email.split('@');
@@ -33,8 +42,10 @@ const ProtectedEmail = ({ email, className = "", showIcon = true, children }) =>
     }
   };
 
-  const handleMailto = () => {
-    if (isRevealed) {
+  const handleContact = () => {
+    if (recipient) {
+      setShowContactModal(true);
+    } else if (isRevealed) {
       window.location.href = `mailto:${email}`;
     } else {
       handleReveal();
@@ -80,11 +91,11 @@ const ProtectedEmail = ({ email, className = "", showIcon = true, children }) =>
       {isRevealed && (
         <div className="flex space-x-1">
           <button
-            onClick={handleMailto}
+            onClick={handleContact}
             className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition-colors"
-            title="Send email"
+            title={recipient ? "Send message" : "Send email"}
           >
-            Email
+            {recipient ? "Message" : "Email"}
           </button>
           <button
             onClick={handleCopy}
@@ -94,6 +105,20 @@ const ProtectedEmail = ({ email, className = "", showIcon = true, children }) =>
             Copy
           </button>
         </div>
+      )}
+
+      {/* Contact Modal */}
+      {recipient && (
+        <ContactEmailModal
+          isOpen={showContactModal}
+          onClose={() => setShowContactModal(false)}
+          recipient={recipient}
+          recipientType={recipientType}
+          onSuccess={() => {
+            setIsRevealed(false);
+            setShowContactModal(false);
+          }}
+        />
       )}
 
       {children}

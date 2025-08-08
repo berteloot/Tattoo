@@ -571,4 +571,88 @@ router.get('/:id', detectScraping, studioArtistLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/studios/:id/contact
+ * @desc    Send contact email to studio from client
+ * @access  Public (with rate limiting)
+ */
+router.post('/:id/contact', [
+  detectScraping,
+  contactInfoLimiter,
+  body('subject').isString().notEmpty().withMessage('Subject is required'),
+  body('message').isString().notEmpty().withMessage('Message is required'),
+  body('senderName').isString().notEmpty().withMessage('Sender name is required'),
+  body('senderEmail').isEmail().withMessage('Valid sender email is required'),
+  body('senderPhone').optional().isString().withMessage('Phone must be a string')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { subject, message, senderName, senderEmail, senderPhone } = req.body;
+
+    // Get studio information
+    const studio = await prisma.studio.findUnique({
+      where: { id }
+    });
+
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+
+    if (!studio.email) {
+      return res.status(400).json({
+        success: false,
+        error: 'This studio does not have a contact email available'
+      });
+    }
+
+    // Send email to studio
+    try {
+      const emailResult = await emailService.sendClientToStudioEmail({
+        to: studio.email,
+        studioName: studio.title,
+        clientName: senderName,
+        clientEmail: senderEmail,
+        clientPhone: senderPhone,
+        subject: subject,
+        message: message,
+        studioAddress: studio.address ? `${studio.address}, ${studio.city}, ${studio.state}` : `${studio.city}, ${studio.state}`
+      });
+
+      if (emailResult.success) {
+        res.json({
+          success: true,
+          message: 'Message sent successfully! The studio will get back to you soon.'
+        });
+      } else {
+        throw new Error(emailResult.error || 'Failed to send email');
+      }
+    } catch (emailError) {
+      console.error('Error sending contact email to studio:', emailError);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to send message. Please try again later.'
+      });
+    }
+  } catch (error) {
+    console.error('Error in studio contact endpoint:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while processing contact request'
+    });
+  }
+});
+
 module.exports = router; 

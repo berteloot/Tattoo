@@ -351,6 +351,18 @@ const ArtistGalleryManagement = () => {
     setAfterFile(null);
   };
 
+  const handleView = (itemId) => {
+    console.log('👁️ Viewing gallery item:', itemId);
+    navigate(`/gallery/${itemId}`);
+  };
+
+  const handleEdit = (item) => {
+    console.log('✏️ Editing gallery item:', item);
+    // For now, show a toast message since edit functionality needs to be implemented
+    showToast('Edit functionality coming soon!', 'info');
+    // TODO: Implement edit modal or navigate to edit page
+  };
+
   const handleDelete = async (itemId) => {
     if (!window.confirm('Are you sure you want to delete this gallery item?')) {
       return;
@@ -448,20 +460,23 @@ const ArtistGalleryManagement = () => {
           
           <div className="flex space-x-2">
             <button
-              onClick={() => navigate(`/gallery/${item.id}`)}
+              onClick={() => handleView(item.id)}
               className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              title="View Details"
             >
               <Eye className="w-4 h-4" />
             </button>
             <button
-              onClick={() => navigate(`/gallery/edit/${item.id}`)}
+              onClick={() => handleEdit(item)}
               className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
+              title="Edit Item"
             >
               <Edit className="w-4 h-4" />
             </button>
             <button
               onClick={() => handleDelete(item.id)}
               className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+              title="Delete Item"
             >
               <Trash2 className="w-4 h-4" />
             </button>

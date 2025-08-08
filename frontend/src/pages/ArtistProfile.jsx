@@ -433,6 +433,8 @@ export const ArtistProfile = () => {
                         email={artist.user.email} 
                         showIcon={false}
                         className="text-gray-900 font-medium hover:text-primary-600 transition-colors"
+                        recipient={artist}
+                        recipientType="artist"
                       />
                     </div>
                   </div>
