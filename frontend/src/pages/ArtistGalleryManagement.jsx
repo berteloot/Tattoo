@@ -357,13 +357,22 @@ const ArtistGalleryManagement = () => {
     }
 
     try {
+      console.log('🗑️ Deleting gallery item:', itemId);
       const response = await galleryAPI.delete(itemId);
+      console.log('🗑️ Delete response:', response.data);
+      
       if (response.data.success) {
         showToast('Gallery item deleted successfully', 'success');
-        fetchGalleryItems();
+        // Fetch gallery items with the correct artist ID
+        const artistId = user?.artistProfile?.id;
+        console.log('🗑️ Refreshing gallery for artist:', artistId);
+        if (artistId) {
+          fetchGalleryItems(artistId);
+        }
       }
     } catch (error) {
-      console.error('Error deleting gallery item:', error);
+      console.error('❌ Error deleting gallery item:', error);
+      console.error('❌ Error response:', error.response?.data);
       showToast('Failed to delete gallery item', 'error');
     }
   };
