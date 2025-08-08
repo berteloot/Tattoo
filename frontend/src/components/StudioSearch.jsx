@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Search, Plus, MapPin, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
 import { studiosAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
