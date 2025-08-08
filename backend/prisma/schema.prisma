@@ -305,7 +305,7 @@ model TattooGallery {
   afterImageUrl         String?
   afterImagePublicId    String?
   isFeatured            Boolean                 @default(false)
-  isApproved            Boolean                 @default(false)
+  isApproved            Boolean                 @default(true)
   isHidden              Boolean                 @default(false)
   tags                  String[]
   categories            String[]

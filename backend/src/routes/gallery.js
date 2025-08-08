@@ -25,12 +25,13 @@ router.get('/', async (req, res) => {
     };
 
     // If artistId is provided (artist viewing their own gallery), show all their items
-    // Otherwise, only show approved items (public gallery view)
+    // Otherwise, show all public items (no approval required)
     if (artistId) {
       where.artistId = artistId;
       // Don't filter by isApproved for artist's own gallery
     } else {
-      where.isApproved = true;
+      // Show all items to public (no approval required)
+      // Only filter out hidden items
     }
     if (style) where.tattooStyle = style;
     if (location) where.bodyLocation = location;
@@ -193,7 +194,7 @@ router.post('/',
           bodyLocation: req.body.bodyLocation,
           tags: req.body.tags ? JSON.parse(req.body.tags) : [],
           categories: req.body.categories ? JSON.parse(req.body.categories) : [],
-          isApproved: true,
+          isHidden: false,
           clientConsent: true
         },
         include: {
