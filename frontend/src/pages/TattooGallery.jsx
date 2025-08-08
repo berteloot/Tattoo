@@ -25,7 +25,7 @@ const TattooGallery = () => {
   });
 
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { error, warning } = useToast();
   const navigate = useNavigate();
 
   // Tattoo styles and locations for filtering
@@ -96,7 +96,7 @@ const TattooGallery = () => {
       }
     } catch (error) {
       console.error('Error fetching gallery items:', error);
-      showToast('Failed to load gallery items', 'error');
+      error('Error', 'Failed to load gallery items');
     } finally {
       setLoading(false);
     }
@@ -108,7 +108,7 @@ const TattooGallery = () => {
 
   const handleLike = async (itemId) => {
     if (!user) {
-      showToast('Please login to like gallery items', 'warning');
+      warning('Login Required', 'Please login to like gallery items');
       return;
     }
 
@@ -125,7 +125,8 @@ const TattooGallery = () => {
                     likes: response.data.liked 
                       ? item._count.likes + 1 
                       : item._count.likes - 1 
-                  } 
+                  },
+                  userLiked: response.data.liked
                 }
               : item
           )
@@ -133,7 +134,7 @@ const TattooGallery = () => {
       }
     } catch (error) {
       console.error('Error toggling like:', error);
-      showToast('Failed to update like', 'error');
+      error('Error', 'Failed to update like');
     }
   };
 

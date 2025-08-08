@@ -9,7 +9,7 @@ const GalleryDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { error, warning } = useToast();
 
   const [galleryItem, setGalleryItem] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,7 @@ const GalleryDetail = () => {
       }
     } catch (error) {
       console.error('Error fetching gallery item:', error);
-      showToast('Failed to load gallery item', 'error');
+      error('Error', 'Failed to load gallery item');
       navigate('/gallery');
     } finally {
       setLoading(false);
