@@ -1,103 +1,60 @@
-const { PrismaClient } = require('@prisma/client');
+const axios = require('axios');
 
-const prisma = new PrismaClient();
-
+// Check production database schema
 async function checkProductionDB() {
-  console.log('🗄️ Checking production database status...\n');
+  console.log('🔍 Checking Production Database Schema...');
+  
+  const baseURL = 'https://tattooed-world-backend.onrender.com/api';
   
   try {
-    // Check total studios
-    const totalStudios = await prisma.studio.count();
-    console.log(`📊 Total studios in production: ${totalStudios}`);
+    // Test the health endpoint first
+    console.log('🏥 Testing health endpoint...');
     
-    // Check active studios
-    const activeStudios = await prisma.studio.count({
-      where: { isActive: true }
-    });
-    console.log(`📊 Active studios in production: ${activeStudios}`);
+    const healthResponse = await axios.get(`${baseURL.replace('/api', '')}/health`);
+    console.log('✅ Health check passed:', healthResponse.data);
+
+    // Try to get a list of artists to see if the endpoint works
+    console.log('👥 Testing artists endpoint...');
     
-    // Check studios with coordinates
-    const studiosWithCoords = await prisma.studio.count({
-      where: {
-        isActive: true,
-        latitude: { not: null },
-        longitude: { not: null }
+    const artistsResponse = await axios.get(`${baseURL}/artists?limit=1`);
+    
+    if (artistsResponse.data.success) {
+      console.log('✅ Artists endpoint working');
+      console.log('📊 Artists count:', artistsResponse.data.data.pagination.total);
+      
+      if (artistsResponse.data.data.artists.length > 0) {
+        const artist = artistsResponse.data.data.artists[0];
+        console.log('🎨 Sample artist fields:', Object.keys(artist));
+        
+        // Check if profile picture fields exist
+        const hasProfilePictureFields = [
+          'profilePictureUrl',
+          'profilePicturePublicId',
+          'profilePictureWidth',
+          'profilePictureHeight',
+          'profilePictureFormat',
+          'profilePictureBytes'
+        ].some(field => artist.hasOwnProperty(field));
+        
+        if (hasProfilePictureFields) {
+          console.log('✅ Profile picture fields exist in production database');
+        } else {
+          console.log('❌ Profile picture fields missing from production database');
+          console.log('🔧 Need to run SQL commands on production database');
+        }
       }
-    });
-    console.log(`📍 Studios with coordinates in production: ${studiosWithCoords}`);
-    
-    // Check studios without coordinates
-    const studiosWithoutCoords = await prisma.studio.count({
-      where: {
-        isActive: true,
-        OR: [
-          { latitude: null },
-          { longitude: null }
-        ]
-      }
-    });
-    console.log(`❌ Studios without coordinates in production: ${studiosWithoutCoords}`);
-    
-    // Show all studios
-    const allStudios = await prisma.studio.findMany({
-      select: {
-        id: true,
-        title: true,
-        isActive: true,
-        latitude: true,
-        longitude: true,
-        address: true,
-        city: true,
-        state: true
-      }
-    });
-    
-    console.log('\n📋 All studios in production:');
-    allStudios.forEach((studio, index) => {
-      console.log(`   ${index + 1}. ${studio.title}`);
-      console.log(`      Active: ${studio.isActive}`);
-      console.log(`      Coordinates: ${studio.latitude}, ${studio.longitude}`);
-      console.log(`      Address: ${studio.address}, ${studio.city}, ${studio.state}`);
-      console.log('');
-    });
-    
-    // Check if geocode cache table exists
-    const cacheExists = await prisma.$queryRaw`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_name = 'geocode_cache'
-      ) as exists;
-    `;
-    
-    console.log(`🗄️ Geocode cache table exists: ${cacheExists[0].exists ? '✅ YES' : '❌ NO'}`);
-    
-    if (cacheExists[0].exists) {
-      const cacheCount = await prisma.$queryRaw`
-        SELECT COUNT(*) as count FROM geocode_cache;
-      `;
-      console.log(`🗄️ Geocode cache entries: ${cacheCount[0].count}`);
-    }
-    
-    // Recommendations
-    console.log('\n🎯 Recommendations:');
-    if (studiosWithCoords === 0) {
-      console.log('   • No studios with coordinates found');
-      console.log('   • Run geocoding: https://tattooed-world-backend.onrender.com/admin/geocoding');
     } else {
-      console.log(`   • ${studiosWithCoords} studios should show on map`);
+      console.log('❌ Artists endpoint failed:', artistsResponse.data.error);
     }
-    
-    if (activeStudios === 0) {
-      console.log('   • No active studios found');
-      console.log('   • Check if studios have isActive = true');
-    }
-    
+
   } catch (error) {
-    console.error('❌ Error checking production database:', error);
-  } finally {
-    await prisma.$disconnect();
+    console.error('❌ Production DB check failed:', error.message);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+    }
   }
 }
 
 // Run the check
-checkProductionDB().catch(console.error); 
+checkProductionDB(); 

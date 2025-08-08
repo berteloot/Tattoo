@@ -317,6 +317,92 @@ router.get('/my-favorites', protect, async (req, res) => {
 });
 
 /**
+ * @route   POST /api/artists/:id/contact
+ * @desc    Send contact email to artist from client
+ * @access  Public (with rate limiting)
+ */
+router.post('/:id/contact', [
+  detectScraping,
+  contactInfoLimiter,
+  body('subject').isString().notEmpty().withMessage('Subject is required'),
+  body('message').isString().notEmpty().withMessage('Message is required'),
+  body('senderName').isString().notEmpty().withMessage('Sender name is required'),
+  body('senderEmail').isEmail().withMessage('Valid sender email is required'),
+  body('senderPhone').optional().isString().withMessage('Phone must be a string')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { subject, message, senderName, senderEmail, senderPhone } = req.body;
+
+    // Get artist information
+    const artist = await prisma.artistProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist not found'
+      });
+    }
+
+    // Send email to artist
+    try {
+      const emailResult = await emailService.sendClientToArtistEmail({
+        to: artist.user.email,
+        artistName: `${artist.user.firstName} ${artist.user.lastName}`,
+        clientName: senderName,
+        clientEmail: senderEmail,
+        clientPhone: senderPhone,
+        subject: subject,
+        message: message,
+        studioName: artist.studioName || 'My Studio'
+      });
+
+      if (emailResult.success) {
+        res.json({
+          success: true,
+          message: 'Message sent successfully! The artist will get back to you soon.'
+        });
+      } else {
+        throw new Error(emailResult.error || 'Failed to send email');
+      }
+    } catch (emailError) {
+      console.error('Error sending contact email to artist:', emailError);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to send message. Please try again later.'
+      });
+    }
+  } catch (error) {
+    console.error('Error in artist contact endpoint:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while processing contact request'
+    });
+  }
+});
+
+/**
  * @route   GET /api/artists/:id
  * @desc    Get artist by ID with full profile
  * @access  Public
@@ -1109,91 +1195,5 @@ const getImageDimensions = async (buffer) => {
     return { width: 0, height: 0 };
   }
 };
-
-/**
- * @route   POST /api/artists/:id/contact
- * @desc    Send contact email to artist from client
- * @access  Public (with rate limiting)
- */
-router.post('/:id/contact', [
-  detectScraping,
-  contactInfoLimiter,
-  body('subject').isString().notEmpty().withMessage('Subject is required'),
-  body('message').isString().notEmpty().withMessage('Message is required'),
-  body('senderName').isString().notEmpty().withMessage('Sender name is required'),
-  body('senderEmail').isEmail().withMessage('Valid sender email is required'),
-  body('senderPhone').optional().isString().withMessage('Phone must be a string')
-], async (req, res) => {
-  try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
-
-    const { id } = req.params;
-    const { subject, message, senderName, senderEmail, senderPhone } = req.body;
-
-    // Get artist information
-    const artist = await prisma.artistProfile.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
-      }
-    });
-
-    if (!artist) {
-      return res.status(404).json({
-        success: false,
-        error: 'Artist not found'
-      });
-    }
-
-    // Send email to artist
-    try {
-      const emailResult = await emailService.sendClientToArtistEmail({
-        to: artist.user.email,
-        artistName: `${artist.user.firstName} ${artist.user.lastName}`,
-        clientName: senderName,
-        clientEmail: senderEmail,
-        clientPhone: senderPhone,
-        subject: subject,
-        message: message,
-        studioName: artist.studioName || 'My Studio'
-      });
-
-      if (emailResult.success) {
-        res.json({
-          success: true,
-          message: 'Message sent successfully! The artist will get back to you soon.'
-        });
-      } else {
-        throw new Error(emailResult.error || 'Failed to send email');
-      }
-    } catch (emailError) {
-      console.error('Error sending contact email to artist:', emailError);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to send message. Please try again later.'
-      });
-    }
-  } catch (error) {
-    console.error('Error in artist contact endpoint:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error while processing contact request'
-    });
-  }
-});
 
 module.exports = router; 
