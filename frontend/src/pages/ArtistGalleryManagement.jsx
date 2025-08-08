@@ -198,7 +198,8 @@ const ArtistGalleryManagement = () => {
       console.log('galleryAPI.create:', galleryAPI.create);
       console.log('typeof galleryAPI.create:', typeof galleryAPI.create);
 
-      const response = await galleryAPI.create(data);
+      // Try direct API call instead of using galleryAPI
+      const response = await api.post('/gallery', data);
 
       if (response.data.success) {
         showToast('Gallery item uploaded successfully', 'success');
