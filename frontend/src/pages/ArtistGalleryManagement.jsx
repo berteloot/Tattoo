@@ -189,15 +189,6 @@ const ArtistGalleryManagement = () => {
         userRole: user.role
       });
 
-      console.log('FormData contents:');
-      for (let [key, value] of data.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      console.log('galleryAPI:', galleryAPI);
-      console.log('galleryAPI.create:', galleryAPI.create);
-      console.log('typeof galleryAPI.create:', typeof galleryAPI.create);
-
       // Try direct API call instead of using galleryAPI
       const response = await api.post('/gallery', data);
 

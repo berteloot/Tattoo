@@ -3,9 +3,6 @@ import axios from 'axios'
 // Create axios instance - use environment variable or fallback to relative URL
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 
-console.log('API_URL:', API_URL);
-console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
-
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -15,10 +12,6 @@ export const api = axios.create({
   withCredentials: true,
 })
 
-console.log('api object created:', api);
-console.log('api.post:', api.post);
-console.log('typeof api.post:', typeof api.post);
-
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
@@ -26,12 +19,6 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
-    
-    // Don't set Content-Type for FormData - let the browser set it with boundary
-    if (config.data instanceof FormData) {
-      delete config.headers['Content-Type']
-    }
-    
     return config
   },
   (error) => {
