@@ -189,8 +189,7 @@ const ArtistGalleryManagement = () => {
         userRole: user.role
       });
 
-      // Try direct API call instead of using galleryAPI
-      const response = await api.post('/gallery', data);
+      const response = await galleryAPI.create(data);
 
       if (response.data.success) {
         showToast('Gallery item uploaded successfully', 'success');
