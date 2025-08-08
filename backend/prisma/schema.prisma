@@ -70,6 +70,12 @@ model ArtistProfile {
   lastViewedAt       DateTime?
   profileViews       Int                @default(0)
   pinterest          String?            @db.VarChar(255)
+  profilePictureUrl       String?
+  profilePicturePublicId  String?
+  profilePictureWidth     Int?
+  profilePictureHeight    Int?
+  profilePictureFormat    String?
+  profilePictureBytes     Int?
   user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites          Favorite[]         @relation("FavoriteArtist")
   flash              Flash[]
