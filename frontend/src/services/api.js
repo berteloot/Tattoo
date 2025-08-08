@@ -19,6 +19,13 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // Ensure FormData is sent with correct Content-Type
+    if (config.data instanceof FormData) {
+      // Remove the default Content-Type to let browser set it with boundary
+      delete config.headers['Content-Type']
+    }
+    
     return config
   },
   (error) => {
