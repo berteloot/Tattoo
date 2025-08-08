@@ -284,7 +284,11 @@ router.get('/pending', async (req, res) => {
           { latitude: null },
           { longitude: null }
         ],
-        address: { not: null }
+        AND: [
+          { address: { not: null } },
+          { address: { not: '' } },
+          { address: { not: 'null' } }
+        ]
       },
       select: {
         id: true,
