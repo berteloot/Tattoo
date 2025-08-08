@@ -52,7 +52,13 @@ async function testStudioMessage() {
       clientPhone: '+1 (555) 123-4567'
     };
 
-    const messageResponse = await axios.post(`${API_URL}/api/studios/contact`, messageData);
+    const messageResponse = await axios.post(`${API_URL}/api/studios/${studioWithEmail.id}/contact`, {
+      subject: messageData.subject,
+      message: messageData.message,
+      senderName: messageData.clientName,
+      senderEmail: messageData.clientEmail,
+      senderPhone: messageData.clientPhone
+    });
     
     if (messageResponse.data.success) {
       console.log('✅ Message sent successfully!');

@@ -27,16 +27,12 @@ export const StudioMessageForm = ({ studio, isOpen, onClose }) => {
     setIsSubmitting(true)
 
     try {
-      await api.post('/studios/contact', {
-        studioId: studio.id,
-        studioName: studio.title,
-        studioEmail: studio.email,
-        studioAddress: `${studio.address}, ${studio.city}, ${studio.state} ${studio.zipCode}`,
+      await api.post(`/studios/${studio.id}/contact`, {
         subject: formData.subject || `New message from ${formData.clientName}`,
         message: formData.message,
-        clientName: formData.clientName,
-        clientEmail: formData.clientEmail,
-        clientPhone: formData.clientPhone
+        senderName: formData.clientName,
+        senderEmail: formData.clientEmail,
+        senderPhone: formData.clientPhone
       })
 
       showToast('Message sent successfully!', 'success')
