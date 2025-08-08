@@ -102,19 +102,48 @@ const ArtistGalleryManagement = () => {
   ];
 
   useEffect(() => {
+    console.log('🔍 useEffect triggered');
+    console.log('🔍 User:', user);
+    console.log('🔍 Artist profile:', user?.artistProfile);
+    
     const artistId = user?.artistProfile?.id;
-    if (!artistId) return;
+    console.log('🔍 Artist ID:', artistId);
+    
+    if (!artistId) {
+      console.log('❌ No artist ID found, skipping fetch');
+      return;
+    }
+    
+    console.log('✅ Fetching gallery items for artist:', artistId);
     fetchGalleryItems(artistId);
   }, [user?.artistProfile?.id]);
 
   const fetchGalleryItems = async (artistId) => {
     try {
+      console.log('🔍 Fetching gallery items for artistId:', artistId);
       setLoading(true);
+      
       const response = await galleryAPI.getAll({ artistId });
-      if (response.data?.success) setGalleryItems(response.data.data.items || []);
+      console.log('📋 Gallery fetch response:', response);
+      console.log('📋 Response data:', response.data);
+      console.log('📋 Response success:', response.data?.success);
+      console.log('📋 Response items:', response.data?.data?.items);
+      
+      if (response.data?.success) {
+        const items = response.data.data.items || [];
+        console.log('📋 Setting gallery items:', items);
+        console.log('📋 Items count:', items.length);
+        setGalleryItems(items);
+      } else {
+        console.log('❌ Gallery fetch failed - no success flag');
+        setGalleryItems([]);
+      }
     } catch (err) {
-      console.error('Error fetching gallery items:', err);
+      console.error('❌ Error fetching gallery items:', err);
+      console.error('❌ Error response:', err.response);
+      console.error('❌ Error data:', err.response?.data);
       showToast('Failed to load gallery items', 'error');
+      setGalleryItems([]);
     } finally {
       setLoading(false);
     }
@@ -487,10 +516,25 @@ const ArtistGalleryManagement = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {galleryItems.map(item => (
-              <GalleryItemCard key={item.id} item={item} />
-            ))}
+          <div>
+            <div className="mb-4 p-4 bg-gray-100 rounded-lg">
+              <h3 className="font-semibold text-gray-700">Debug Info:</h3>
+              <p>Loading: {loading ? 'Yes' : 'No'}</p>
+              <p>Gallery Items Count: {galleryItems.length}</p>
+              <p>Gallery Items: {JSON.stringify(galleryItems, null, 2)}</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {galleryItems.length > 0 ? (
+                galleryItems.map(item => (
+                  <GalleryItemCard key={item.id} item={item} />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-gray-500">No gallery items found</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
