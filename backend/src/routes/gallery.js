@@ -66,7 +66,7 @@ router.get('/', async (req, res) => {
 
     // If user is authenticated, check which items they've liked
     let userLikes = new Set();
-    if (req.user) {
+    if (req.user && req.user.id) {
       const userLikeItems = await prisma.tattooGalleryLike.findMany({
         where: {
           userId: req.user.id,
@@ -84,7 +84,7 @@ router.get('/', async (req, res) => {
     // Add userLiked property to each item
     const itemsWithUserLikes = galleryItems.map(item => ({
       ...item,
-      userLiked: userLikes.has(item.id)
+      userLiked: userLikes.has(item.id) || false
     }));
 
     const total = await prisma.tattooGallery.count({ where });
