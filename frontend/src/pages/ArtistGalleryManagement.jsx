@@ -187,6 +187,9 @@ const ArtistGalleryManagement = () => {
       }
 
       const response = await galleryAPI.create(data);
+      console.log('Response received:', response);
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
 
       if (response.data.success) {
         showToast('Gallery item uploaded successfully', 'success');
