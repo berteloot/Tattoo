@@ -12,272 +12,279 @@ export const Layout = ({ children }) => {
   const currentYear = new Date().getFullYear()
 
   const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Artists', href: '/artists' },
-    { name: 'Studios', href: '/studios' },
-    { name: 'Map', href: '/map' },
-    { name: 'Flash Gallery', href: '/flash' },
-    { name: 'Tattoo Gallery', href: '/gallery' },
+    { name: 'HOME', href: '/' },
+    { name: 'ARTISTS', href: '/artists' },
+    { name: 'STUDIOS', href: '/studios' },
+    { name: 'MAP', href: '/map' },
+    { name: 'FLASH GALLERY', href: '/flash' },
+    { name: 'TATTOO GALLERY', href: '/gallery' },
   ]
 
   const isActive = (path) => location.pathname === path
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <SkipToMainContent />
+      
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
-              <MapPin className="h-8 w-8 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900">Tattooed World</span>
-            </Link>
+      <header className="nav">
+        <div className="container">
+          {/* Logo */}
+          <Link to="/" className="brand">
+            TATTOOED WORLD
+          </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:block">
+            <ul>
               {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => console.log(`Navigating to: ${item.href}`)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {item.name}
-                </Link>
+                <li key={item.name}>
+                  <Link
+                    to={item.href}
+                    onClick={() => console.log(`Navigating to: ${item.href}`)}
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                  >
+                    {item.name}
+                  </Link>
+                </li>
               ))}
-            </nav>
+            </ul>
+          </nav>
 
-            {/* User Menu */}
-            <div className="hidden md:flex items-center space-x-4">
-              {isAuthenticated ? (
-                <>
+          {/* User Menu */}
+          <div className="hidden md:flex items-center gap-4">
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/profile"
+                  className="small"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <User style={{ width: '16px', height: '16px' }} />
+                  <span>{user?.firstName || user?.name || 'PROFILE'}</span>
+                </Link>
+                {user?.role === 'CLIENT' && (
                   <Link
-                    to="/profile"
-                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                    to="/favorites"
+                    className="small"
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                   >
-                    <User className="h-4 w-4" />
-                    <span>{user?.firstName || user?.name || 'Profile'}</span>
+                    <FavoritesCount />
                   </Link>
-                  {user?.role === 'CLIENT' && (
-                    <Link
-                      to="/favorites"
-                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
-                    >
-                      <FavoritesCount />
-                    </Link>
-                  )}
-                  {isArtist && (
-                    <Link
-                      to="/dashboard"
-                      className="px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
-                    >
-                      Dashboard
-                    </Link>
-                  )}
-                  {isAdmin && (
-                    <Link
-                      to="/admin"
-                      className="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700"
-                    >
-                      Admin Panel
-                    </Link>
-                  )}
-                  <button
-                    onClick={async () => {
-                      try {
-                        await logout()
-                      } catch (error) {
-                        console.warn('Logout error:', error)
-                      }
-                    }}
-                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span>Logout</span>
-                  </button>
-                </>
-              ) : (
-                <div className="flex items-center space-x-4">
-                  <Link
-                    to="/login"
-                    className="px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-md text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-              >
-                {mobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
                 )}
-              </button>
-            </div>
+                {isArtist && (
+                  <Link to="/dashboard" className="cta">
+                    DASHBOARD
+                  </Link>
+                )}
+                {isAdmin && (
+                  <Link to="/admin" className="cta" style={{ backgroundColor: 'var(--accent-red)', color: '#fff', borderColor: 'var(--accent-red)' }}>
+                    ADMIN PANEL
+                  </Link>
+                )}
+                <button
+                  onClick={async () => {
+                    try {
+                      await logout()
+                    } catch (error) {
+                      console.warn('Logout error:', error)
+                    }
+                  }}
+                  className="small"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  <LogOut style={{ width: '16px', height: '16px' }} />
+                  <span>LOGOUT</span>
+                </button>
+              </>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <Link to="/login" className="small">
+                  LOGIN
+                </Link>
+                <Link to="/register" className="cta">
+                  SIGN UP
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              {mobileMenuOpen ? (
+                <X style={{ width: '24px', height: '24px' }} />
+              ) : (
+                <Menu style={{ width: '24px', height: '24px' }} />
+              )}
+            </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                  }`}
-                  onClick={() => {
-                    console.log(`Mobile navigating to: ${item.href}`)
-                    setMobileMenuOpen(false)
-                  }}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              
-              {isAuthenticated ? (
-                <>
-                  <Link
-                    to="/profile"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  {user?.role === 'CLIENT' && (
+          <div className="md:hidden" style={{ borderTop: '1px solid var(--border)', padding: '16px 0' }}>
+            <div className="container">
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                {navigation.map((item) => (
+                  <li key={item.name} style={{ marginBottom: '8px' }}>
                     <Link
-                      to="/favorites"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
-                      onClick={() => setMobileMenuOpen(false)}
+                      to={item.href}
+                      className="small"
+                      style={{ display: 'block', padding: '8px 0' }}
+                      onClick={() => {
+                        console.log(`Mobile navigating to: ${item.href}`)
+                        setMobileMenuOpen(false)
+                      }}
                     >
-                      <div className="flex items-center space-x-2">
-                        <FavoritesCount />
-                      </div>
+                      {item.name}
                     </Link>
-                  )}
-                  {isArtist && (
-                    <Link
-                      to="/dashboard"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary-600 hover:bg-primary-700"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
-                  )}
-                  {isAdmin && (
-                    <Link
-                      to="/admin"
-                      className="block px-3 py-2 rounded-md text-base font-medium text-white bg-red-600 hover:bg-red-700"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Admin Panel
-                    </Link>
-                  )}
-                  <button
-                    onClick={async () => {
-                      try {
-                        await logout()
-                      } catch (error) {
-                        console.warn('Logout error:', error)
-                      }
-                      setMobileMenuOpen(false)
-                    }}
-                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/login"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary-600 hover:bg-primary-700"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              )}
+                  </li>
+                ))}
+                
+                {isAuthenticated ? (
+                  <>
+                    <li style={{ marginBottom: '8px' }}>
+                      <Link
+                        to="/profile"
+                        className="small"
+                        style={{ display: 'block', padding: '8px 0' }}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        PROFILE
+                      </Link>
+                    </li>
+                    {user?.role === 'CLIENT' && (
+                      <li style={{ marginBottom: '8px' }}>
+                        <Link
+                          to="/favorites"
+                          className="small"
+                          style={{ display: 'block', padding: '8px 0' }}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <FavoritesCount />
+                        </Link>
+                      </li>
+                    )}
+                    {isArtist && (
+                      <li style={{ marginBottom: '8px' }}>
+                        <Link
+                          to="/dashboard"
+                          className="cta"
+                          style={{ display: 'block', textAlign: 'center' }}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          DASHBOARD
+                        </Link>
+                      </li>
+                    )}
+                    {isAdmin && (
+                      <li style={{ marginBottom: '8px' }}>
+                        <Link
+                          to="/admin"
+                          className="cta"
+                          style={{ display: 'block', textAlign: 'center', backgroundColor: 'var(--accent-red)', color: '#fff', borderColor: 'var(--accent-red)' }}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          ADMIN PANEL
+                        </Link>
+                      </li>
+                    )}
+                    <li style={{ marginBottom: '8px' }}>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await logout()
+                          } catch (error) {
+                            console.warn('Logout error:', error)
+                          }
+                          setMobileMenuOpen(false)
+                        }}
+                        className="small"
+                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer' }}
+                      >
+                        LOGOUT
+                      </button>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li style={{ marginBottom: '8px' }}>
+                      <Link
+                        to="/login"
+                        className="small"
+                        style={{ display: 'block', padding: '8px 0' }}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        LOGIN
+                      </Link>
+                    </li>
+                    <li style={{ marginBottom: '8px' }}>
+                      <Link
+                        to="/register"
+                        className="cta"
+                        style={{ display: 'block', textAlign: 'center' }}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        SIGN UP
+                      </Link>
+                    </li>
+                  </>
+                )}
+              </ul>
             </div>
           </div>
         )}
       </header>
 
       {/* Main Content */}
-      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main id="main-content" className="container" style={{ padding: '40px 0' }}>
         {children}
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="footer">
+        <div className="container">
+          <div className="cols">
             {/* Company Info */}
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
-                <MapPin className="h-6 w-6 text-primary-600" />
-                <span className="text-lg font-bold text-gray-900">Tattooed World</span>
+            <div style={{ gridColumn: 'span 2' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <MapPin style={{ width: '24px', height: '24px', color: 'var(--accent-blue)' }} />
+                <span className="brand">TATTOOED WORLD</span>
               </div>
-              <p className="text-gray-600 mb-4 max-w-md">
+              <p className="small" style={{ marginBottom: '16px', maxWidth: '400px' }}>
                 Connect with talented tattoo artists in your area. Find your perfect match for custom designs, traditional styles, and everything in between.
               </p>
-              <p className="text-sm text-gray-500">
-                © {currentYear} Tattooed World. All rights reserved.
+              <p className="small" style={{ color: 'var(--muted)' }}>
+                © {currentYear} TATTOOED WORLD. ALL RIGHTS RESERVED.
               </p>
             </div>
 
             {/* Quick Links */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="/" className="text-sm text-gray-600 hover:text-primary-600">
-                    Home
+              <h3 className="small" style={{ fontWeight: 'bold', marginBottom: '16px' }}>QUICK LINKS</h3>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                <li style={{ marginBottom: '8px' }}>
+                  <Link to="/" className="small">
+                    HOME
                   </Link>
                 </li>
-                <li>
-                  <Link to="/artists" className="text-sm text-gray-600 hover:text-primary-600">
-                    Find Artists
+                <li style={{ marginBottom: '8px' }}>
+                  <Link to="/artists" className="small">
+                    FIND ARTISTS
                   </Link>
                 </li>
-                <li>
-                  <Link to="/flash" className="text-sm text-gray-600 hover:text-primary-600">
-                    Flash Gallery
+                <li style={{ marginBottom: '8px' }}>
+                  <Link to="/flash" className="small">
+                    FLASH GALLERY
                   </Link>
                 </li>
-                <li>
-                  <Link to="/register" className="text-sm text-gray-600 hover:text-primary-600">
-                    Join as Artist
+                <li style={{ marginBottom: '8px' }}>
+                  <Link to="/register" className="small">
+                    JOIN AS ARTIST
                   </Link>
                 </li>
               </ul>
@@ -285,26 +292,26 @@ export const Layout = ({ children }) => {
 
             {/* Legal */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">Legal</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="/privacy" className="text-sm text-gray-600 hover:text-primary-600">
-                    Privacy Policy
+              <h3 className="small" style={{ fontWeight: 'bold', marginBottom: '16px' }}>LEGAL</h3>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                <li style={{ marginBottom: '8px' }}>
+                  <Link to="/privacy" className="small">
+                    PRIVACY POLICY
                   </Link>
                 </li>
-                <li>
-                  <Link to="/terms" className="text-sm text-gray-600 hover:text-primary-600">
-                    Terms of Service
+                <li style={{ marginBottom: '8px' }}>
+                  <Link to="/terms" className="small">
+                    TERMS OF SERVICE
                   </Link>
                 </li>
-                <li>
-                  <Link to="/cookies" className="text-sm text-gray-600 hover:text-primary-600">
-                    Cookie Policy
+                <li style={{ marginBottom: '8px' }}>
+                  <Link to="/cookies" className="small">
+                    COOKIE POLICY
                   </Link>
                 </li>
-                <li>
-                  <Link to="/contact" className="text-sm text-gray-600 hover:text-primary-600">
-                    Contact Us
+                <li style={{ marginBottom: '8px' }}>
+                  <Link to="/contact" className="small">
+                    CONTACT US
                   </Link>
                 </li>
               </ul>
@@ -312,25 +319,25 @@ export const Layout = ({ children }) => {
           </div>
 
           {/* Legal Disclaimer */}
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <div className="text-xs text-gray-500 space-y-2">
-              <p>
-                <strong>Disclaimer:</strong> Tattooed World is a platform that connects clients with tattoo artists. 
-                We do not provide tattoo services directly. All artists are independent professionals responsible for 
-                their own work, licensing, and compliance with local regulations.
+          <div style={{ marginTop: '32px', paddingTop: '32px', borderTop: '1px solid var(--border)' }}>
+            <div className="small" style={{ color: 'var(--muted)', lineHeight: '1.6' }}>
+              <p style={{ marginBottom: '8px' }}>
+                <strong>DISCLAIMER:</strong> TATTOOED WORLD IS A PLATFORM THAT CONNECTS CLIENTS WITH TATTOO ARTISTS. 
+                WE DO NOT PROVIDE TATTOO SERVICES DIRECTLY. ALL ARTISTS ARE INDEPENDENT PROFESSIONALS RESPONSIBLE FOR 
+                THEIR OWN WORK, LICENSING, AND COMPLIANCE WITH LOCAL REGULATIONS.
+              </p>
+              <p style={{ marginBottom: '8px' }}>
+                <strong>HEALTH & SAFETY:</strong> TATTOOING INVOLVES HEALTH RISKS. ALWAYS ENSURE YOUR CHOSEN ARTIST 
+                FOLLOWS PROPER STERILIZATION AND SAFETY PROTOCOLS. CONSULT WITH HEALTHCARE PROFESSIONALS IF YOU HAVE 
+                CONCERNS ABOUT MEDICAL CONDITIONS OR ALLERGIES.
+              </p>
+              <p style={{ marginBottom: '8px' }}>
+                <strong>AGE VERIFICATION:</strong> YOU MUST BE 18 YEARS OR OLDER TO USE THIS PLATFORM. SOME JURISDICTIONS 
+                MAY REQUIRE PARENTAL CONSENT FOR INDIVIDUALS UNDER 18.
               </p>
               <p>
-                <strong>Health & Safety:</strong> Tattooing involves health risks. Always ensure your chosen artist 
-                follows proper sterilization and safety protocols. Consult with healthcare professionals if you have 
-                concerns about medical conditions or allergies.
-              </p>
-              <p>
-                <strong>Age Verification:</strong> You must be 18 years or older to use this platform. Some jurisdictions 
-                may require parental consent for individuals under 18.
-              </p>
-              <p>
-                <strong>Content:</strong> User-generated content reflects individual opinions and experiences. 
-                Tattooed World does not endorse or verify the accuracy of reviews or artist claims.
+                <strong>CONTENT:</strong> USER-GENERATED CONTENT REFLECTS INDIVIDUAL OPINIONS AND EXPERIENCES. 
+                TATTOOED WORLD DOES NOT ENDORSE OR VERIFY THE ACCURACY OF REVIEWS OR ARTIST CLAIMS.
               </p>
             </div>
           </div>

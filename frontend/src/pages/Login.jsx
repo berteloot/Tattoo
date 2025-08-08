@@ -72,68 +72,91 @@ export const Login = () => {
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Sign in to your account</h2>
-          <p className="mt-2 text-sm text-gray-600">
+    <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ maxWidth: '400px', width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <span className="tag tag--yellow">AUTHENTICATION</span>
+          <h2>SIGN IN TO YOUR ACCOUNT</h2>
+          <p className="deck">
             Or{' '}
-            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
+            <Link to="/register" style={{ color: 'var(--accent-blue)' }}>
               create a new account
             </Link>
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
-          <div className="space-y-4">
-            <Input
-              label="Email address"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              error={errors.email}
-              placeholder="Enter your email"
-              required
-              autoComplete="email"
-            />
+        <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase' }}>
+                EMAIL ADDRESS
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+                required
+                autoComplete="email"
+                className="input"
+                style={{ width: '100%' }}
+              />
+              {errors.email && (
+                <p style={{ color: 'var(--accent-red)', fontSize: '12px', marginTop: '4px' }}>
+                  {errors.email}
+                </p>
+              )}
+            </div>
             
-            <Input
-              label="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              error={errors.password}
-              placeholder="Enter your password"
-              required
-              autoComplete="current-password"
-            />
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase' }}>
+                PASSWORD
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                required
+                autoComplete="current-password"
+                className="input"
+                style={{ width: '100%' }}
+              />
+              {errors.password && (
+                <p style={{ color: 'var(--accent-red)', fontSize: '12px', marginTop: '4px' }}>
+                  {errors.password}
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
             <Link 
               to="/forgot-password" 
-              className="text-sm text-primary-600 hover:text-primary-500"
+              className="small"
+              style={{ color: 'var(--accent-blue)' }}
             >
               Forgot your password?
             </Link>
             <Link 
               to="/verify-email" 
-              className="text-sm text-primary-600 hover:text-primary-500"
+              className="small"
+              style={{ color: 'var(--accent-blue)' }}
             >
               Resend verification email
             </Link>
           </div>
 
-          <Button
+          <button
             type="submit"
-            loading={loading}
-            className="w-full"
-            size="lg"
+            disabled={loading}
+            className="cta"
+            style={{ width: '100%', padding: '16px', fontSize: '16px', fontWeight: '600' }}
           >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </Button>
+            {loading ? 'SIGNING IN...' : 'SIGN IN'}
+          </button>
         </form>
       </div>
     </div>

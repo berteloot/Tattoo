@@ -99,7 +99,7 @@ export const Artists = () => {
       hourlyRate: 150,
       averageRating: 4.8,
       reviewCount: 89,
-      specialties: [{ id: '3', name: 'Black & Grey' }],
+      specialties: [{ id: '3', name: 'Black & Grey' }, { id: '4', name: 'Realistic' }],
       isVerified: true,
       featured: true,
       portfolioCount: 32
@@ -108,423 +108,331 @@ export const Artists = () => {
       id: '3',
       user: { firstName: 'Emma', lastName: 'Thompson' },
       studioName: 'Simple Lines Studio',
-      bio: 'Minimalist tattoo specialist creating elegant, simple designs that speak volumes.',
+      bio: 'Minimalist tattoo specialist creating elegant, simple designs that speak volumes with clean lines and thoughtful composition.',
       city: 'Montreal',
       state: 'Quebec',
       hourlyRate: 100,
       averageRating: 4.7,
       reviewCount: 156,
-      specialties: [{ id: '4', name: 'Minimalist' }, { id: '5', name: 'Neo-Traditional' }],
+      specialties: [{ id: '5', name: 'Minimalist' }, { id: '6', name: 'Neo-Traditional' }],
       isVerified: true,
       featured: false,
       portfolioCount: 28
-    },
-    {
-      id: '4',
-      user: { firstName: 'David', lastName: 'Kim' },
-      studioName: 'Color Flow Tattoo',
-      bio: 'Watercolor tattoo artist bringing paintings to life on skin. Specializing in vibrant, flowing designs.',
-      city: 'Montreal',
-      state: 'Quebec',
-      hourlyRate: 130,
-      averageRating: 4.6,
-      reviewCount: 73,
-      specialties: [{ id: '6', name: 'Watercolor' }, { id: '5', name: 'Neo-Traditional' }],
-      isVerified: true,
-      featured: false,
-      portfolioCount: 41
-    },
-    {
-      id: '5',
-      user: { firstName: 'Lisa', lastName: 'Tanaka' },
-      studioName: 'Dragon\'s Den Tattoo',
-      bio: 'Japanese tattoo specialist trained in traditional Irezumi techniques with deep cultural respect.',
-      city: 'Montreal',
-      state: 'Quebec',
-      hourlyRate: 140,
-      averageRating: 4.9,
-      reviewCount: 94,
-      specialties: [{ id: '2', name: 'Japanese' }, { id: '1', name: 'Traditional' }],
-      isVerified: true,
-      featured: true,
-      portfolioCount: 38
     }
   ]
 
   const getDummySpecialties = () => [
     { id: '1', name: 'Traditional', icon: '🎨' },
-    { id: '2', name: 'Japanese', icon: '🐉' },
+    { id: '2', name: 'Japanese', icon: '🌸' },
     { id: '3', name: 'Black & Grey', icon: '⚫' },
-    { id: '4', name: 'Minimalist', icon: '📐' },
-    { id: '5', name: 'Neo-Traditional', icon: '🌟' },
-    { id: '6', name: 'Watercolor', icon: '🎨' }
+    { id: '4', name: 'Realistic', icon: '📷' },
+    { id: '5', name: 'Minimalist', icon: '⚪' },
+    { id: '6', name: 'Neo-Traditional', icon: '🌿' },
+    { id: '7', name: 'Watercolor', icon: '🎨' },
+    { id: '8', name: 'Geometric', icon: '📐' }
   ]
 
-  console.log('Current artists state:', artists)
-  console.log('Search term:', searchTerm)
-  console.log('Selected specialty:', selectedSpecialty)
-  
-  const filteredAndSortedArtists = (artists || [])
-    .filter(artist => {
-      if (!artist || !artist.user) return false
-      
-      const matchesSearch = !searchTerm || 
-                           artist.user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           artist.user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           artist.studioName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           artist.city?.toLowerCase().includes(searchTerm.toLowerCase())
-      
-      const matchesSpecialty = !selectedSpecialty || 
-                              artist.specialties?.some(s => s.name === selectedSpecialty)
-      
-      return matchesSearch && matchesSpecialty
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          return (b.averageRating || 0) - (a.averageRating || 0)
-        case 'price':
-          return (a.hourlyRate || 0) - (b.hourlyRate || 0)
-        case 'name':
-          return `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.localeCompare(`${b.user?.firstName || ''} ${b.user?.lastName || ''}`)
-        default:
-          return 0
-      }
-    })
+  const filteredArtists = artists.filter(artist => {
+    const matchesSearch = artist.user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         artist.user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         artist.studioName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         artist.city.toLowerCase().includes(searchTerm.toLowerCase())
     
-  console.log('Filtered artists:', filteredAndSortedArtists)
+    const matchesSpecialty = !selectedSpecialty || 
+                           artist.specialties.some(s => s.name === selectedSpecialty)
+    
+    return matchesSearch && matchesSpecialty
+  })
+
+  const sortedArtists = [...filteredArtists].sort((a, b) => {
+    switch (sortBy) {
+      case 'rating':
+        return (b.averageRating || 0) - (a.averageRating || 0)
+      case 'price':
+        return (a.hourlyRate || 0) - (b.hourlyRate || 0)
+      case 'name':
+        return `${a.user.firstName} ${a.user.lastName}`.localeCompare(`${b.user.firstName} ${b.user.lastName}`)
+      default:
+        return 0
+    }
+  })
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Discovering amazing artists...</p>
-          <p className="text-sm text-gray-500 mt-2">Loading from API...</p>
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            width: '64px', 
+            height: '64px', 
+            border: '2px solid var(--border)', 
+            borderTop: '2px solid var(--accent-blue)', 
+            borderRadius: '50%', 
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 16px'
+          }}></div>
+          <p className="small">DISCOVERING AMAZING ARTISTS...</p>
+          <p className="small" style={{ color: 'var(--muted)', marginTop: '8px' }}>LOADING FROM API...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div>
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary-900 via-primary-800 to-primary-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold mb-6">Discover Montreal's Finest Tattoo Artists</h1>
-            <p className="text-xl text-primary-100 mb-8 max-w-3xl mx-auto">
-              Connect with award-winning artists, explore unique styles, and find the perfect match for your next piece of art
-            </p>
-            <div className="flex justify-center space-x-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-2xl font-bold">{artists.length}+</div>
-                <div className="text-primary-200">Verified Artists</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-2xl font-bold">4.8★</div>
-                <div className="text-primary-200">Average Rating</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-2xl font-bold">500+</div>
-                <div className="text-primary-200">Happy Clients</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Filters and Controls */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search artists, studios, or locations..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
-                />
-              </div>
-            </div>
-
-            {/* Specialty Filter */}
-            <div className="lg:w-64">
-              <select
-                value={selectedSpecialty}
-                onChange={(e) => setSelectedSpecialty(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
-              >
-                <option value="">All Specialties</option>
-                {(specialties || []).map((specialty) => (
-                  <option key={specialty.id} value={specialty.name}>
-                    {specialty.icon} {specialty.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Sort */}
-            <div className="lg:w-48">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
-              >
-                <option value="rating">Top Rated</option>
-                <option value="price">Price: Low to High</option>
-                <option value="name">Name A-Z</option>
-              </select>
-            </div>
-
-            {/* View Toggle */}
-            <div className="flex bg-gray-100 rounded-xl p-1">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  viewMode === 'grid' ? 'bg-white shadow-sm' : 'text-gray-600'
-                }`}
-              >
-                Grid
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  viewMode === 'list' ? 'bg-white shadow-sm' : 'text-gray-600'
-                }`}
-              >
-                List
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-gray-600 text-lg">
-            Showing {filteredAndSortedArtists.length} of {artists.length} artists
+      <section className="hero">
+        <div className="container">
+          <span className="tag tag--yellow">ARTIST DISCOVERY</span>
+          <h1>DISCOVER MONTREAL'S FINEST TATTOO ARTISTS</h1>
+          <p className="deck">
+            Connect with award-winning artists, explore unique styles, and find the perfect match for your next piece of art
           </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap', marginTop: '32px' }}>
+            <div style={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+              padding: '24px', 
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>{artists.length}+</div>
+              <div style={{ color: 'rgba(255, 255, 255, 0.8)' }}>VERIFIED ARTISTS</div>
+            </div>
+            <div style={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+              padding: '24px', 
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>4.8★</div>
+              <div style={{ color: 'rgba(255, 255, 255, 0.8)' }}>AVERAGE RATING</div>
+            </div>
+            <div style={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+              padding: '24px', 
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>500+</div>
+              <div style={{ color: 'rgba(255, 255, 255, 0.8)' }}>HAPPY CLIENTS</div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        {/* Artists Grid/List */}
-        {viewMode === 'grid' ? (
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
-            {filteredAndSortedArtists.map((artist) => (
-              <ArtistCard key={artist.id} artist={artist} />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {filteredAndSortedArtists.map((artist) => (
-              <ArtistListCard key={artist.id} artist={artist} />
-            ))}
-          </div>
-        )}
+      <section className="section">
+        <div className="container">
+          {/* Filters and Controls */}
+          <div style={{ border: '1px solid var(--border)', padding: '24px', marginBottom: '48px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Search */}
+              <div style={{ flex: 1 }}>
+                <div style={{ position: 'relative' }}>
+                  <Search style={{ 
+                    position: 'absolute', 
+                    left: '16px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)', 
+                    color: 'var(--muted)', 
+                    width: '20px', 
+                    height: '20px' 
+                  }} />
+                  <input
+                    type="text"
+                    placeholder="Search artists, studios, or locations..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="input"
+                    style={{ width: '100%', paddingLeft: '48px', fontSize: '16px' }}
+                  />
+                </div>
+              </div>
 
-        {/* Empty State */}
-        {filteredAndSortedArtists.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-gray-400 text-8xl mb-6">🎨</div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">No artists found</h3>
-            <p className="text-gray-600 text-lg mb-8">
-              Try adjusting your search criteria or browse all artists.
-            </p>
-            <button
-              onClick={() => {
-                setSearchTerm('')
-                setSelectedSpecialty('')
-              }}
-              className="bg-primary-600 text-white px-8 py-3 rounded-xl hover:bg-primary-700 transition-colors"
-            >
-              Clear Filters
-            </button>
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                {/* Specialty Filter */}
+                <div style={{ minWidth: '200px' }}>
+                  <select
+                    value={selectedSpecialty}
+                    onChange={(e) => setSelectedSpecialty(e.target.value)}
+                    className="input"
+                    style={{ width: '100%', fontSize: '16px' }}
+                  >
+                    <option value="">ALL SPECIALTIES</option>
+                    {(specialties || []).map((specialty) => (
+                      <option key={specialty.id} value={specialty.name}>
+                        {specialty.icon} {specialty.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sort */}
+                <div style={{ minWidth: '150px' }}>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="input"
+                    style={{ width: '100%', fontSize: '16px' }}
+                  >
+                    <option value="rating">TOP RATED</option>
+                    <option value="price">PRICE: LOW TO HIGH</option>
+                    <option value="name">NAME A-Z</option>
+                  </select>
+                </div>
+
+                {/* View Toggle */}
+                <div style={{ display: 'flex', border: '1px solid var(--border)' }}>
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    style={{
+                      padding: '12px 16px',
+                      backgroundColor: viewMode === 'grid' ? 'var(--text)' : 'transparent',
+                      color: viewMode === 'grid' ? '#fff' : 'var(--text)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      textTransform: 'uppercase',
+                      fontWeight: '600'
+                    }}
+                  >
+                    GRID
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    style={{
+                      padding: '12px 16px',
+                      backgroundColor: viewMode === 'list' ? 'var(--text)' : 'transparent',
+                      color: viewMode === 'list' ? '#fff' : 'var(--text)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      textTransform: 'uppercase',
+                      fontWeight: '600'
+                    }}
+                  >
+                    LIST
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+
+          {/* Results */}
+          <div style={{ marginBottom: '32px' }}>
+            <div className="section-header">
+              <h2 className="section-title">ARTISTS ({sortedArtists.length})</h2>
+              <Link to="/map" className="section-link">
+                VIEW ON MAP →
+              </Link>
+            </div>
+          </div>
+
+          {/* Artists Grid/List */}
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-3">
+              {sortedArtists.map((artist) => (
+                <ArtistCard key={artist.id} artist={artist} />
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {sortedArtists.map((artist) => (
+                <ArtistListCard key={artist.id} artist={artist} />
+              ))}
+            </div>
+          )}
+
+          {sortedArtists.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '64px 0' }}>
+              <p className="small" style={{ marginBottom: '16px' }}>No artists found matching your criteria.</p>
+              <button
+                onClick={() => {
+                  setSearchTerm('')
+                  setSelectedSpecialty('')
+                }}
+                className="cta"
+              >
+                CLEAR FILTERS
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   )
 }
 
 const ArtistCard = ({ artist }) => (
-  <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-    {/* Header Image */}
-    <div className="relative h-64 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700">
-      {artist.featured && (
-        <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
-          <Award className="w-4 h-4 mr-1" />
-          Featured
-        </div>
-      )}
-      {artist.isVerified && (
-        <div className="absolute top-4 right-4 bg-blue-500 text-white p-2 rounded-full">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-        </div>
-      )}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-white text-8xl font-bold opacity-20">
-          {artist.user.firstName[0]}{artist.user.lastName[0]}
-        </div>
-      </div>
+  <div className="card">
+    <div className="card__media" style={{ backgroundColor: 'var(--accent-yellow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span style={{ fontSize: '48px' }}>🎨</span>
     </div>
-
-    <div className="p-6">
-      {/* Artist Info */}
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-1">
-            {artist.user.firstName} {artist.user.lastName}
-          </h3>
-          <p className="text-primary-600 font-semibold">{artist.studioName}</p>
-        </div>
-        <FavoriteButton artistId={artist.id} />
+    <div style={{ padding: '24px' }}>
+      <div className="card__category">
+        <span className="tag tag--yellow">{artist.specialties?.[0]?.name || 'ARTIST'}</span>
       </div>
-
-      {/* Rating and Location */}
-      <div className="flex items-center space-x-4 mb-4">
-        <div className="flex items-center space-x-1">
-          <Star className="w-5 h-5 text-yellow-500 fill-current" />
-          <span className="font-semibold text-gray-900">{artist.averageRating}</span>
-          <span className="text-gray-500">({artist.reviewCount})</span>
-        </div>
-        <div className="flex items-center space-x-1 text-gray-500">
-          <MapPin className="w-4 h-4" />
-          <span>{artist.city}, {artist.state}</span>
-        </div>
+      <h3 className="card__title">
+        {artist.user.firstName} {artist.user.lastName}
+      </h3>
+      <p className="card__meta">{artist.studioName}</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+        <Star style={{ width: '16px', height: '16px', color: 'var(--accent-yellow)' }} />
+        <span className="small">
+          {artist.averageRating ? `${artist.averageRating.toFixed(1)}` : 'New'} 
+          ({artist.reviewCount || 0} reviews)
+        </span>
       </div>
-
-      {/* Price */}
-      <div className="flex items-center space-x-2 mb-4">
-        <DollarSign className="w-5 h-5 text-green-600" />
-        <span className="text-lg font-semibold text-gray-900">${artist.hourlyRate}</span>
-        <span className="text-gray-500">/hour</span>
-      </div>
-
-      {/* Specialties */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {artist.specialties?.slice(0, 3).map((specialty) => (
-          <span
-            key={specialty.id}
-            className="px-3 py-1 bg-primary-100 text-primary-700 text-sm rounded-full font-medium"
-          >
-            {specialty.name}
-          </span>
-        ))}
-        {artist.specialties?.length > 3 && (
-          <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-            +{artist.specialties.length - 3} more
-          </span>
-        )}
-      </div>
-
-      {/* Bio */}
-      <p className="text-gray-600 mb-6 line-clamp-3">
-        {artist.bio}
+      <p className="small" style={{ marginBottom: '16px' }}>
+        {artist.bio?.substring(0, 120)}...
       </p>
-
-      {/* Portfolio Count */}
-      <div className="flex items-center space-x-2 mb-6 text-gray-500">
-        <Eye className="w-4 h-4" />
-        <span>{artist.portfolioCount} portfolio pieces</span>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex space-x-3">
-        <Link
-          to={`/artists/${artist.id}`}
-          className="flex-1 bg-primary-600 text-white py-3 px-4 rounded-xl hover:bg-primary-700 transition-colors text-center font-semibold"
-        >
-          View Profile
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ color: 'var(--accent-yellow)', fontWeight: 'bold' }}>${artist.hourlyRate}/hr</span>
+        <Link to={`/artists/${artist.id}`} className="small">
+          VIEW PROFILE →
         </Link>
-        <button className="bg-gray-100 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors">
-          <Calendar className="w-5 h-5" />
-        </button>
       </div>
     </div>
   </div>
 )
 
 const ArtistListCard = ({ artist }) => (
-  <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-    <div className="flex items-start space-x-6">
-      {/* Avatar */}
-      <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center flex-shrink-0">
-        <div className="text-white text-3xl font-bold">
-          {artist.user.firstName[0]}{artist.user.lastName[0]}
-        </div>
+  <div style={{ border: '1px solid var(--border)', padding: '24px', display: 'flex', gap: '24px' }}>
+    <div style={{ 
+      width: '120px', 
+      height: '120px', 
+      backgroundColor: 'var(--accent-yellow)', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      flexShrink: 0
+    }}>
+      <span style={{ fontSize: '32px' }}>🎨</span>
+    </div>
+    <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <span className="tag tag--yellow">{artist.specialties?.[0]?.name || 'ARTIST'}</span>
+        {artist.isVerified && (
+          <span className="tag tag--blue">VERIFIED</span>
+        )}
       </div>
-
-      {/* Content */}
-      <div className="flex-1">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
-              {artist.user.firstName} {artist.user.lastName}
-            </h3>
-            <p className="text-primary-600 font-semibold mb-2">{artist.studioName}</p>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1">
-                <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                <span className="font-semibold">{artist.averageRating}</span>
-                <span className="text-gray-500">({artist.reviewCount} reviews)</span>
-              </div>
-              <div className="flex items-center space-x-1 text-gray-500">
-                <MapPin className="w-4 h-4" />
-                <span>{artist.city}, {artist.state}</span>
-              </div>
-              <div className="flex items-center space-x-1 text-green-600">
-                <DollarSign className="w-4 h-4" />
-                <span className="font-semibold">${artist.hourlyRate}/hr</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            {artist.featured && (
-              <span className="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                Featured
-              </span>
-            )}
-            {artist.isVerified && (
-              <span className="bg-blue-500 text-white p-2 rounded-full">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </span>
-            )}
-            <FavoriteButton artistId={artist.id} />
-          </div>
-        </div>
-
-        <p className="text-gray-600 mb-4 line-clamp-2">{artist.bio}</p>
-
-        <div className="flex items-center justify-between">
-          <div className="flex flex-wrap gap-2">
-            {artist.specialties?.map((specialty) => (
-              <span
-                key={specialty.id}
-                className="px-3 py-1 bg-primary-100 text-primary-700 text-sm rounded-full font-medium"
-              >
-                {specialty.name}
-              </span>
-            ))}
-          </div>
-          <div className="flex space-x-3">
-            <Link
-              to={`/artists/${artist.id}`}
-              className="bg-primary-600 text-white py-2 px-6 rounded-xl hover:bg-primary-700 transition-colors font-semibold"
-            >
-              View Profile
-            </Link>
-            <button className="bg-gray-100 text-gray-700 py-2 px-4 rounded-xl hover:bg-gray-200 transition-colors">
-              <Calendar className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+      <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
+        {artist.user.firstName} {artist.user.lastName}
+      </h3>
+      <p className="small" style={{ marginBottom: '8px' }}>{artist.studioName}</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+        <Star style={{ width: '16px', height: '16px', color: 'var(--accent-yellow)' }} />
+        <span className="small">
+          {artist.averageRating ? `${artist.averageRating.toFixed(1)}` : 'New'} 
+          ({artist.reviewCount || 0} reviews)
+        </span>
+      </div>
+      <p className="small" style={{ marginBottom: '16px' }}>
+        {artist.bio}
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <span style={{ color: 'var(--accent-yellow)', fontWeight: 'bold' }}>${artist.hourlyRate}/hr</span>
+        <Link to={`/artists/${artist.id}`} className="cta">
+          VIEW PROFILE
+        </Link>
       </div>
     </div>
   </div>

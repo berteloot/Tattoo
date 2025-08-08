@@ -48,126 +48,147 @@ export const Register = () => {
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Create your account</h2>
-          <p className="mt-2 text-sm text-gray-600">
+    <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ maxWidth: '500px', width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <span className="tag tag--yellow">REGISTRATION</span>
+          <h2>CREATE YOUR ACCOUNT</h2>
+          <p className="deck">
             Or{' '}
-            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
+            <Link to="/login" style={{ color: 'var(--accent-blue)' }}>
               sign in to your existing account
             </Link>
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                  First name
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase' }}>
+                  FIRST NAME
                 </label>
                 <input
-                  id="firstName"
                   name="firstName"
                   type="text"
                   required
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="input mt-1"
+                  className="input"
                   placeholder="First name"
+                  style={{ width: '100%' }}
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                  Last name
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase' }}>
+                  LAST NAME
                 </label>
                 <input
-                  id="lastName"
                   name="lastName"
                   type="text"
                   required
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="input mt-1"
+                  className="input"
                   placeholder="Last name"
+                  style={{ width: '100%' }}
                 />
               </div>
             </div>
             
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase' }}>
+                EMAIL ADDRESS
               </label>
               <input
-                id="email"
                 name="email"
                 type="email"
-                autoComplete="email"
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="input mt-1"
+                className="input"
                 placeholder="Enter your email"
+                style={{ width: '100%' }}
               />
             </div>
             
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase' }}>
+                PASSWORD
               </label>
-              <div className="relative mt-1">
+              <div style={{ position: 'relative' }}>
                 <input
-                  id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="input pr-10"
+                  className="input"
                   placeholder="Create a password"
+                  style={{ width: '100%', paddingRight: '48px' }}
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px'
+                  }}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
+                    <EyeOff style={{ width: '20px', height: '20px', color: 'var(--muted)' }} />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <Eye style={{ width: '20px', height: '20px', color: 'var(--muted)' }} />
                   )}
                 </button>
               </div>
             </div>
             
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                I am a
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase' }}>
+                ACCOUNT TYPE
               </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="input mt-1"
-              >
-                <option value="CLIENT">Client looking for tattoos</option>
-                <option value="ARTIST">Tattoo artist</option>
-              </select>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="CLIENT"
+                    checked={formData.role === 'CLIENT'}
+                    onChange={handleChange}
+                    style={{ margin: 0 }}
+                  />
+                  <span className="small">CLIENT</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="ARTIST"
+                    checked={formData.role === 'ARTIST'}
+                    onChange={handleChange}
+                    style={{ margin: 0 }}
+                  />
+                  <span className="small">ARTIST</span>
+                </label>
+              </div>
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary w-full"
-            >
-              {loading ? 'Creating account...' : 'Create account'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="cta"
+            style={{ width: '100%', padding: '16px', fontSize: '16px', fontWeight: '600' }}
+          >
+            {loading ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT'}
+          </button>
         </form>
       </div>
     </div>
