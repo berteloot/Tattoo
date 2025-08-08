@@ -84,82 +84,65 @@ export const Home = () => {
   ]
 
   return (
-    <div className="space-y-16">
+    <div>
       {/* Hero Section */}
-      <section className="text-center py-16 bg-gradient-to-br from-cream-50 to-editorial-50">
-        <div className="max-w-4xl mx-auto px-4">
-          <span className="category-tag mb-4 inline-block">FEATURED DESTINATION</span>
-          <h1 className="highlighted-title mb-6">
-            Find Your Perfect
-            <span className="text-[#fedd33]"> Tattoo Studio</span>
-          </h1>
-          <p className="editorial-text text-xl mb-8 max-w-2xl mx-auto">
+      <section className="hero">
+        <div className="container">
+          <span className="tag tag--yellow">FEATURED DESTINATION</span>
+          <h1>FIND YOUR PERFECT TATTOO STUDIO</h1>
+          <p className="deck">
             Discover talented tattoo artists and studios in Montreal. Browse portfolios, read reviews, 
             and book your next piece with confidence.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/map"
-              className="btn bg-[#fedd33] text-black hover:bg-yellow-400 btn-lg font-bold"
-            >
-              <MapPin className="w-5 h-5 mr-2" />
-              Explore Studios
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            <Link to="/map" className="cta">
+              <MapPin style={{ width: '16px', height: '16px', marginRight: '8px' }} />
+              EXPLORE STUDIOS
             </Link>
-            <Link
-              to="/register"
-              className="btn border-[#fedd33] text-[#fedd33] hover:bg-[#fedd33] hover:text-black btn-lg font-bold"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Join as Artist
+            <Link to="/register" className="cta">
+              <Plus style={{ width: '16px', height: '16px', marginRight: '8px' }} />
+              JOIN AS ARTIST
             </Link>
           </div>
         </div>
       </section>
 
       {/* Map Section */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <span className="category-tag mb-4 inline-block">LOCATION SEARCH</span>
-            <h2 className="highlighted-title mb-4">Find Studios Near You</h2>
-            <p className="editorial-text max-w-2xl mx-auto">
+      <section className="section">
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <span className="tag tag--yellow">LOCATION SEARCH</span>
+            <h2>FIND STUDIOS NEAR YOU</h2>
+            <p className="deck">
               Explore our interactive map to discover talented tattoo studios in Montreal. 
               Click on any marker to view studio details and get directions.
             </p>
           </div>
           
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div style={{ border: '1px solid var(--border)' }}>
             <StudioMap />
           </div>
         </div>
       </section>
 
       {/* CTA Bar */}
-      <section className="bg-white shadow-lg border-t border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-center md:text-left">
-              <h3 className="featured-title mb-2">
-                Can't find your studio?
-              </h3>
-              <p className="editorial-text">
+      <section style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '32px 0' }}>
+        <div className="container">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
+            <div>
+              <h3>CAN'T FIND YOUR STUDIO?</h3>
+              <p className="small">
                 Register as an artist and add your studio to our platform
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                to="/register"
-                className="btn bg-[#fedd33] text-black hover:bg-yellow-400 font-bold"
-              >
-                <Building2 className="w-4 h-4 mr-2" />
-                Add Your Studio
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <Link to="/register" className="cta">
+                <Building2 style={{ width: '16px', height: '16px', marginRight: '8px' }} />
+                ADD YOUR STUDIO
               </Link>
-              <Link
-                to="/artists"
-                className="btn border-[#fedd33] text-[#fedd33] hover:bg-[#fedd33] hover:text-black font-bold"
-              >
-                <Search className="w-4 h-4 mr-2" />
-                Browse All Artists
+              <Link to="/artists" className="cta">
+                <Search style={{ width: '16px', height: '16px', marginRight: '8px' }} />
+                BROWSE ALL ARTISTS
               </Link>
             </div>
           </div>
@@ -167,43 +150,61 @@ export const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <span className="category-tag mb-4 inline-block">WHY CHOOSE US</span>
-            <h2 className="highlighted-title">Why Choose Tattooed World?</h2>
+      <section className="section">
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <span className="tag tag--yellow">WHY CHOOSE US</span>
+            <h2>WHY CHOOSE TATTOOED WORLD?</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-[#fedd33] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="h-8 w-8 text-black" />
+          <div className="grid grid-cols-3">
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                width: '64px', 
+                height: '64px', 
+                backgroundColor: 'var(--accent-yellow)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                margin: '0 auto 16px' 
+              }}>
+                <MapPin style={{ width: '32px', height: '32px', color: '#000' }} />
               </div>
-              <h3 className="featured-title mb-2">
-                Location-Based Search
-              </h3>
-              <p className="editorial-text">
+              <h3>LOCATION-BASED SEARCH</h3>
+              <p className="small">
                 Find artists near you with our interactive map and location-based filtering.
               </p>
             </div>
-            <div className="text-center">
-              <div className="bg-[#fedd33] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-black" />
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                width: '64px', 
+                height: '64px', 
+                backgroundColor: 'var(--accent-yellow)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                margin: '0 auto 16px' 
+              }}>
+                <Star style={{ width: '32px', height: '32px', color: '#000' }} />
               </div>
-              <h3 className="featured-title mb-2">
-                Verified Reviews
-              </h3>
-              <p className="editorial-text">
+              <h3>VERIFIED REVIEWS</h3>
+              <p className="small">
                 Read authentic reviews from real clients to make informed decisions.
               </p>
             </div>
-            <div className="text-center">
-              <div className="bg-[#fedd33] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Palette className="h-8 w-8 text-black" />
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                width: '64px', 
+                height: '64px', 
+                backgroundColor: 'var(--accent-yellow)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                margin: '0 auto 16px' 
+              }}>
+                <Palette style={{ width: '32px', height: '32px', color: '#000' }} />
               </div>
-              <h3 className="featured-title mb-2">
-                Portfolio Showcase
-              </h3>
-              <p className="editorial-text">
+              <h3>PORTFOLIO SHOWCASE</h3>
+              <p className="small">
                 Browse artist portfolios and flash designs to find your perfect style match.
               </p>
             </div>
@@ -212,64 +213,57 @@ export const Home = () => {
       </section>
 
       {/* Artist Showcase */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <span className="category-tag mb-4 inline-block">ARTIST SHOWCASE</span>
-            <h2 className="highlighted-title">Featured Artists</h2>
+      <section className="section">
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <span className="tag tag--yellow">ARTIST SHOWCASE</span>
+            <h2>FEATURED ARTISTS</h2>
           </div>
           
           {loading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
-                  <div className="h-48 bg-gray-200"></div>
-                  <div className="p-6">
-                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-3"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded"></div>
+                <div key={i} className="card" style={{ animation: 'pulse 2s infinite' }}>
+                  <div style={{ height: '192px', backgroundColor: 'var(--border)' }}></div>
+                  <div style={{ padding: '24px' }}>
+                    <div style={{ height: '24px', backgroundColor: 'var(--border)', marginBottom: '8px' }}></div>
+                    <div style={{ height: '16px', backgroundColor: 'var(--border)', marginBottom: '12px' }}></div>
+                    <div style={{ height: '16px', backgroundColor: 'var(--border)', marginBottom: '16px' }}></div>
+                    <div style={{ height: '16px', backgroundColor: 'var(--border)', marginBottom: '16px' }}></div>
+                    <div style={{ height: '16px', backgroundColor: 'var(--border)' }}></div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (featuredArtists || []).length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-3">
               {(featuredArtists || []).map((artist) => (
-                <div key={artist.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <div className="h-48 bg-gradient-to-br from-[#fedd33] to-yellow-500 flex items-center justify-center">
-                    <span className="text-black text-6xl">🎨</span>
+                <div key={artist.id} className="card">
+                  <div className="card__media" style={{ backgroundColor: 'var(--accent-yellow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '48px' }}>🎨</span>
                   </div>
-                  <div className="p-6">
-                    <h3 className="featured-title mb-2">
+                  <div style={{ padding: '24px' }}>
+                    <div className="card__category">
+                      <span className="tag tag--yellow">{artist.specialties?.[0]?.name || 'ARTIST'}</span>
+                    </div>
+                    <h3 className="card__title">
                       {artist.user.firstName} {artist.user.lastName}
                     </h3>
-                    <p className="editorial-text mb-3">{artist.studioName}</p>
-                    <div className="flex items-center space-x-2 mb-3">
-                      <Star className="w-4 h-4 text-[#fedd33] fill-current" />
-                      <span className="text-sm editorial-text">
+                    <p className="card__meta">{artist.studioName}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <Star style={{ width: '16px', height: '16px', color: 'var(--accent-yellow)' }} />
+                      <span className="small">
                         {artist.averageRating ? `${artist.averageRating.toFixed(1)}` : 'New'} 
                         ({artist.reviewCount || 0} reviews)
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {artist.specialties?.slice(0, 2).map((specialty) => (
-                        <span key={specialty.id} className="px-2 py-1 bg-[#fedd33] text-black text-xs rounded-full font-bold">
-                          {specialty.name}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="editorial-text text-sm mb-4 line-clamp-2">
-                      {artist.bio}
+                    <p className="small" style={{ marginBottom: '16px' }}>
+                      {artist.bio?.substring(0, 120)}...
                     </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#fedd33] font-bold">${artist.hourlyRate}/hr</span>
-                      <Link
-                        to={`/artists/${artist.id}`}
-                        className="text-[#fedd33] hover:text-yellow-500 font-bold text-sm"
-                      >
-                        View Profile →
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--accent-yellow)', fontWeight: 'bold' }}>${artist.hourlyRate}/hr</span>
+                      <Link to={`/artists/${artist.id}`} className="small">
+                        VIEW PROFILE →
                       </Link>
                     </div>
                   </div>
@@ -277,10 +271,10 @@ export const Home = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <p className="editorial-text mb-4">No featured artists available at the moment.</p>
-              <Link to="/artists" className="btn bg-[#fedd33] text-black hover:bg-yellow-400 font-bold">
-                Browse All Artists
+            <div style={{ textAlign: 'center', padding: '48px 0' }}>
+              <p className="small" style={{ marginBottom: '16px' }}>No featured artists available at the moment.</p>
+              <Link to="/artists" className="cta">
+                BROWSE ALL ARTISTS
               </Link>
             </div>
           )}
@@ -288,29 +282,25 @@ export const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-black text-white py-16 rounded-lg">
-        <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="highlighted-title text-white mb-4">
-            Ready to Find Your Perfect Studio?
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join thousands of clients who have found their perfect tattoo artist through our platform.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/map"
-              className="btn bg-[#fedd33] text-black hover:bg-yellow-400 btn-lg font-bold"
-            >
-              <MapPin className="w-5 h-5 mr-2" />
-              Explore Studios Map
-            </Link>
-            <Link
-              to="/register"
-              className="btn border-[#fedd33] text-[#fedd33] hover:bg-[#fedd33] hover:text-black btn-lg font-bold"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Register as Artist
-            </Link>
+      <section style={{ backgroundColor: '#000', color: '#fff', padding: '64px 0' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ color: '#fff', marginBottom: '16px' }}>
+              READY TO FIND YOUR PERFECT STUDIO?
+            </h2>
+            <p style={{ fontSize: '20px', marginBottom: '32px', opacity: 0.9 }}>
+              Join thousands of clients who have found their perfect tattoo artist through our platform.
+            </p>
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/map" className="cta" style={{ backgroundColor: 'var(--accent-yellow)', color: '#000', borderColor: 'var(--accent-yellow)' }}>
+                <MapPin style={{ width: '20px', height: '20px', marginRight: '8px' }} />
+                EXPLORE STUDIOS MAP
+              </Link>
+              <Link to="/register" className="cta" style={{ borderColor: 'var(--accent-yellow)', color: 'var(--accent-yellow)' }}>
+                <Plus style={{ width: '20px', height: '20px', marginRight: '8px' }} />
+                REGISTER AS ARTIST
+              </Link>
+            </div>
           </div>
         </div>
       </section>
