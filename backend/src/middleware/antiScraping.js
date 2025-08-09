@@ -29,6 +29,9 @@ const studioArtistLimiter = createScrapingLimiter(15 * 60 * 1000, 50);
 // Limiter for contact information endpoints
 const contactInfoLimiter = createScrapingLimiter(15 * 60 * 1000, 20);
 
+// Stricter limiter specifically for contact forms to prevent spam
+const strictContactLimiter = createScrapingLimiter(60 * 60 * 1000, 5); // 5 messages per hour
+
 // Middleware to detect and block common scraping patterns
 const detectScraping = (req, res, next) => {
   const userAgent = req.get('User-Agent') || '';
@@ -105,6 +108,7 @@ module.exports = {
   createScrapingLimiter,
   studioArtistLimiter,
   contactInfoLimiter,
+  strictContactLimiter,
   detectScraping,
   addSecurityHeaders
 };

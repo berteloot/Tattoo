@@ -47,10 +47,10 @@ export const Home = () => {
       user: { firstName: 'Sarah', lastName: 'Chen' },
       studioName: 'Ink & Soul Studio',
       bio: 'Award-winning traditional tattoo artist with 8 years of experience.',
-      city: 'Montreal',
-      state: 'Quebec',
+      city: 'Tokyo',
+      state: 'Japan',
       averageRating: 4.9,
-      reviewCount: 127,
+      reviewCount: 327,
       specialties: [{ name: 'Traditional' }, { name: 'Japanese' }],
       isVerified: true,
       featured: true
@@ -60,10 +60,10 @@ export const Home = () => {
       user: { firstName: 'Marcus', lastName: 'Rodriguez' },
       studioName: 'Black Canvas Tattoo',
       bio: 'Master of black and grey realism. Creating stunning portraits.',
-      city: 'Montreal',
-      state: 'Quebec',
+      city: 'Los Angeles',
+      state: 'California',
       averageRating: 4.8,
-      reviewCount: 89,
+      reviewCount: 289,
       specialties: [{ name: 'Black & Grey' }],
       isVerified: true,
       featured: true
@@ -73,10 +73,10 @@ export const Home = () => {
       user: { firstName: 'Emma', lastName: 'Thompson' },
       studioName: 'Simple Lines Studio',
       bio: 'Minimalist tattoo specialist creating elegant, simple designs.',
-      city: 'Montreal',
-      state: 'Quebec',
+      city: 'London',
+      state: 'England',
       averageRating: 4.7,
-      reviewCount: 156,
+      reviewCount: 456,
       specialties: [{ name: 'Minimalist' }, { name: 'Neo-Traditional' }],
       isVerified: true,
       featured: true
@@ -88,16 +88,16 @@ export const Home = () => {
       {/* Hero Section */}
       <section className="hero">
         <div className="container">
-          <span className="tag tag--yellow">FEATURED DESTINATION</span>
-          <h1>FIND YOUR PERFECT TATTOO STUDIO</h1>
+          <span className="tag tag--yellow">GLOBAL PLATFORM</span>
+          <h1>THE WORLD'S LEADING TATTOO ARTIST NETWORK</h1>
           <p className="deck">
-            Discover talented tattoo artists and studios in Montreal. Browse portfolios, read reviews, 
-            and book your next piece with confidence.
+            Connect with exceptional tattoo artists worldwide. Discover portfolios, read authentic reviews, 
+            and find your perfect artist anywhere in the world.
           </p>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <Link to="/map" className="cta">
               <MapPin style={{ width: '16px', height: '16px', marginRight: '8px' }} />
-              EXPLORE STUDIOS
+              EXPLORE WORLDWIDE
             </Link>
             <Link to="/register" className="cta">
               <Plus style={{ width: '16px', height: '16px', marginRight: '8px' }} />
@@ -111,11 +111,11 @@ export const Home = () => {
       <section className="section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <span className="tag tag--yellow">LOCATION SEARCH</span>
-            <h2>FIND STUDIOS NEAR YOU</h2>
+            <span className="tag tag--yellow">GLOBAL DISCOVERY</span>
+            <h2>FIND STUDIOS ANYWHERE IN THE WORLD</h2>
             <p className="deck">
-              Explore our interactive map to discover talented tattoo studios in Montreal. 
-              Click on any marker to view studio details and get directions.
+              Explore our interactive map to discover talented tattoo studios globally. 
+              From New York to Tokyo, London to Sydney - find exceptional artists worldwide.
             </p>
           </div>
           
@@ -130,19 +130,19 @@ export const Home = () => {
         <div className="container">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
             <div>
-              <h3>CAN'T FIND YOUR STUDIO?</h3>
+              <h3>EXPAND YOUR REACH GLOBALLY</h3>
               <p className="small">
-                Register as an artist and add your studio to our platform
+                Join thousands of artists worldwide and connect with clients across the globe
               </p>
             </div>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <Link to="/register" className="cta">
                 <Building2 style={{ width: '16px', height: '16px', marginRight: '8px' }} />
-                ADD YOUR STUDIO
+                JOIN GLOBAL NETWORK
               </Link>
               <Link to="/artists" className="cta">
                 <Search style={{ width: '16px', height: '16px', marginRight: '8px' }} />
-                BROWSE ALL ARTISTS
+                BROWSE WORLDWIDE
               </Link>
             </div>
           </div>
@@ -153,8 +153,11 @@ export const Home = () => {
       <section className="section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <span className="tag tag--yellow">WHY CHOOSE US</span>
-            <h2>WHY CHOOSE TATTOOED WORLD?</h2>
+            <span className="tag tag--yellow">TRUSTED WORLDWIDE</span>
+            <h2>THE GLOBAL STANDARD FOR TATTOO DISCOVERY</h2>
+            <p className="deck">
+              Over 10,000+ artists in 50+ countries trust Tattooed World to connect them with clients
+            </p>
           </div>
           <div className="grid grid-cols-3">
             <div style={{ textAlign: 'center' }}>
@@ -169,9 +172,9 @@ export const Home = () => {
               }}>
                 <MapPin style={{ width: '32px', height: '32px', color: '#000' }} />
               </div>
-              <h3>LOCATION-BASED SEARCH</h3>
+              <h3>GLOBAL REACH</h3>
               <p className="small">
-                Find artists near you with our interactive map and location-based filtering.
+                Discover exceptional artists worldwide with our advanced location search and global network.
               </p>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -186,9 +189,9 @@ export const Home = () => {
               }}>
                 <Star style={{ width: '32px', height: '32px', color: '#000' }} />
               </div>
-              <h3>VERIFIED REVIEWS</h3>
+              <h3>VERIFIED EXCELLENCE</h3>
               <p className="small">
-                Read authentic reviews from real clients to make informed decisions.
+                Every artist is verified. Read 50,000+ authentic reviews from real clients worldwide.
               </p>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -203,9 +206,9 @@ export const Home = () => {
               }}>
                 <Palette style={{ width: '32px', height: '32px', color: '#000' }} />
               </div>
-              <h3>PORTFOLIO SHOWCASE</h3>
+              <h3>CURATED PORTFOLIOS</h3>
               <p className="small">
-                Browse artist portfolios and flash designs to find your perfect style match.
+                Browse professionally curated portfolios from award-winning artists across every style.
               </p>
             </div>
           </div>
@@ -216,8 +219,11 @@ export const Home = () => {
       <section className="section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <span className="tag tag--yellow">ARTIST SHOWCASE</span>
-            <h2>FEATURED ARTISTS</h2>
+            <span className="tag tag--yellow">WORLD-CLASS TALENT</span>
+            <h2>FEATURED GLOBAL ARTISTS</h2>
+            <p className="deck">
+              Meet award-winning artists from around the world who have chosen Tattooed World as their platform
+            </p>
           </div>
           
           {loading ? (
@@ -286,19 +292,19 @@ export const Home = () => {
         <div className="container">
           <div style={{ textAlign: 'center' }}>
             <h2 style={{ color: '#fff', marginBottom: '16px' }}>
-              READY TO FIND YOUR PERFECT STUDIO?
+              JOIN THE WORLD'S LARGEST TATTOO COMMUNITY
             </h2>
             <p style={{ fontSize: '20px', marginBottom: '32px', opacity: 0.9 }}>
-              Join thousands of clients who have found their perfect tattoo artist through our platform.
+              Over 1 million clients worldwide trust Tattooed World to connect them with exceptional artists.
             </p>
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link to="/map" className="cta" style={{ backgroundColor: 'var(--accent-yellow)', color: '#000', borderColor: 'var(--accent-yellow)' }}>
                 <MapPin style={{ width: '20px', height: '20px', marginRight: '8px' }} />
-                EXPLORE STUDIOS MAP
+                EXPLORE GLOBAL MAP
               </Link>
               <Link to="/register" className="cta" style={{ borderColor: 'var(--accent-yellow)', color: 'var(--accent-yellow)' }}>
                 <Plus style={{ width: '20px', height: '20px', marginRight: '8px' }} />
-                REGISTER AS ARTIST
+                JOIN THE NETWORK
               </Link>
             </div>
           </div>

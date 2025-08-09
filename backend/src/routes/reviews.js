@@ -3,6 +3,7 @@ const { body, query, validationResult } = require('express-validator');
 const { PrismaClient } = require('@prisma/client');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
 const emailService = require('../utils/emailService');
+const contentFilter = require('../utils/contentFilter');
 const multer = require('multer');
 const path = require('path');
 
@@ -68,48 +69,7 @@ router.post('/upload-image', protect, authorize('CLIENT', 'ARTIST'), upload.sing
   }
 });
 
-// Content filtering and spam detection utilities
-const contentFilter = {
-  // Common spam words and phrases
-  spamWords: [
-    'buy now', 'click here', 'free money', 'make money fast', 'work from home',
-    'earn money', 'get rich', 'investment opportunity', 'lottery winner',
-    'viagra', 'cialis', 'weight loss', 'diet pills', 'casino', 'poker'
-  ],
-  
-  // Inappropriate content patterns
-  inappropriatePatterns: [
-    /\b(fuck|shit|bitch|asshole|dick|pussy)\b/i,
-    /\b(kill|murder|suicide|bomb|terrorist)\b/i
-  ],
-  
-  // Check for spam content
-  isSpam: (text) => {
-    if (!text) return false;
-    const lowerText = text.toLowerCase();
-    return contentFilter.spamWords.some(word => lowerText.includes(word));
-  },
-  
-  // Check for inappropriate content
-  isInappropriate: (text) => {
-    if (!text) return false;
-    return contentFilter.inappropriatePatterns.some(pattern => pattern.test(text));
-  },
-  
-  // Check for excessive caps (shouting)
-  isShouting: (text) => {
-    if (!text) return false;
-    const upperCount = (text.match(/[A-Z]/g) || []).length;
-    const totalLetters = (text.match(/[A-Za-z]/g) || []).length;
-    return totalLetters > 10 && (upperCount / totalLetters) > 0.7;
-  },
-  
-  // Check for repetitive characters
-  isRepetitive: (text) => {
-    if (!text) return false;
-    return /(.)\1{4,}/.test(text); // Same character repeated 5+ times
-  }
-};
+// Content filtering is now handled by the shared contentFilter utility
 
 // Rate limiting for review creation
 const reviewRateLimit = new Map();
@@ -384,13 +344,25 @@ router.post('/', protect, authorize('CLIENT', 'ARTIST'), [
     const moderationFlags = [];
     let requiresModeration = false;
 
-    // Check for spam content
-    if (contentFilter.isSpam(title) || contentFilter.isSpam(comment)) {
-      moderationFlags.push('SPAM_CONTENT');
-      requiresModeration = true;
+    // Check title content
+    if (title) {
+      const titleCheck = contentFilter.checkContent(title);
+      if (!titleCheck.isValid) {
+        moderationFlags.push('SPAM_TITLE');
+        requiresModeration = true;
+      }
     }
 
-    // Check for inappropriate content
+    // Check comment content
+    if (comment) {
+      const commentCheck = contentFilter.checkContent(comment);
+      if (!commentCheck.isValid) {
+        moderationFlags.push('SPAM_COMMENT');
+        requiresModeration = true;
+      }
+    }
+
+    // Check for inappropriate content (legacy check)
     if (contentFilter.isInappropriate(title) || contentFilter.isInappropriate(comment)) {
       moderationFlags.push('INAPPROPRIATE_CONTENT');
       requiresModeration = true;

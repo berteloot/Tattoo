@@ -4,8 +4,9 @@ const { PrismaClient } = require('@prisma/client');
 const { body, validationResult } = require('express-validator');
 const { protect } = require('../middleware/auth');
 const studioGeocodingTrigger = require('../utils/studioGeocodingTrigger');
-const { studioArtistLimiter, contactInfoLimiter, detectScraping } = require('../middleware/antiScraping');
+const { studioArtistLimiter, contactInfoLimiter, strictContactLimiter, detectScraping } = require('../middleware/antiScraping');
 const emailService = require('../utils/emailService');
+const contentFilter = require('../utils/contentFilter');
 const prisma = new PrismaClient();
 
 // Create a new studio
@@ -558,7 +559,7 @@ router.put('/:id/verify', protect, async (req, res) => {
  */
 router.post('/:id/contact', [
   detectScraping,
-  contactInfoLimiter,
+  strictContactLimiter,
   body('subject').isString().notEmpty().withMessage('Subject is required'),
   body('message').isString().notEmpty().withMessage('Message is required'),
   body('senderName').isString().notEmpty().withMessage('Sender name is required'),
@@ -578,6 +579,40 @@ router.post('/:id/contact', [
 
     const { id } = req.params;
     const { subject, message, senderName, senderEmail, senderPhone } = req.body;
+
+    // Content filtering and spam detection
+    const subjectCheck = contentFilter.checkContent(subject);
+    const messageCheck = contentFilter.checkContent(message);
+    const nameCheck = contentFilter.checkContent(senderName);
+
+    if (!subjectCheck.isValid) {
+      return res.status(400).json({
+        success: false,
+        error: `Subject ${subjectCheck.issues.join(', ')}. Please revise your message.`
+      });
+    }
+
+    if (!messageCheck.isValid) {
+      return res.status(400).json({
+        success: false,
+        error: `Message ${messageCheck.issues.join(', ')}. Please revise your message.`
+      });
+    }
+
+    if (!nameCheck.isValid) {
+      return res.status(400).json({
+        success: false,
+        error: `Name ${nameCheck.issues.join(', ')}. Please use a proper name.`
+      });
+    }
+
+    // Check for disposable email domains
+    if (contentFilter.isDisposableEmail(senderEmail)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please use a permanent email address. Temporary email services are not allowed.'
+      });
+    }
 
     // Get studio information
     const studio = await prisma.studio.findUnique({

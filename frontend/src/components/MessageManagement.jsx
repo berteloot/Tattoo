@@ -54,9 +54,15 @@ export const MessageManagement = () => {
     
     try {
       const submitData = {
-        ...formData,
+        title: formData.title || null,
+        content: formData.content,
+        priority: parseInt(formData.priority),
+        showOnCard: formData.showOnCard,
+        showOnProfile: formData.showOnProfile,
         expiresAt: formData.expiresAt || null
       };
+
+      console.log('Submitting message data:', submitData);
 
       if (editingMessage) {
         await messagesAPI.update(editingMessage.id, submitData);
