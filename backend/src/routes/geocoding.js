@@ -1,7 +1,16 @@
 const express = require('express');
+const { z } = require('zod');
 const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Zod schema for geocoding validation
+const GeocodeUpdate = z.object({
+  studioId: z.string().min(1),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  address: z.string().optional()
+});
 
 // Get all studios with coordinates for map display
 router.get('/studios', async (req, res) => {
@@ -232,14 +241,8 @@ router.get('/status', async (req, res) => {
 // Save geocoding result from frontend
 router.post('/save-result', async (req, res) => {
   try {
-    const { studioId, latitude, longitude, address } = req.body;
-    
-    if (!studioId || !latitude || !longitude) {
-      return res.status(400).json({
-        success: false,
-        error: 'Studio ID, latitude, and longitude are required'
-      });
-    }
+    // Validate and whitelist input using Zod
+    const { studioId, latitude, longitude, address } = GeocodeUpdate.parse(req.body);
     
     // Update studio coordinates using Prisma with explicit field whitelisting
     const updatedStudio = await prisma.studio.update({

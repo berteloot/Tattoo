@@ -318,6 +318,18 @@ async function startServer() {
     }
     console.log('✅ Database connection successful');
     
+    // Sanity check: verify Studio table schema
+    try {
+      await prisma.$queryRaw`SELECT latitude, longitude FROM "Studio" LIMIT 1`;
+      console.log('✅ Studio table schema verified');
+    } catch (schemaError) {
+      console.error('❌ Studio table schema check failed:', schemaError.message);
+      if (schemaError.message.includes('column') || schemaError.message.includes('new')) {
+        console.error('🚨 Schema mismatch detected - failing fast to trigger redeploy');
+      }
+      process.exit(1);
+    }
+    
     // Fix studio tables if needed (for production)
     if (process.env.NODE_ENV === 'production') {
       console.log('🔄 Syncing database schema...');

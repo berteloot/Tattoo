@@ -10,6 +10,27 @@ const prisma = new PrismaClient({
   }
 });
 
+// Add middleware to prevent unknown fields in Studio updates
+prisma.$use(async (params, next) => {
+  if (params.model === 'Studio' && params.action === 'update') {
+    const allowedFields = ['latitude', 'longitude', 'updatedAt', 'title', 'slug', 'website', 
+                          'phoneNumber', 'email', 'facebookUrl', 'instagramUrl', 'twitterUrl', 
+                          'linkedinUrl', 'youtubeUrl', 'address', 'city', 'state', 'zipCode', 
+                          'country', 'isActive', 'isVerified', 'isFeatured', 'verificationStatus'];
+    
+    if (params.args?.data) {
+      const originalKeys = Object.keys(params.args.data);
+      for (const key of originalKeys) {
+        if (!allowedFields.includes(key)) {
+          console.warn(`🚨 Removing unknown field '${key}' from Studio update`);
+          delete params.args.data[key];
+        }
+      }
+    }
+  }
+  return next(params);
+});
+
 // Handle graceful shutdown
 process.on('beforeExit', async () => {
   await prisma.$disconnect();
