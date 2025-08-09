@@ -20,7 +20,7 @@ export const MessageManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingMessage, setEditingMessage] = useState(null);
-  const { success, error } = useToast();
+  const { success, error: showError } = useToast();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -43,7 +43,7 @@ export const MessageManagement = () => {
       setMessages(response.data.data.messages || []);
     } catch (error) {
       console.error('Error loading messages:', error);
-      error('Error', 'Failed to load messages');
+      showError('Error', 'Failed to load messages');
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export const MessageManagement = () => {
     } catch (error) {
       console.error('Error saving message:', error);
       const errorMessage = error.response?.data?.error || 'Failed to save message';
-      error('Error', errorMessage);
+      showError('Error', errorMessage);
     }
   };
 
@@ -103,7 +103,7 @@ export const MessageManagement = () => {
       loadMessages();
     } catch (error) {
       console.error('Error deleting message:', error);
-      error('Error', 'Failed to delete message');
+      showError('Error', 'Failed to delete message');
     }
   };
 
@@ -114,7 +114,7 @@ export const MessageManagement = () => {
       loadMessages();
     } catch (error) {
       console.error('Error toggling message status:', error);
-      error('Error', 'Failed to update message status');
+      showError('Error', 'Failed to update message status');
     }
   };
 
