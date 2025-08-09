@@ -1095,16 +1095,35 @@ export const ArtistDashboard = () => {
         )}
 
         {/* Message Management Section */}
-        {user?.artistProfile?.id && (
-          <div className="mt-8 bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Message Panel</h2>
-            </div>
-            <div className="p-6">
-              <MessageManagement />
-            </div>
+        <div className="mt-8 bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">Message Panel</h2>
+            <p className="text-sm text-gray-500">
+              Debug: User role: {user?.role}, Artist Profile ID: {user?.artistProfile?.id || 'None'}
+            </p>
           </div>
-        )}
+          <div className="p-6">
+            {user?.artistProfile?.id ? (
+              <MessageManagement />
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p className="mb-4">Create your artist profile first to manage messages.</p>
+                <p className="text-sm">
+                  Current user role: <strong>{user?.role || 'Unknown'}</strong>
+                </p>
+                {user?.role === 'ARTIST' || user?.role === 'ARTIST_ADMIN' ? (
+                  <p className="text-sm text-blue-600 mt-2">
+                    You have artist permissions but no profile yet. Create your profile above first.
+                  </p>
+                ) : (
+                  <p className="text-sm text-red-600 mt-2">
+                    You need ARTIST or ARTIST_ADMIN role to manage messages.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Recent Reviews */}
         <div className="mt-8 bg-white rounded-lg shadow">
