@@ -80,45 +80,90 @@ export const Artists = () => {
       user: { firstName: 'Sarah', lastName: 'Chen' },
       studioName: 'Ink & Soul Studio',
       bio: 'Award-winning traditional tattoo artist with 8 years of experience. Specializing in classic American traditional and Japanese styles.',
-      city: 'Montreal',
-      state: 'Quebec',
+      city: 'Tokyo',
+      state: 'Japan',
       hourlyRate: 120,
       averageRating: 4.9,
-      reviewCount: 127,
+      reviewCount: 327,
       specialties: [{ id: '1', name: 'Traditional' }, { id: '2', name: 'Japanese' }],
       isVerified: true,
       featured: true,
-      portfolioCount: 45
+      portfolioCount: 145
     },
     {
       id: '2',
       user: { firstName: 'Marcus', lastName: 'Rodriguez' },
       studioName: 'Black Canvas Tattoo',
       bio: 'Master of black and grey realism. Creating stunning portraits and detailed artwork that tells your story.',
-      city: 'Montreal',
-      state: 'Quebec',
+      city: 'Los Angeles',
+      state: 'California',
       hourlyRate: 150,
       averageRating: 4.8,
-      reviewCount: 89,
+      reviewCount: 289,
       specialties: [{ id: '3', name: 'Black & Grey' }, { id: '4', name: 'Realistic' }],
       isVerified: true,
       featured: true,
-      portfolioCount: 32
+      portfolioCount: 132
     },
     {
       id: '3',
       user: { firstName: 'Emma', lastName: 'Thompson' },
       studioName: 'Simple Lines Studio',
       bio: 'Minimalist tattoo specialist creating elegant, simple designs that speak volumes with clean lines and thoughtful composition.',
-      city: 'Montreal',
-      state: 'Quebec',
+      city: 'London',
+      state: 'England',
       hourlyRate: 100,
       averageRating: 4.7,
-      reviewCount: 156,
+      reviewCount: 456,
       specialties: [{ id: '5', name: 'Minimalist' }, { id: '6', name: 'Neo-Traditional' }],
       isVerified: true,
       featured: false,
-      portfolioCount: 28
+      portfolioCount: 228
+    },
+    {
+      id: '4',
+      user: { firstName: 'Diego', lastName: 'Silva' },
+      studioName: 'Amazonia Ink',
+      bio: 'Contemporary artist blending traditional indigenous motifs with modern techniques. Celebrating Brazilian culture through ink.',
+      city: 'São Paulo',
+      state: 'Brazil',
+      hourlyRate: 90,
+      averageRating: 4.9,
+      reviewCount: 234,
+      specialties: [{ id: '7', name: 'Watercolor' }, { id: '1', name: 'Traditional' }],
+      isVerified: true,
+      featured: true,
+      portfolioCount: 87
+    },
+    {
+      id: '5',
+      user: { firstName: 'Amara', lastName: 'Singh' },
+      studioName: 'Golden Temple Tattoo',
+      bio: 'Intricate geometric and mandala specialist with influences from ancient Indian art. Creating spiritual journeys through body art.',
+      city: 'Mumbai',
+      state: 'India',
+      hourlyRate: 75,
+      averageRating: 4.8,
+      reviewCount: 178,
+      specialties: [{ id: '8', name: 'Geometric' }, { id: '5', name: 'Minimalist' }],
+      isVerified: true,
+      featured: false,
+      portfolioCount: 156
+    },
+    {
+      id: '6',
+      user: { firstName: 'Klaus', lastName: 'Weber' },
+      studioName: 'Berlin Blackwork',
+      bio: 'Bold blackwork and dotwork specialist. Pioneer of the European underground tattoo scene with 15+ years experience.',
+      city: 'Berlin',
+      state: 'Germany',
+      hourlyRate: 140,
+      averageRating: 4.7,
+      reviewCount: 312,
+      specialties: [{ id: '3', name: 'Black & Grey' }, { id: '8', name: 'Geometric' }],
+      isVerified: true,
+      featured: true,
+      portfolioCount: 203
     }
   ]
 
@@ -183,10 +228,10 @@ export const Artists = () => {
       {/* Hero Section */}
       <section className="hero">
         <div className="container">
-          <span className="tag tag--yellow">ARTIST DISCOVERY</span>
-          <h1>DISCOVER MONTREAL'S FINEST TATTOO ARTISTS</h1>
+          <span className="tag tag--yellow">GLOBAL TALENT NETWORK</span>
+          <h1>DISCOVER WORLD-CLASS TATTOO ARTISTS</h1>
           <p className="deck">
-            Connect with award-winning artists, explore unique styles, and find the perfect match for your next piece of art
+            Connect with verified artists worldwide, explore diverse styles, and find your perfect artist anywhere on the planet
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap', marginTop: '32px' }}>
             <div style={{ 
@@ -195,8 +240,8 @@ export const Artists = () => {
               border: '1px solid rgba(255, 255, 255, 0.2)',
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>{artists.length}+</div>
-              <div style={{ color: 'rgba(255, 255, 255, 0.8)' }}>VERIFIED ARTISTS</div>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>10,000+</div>
+              <div style={{ color: 'rgba(255, 255, 255, 0.8)' }}>GLOBAL ARTISTS</div>
             </div>
             <div style={{ 
               backgroundColor: 'rgba(255, 255, 255, 0.1)', 
@@ -204,7 +249,7 @@ export const Artists = () => {
               border: '1px solid rgba(255, 255, 255, 0.2)',
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>4.8★</div>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>4.9★</div>
               <div style={{ color: 'rgba(255, 255, 255, 0.8)' }}>AVERAGE RATING</div>
             </div>
             <div style={{ 
@@ -213,8 +258,8 @@ export const Artists = () => {
               border: '1px solid rgba(255, 255, 255, 0.2)',
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>500+</div>
-              <div style={{ color: 'rgba(255, 255, 255, 0.8)' }}>HAPPY CLIENTS</div>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>1M+</div>
+              <div style={{ color: 'rgba(255, 255, 255, 0.8)' }}>SATISFIED CLIENTS</div>
             </div>
           </div>
         </div>
@@ -239,7 +284,7 @@ export const Artists = () => {
                   }} />
                   <input
                     type="text"
-                    placeholder="Search artists, studios, or locations..."
+                    placeholder="Search artists, studios, cities, or countries..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="input"

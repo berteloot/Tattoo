@@ -86,12 +86,12 @@ export const FlashGallery = () => {
         id: '1',
         user: { firstName: 'Sarah', lastName: 'Chen' },
         studioName: 'Ink & Soul Studio',
-        city: 'Montreal'
+        city: 'Tokyo'
       },
       style: 'Traditional',
       createdAt: '2024-01-15T10:00:00Z',
-      likes: 45,
-      views: 234
+      likes: 245,
+      views: 1234
     },
     {
       id: '2',
@@ -105,12 +105,12 @@ export const FlashGallery = () => {
         id: '2',
         user: { firstName: 'Marcus', lastName: 'Rodriguez' },
         studioName: 'Black Canvas Tattoo',
-        city: 'Montreal'
+        city: 'Los Angeles'
       },
       style: 'Black & Grey',
       createdAt: '2024-01-10T14:30:00Z',
-      likes: 67,
-      views: 456
+      likes: 167,
+      views: 2456
     },
     {
       id: '3',
@@ -124,12 +124,12 @@ export const FlashGallery = () => {
         id: '3',
         user: { firstName: 'Emma', lastName: 'Thompson' },
         studioName: 'Simple Lines Studio',
-        city: 'Montreal'
+        city: 'London'
       },
       style: 'Minimalist',
       createdAt: '2024-01-12T09:15:00Z',
-      likes: 89,
-      views: 567
+      likes: 189,
+      views: 1567
     },
     {
       id: '4',
@@ -141,14 +141,14 @@ export const FlashGallery = () => {
       tags: ['watercolor', 'butterfly', 'colorful', 'nature'],
       artist: {
         id: '4',
-        user: { firstName: 'David', lastName: 'Kim' },
-        studioName: 'Color Flow Tattoo',
-        city: 'Montreal'
+        user: { firstName: 'Diego', lastName: 'Silva' },
+        studioName: 'Amazonia Ink',
+        city: 'São Paulo'
       },
       style: 'Watercolor',
       createdAt: '2024-01-08T16:45:00Z',
-      likes: 123,
-      views: 789
+      likes: 323,
+      views: 2789
     },
     {
       id: '5',
@@ -159,77 +159,77 @@ export const FlashGallery = () => {
       isAvailable: true,
       tags: ['japanese', 'dragon', 'traditional', 'mythical'],
       artist: {
-        id: '5',
-        user: { firstName: 'Lisa', lastName: 'Tanaka' },
-        studioName: 'Dragon\'s Den Tattoo',
-        city: 'Montreal'
-      },
-      style: 'Japanese',
-      createdAt: '2024-01-05T11:20:00Z',
-      likes: 156,
-      views: 892
-    },
-    {
-      id: '6',
-      title: 'Neo-Traditional Skull',
-      description: 'Modern take on traditional skull with bold colors',
-      imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
-      price: 180,
-      isAvailable: true,
-      tags: ['neo-traditional', 'skull', 'bold', 'modern'],
-      artist: {
         id: '1',
         user: { firstName: 'Sarah', lastName: 'Chen' },
         studioName: 'Ink & Soul Studio',
-        city: 'Montreal'
+        city: 'Tokyo'
       },
-      style: 'Neo-Traditional',
+      style: 'Japanese',
+      createdAt: '2024-01-05T11:20:00Z',
+      likes: 456,
+      views: 3892
+    },
+    {
+      id: '6',
+      title: 'Sacred Geometry',
+      description: 'Intricate mandala with golden ratio proportions and spiritual symbolism',
+      imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
+      price: 180,
+      isAvailable: true,
+      tags: ['geometric', 'mandala', 'sacred', 'spiritual'],
+      artist: {
+        id: '5',
+        user: { firstName: 'Amara', lastName: 'Singh' },
+        studioName: 'Golden Temple Tattoo',
+        city: 'Mumbai'
+      },
+      style: 'Geometric',
       createdAt: '2024-01-03T13:10:00Z',
-      likes: 78,
-      views: 345
+      likes: 278,
+      views: 2345
     },
     {
       id: '7',
-      title: 'Geometric Wolf',
-      description: 'Wolf head with geometric line work and dot shading',
+      title: 'Blackwork Wolf',
+      description: 'Bold blackwork wolf design with geometric patterns and dotwork details',
       imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
       price: 140,
       isAvailable: true,
-      tags: ['geometric', 'wolf', 'minimalist', 'animal'],
+      tags: ['blackwork', 'wolf', 'geometric', 'animal'],
       artist: {
-        id: '3',
-        user: { firstName: 'Emma', lastName: 'Thompson' },
-        studioName: 'Simple Lines Studio',
-        city: 'Montreal'
+        id: '6',
+        user: { firstName: 'Klaus', lastName: 'Weber' },
+        studioName: 'Berlin Blackwork',
+        city: 'Berlin'
       },
-      style: 'Minimalist',
+      style: 'Black & Grey',
       createdAt: '2024-01-01T15:30:00Z',
-      likes: 92,
-      views: 478
+      likes: 192,
+      views: 1478
     },
     {
       id: '8',
-      title: 'Floral Mandala',
-      description: 'Intricate floral mandala with watercolor effects',
+      title: 'Neo-Traditional Eagle',
+      description: 'Modern interpretation of classic eagle with vibrant colors and bold lines',
       imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
       price: 200,
       isAvailable: true,
-      tags: ['mandala', 'floral', 'watercolor', 'intricate'],
+      tags: ['neo-traditional', 'eagle', 'colorful', 'bold'],
       artist: {
-        id: '4',
-        user: { firstName: 'David', lastName: 'Kim' },
-        studioName: 'Color Flow Tattoo',
-        city: 'Montreal'
+        id: '2',
+        user: { firstName: 'Marcus', lastName: 'Rodriguez' },
+        studioName: 'Black Canvas Tattoo',
+        city: 'Los Angeles'
       },
-      style: 'Watercolor',
+      style: 'Neo-Traditional',
       createdAt: '2023-12-28T10:45:00Z',
-      likes: 134,
-      views: 623
+      likes: 334,
+      views: 2623
     }
   ]
 
   const styles = [
-    'Traditional', 'Japanese', 'Black & Grey', 'Minimalist', 'Watercolor', 'Neo-Traditional'
+    'Traditional', 'Japanese', 'Black & Grey', 'Minimalist', 'Watercolor', 'Neo-Traditional', 'Geometric'
   ]
 
   console.log('Current flash items state:', flashItems)
@@ -289,22 +289,22 @@ export const FlashGallery = () => {
       <div className="bg-gradient-to-r from-purple-900 via-purple-800 to-purple-700 text-white">
         <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-5xl font-bold mb-6">Flash Gallery</h1>
+            <h1 className="text-5xl font-bold mb-6">Global Flash Gallery</h1>
             <p className="text-xl text-purple-100 mb-8 max-w-3xl mx-auto">
-              Discover unique flash designs from Montreal's top artists. Ready-to-ink artwork waiting for the perfect canvas.
+              Discover exceptional flash designs from world-class artists across the globe. Premium ready-to-ink artwork from the industry's finest talent.
             </p>
             <div className="flex justify-center space-x-4">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-2xl font-bold">{flashItems.length}+</div>
-                <div className="text-purple-200">Flash Designs</div>
+                <div className="text-2xl font-bold">50,000+</div>
+                <div className="text-purple-200">Global Designs</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-2xl font-bold">5</div>
-                <div className="text-purple-200">Artists</div>
+                <div className="text-2xl font-bold">10,000+</div>
+                <div className="text-purple-200">Worldwide Artists</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-2xl font-bold">6</div>
-                <div className="text-purple-200">Styles</div>
+                <div className="text-2xl font-bold">50+</div>
+                <div className="text-purple-200">Countries</div>
               </div>
             </div>
           </div>
@@ -321,7 +321,7 @@ export const FlashGallery = () => {
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search designs, tags, or descriptions..."
+                  placeholder="Search designs, artists, countries, or styles..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"

@@ -361,4 +361,4 @@ router.get('/cache-stats', async (req, res) => {
   });
 });
 
-module.exports = router; 
+module.exports = router; // Force complete rebuild 1754773676
