@@ -10,8 +10,16 @@ export const EditorialCard = ({
 
   return (
     <div className="editorial-card cursor-pointer group" onClick={onClick}>
-      <div className="editorial-card-image bg-gradient-to-br from-editorial-500 to-editorial-700 flex items-center justify-center">
-        <span className="text-white text-6xl">🎨</span>
+      <div className="editorial-card-image bg-gradient-to-br from-editorial-500 to-editorial-700 flex items-center justify-center overflow-hidden">
+        {artist.profilePictureUrl ? (
+          <img 
+            src={artist.profilePictureUrl} 
+            alt={`${artist.user?.firstName} ${artist.user?.lastName}`}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+          />
+        ) : (
+          <span className="text-white text-6xl">🎨</span>
+        )}
       </div>
       <div className="editorial-card-content">
         <div className="flex items-center gap-2 mb-3">
@@ -26,7 +34,7 @@ export const EditorialCard = ({
         </h3>
         <p className="text-cream-600 mb-3 font-medium">{artist.studioName}</p>
         <div className="flex items-center space-x-2 mb-3">
-          <Star className="w-4 h-4 text-yellow-500 fill-current" />
+          <Star className="w-4 h-4 text-red-500 fill-current" />
           <span className="text-sm text-cream-600">
             {artist.averageRating ? `${artist.averageRating.toFixed(1)}` : 'New'} 
             ({artist.reviewCount || 0} avis)
@@ -41,7 +49,7 @@ export const EditorialCard = ({
             <span className="text-xs">{artist.city}, {artist.state}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="editorial-accent font-semibold">
+            <span className="text-red-500 font-semibold">
               ${artist.hourlyRate || 'Contact'}/hr
             </span>
             <span className="text-editorial-600 group-hover:text-editorial-700 transition-colors">

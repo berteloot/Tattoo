@@ -196,7 +196,7 @@ export const Favorites = () => {
                   {/* Rating and Location */}
                   <div className="flex items-center space-x-4 mb-4">
                     <div className="flex items-center space-x-1">
-                      <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                      <Star className="w-5 h-5 text-red-500 fill-current" />
                       <span className="font-semibold text-gray-900">{favorite.artist.averageRating}</span>
                       <span className="text-gray-500">({favorite.artist.reviewCount})</span>
                     </div>

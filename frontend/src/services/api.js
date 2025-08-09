@@ -1,7 +1,22 @@
 import axios from 'axios'
 
-// Create axios instance - use environment variable or fallback to relative URL
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+// Create axios instance - use environment variable or fallback based on environment
+const getApiUrl = () => {
+  // If environment variable is set, use it
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+  
+  // In development, proxy to backend
+  if (import.meta.env.DEV) {
+    return '/api'
+  }
+  
+  // In production, use relative path (handled by Vercel rewrites)
+  return '/api'
+}
+
+const API_URL = getApiUrl()
 
 export const api = axios.create({
   baseURL: API_URL,

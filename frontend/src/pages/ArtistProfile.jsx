@@ -190,7 +190,7 @@ export const ArtistProfile = () => {
               {/* Rating and Location */}
               <div className="flex items-center space-x-6 text-sm text-gray-600">
                 <div className="flex items-center">
-                  <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
+                  <Star className="w-4 h-4 text-red-500 fill-current mr-1" />
                   <span>{artist.averageRating || 'New'} ({artist.reviewCount} reviews)</span>
                 </div>
                 <div className="flex items-center">

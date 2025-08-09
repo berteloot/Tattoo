@@ -358,7 +358,7 @@ const AdminArtistManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {artist.isFeatured ? (
                             <div className="flex items-center">
-                              <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
+                              <Star className="h-4 w-4 text-red-500 fill-current mr-1" />
                               <span className="text-sm text-yellow-800 font-medium">Featured</span>
                             </div>
                           ) : (
@@ -456,7 +456,7 @@ const AdminArtistManagement = () => {
             <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
               <div className="mt-3">
                 <div className="flex items-center mb-4">
-                  <Star className={`h-6 w-6 mr-2 ${selectedArtist.isFeatured ? 'text-red-500' : 'text-yellow-500'}`} />
+                  <Star className={`h-6 w-6 mr-2 ${selectedArtist.isFeatured ? 'text-red-500' : 'text-red-500'}`} />
                   <h3 className="text-lg font-medium text-gray-900">
                     {selectedArtist.isFeatured ? 'Unfeature' : 'Feature'} Artist
                   </h3>

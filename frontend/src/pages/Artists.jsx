@@ -364,8 +364,21 @@ export const Artists = () => {
 
 const ArtistCard = ({ artist }) => (
   <div className="card">
-    <div className="card__media" style={{ backgroundColor: 'var(--accent-yellow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ fontSize: '48px' }}>🎨</span>
+    <div className="card__media" style={{ backgroundColor: 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+      {artist.profilePictureUrl ? (
+        <img 
+          src={artist.profilePictureUrl} 
+          alt={`${artist.user.firstName} ${artist.user.lastName}`}
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'cover',
+            transition: 'transform 0.3s ease-in-out'
+          }}
+        />
+      ) : (
+        <span style={{ fontSize: '48px' }}>🎨</span>
+      )}
     </div>
     <div style={{ padding: '24px' }}>
       {/* Artist Messages */}
@@ -381,7 +394,7 @@ const ArtistCard = ({ artist }) => (
       </h3>
       <p className="card__meta">{artist.studioName}</p>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <Star style={{ width: '16px', height: '16px', color: 'var(--accent-yellow)' }} />
+        <Star style={{ width: '16px', height: '16px', color: 'var(--accent-red)', fill: 'var(--accent-red)' }} />
         <span className="small">
           {artist.averageRating ? `${artist.averageRating.toFixed(1)}` : 'New'} 
           ({artist.reviewCount || 0} reviews)
@@ -391,7 +404,7 @@ const ArtistCard = ({ artist }) => (
         {artist.bio?.substring(0, 120)}...
       </p>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ color: 'var(--accent-yellow)', fontWeight: 'bold' }}>${artist.hourlyRate}/hr</span>
+        <span style={{ color: 'var(--accent-red)', fontWeight: 'bold' }}>${artist.hourlyRate}/hr</span>
         <Link to={`/artists/${artist.id}`} className="small">
           VIEW PROFILE →
         </Link>
@@ -405,13 +418,27 @@ const ArtistListCard = ({ artist }) => (
     <div style={{ 
       width: '120px', 
       height: '120px', 
-      backgroundColor: 'var(--accent-yellow)', 
+      backgroundColor: 'var(--border)', 
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      flexShrink: 0
+      flexShrink: 0,
+      overflow: 'hidden',
+      borderRadius: '8px'
     }}>
-      <span style={{ fontSize: '32px' }}>🎨</span>
+      {artist.profilePictureUrl ? (
+        <img 
+          src={artist.profilePictureUrl} 
+          alt={`${artist.user.firstName} ${artist.user.lastName}`}
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'cover'
+          }}
+        />
+      ) : (
+        <span style={{ fontSize: '32px' }}>🎨</span>
+      )}
     </div>
     <div style={{ flex: 1 }}>
       {/* Artist Messages */}
@@ -430,7 +457,7 @@ const ArtistListCard = ({ artist }) => (
       </h3>
       <p className="small" style={{ marginBottom: '8px' }}>{artist.studioName}</p>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <Star style={{ width: '16px', height: '16px', color: 'var(--accent-yellow)' }} />
+        <Star style={{ width: '16px', height: '16px', color: 'var(--accent-red)', fill: 'var(--accent-red)' }} />
         <span className="small">
           {artist.averageRating ? `${artist.averageRating.toFixed(1)}` : 'New'} 
           ({artist.reviewCount || 0} reviews)
@@ -440,7 +467,7 @@ const ArtistListCard = ({ artist }) => (
         {artist.bio}
       </p>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <span style={{ color: 'var(--accent-yellow)', fontWeight: 'bold' }}>${artist.hourlyRate}/hr</span>
+        <span style={{ color: 'var(--accent-red)', fontWeight: 'bold' }}>${artist.hourlyRate}/hr</span>
         <Link to={`/artists/${artist.id}`} className="cta">
           VIEW PROFILE
         </Link>
