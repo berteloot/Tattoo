@@ -54,7 +54,11 @@ function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-email" element={<EmailVerification />} />
               <Route path="/artists" element={<Artists />} />
-              <Route path="/artists/:id" element={<ArtistProfile />} />
+              <Route path="/artists/:id" element={
+                <ProtectedRoute>
+                  <ArtistProfile />
+                </ProtectedRoute>
+              } />
               <Route path="/flash" element={<FlashGallery />} />
               <Route path="/studios" element={<Studios />} />
               <Route path="/studios/:id" element={<StudioDetail />} />

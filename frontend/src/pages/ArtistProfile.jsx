@@ -18,7 +18,8 @@ import {
   Calendar,
   MessageCircle,
   Plus,
-  Share2
+  Share2,
+  Eye
 } from 'lucide-react'
 import { LoadingSpinner } from '../components/UXComponents'
 import { CalendlyWidget } from '../components/CalendlyWidget'
@@ -191,25 +192,97 @@ export const ArtistProfile = () => {
                 <h1 className="text-3xl font-bold text-gray-900">
                   {artist.user.firstName} {artist.user.lastName}
                 </h1>
+                {artist.isVerified && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Verified Artist
+                  </span>
+                )}
                 <FavoriteButton artistId={artist.id} size="w-8 h-8" />
               </div>
-              <p className="text-xl text-gray-600 mb-4">{artist.studioName}</p>
               
-              {/* Rating and Location */}
-              <div className="flex items-center space-x-6 text-sm text-gray-600">
+              {/* Studio Information */}
+              {artist.studioName && (
+                <div className="mb-4">
+                  <Link 
+                    to={`/studios/${artist.studioName.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="text-xl text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                  >
+                    {artist.studioName}
+                  </Link>
+                  {/* Studio Address */}
+                  {(artist.address || artist.city) && (
+                    <div className="flex items-start mt-2 text-sm text-gray-600">
+                      <MapPin className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                      <div>
+                        {artist.address && <div>{artist.address}</div>}
+                        <div>
+                          {artist.city && artist.state ? `${artist.city}, ${artist.state}` : (artist.city || artist.state)}
+                          {artist.zipCode && ` ${artist.zipCode}`}
+                          {artist.country && artist.country !== 'Canada' && `, ${artist.country}`}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Rating, Pricing, and Quick Stats */}
+              <div className="flex items-center flex-wrap gap-6 text-sm">
                 <div className="flex items-center">
                   <Star className="w-4 h-4 text-red-500 fill-current mr-1" />
-                  <span>{artist.averageRating || 'New'} ({artist.reviewCount} reviews)</span>
+                  <span className="font-medium">{artist.averageRating ? `${artist.averageRating.toFixed(1)}` : 'New'}</span>
+                  <span className="text-gray-500 ml-1">({artist.reviewCount || 0} reviews)</span>
                 </div>
-                <div className="flex items-center">
-                  <MapPin className="w-4 h-4 mr-1" />
-                  <span>{artist.city}, {artist.state}</span>
-                </div>
-                <div className="flex items-center">
-                  <DollarSign className="w-4 h-4 mr-1" />
-                  <span>${artist.hourlyRate}/hr</span>
-                </div>
+                {artist.hourlyRate && (
+                  <div className="flex items-center">
+                    <DollarSign className="w-4 h-4 text-red-500 mr-1" />
+                    <span className="font-medium text-red-600">${artist.hourlyRate}/hr</span>
+                  </div>
+                )}
+                {artist.profileViews && (
+                  <div className="flex items-center text-gray-500">
+                    <Eye className="w-4 h-4 mr-1" />
+                    <span>{artist.profileViews} views</span>
+                  </div>
+                )}
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Booking CTA Banner */}
+      <div className="bg-gradient-to-r from-red-500 to-red-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between">
+            <div className="mb-4 sm:mb-0">
+              <h3 className="text-lg font-semibold">Ready to get inked by {artist.user.firstName}?</h3>
+              <p className="text-red-100">Book your consultation today and bring your vision to life</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {artist.calendlyUrl ? (
+                <a
+                  href={artist.calendlyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-6 py-3 bg-white text-red-600 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Book Consultation
+                </a>
+              ) : (
+                <button className="inline-flex items-center px-6 py-3 bg-white text-red-600 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Contact Artist
+                </button>
+              )}
+              <button className="inline-flex items-center px-4 py-3 border border-red-300 text-white font-medium rounded-lg hover:bg-red-400 transition-colors">
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Profile
+              </button>
             </div>
           </div>
         </div>
@@ -221,12 +294,21 @@ export const ArtistProfile = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Artist Messages */}
-            {artist.messages && artist.messages.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Artist Updates</h2>
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
+                Latest Updates from {artist.user.firstName}
+              </h2>
+              {artist.messages && artist.messages.length > 0 ? (
                 <ArtistMessages messages={artist.messages} variant="profile" />
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-8">
+                  <MessageCircle className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500 mb-2">No updates yet from this artist</p>
+                  <p className="text-sm text-gray-400">Check back later for artist announcements, new work, and updates!</p>
+                </div>
+              )}
+            </div>
 
             {/* Bio */}
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -391,7 +473,7 @@ export const ArtistProfile = () => {
                             <Star
                               key={i}
                               className={`w-4 h-4 ${
-                                i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                                i < review.rating ? 'text-red-500 fill-current' : 'text-gray-300'
                               }`}
                             />
                           ))}
