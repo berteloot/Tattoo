@@ -53,14 +53,33 @@ export const MessageManagement = () => {
     e.preventDefault();
     
     try {
-      const submitData = {
-        title: formData.title || null,
-        content: formData.content,
-        priority: parseInt(formData.priority),
-        showOnCard: formData.showOnCard,
-        showOnProfile: formData.showOnProfile,
-        expiresAt: formData.expiresAt || null
+      // Helper to convert datetime-local to ISO string or null
+      const toISOorNull = (val) => {
+        if (!val) return null;
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? null : d.toISOString();
       };
+
+      // Validate required content
+      const trimmedContent = formData.content?.trim();
+      if (!trimmedContent) {
+        showError('Error', 'Message content is required');
+        return;
+      }
+
+      const submitData = {
+        title: formData.title?.trim() || null,
+        content: trimmedContent,
+        priority: parseInt(formData.priority) || 1,
+        showOnCard: !!formData.showOnCard,
+        showOnProfile: !!formData.showOnProfile,
+        expiresAt: toISOorNull(formData.expiresAt)
+      };
+
+      // Remove null/undefined values but keep empty strings for content validation
+      Object.keys(submitData).forEach(
+        key => (submitData[key] === null || submitData[key] === undefined) && delete submitData[key]
+      );
 
       console.log('Submitting message data:', submitData);
 
@@ -75,9 +94,15 @@ export const MessageManagement = () => {
       resetForm();
       loadMessages();
     } catch (error) {
-      console.error('Error saving message:', error);
-      const errorMessage = error.response?.data?.error || 'Failed to save message';
-      showError('Error', errorMessage);
+      // Improved error logging to see server validation messages
+      const serverMsg =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.message ||
+        String(error);
+      
+      console.error('Error saving message:', serverMsg, error?.response?.data);
+      showError('Error', serverMsg);
     }
   };
 
