@@ -78,7 +78,7 @@ services:
         value: stan@berteloot.org
       # Frontend build environment variables
       - key: VITE_API_URL
-        value: https://tattooed-world-backend.onrender.com
+        value: https://tattooed-world-backend.onrender.com/api
       - key: VITE_GOOGLE_MAPS_API_KEY
         value: AIzaSyDcV1CcJSHKOtZilY7al23ev7Gs7MMgoBQ
       - key: VITE_NODE_ENV
