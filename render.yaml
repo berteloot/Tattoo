@@ -10,14 +10,14 @@ services:
       echo "=== Starting build process ==="
       pwd
       ls -la
-      npm install
+      npm ci
       echo "=== Backend setup ==="
-      cd backend && npm install && npx prisma generate && npx prisma migrate deploy && node scripts/deploy-migrations.js
+      cd backend && npm ci && npx prisma generate && npx prisma migrate deploy && node scripts/deploy-migrations.js
       echo "=== Frontend build ==="
       cd ../frontend
       pwd
       ls -la
-      npm install
+      npm ci
       echo "Running npm run build..."
       npm run build
       echo "Build command completed. Checking results..."
