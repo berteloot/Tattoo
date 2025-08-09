@@ -27,6 +27,7 @@ import { FavoriteButton } from '../components/FavoriteButton'
 import { artistsAPI, api } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import ProtectedEmail from '../components/ProtectedEmail'
+import { ArtistMessages } from '../components/ArtistMessage'
 
 export const ArtistProfile = () => {
   const { id } = useParams()
@@ -209,6 +210,14 @@ export const ArtistProfile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Artist Messages */}
+            {artist.messages && artist.messages.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Artist Updates</h2>
+                <ArtistMessages messages={artist.messages} variant="profile" />
+              </div>
+            )}
+
             {/* Bio */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">About</h2>

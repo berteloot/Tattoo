@@ -82,8 +82,30 @@ model ArtistProfile {
   gallery            TattooGallery[]
   services           Service[]          @relation("ArtistProfileToService")
   specialties        Specialty[]        @relation("ArtistProfileToSpecialty")
+  messages           ArtistMessage[]
 
   @@map("artist_profiles")
+}
+
+model ArtistMessage {
+  id          String    @id @default(cuid())
+  artistId    String
+  title       String?   // Optional title for the message
+  content     String    // HTML content of the message
+  isActive    Boolean   @default(true)
+  expiresAt   DateTime? // Optional expiration date/time
+  priority    Int       @default(1) // 1 = low, 2 = medium, 3 = high (for styling)
+  showOnCard  Boolean   @default(true) // Show on artist cards
+  showOnProfile Boolean @default(true) // Show on full profile
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  artist      ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+  @@index([isActive])
+  @@index([expiresAt])
+  @@map("artist_messages")
 }
 
 model Specialty {

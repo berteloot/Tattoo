@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom'
 
 import StudioSearch from '../components/StudioSearch'
 import { FavoriteClients } from '../components/FavoriteClients'
+import { MessageManagement } from '../components/MessageManagement'
 
 export const ArtistDashboard = () => {
   const { user } = useAuth()
@@ -1090,6 +1091,18 @@ export const ArtistDashboard = () => {
         {user?.artistProfile?.id && (
           <div className="mt-8">
             <FavoriteClients />
+          </div>
+        )}
+
+        {/* Message Management Section */}
+        {user?.artistProfile?.id && (
+          <div className="mt-8 bg-white rounded-lg shadow">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Message Panel</h2>
+            </div>
+            <div className="p-6">
+              <MessageManagement />
+            </div>
           </div>
         )}
 

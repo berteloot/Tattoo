@@ -127,4 +127,27 @@ export const galleryAPI = {
   like: (id) => api.post(`/gallery/${id}/like`),
   addComment: (id, comment) => api.post(`/gallery/${id}/comments`, { comment }),
   getStats: (artistId) => api.get(`/gallery/stats/artist/${artistId}`),
+}
+
+// Artist Messages API
+export const messagesAPI = {
+  // Get messages for a specific artist (public)
+  getArtistMessages: (artistId) => 
+    api.get(`/messages/artist/${artistId}`),
+  
+  // Get current user's messages (artist only)
+  getMyMessages: () => 
+    api.get('/messages/my-messages'),
+  
+  // Create a new message
+  create: (messageData) => 
+    api.post('/messages', messageData),
+  
+  // Update a message
+  update: (messageId, messageData) => 
+    api.put(`/messages/${messageId}`, messageData),
+  
+  // Delete a message
+  delete: (messageId) => 
+    api.delete(`/messages/${messageId}`)
 } 

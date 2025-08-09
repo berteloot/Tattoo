@@ -4,6 +4,7 @@ import { Star, MapPin, Filter, Search, DollarSign, Eye, Calendar, Award, Instagr
 import { FavoriteButton } from '../components/FavoriteButton'
 import { artistsAPI, specialtiesAPI } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
+import { ArtistMessages } from '../components/ArtistMessage'
 
 export const Artists = () => {
   console.log('Artists component rendering')
@@ -367,6 +368,11 @@ const ArtistCard = ({ artist }) => (
       <span style={{ fontSize: '48px' }}>🎨</span>
     </div>
     <div style={{ padding: '24px' }}>
+      {/* Artist Messages */}
+      {artist.messages && artist.messages.length > 0 && (
+        <ArtistMessages messages={artist.messages} variant="card" />
+      )}
+      
       <div className="card__category">
         <span className="tag tag--yellow">{artist.specialties?.[0]?.name || 'ARTIST'}</span>
       </div>
@@ -408,6 +414,11 @@ const ArtistListCard = ({ artist }) => (
       <span style={{ fontSize: '32px' }}>🎨</span>
     </div>
     <div style={{ flex: 1 }}>
+      {/* Artist Messages */}
+      {artist.messages && artist.messages.length > 0 && (
+        <ArtistMessages messages={artist.messages} variant="card" />
+      )}
+      
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <span className="tag tag--yellow">{artist.specialties?.[0]?.name || 'ARTIST'}</span>
         {artist.isVerified && (

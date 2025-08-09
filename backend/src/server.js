@@ -23,6 +23,7 @@ const favoriteRoutes = require('./routes/favorites');
 const studioRoutes = require('./routes/studios');
 const geocodingRoutes = require('./routes/geocoding');
 const galleryRoutes = require('./routes/gallery');
+const messagesRoutes = require('./routes/messages');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorHandler');
@@ -208,6 +209,7 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/studios', studioRoutes);
 app.use('/api/geocoding', geocodingRoutes);
 app.use('/api/gallery', galleryRoutes);
+app.use('/api/messages', messagesRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {
