@@ -295,22 +295,22 @@ export const Layout = ({ children }) => {
               <h3 className="small" style={{ fontWeight: 'bold', marginBottom: '16px' }}>LEGAL</h3>
               <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                 <li style={{ marginBottom: '8px' }}>
-                  <Link to="/privacy" className="small">
+                  <Link to="/privacy-policy" className="small">
                     PRIVACY POLICY
                   </Link>
                 </li>
                 <li style={{ marginBottom: '8px' }}>
-                  <Link to="/terms" className="small">
+                  <Link to="/terms-of-service" className="small">
                     TERMS OF SERVICE
                   </Link>
                 </li>
                 <li style={{ marginBottom: '8px' }}>
-                  <Link to="/cookies" className="small">
+                  <Link to="/cookie-policy" className="small">
                     COOKIE POLICY
                   </Link>
                 </li>
                 <li style={{ marginBottom: '8px' }}>
-                  <Link to="/contact" className="small">
+                  <Link to="/contact-us" className="small">
                     CONTACT US
                   </Link>
                 </li>

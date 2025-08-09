@@ -33,6 +33,10 @@ import { HomeEditorial } from './pages/HomeEditorial'
 import TattooGallery from './pages/TattooGallery'
 import GalleryDetail from './pages/GalleryDetail'
 import ArtistGalleryManagement from './pages/ArtistGalleryManagement'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
+import CookiePolicy from './pages/CookiePolicy'
+import ContactUs from './pages/ContactUs'
 
 function App() {
   return (
@@ -57,6 +61,12 @@ function App() {
               <Route path="/map" element={<Map />} />
               <Route path="/gallery" element={<TattooGallery />} />
               <Route path="/gallery/:id" element={<GalleryDetail />} />
+              
+              {/* Legal pages */}
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/cookie-policy" element={<CookiePolicy />} />
+              <Route path="/contact-us" element={<ContactUs />} />
               
               {/* Protected routes */}
               <Route path="/profile" element={
