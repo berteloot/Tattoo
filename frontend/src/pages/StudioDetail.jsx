@@ -25,7 +25,7 @@ const StudioDetail = () => {
   const [studio, setStudio] = useState(null);
   const [studioArtists, setStudioArtists] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { success, error, warning } = useToast();
 
   useEffect(() => {
@@ -191,12 +191,32 @@ const StudioDetail = () => {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
             <div className="space-y-3">
               {studio.phoneNumber && (
-                <div className="flex items-center">
-                  <Phone className="w-5 h-5 text-gray-400 mr-3" />
-                  <a href={`tel:${studio.phoneNumber}`} className="text-blue-600 hover:text-blue-800">
-                    {studio.phoneNumber}
-                  </a>
-                </div>
+                <>
+                  {isAuthenticated ? (
+                    <div className="flex items-center">
+                      <Phone className="w-5 h-5 text-gray-400 mr-3" />
+                      <a href={`tel:${studio.phoneNumber}`} className="text-blue-600 hover:text-blue-800">
+                        {studio.phoneNumber}
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center">
+                        <Phone className="w-5 h-5 text-blue-600 mr-3" />
+                        <div>
+                          <p className="text-sm font-medium text-blue-900">Phone number available</p>
+                          <p className="text-xs text-blue-700">Call {studio.name} directly</p>
+                        </div>
+                      </div>
+                      <Link 
+                        to="/login" 
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm px-3 py-1 rounded-md border border-blue-300 hover:bg-blue-100 transition-colors"
+                      >
+                        Login to view
+                      </Link>
+                    </div>
+                  )}
+                </>
               )}
               {studio.email && (
                 <ProtectedEmail 
@@ -236,6 +256,31 @@ const StudioDetail = () => {
                       <MapPin className="w-5 h-5" />
                     </Link>
                   )}
+                </div>
+              )}
+              
+              {/* Login to Contact CTA for studios */}
+              {!isAuthenticated && studio.phoneNumber && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 text-center mt-4">
+                  <Phone className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                  <h3 className="font-medium text-blue-900 mb-1">Interested in {studio.name}?</h3>
+                  <p className="text-blue-700 text-sm mb-3">
+                    Contact the studio directly to book your appointment
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <Link 
+                      to="/register" 
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                    >
+                      Sign up to contact
+                    </Link>
+                    <Link 
+                      to="/login" 
+                      className="inline-flex items-center px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm"
+                    >
+                      Login
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>

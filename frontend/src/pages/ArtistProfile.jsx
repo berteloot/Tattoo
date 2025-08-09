@@ -28,9 +28,11 @@ import { artistsAPI, api } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import ProtectedEmail from '../components/ProtectedEmail'
 import { ArtistMessages } from '../components/ArtistMessage'
+import { useAuth } from '../contexts/AuthContext'
 
 export const ArtistProfile = () => {
   const { id } = useParams()
+  const { user, isAuthenticated } = useAuth()
   const [artist, setArtist] = useState(null)
   const [reviews, setReviews] = useState([])
   const [studios, setStudios] = useState([])
@@ -414,20 +416,42 @@ export const ArtistProfile = () => {
               <div className="space-y-4">
                 {/* Phone */}
                 {artist.user.phone && (
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
-                      <Phone className="w-5 h-5 text-primary-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-500">Phone</p>
-                      <a 
-                        href={`tel:${artist.user.phone}`}
-                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors"
-                      >
-                        {artist.user.phone}
-                      </a>
-                    </div>
-                  </div>
+                  <>
+                    {isAuthenticated ? (
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                          <Phone className="w-5 h-5 text-primary-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-500">Phone</p>
+                          <a 
+                            href={`tel:${artist.user.phone}`}
+                            className="text-gray-900 font-medium hover:text-primary-600 transition-colors"
+                          >
+                            {artist.user.phone}
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                            <Phone className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-blue-900">Phone number available</p>
+                            <p className="text-xs text-blue-700">Call {artist.user.firstName} directly</p>
+                          </div>
+                        </div>
+                        <Link 
+                          to="/login" 
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm px-3 py-1 rounded-md border border-blue-300 hover:bg-blue-100 transition-colors"
+                        >
+                          Login to view
+                        </Link>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Email */}
@@ -598,23 +622,45 @@ export const ArtistProfile = () => {
 
                 {/* Calendly Booking */}
                 {artist.calendlyUrl && (
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-3">
-                      <Calendar className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-500">Book Appointment</p>
-                      <a
-                        href={artist.calendlyUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block flex items-center"
-                      >
-                        Schedule Consultation
-                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
-                      </a>
-                    </div>
-                  </div>
+                  <>
+                    {isAuthenticated ? (
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex-shrink-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-3">
+                          <Calendar className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-500">Book Appointment</p>
+                          <a
+                            href={artist.calendlyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-900 font-medium hover:text-primary-600 transition-colors truncate block flex items-center"
+                          >
+                            Schedule Consultation
+                            <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                            <Calendar className="w-5 h-5 text-green-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-green-900">Online booking available</p>
+                            <p className="text-xs text-green-700">Schedule directly with {artist.user.firstName}</p>
+                          </div>
+                        </div>
+                        <Link 
+                          to="/register" 
+                          className="text-green-600 hover:text-green-800 font-medium text-sm px-3 py-1 rounded-md border border-green-300 hover:bg-green-100 transition-colors"
+                        >
+                          Sign up to book
+                        </Link>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* No contact info message */}
@@ -623,6 +669,31 @@ export const ArtistProfile = () => {
                   <div className="text-center py-6">
                     <MessageCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-gray-500 text-sm">No contact information available</p>
+                  </div>
+                )}
+
+                {/* Login to Contact CTA for non-authenticated users */}
+                {!isAuthenticated && (artist.user.phone || artist.calendlyUrl) && (
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 text-center mt-4">
+                    <MessageCircle className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <h3 className="font-medium text-blue-900 mb-1">Ready to get tattooed?</h3>
+                    <p className="text-blue-700 text-sm mb-3">
+                      Contact {artist.user.firstName} directly to discuss your next tattoo
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Link 
+                        to="/register" 
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                      >
+                        Sign up to contact
+                      </Link>
+                      <Link 
+                        to="/login" 
+                        className="inline-flex items-center px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm"
+                      >
+                        Login
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>

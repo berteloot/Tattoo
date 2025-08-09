@@ -20,7 +20,7 @@ export const MessageManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingMessage, setEditingMessage] = useState(null);
-  const { showToast } = useToast();
+  const { success, error } = useToast();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -43,7 +43,7 @@ export const MessageManagement = () => {
       setMessages(response.data.data.messages || []);
     } catch (error) {
       console.error('Error loading messages:', error);
-      showToast('Failed to load messages', 'error');
+      error('Error', 'Failed to load messages');
     } finally {
       setLoading(false);
     }
@@ -60,10 +60,10 @@ export const MessageManagement = () => {
 
       if (editingMessage) {
         await messagesAPI.update(editingMessage.id, submitData);
-        showToast('Message updated successfully', 'success');
+        success('Message updated successfully');
       } else {
         await messagesAPI.create(submitData);
-        showToast('Message created successfully', 'success');
+        success('Message created successfully');
       }
 
       resetForm();
@@ -71,7 +71,7 @@ export const MessageManagement = () => {
     } catch (error) {
       console.error('Error saving message:', error);
       const errorMessage = error.response?.data?.error || 'Failed to save message';
-      showToast(errorMessage, 'error');
+      error('Error', errorMessage);
     }
   };
 
@@ -93,22 +93,22 @@ export const MessageManagement = () => {
 
     try {
       await messagesAPI.delete(messageId);
-      showToast('Message deleted successfully', 'success');
+      success('Message deleted successfully');
       loadMessages();
     } catch (error) {
       console.error('Error deleting message:', error);
-      showToast('Failed to delete message', 'error');
+      error('Error', 'Failed to delete message');
     }
   };
 
   const toggleActive = async (message) => {
     try {
       await messagesAPI.update(message.id, { isActive: !message.isActive });
-      showToast(`Message ${message.isActive ? 'deactivated' : 'activated'}`, 'success');
+      success(`Message ${message.isActive ? 'deactivated' : 'activated'}`);
       loadMessages();
     } catch (error) {
       console.error('Error toggling message status:', error);
-      showToast('Failed to update message status', 'error');
+      error('Error', 'Failed to update message status');
     }
   };
 

@@ -18,7 +18,7 @@ const Studios = () => {
     total: 0,
     pages: 0
   });
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { success, error: showError } = useToast();
 
   useEffect(() => {
@@ -283,12 +283,24 @@ const Studios = () => {
               {/* Contact Info */}
               <div className="space-y-2 mb-4">
                 {studio.phoneNumber && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone className="w-4 h-4 mr-2" />
-                    <a href={`tel:${studio.phoneNumber}`} className="hover:text-blue-600">
-                      {studio.phoneNumber}
-                    </a>
-                  </div>
+                  <>
+                    {isAuthenticated ? (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Phone className="w-4 h-4 mr-2" />
+                        <a href={`tel:${studio.phoneNumber}`} className="hover:text-blue-600">
+                          {studio.phoneNumber}
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-sm text-blue-600">
+                        <Phone className="w-4 h-4 mr-2" />
+                        <span className="text-blue-800 font-medium">Phone available - </span>
+                        <Link to="/login" className="hover:text-blue-800 underline">
+                          Login to view
+                        </Link>
+                      </div>
+                    )}
+                  </>
                 )}
                 {studio.email && (
                   <ProtectedEmail email={studio.email} className="text-sm text-gray-600" />

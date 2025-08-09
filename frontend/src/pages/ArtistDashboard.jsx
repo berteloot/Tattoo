@@ -1099,7 +1099,7 @@ export const ArtistDashboard = () => {
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">Message Panel</h2>
             <p className="text-sm text-gray-500">
-              Debug: User role: {user?.role}, Artist Profile ID: {user?.artistProfile?.id || 'None'}
+              Create and manage messages that appear on your artist profile and cards
             </p>
           </div>
           <div className="p-6">
