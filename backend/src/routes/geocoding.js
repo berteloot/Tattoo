@@ -241,18 +241,14 @@ router.post('/save-result', async (req, res) => {
       });
     }
     
-    // Update studio coordinates using raw SQL with proper PostgreSQL syntax
-    await prisma.$executeRaw`
-      UPDATE "studios" 
-      SET "latitude" = ${parseFloat(latitude)}, 
-          "longitude" = ${parseFloat(longitude)}, 
-          "updated_at" = NOW() 
-      WHERE "id" = ${studioId}
-    `;
-    
-    // Fetch the updated studio for response
-    const updatedStudio = await prisma.studio.findUnique({
-      where: { id: studioId }
+    // Update studio coordinates using Prisma with explicit field whitelisting
+    const updatedStudio = await prisma.studio.update({
+      where: { id: studioId },
+      data: {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
+        // Explicitly omit updatedAt - let Prisma handle it via @updatedAt
+      }
     });
     
     // Note: Geocode cache temporarily disabled due to database schema mismatch
