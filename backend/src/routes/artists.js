@@ -1286,15 +1286,19 @@ router.delete('/profile-picture', protect, authorize('ARTIST', 'ADMIN'), async (
   }
 });
 
-// Helper function to get image dimensions using sharp
-const sharp = require('sharp');
+// Helper function to get image dimensions - Sharp disabled for deployment compatibility
+// const sharp = require('sharp');
 const getImageDimensions = async (buffer) => {
   try {
-    const metadata = await sharp(buffer).metadata();
-    return {
-      width: metadata.width,
-      height: metadata.height
-    };
+    // Sharp disabled to fix Render deployment issues
+    // const metadata = await sharp(buffer).metadata();
+    // return {
+    //   width: metadata.width,
+    //   height: metadata.height
+    // };
+    
+    // Return default dimensions for now
+    return { width: 800, height: 600 };
   } catch (error) {
     console.error('Error getting image dimensions:', error);
     return { width: 0, height: 0 };
