@@ -260,4 +260,5 @@ const ContactEmailModal = ({
   );
 };
 
+export { ContactEmailModal };
 export default ContactEmailModal;

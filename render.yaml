@@ -63,9 +63,9 @@ services:
         value: image/jpeg,image/png,image/webp
       - key: FRONTEND_URL
         value: https://tattooed-world-backend.onrender.com
-      # Google Maps API for geocoding
+      # Google Maps API for geocoding (set in Render dashboard)
       - key: GOOGLE_MAPS_API_KEY
-        value: AIzaSyDcV1CcJSHKOtZilY7al23ev7Gs7MMgoBQ
+        sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
@@ -80,7 +80,7 @@ services:
       - key: VITE_API_URL
         value: https://tattooed-world-backend.onrender.com/api
       - key: VITE_GOOGLE_MAPS_API_KEY
-        value: AIzaSyDcV1CcJSHKOtZilY7al23ev7Gs7MMgoBQ
+        sync: false
       - key: VITE_NODE_ENV
         value: production
 
