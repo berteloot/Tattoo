@@ -155,8 +155,8 @@ async function saveToDatabaseCache(address, result) {
             where: { addressHash },
             update: {
                 latitude: result.location.lat,
-                longitude: result.location.lng,
-                updatedAt: new Date()
+                longitude: result.location.lng
+                // updated_at will be handled by the database default
             },
             create: {
                 addressHash,
@@ -262,8 +262,8 @@ async function updateStudioCoordinates(studioId) {
                 where: { id: studioId },
                 data: {
                     latitude: geocodeResult.location.lat,
-                    longitude: geocodeResult.location.lng,
-                    updatedAt: new Date()
+                    longitude: geocodeResult.location.lng
+                    // updatedAt is handled automatically by Prisma @updatedAt decorator
                 }
             });
 
