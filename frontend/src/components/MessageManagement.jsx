@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Edit, 
@@ -10,10 +10,140 @@ import {
   Info,
   Star,
   Save,
-  X
+  X,
+  Bold,
+  Italic,
+  Underline,
+  Link,
+  List,
+  ListOrdered,
+  Type
 } from 'lucide-react';
 import { messagesAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
+
+// Rich Text Editor Toolbar Component
+const TextEditorToolbar = ({ onInsert, textareaRef, currentContent }) => {
+  const insertTag = (openTag, closeTag = null) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    
+    let replacement;
+    if (closeTag) {
+      replacement = selectedText ? `${openTag}${selectedText}${closeTag}` : `${openTag}${closeTag}`;
+    } else {
+      replacement = openTag;
+    }
+    
+    const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+    onInsert(newValue);
+    
+    // Set cursor position
+    setTimeout(() => {
+      const newCursorPos = closeTag && !selectedText ? start + openTag.length : start + replacement.length;
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  const insertLink = () => {
+    const url = prompt('Enter URL:');
+    if (url) {
+      const text = prompt('Enter link text (optional):') || url;
+      const textarea = textareaRef.current;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = textarea.value.substring(start, end);
+      
+      const linkText = selectedText || text;
+      const linkTag = `<a href="${url}" target="_blank">${linkText}</a>`;
+      
+      const newValue = textarea.value.substring(0, start) + linkTag + textarea.value.substring(end);
+      onInsert(newValue);
+      
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + linkTag.length, start + linkTag.length);
+      }, 0);
+    }
+  };
+
+  const insertPreset = (preset) => {
+    const presets = {
+      'flash-sale': '🔥 <strong>Flash Sale!</strong> 50% off all flash tattoos this weekend only! <a href="https://your-booking-link.com" target="_blank">Book now</a>',
+      'vacation': '🏖️ <strong>Vacation Notice:</strong> I\'ll be away from [start date] to [end date]. Booking will resume on [return date].',
+      'new-flash': '✨ <strong>New Flash Available!</strong> Check out my latest designs. Limited spots available!',
+      'booking-open': '📅 <strong>Booking Open!</strong> Now accepting appointments for [month]. <a href="https://your-booking-link.com" target="_blank">Book your session</a>'
+    };
+    
+    const content = presets[preset];
+    if (content) {
+      onInsert(currentContent + (currentContent ? '\n\n' : '') + content);
+    }
+  };
+
+  const toolbarButtons = [
+    { icon: Bold, action: () => insertTag('<strong>', '</strong>'), title: 'Bold' },
+    { icon: Italic, action: () => insertTag('<em>', '</em>'), title: 'Italic' },
+    { icon: Underline, action: () => insertTag('<u>', '</u>'), title: 'Underline' },
+    { icon: Link, action: insertLink, title: 'Insert Link' },
+    { icon: List, action: () => insertTag('<ul>\n  <li>', '</li>\n</ul>'), title: 'Bullet List' },
+    { icon: ListOrdered, action: () => insertTag('<ol>\n  <li>', '</li>\n</ol>'), title: 'Numbered List' },
+    { icon: Type, action: () => insertTag('<br/>'), title: 'Line Break' },
+  ];
+
+  const presetButtons = [
+    { label: '🔥 Flash Sale', action: () => insertPreset('flash-sale') },
+    { label: '🏖️ Vacation', action: () => insertPreset('vacation') },
+    { label: '✨ New Flash', action: () => insertPreset('new-flash') },
+    { label: '📅 Booking Open', action: () => insertPreset('booking-open') }
+  ];
+
+  return (
+    <div className="border border-gray-300 rounded-t-lg bg-gray-50">
+      {/* Main Toolbar */}
+      <div className="flex items-center space-x-1 p-2 border-b border-gray-200">
+        <div className="flex items-center space-x-1">
+          {toolbarButtons.map((button, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={button.action}
+              className="p-2 hover:bg-gray-200 rounded transition-colors"
+              title={button.title}
+            >
+              <button.icon className="w-4 h-4 text-gray-600" />
+            </button>
+          ))}
+        </div>
+        <div className="h-6 w-px bg-gray-300 mx-2"></div>
+        <div className="text-xs text-gray-500">
+          HTML supported: &lt;strong&gt;, &lt;em&gt;, &lt;u&gt;, &lt;a&gt;, &lt;br&gt;, &lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;
+        </div>
+      </div>
+      
+      {/* Preset Templates */}
+      <div className="flex items-center space-x-2 p-2">
+        <span className="text-xs text-gray-500 font-medium">Quick Templates:</span>
+        {presetButtons.map((preset, index) => (
+          <button
+            key={index}
+            type="button"
+            onClick={preset.action}
+            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded transition-colors"
+            title={`Insert ${preset.label} template`}
+          >
+            {preset.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export const MessageManagement = () => {
   const [messages, setMessages] = useState([]);
@@ -21,6 +151,7 @@ export const MessageManagement = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingMessage, setEditingMessage] = useState(null);
   const { success, error: showError } = useToast();
+  const contentTextareaRef = useRef(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -241,17 +372,25 @@ export const MessageManagement = () => {
                   <label className="block text-sm font-medium mb-2">
                     Message Content *
                   </label>
-                  <textarea
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    placeholder="Your message content. You can use HTML tags like <a>, <strong>, <em>, etc."
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows="4"
-                    maxLength="2000"
-                    required
-                  />
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    <TextEditorToolbar 
+                      onInsert={(newContent) => setFormData({ ...formData, content: newContent })}
+                      textareaRef={contentTextareaRef}
+                      currentContent={formData.content}
+                    />
+                    <textarea
+                      ref={contentTextareaRef}
+                      value={formData.content}
+                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                      placeholder="Your message content. Use the toolbar above to add formatting..."
+                      className="w-full p-3 border-0 focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-none rounded-b-lg resize-none"
+                      rows="6"
+                      maxLength="2000"
+                      required
+                    />
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    HTML supported. Character count: {formData.content.length}/2000
+                    Character count: {formData.content.length}/2000
                   </p>
                 </div>
 
