@@ -25,21 +25,25 @@ import { LoadingSpinner } from '../components/UXComponents'
 import { CalendlyWidget } from '../components/CalendlyWidget'
 import { ReviewForm } from '../components/ReviewForm'
 import { FavoriteButton } from '../components/FavoriteButton'
+import { ContactEmailModal } from '../components/ContactEmailModal'
 import { artistsAPI, api } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import ProtectedEmail from '../components/ProtectedEmail'
 import { ArtistMessages } from '../components/ArtistMessage'
 import { useAuth } from '../contexts/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 
 export const ArtistProfile = () => {
   const { id } = useParams()
   const { user, isAuthenticated } = useAuth()
+  const { success: showSuccessToast } = useToast()
   const [artist, setArtist] = useState(null)
   const [reviews, setReviews] = useState([])
   const [studios, setStudios] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [showContactModal, setShowContactModal] = useState(false)
 
   useEffect(() => {
     // Check API health first
@@ -58,6 +62,36 @@ export const ArtistProfile = () => {
     } catch (error) {
       console.error('Failed to track profile view:', error)
       // Don't show error to user, just log it
+    }
+  }
+
+  const handleShareProfile = async () => {
+    const profileUrl = window.location.href
+    const shareData = {
+      title: `${artist.user.firstName} ${artist.user.lastName} - Tattoo Artist`,
+      text: `Check out ${artist.user.firstName}'s tattoo work at ${artist.studioName}`,
+      url: profileUrl
+    }
+
+    try {
+      if (navigator.share && navigator.canShare(shareData)) {
+        await navigator.share(shareData)
+        showSuccessToast('Profile shared successfully!')
+      } else {
+        // Fallback to copying URL to clipboard
+        await navigator.clipboard.writeText(profileUrl)
+        showSuccessToast('Profile URL copied to clipboard!')
+      }
+    } catch (error) {
+      console.error('Error sharing profile:', error)
+      // Fallback to copying URL to clipboard
+      try {
+        await navigator.clipboard.writeText(profileUrl)
+        showSuccessToast('Profile URL copied to clipboard!')
+      } catch (clipboardError) {
+        console.error('Clipboard access failed:', clipboardError)
+        showSuccessToast('Share failed - please copy the URL manually')
+      }
     }
   }
 
@@ -274,12 +308,18 @@ export const ArtistProfile = () => {
                   Book Consultation
                 </a>
               ) : (
-                <button className="inline-flex items-center px-6 py-3 bg-white text-red-600 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={() => setShowContactModal(true)}
+                  className="inline-flex items-center px-6 py-3 bg-white text-red-600 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                >
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Contact Artist
                 </button>
               )}
-              <button className="inline-flex items-center px-4 py-3 border border-red-300 text-white font-medium rounded-lg hover:bg-red-400 transition-colors">
+              <button 
+                onClick={handleShareProfile}
+                className="inline-flex items-center px-4 py-3 border border-red-300 text-white font-medium rounded-lg hover:bg-red-400 transition-colors"
+              >
                 <Share2 className="w-4 h-4 mr-2" />
                 Share Profile
               </button>
@@ -834,6 +874,17 @@ export const ArtistProfile = () => {
           onReviewSubmitted={handleReviewSubmitted}
         />
       )}
+
+      {/* Contact Email Modal */}
+      <ContactEmailModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        recipient={artist}
+        recipientType="artist"
+        onSuccess={() => {
+          showSuccessToast('Message sent successfully!', `Your message has been sent to ${artist.user.firstName}. They will get back to you soon.`)
+        }}
+      />
     </div>
   )
 } 

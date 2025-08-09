@@ -37,11 +37,10 @@ async function geocodeAddress(address) {
 
         console.log(`🌍 Geocoding address: ${address}`);
 
-        // Get API key from environment
-        const apiKey = process.env.GOOGLE_MAPS_API_KEY || 'AIzaSyDcV1CcJSHKOtZilY7al23ev7Gs7MMgoBQ';
-        
+        // Get API key from environment - fail fast if missing
+        const apiKey = process.env.GOOGLE_MAPS_API_KEY;
         if (!apiKey) {
-            throw new Error('Google Maps API key not configured');
+            throw new Error('GOOGLE_MAPS_API_KEY environment variable not set');
         }
 
         // Make request to Google Maps Geocoding API
@@ -156,7 +155,7 @@ async function saveToDatabaseCache(address, result) {
             update: {
                 latitude: result.location.lat,
                 longitude: result.location.lng
-                // updated_at will be handled by the database default
+                // No manual updatedAt - let Prisma/DB handle it
             },
             create: {
                 addressHash,
@@ -257,18 +256,14 @@ async function updateStudioCoordinates(studioId) {
         const geocodeResult = await geocodeAddress(address);
 
         if (geocodeResult.success) {
-            // Update studio with coordinates - using raw SQL to avoid Prisma issues
-            await prisma.$executeRaw`
-                UPDATE studios 
-                SET latitude = ${geocodeResult.location.lat}, 
-                    longitude = ${geocodeResult.location.lng}, 
-                    updated_at = NOW() 
-                WHERE id = ${studioId}
-            `;
-            
-            // Fetch the updated studio
-            const updatedStudio = await prisma.studio.findUnique({
-                where: { id: studioId }
+            // Update studio with coordinates - back to Prisma (no manual updatedAt)
+            const updatedStudio = await prisma.studio.update({
+                where: { id: studioId },
+                data: {
+                    latitude: geocodeResult.location.lat,
+                    longitude: geocodeResult.location.lng
+                    // updatedAt handled automatically by @updatedAt in schema
+                }
             });
 
             console.log(`✅ Updated studio coordinates: ${studio.title} → ${geocodeResult.location.lat}, ${geocodeResult.location.lng}`);
