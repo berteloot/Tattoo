@@ -103,6 +103,8 @@ const TextEditorToolbar = ({ onInsert, textareaRef, currentContent }) => {
     { label: '📅 Booking Open', action: () => insertPreset('booking-open') }
   ];
 
+  console.log('TextEditorToolbar rendering'); // Debug log
+  
   return (
     <div className="border border-gray-300 rounded-t-lg bg-gray-50">
       {/* Main Toolbar */}
@@ -370,7 +372,7 @@ export const MessageManagement = () => {
                 {/* Content */}
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Message Content *
+                    Message Content * (Rich Text Editor)
                   </label>
                   <div className="border border-gray-300 rounded-lg overflow-hidden">
                     <TextEditorToolbar 
