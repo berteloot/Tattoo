@@ -171,10 +171,18 @@ export const ArtistProfile = () => {
           
           <div className="flex items-start space-x-6">
             {/* Artist Avatar */}
-            <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center">
-              <span className="text-2xl font-bold text-primary-600">
-                {artist.user.firstName[0]}{artist.user.lastName[0]}
-              </span>
+            <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
+              {artist.profilePictureUrl ? (
+                <img 
+                  src={artist.profilePictureUrl} 
+                  alt={`${artist.user.firstName} ${artist.user.lastName}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl font-bold text-primary-600">
+                  {artist.user.firstName[0]}{artist.user.lastName[0]}
+                </span>
+              )}
             </div>
             
             {/* Artist Info */}
