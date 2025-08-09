@@ -97,14 +97,14 @@ class StudioGeocodingTrigger {
         const geocodeResult = await this.geocodeAddress(fullAddress);
         
         if (geocodeResult.success && !geocodeResult.fallback) {
-          // Update studio coordinates
-          await prisma.studio.update({
-            where: { id: studioId },
-            data: {
-              latitude: geocodeResult.location.lat,
-              longitude: geocodeResult.location.lng
-            }
-          });
+          // Update studio coordinates using raw SQL to avoid schema issues
+          await prisma.$executeRaw`
+            UPDATE studios 
+            SET latitude = ${geocodeResult.location.lat}, 
+                longitude = ${geocodeResult.location.lng}, 
+                updated_at = NOW() 
+            WHERE id = ${studioId}
+          `;
           
           console.log(`✅ Updated: ${studio.title} → ${geocodeResult.location.lat}, ${geocodeResult.location.lng}`);
         } else if (geocodeResult.fallback) {

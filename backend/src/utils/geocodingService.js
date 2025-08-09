@@ -256,14 +256,18 @@ async function updateStudioCoordinates(studioId) {
         const geocodeResult = await geocodeAddress(address);
 
         if (geocodeResult.success) {
-            // Update studio with coordinates - back to Prisma (no manual updatedAt)
-            const updatedStudio = await prisma.studio.update({
-                where: { id: studioId },
-                data: {
-                    latitude: geocodeResult.location.lat,
-                    longitude: geocodeResult.location.lng
-                    // updatedAt handled automatically by @updatedAt in schema
-                }
+            // Update studio with coordinates using raw SQL to avoid schema issues
+            await prisma.$executeRaw`
+                UPDATE studios 
+                SET latitude = ${geocodeResult.location.lat}, 
+                    longitude = ${geocodeResult.location.lng}, 
+                    updated_at = NOW() 
+                WHERE id = ${studioId}
+            `;
+            
+            // Fetch the updated studio for logging
+            const updatedStudio = await prisma.studio.findUnique({
+                where: { id: studioId }
             });
 
             console.log(`✅ Updated studio coordinates: ${studio.title} → ${geocodeResult.location.lat}, ${geocodeResult.location.lng}`);
