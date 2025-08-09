@@ -256,13 +256,13 @@ async function updateStudioCoordinates(studioId) {
         const geocodeResult = await geocodeAddress(address);
 
         if (geocodeResult.success) {
-            // Update studio with coordinates using raw SQL to avoid schema issues
+            // Update studio with coordinates using raw SQL with proper PostgreSQL syntax
             await prisma.$executeRaw`
-                UPDATE studios 
-                SET latitude = ${geocodeResult.location.lat}, 
-                    longitude = ${geocodeResult.location.lng}, 
-                    updated_at = NOW() 
-                WHERE id = ${studioId}
+                UPDATE "studios" 
+                SET "latitude" = ${geocodeResult.location.lat}, 
+                    "longitude" = ${geocodeResult.location.lng}, 
+                    "updated_at" = NOW() 
+                WHERE "id" = ${studioId}
             `;
             
             // Fetch the updated studio for logging

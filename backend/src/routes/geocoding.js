@@ -241,13 +241,13 @@ router.post('/save-result', async (req, res) => {
       });
     }
     
-    // Update studio coordinates using raw SQL to avoid Prisma client issues
+    // Update studio coordinates using raw SQL with proper PostgreSQL syntax
     await prisma.$executeRaw`
-      UPDATE studios 
-      SET latitude = ${parseFloat(latitude)}, 
-          longitude = ${parseFloat(longitude)}, 
-          updated_at = NOW() 
-      WHERE id = ${studioId}
+      UPDATE "studios" 
+      SET "latitude" = ${parseFloat(latitude)}, 
+          "longitude" = ${parseFloat(longitude)}, 
+          "updated_at" = NOW() 
+      WHERE "id" = ${studioId}
     `;
     
     // Fetch the updated studio for response
