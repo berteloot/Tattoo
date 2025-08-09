@@ -103,7 +103,6 @@ const TextEditorToolbar = ({ onInsert, textareaRef, currentContent }) => {
     { label: '📅 Booking Open', action: () => insertPreset('booking-open') }
   ];
 
-  console.log('TextEditorToolbar rendering'); // Debug log
   
   return (
     <div className="border border-gray-300 rounded-t-lg bg-gray-50">
