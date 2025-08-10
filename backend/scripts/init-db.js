@@ -23,6 +23,20 @@ async function initializeDatabase() {
       console.log('✅ Database migrations completed');
     } catch (migrationError) {
       console.log('⚠️ Migration error (might be already up to date):', migrationError.message);
+      
+      // If migrations fail, try to baseline the database
+      if (migrationError.message.includes('not empty') || migrationError.message.includes('baseline')) {
+        console.log('🔄 Attempting to baseline existing production database...');
+        try {
+          execSync('npx prisma migrate resolve --applied 20250809213600_baseline_production_schema', { 
+            stdio: 'inherit',
+            cwd: process.cwd()
+          });
+          console.log('✅ Database baselined successfully');
+        } catch (baselineError) {
+          console.log('⚠️ Baseline error (continuing anyway):', baselineError.message);
+        }
+      }
     }
 
     // Check if admin user exists

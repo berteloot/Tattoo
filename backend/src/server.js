@@ -330,110 +330,18 @@ async function startServer() {
       process.exit(1);
     }
     
-    // Fix studio tables if needed (for production)
+    // Run production migrations if needed
     if (process.env.NODE_ENV === 'production') {
-      console.log('🔄 Syncing database schema...');
+      console.log('🔄 Running production migrations...');
       try {
-        // Regenerate Prisma client to pick up schema changes
-        console.log('🔄 Regenerating Prisma client...');
         const { execSync } = require('child_process');
-        execSync('npx prisma generate', { 
+        execSync('npx prisma migrate deploy', { 
           stdio: 'inherit',
           cwd: path.join(__dirname, '..')
         });
-        console.log('✅ Prisma client regenerated');
-        
-        // Check if studio tables exist
-        const tables = await prisma.$queryRaw`
-          SELECT table_name 
-          FROM information_schema.tables 
-          WHERE table_schema = 'public' 
-          AND table_name IN ('studios', 'studio_artists')
-          ORDER BY table_name
-        `;
-        
-        if (tables.length < 2) {
-          console.log('🔄 Creating missing studio tables...');
-          
-          // Create StudioRole enum if it doesn't exist
-          try {
-            await prisma.$executeRaw`CREATE TYPE studio_role AS ENUM ('OWNER', 'MANAGER', 'ARTIST', 'GUEST')`;
-            console.log('✅ Created studio_role enum');
-          } catch (error) {
-            if (error.message.includes('already exists')) {
-              console.log('✅ studio_role enum already exists');
-            }
-          }
-          
-          // Create studios table if it doesn't exist
-          if (!tables.find(t => t.table_name === 'studios')) {
-            await prisma.$executeRaw`
-              CREATE TABLE studios (
-                id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-                title TEXT NOT NULL,
-                slug TEXT UNIQUE NOT NULL,
-                website TEXT,
-                phone_number TEXT,
-                email TEXT,
-                facebook_url TEXT,
-                instagram_url TEXT,
-                twitter_url TEXT,
-                linkedin_url TEXT,
-                youtube_url TEXT,
-                latitude DOUBLE PRECISION,
-                longitude DOUBLE PRECISION,
-                address TEXT,
-                city TEXT,
-                state TEXT,
-                zip_code TEXT,
-                country TEXT,
-                is_active BOOLEAN DEFAULT true,
-                is_verified BOOLEAN DEFAULT false,
-                is_featured BOOLEAN DEFAULT false,
-                verification_status TEXT DEFAULT 'PENDING',
-                claimed_by TEXT,
-                claimed_at TIMESTAMP,
-                verified_by TEXT,
-                verified_at TIMESTAMP,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-              )
-            `;
-            console.log('✅ Created studios table');
-          }
-          
-          // Create studio_artists table if it doesn't exist
-          if (!tables.find(t => t.table_name === 'studio_artists')) {
-            await prisma.$executeRaw`
-              CREATE TABLE studio_artists (
-                id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-                studio_id TEXT NOT NULL,
-                artist_id TEXT NOT NULL,
-                role studio_role DEFAULT 'ARTIST',
-                is_active BOOLEAN DEFAULT true,
-                joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                left_at TIMESTAMP,
-                CONSTRAINT unique_studio_artist UNIQUE (studio_id, artist_id)
-              )
-            `;
-            console.log('✅ Created studio_artists table');
-          }
-          
-          // Add indexes
-          try {
-            await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS idx_studios_slug ON studios(slug)`;
-            await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS idx_studios_title ON studios(title)`;
-            await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS idx_studio_artists_studio_id ON studio_artists(studio_id)`;
-            await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS idx_studio_artists_artist_id ON studio_artists(artist_id)`;
-            console.log('✅ Added studio table indexes');
-          } catch (error) {
-            console.log('⚠️ Studio indexes already exist');
-          }
-        }
-        
-        console.log('✅ Database schema is up to date');
-      } catch (error) {
-        console.error('⚠️ Error syncing studio schema:', error.message);
+        console.log('✅ Production migrations completed');
+      } catch (migrationError) {
+        console.log('⚠️ Production migration error (might be already up to date):', migrationError.message);
       }
     }
     
