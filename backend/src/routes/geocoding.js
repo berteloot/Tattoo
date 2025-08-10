@@ -1,16 +1,34 @@
 const express = require('express');
-const { z } = require('zod');
 const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Zod schema for geocoding validation
-const GeocodeUpdate = z.object({
-  studioId: z.string().min(1),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  address: z.string().optional()
-});
+// Input validation for geocoding
+const validateGeocodeUpdate = (data) => {
+  const { studioId, latitude, longitude, address } = data;
+  
+  if (!studioId || typeof studioId !== 'string' || studioId.trim().length === 0) {
+    throw new Error('Studio ID is required and must be a non-empty string');
+  }
+  
+  const lat = parseFloat(latitude);
+  const lng = parseFloat(longitude);
+  
+  if (isNaN(lat) || lat < -90 || lat > 90) {
+    throw new Error('Latitude must be a valid number between -90 and 90');
+  }
+  
+  if (isNaN(lng) || lng < -180 || lng > 180) {
+    throw new Error('Longitude must be a valid number between -180 and 180');
+  }
+  
+  return {
+    studioId: studioId.trim(),
+    latitude: lat,
+    longitude: lng,
+    address: address ? String(address).trim() : undefined
+  };
+};
 
 // Get all studios with coordinates for map display
 router.get('/studios', async (req, res) => {
@@ -241,22 +259,53 @@ router.get('/status', async (req, res) => {
 // Save geocoding result from frontend
 router.post('/save-result', async (req, res) => {
   try {
-    // Validate and whitelist input using Zod
-    const { studioId, latitude, longitude, address } = GeocodeUpdate.parse(req.body);
+    // Validate and sanitize input
+    const validatedData = validateGeocodeUpdate(req.body);
+    const { studioId, latitude, longitude, address } = validatedData;
+    
+    // Check if studio exists first
+    const existingStudio = await prisma.studio.findUnique({
+      where: { id: studioId },
+      select: { id: true, title: true, isActive: true }
+    });
+    
+    if (!existingStudio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+    
+    if (!existingStudio.isActive) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot update coordinates for inactive studio'
+      });
+    }
     
     // Update studio coordinates using Prisma with explicit field whitelisting
     const updatedStudio = await prisma.studio.update({
       where: { id: studioId },
       data: {
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude)
-        // Explicitly omit updatedAt - let Prisma handle it via @updatedAt
+        latitude: latitude,
+        longitude: longitude
+        // Let Prisma handle updatedAt automatically via @updatedAt
+      },
+      select: {
+        id: true,
+        title: true,
+        latitude: true,
+        longitude: true,
+        updatedAt: true
       }
     });
     
     // Note: Geocode cache temporarily disabled due to database schema mismatch
     // TODO: Fix geocode_cache table structure in production
-    console.log(`📝 Would cache: ${address} → ${latitude}, ${longitude}`);
+    console.log(`📝 Successfully saved coordinates: ${existingStudio.title} → ${latitude}, ${longitude}`);
+    if (address) {
+      console.log(`📍 Address: ${address}`);
+    }
     
     res.json({
       success: true,
@@ -268,6 +317,23 @@ router.post('/save-result', async (req, res) => {
     
   } catch (error) {
     console.error('Error saving geocoding result:', error);
+    
+    // Handle validation errors specifically
+    if (error.message.includes('Latitude') || error.message.includes('Longitude') || error.message.includes('Studio ID')) {
+      return res.status(400).json({
+        success: false,
+        error: error.message
+      });
+    }
+    
+    // Handle Prisma errors
+    if (error.code === 'P2025') {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Failed to save geocoding result'
@@ -287,11 +353,12 @@ router.get('/pending', async (req, res) => {
           { latitude: null },
           { longitude: null }
         ],
-        AND: [
-          { address: { not: null } },
-          { address: { not: '' } },
-          { address: { not: 'null' } }
-        ]
+        // Ensure studio has at least some address information
+        address: {
+          not: null,
+          not: '',
+          notIn: ['null', 'undefined', 'N/A', 'n/a']
+        }
       },
       select: {
         id: true,
@@ -300,27 +367,48 @@ router.get('/pending', async (req, res) => {
         city: true,
         state: true,
         zipCode: true,
-        country: true
+        country: true,
+        latitude: true,
+        longitude: true
       },
-      take: parseInt(limit)
+      take: parseInt(limit),
+      orderBy: {
+        createdAt: 'asc' // Process older studios first
+      }
     });
     
-    // Add full address for each studio
-    const studiosWithAddress = studios.map(studio => ({
-      ...studio,
-      full_address: [
-        studio.address,
-        studio.city,
-        studio.state,
-        studio.zipCode,
-        studio.country
-      ].filter(Boolean).join(', ')
-    }));
+    // Filter and add full address for each studio
+    const studiosWithAddress = studios
+      .filter(studio => {
+        // Additional filtering to ensure we have meaningful address data
+        const hasAddress = studio.address && studio.address.trim().length > 0;
+        const hasCity = studio.city && studio.city.trim().length > 0;
+        return hasAddress || hasCity; // Need at least address or city
+      })
+      .map(studio => {
+        // Build full address with fallbacks
+        const addressParts = [
+          studio.address?.trim(),
+          studio.city?.trim(),
+          studio.state?.trim(),
+          studio.zipCode?.trim(),
+          studio.country?.trim() || 'Canada' // Default to Canada if no country
+        ].filter(part => part && part.length > 0);
+        
+        return {
+          ...studio,
+          full_address: addressParts.join(', '),
+          hasPartialCoordinates: (studio.latitude && !studio.longitude) || (!studio.latitude && studio.longitude)
+        };
+      });
+    
+    console.log(`📋 Found ${studiosWithAddress.length} studios needing geocoding (filtered from ${studios.length} raw results)`);
     
     res.json({
       success: true,
       data: studiosWithAddress,
-      count: studiosWithAddress.length
+      count: studiosWithAddress.length,
+      rawCount: studios.length
     });
     
   } catch (error) {

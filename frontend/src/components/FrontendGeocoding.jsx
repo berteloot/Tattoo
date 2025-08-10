@@ -118,16 +118,32 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
 
   const saveGeocodingResult = async (studioId, latitude, longitude, address) => {
     try {
+      // Validate inputs before sending
+      if (!studioId || typeof studioId !== 'string') {
+        throw new Error('Invalid studio ID');
+      }
+      
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
+      
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        throw new Error(`Invalid latitude: ${latitude}`);
+      }
+      
+      if (isNaN(lng) || lng < -180 || lng > 180) {
+        throw new Error(`Invalid longitude: ${longitude}`);
+      }
+
       const response = await fetch('/api/geocoding/save-result', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          studioId,
-          latitude,
-          longitude,
-          address
+          studioId: studioId.trim(),
+          latitude: lat, // Send as number
+          longitude: lng, // Send as number
+          address: address ? String(address).trim() : undefined
         })
       });
 
@@ -141,10 +157,17 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
       const data = await response.json();
       
       if (data.success) {
-        console.log(`✅ Saved coordinates for studio ${studioId}`);
+        console.log(`✅ Saved coordinates for studio ${studioId}: ${lat}, ${lng}`);
         return true;
       } else {
-        throw new Error(data.error || 'Failed to save coordinates');
+        // Handle specific error types
+        if (response.status === 400) {
+          throw new Error(`Validation error: ${data.error}`);
+        } else if (response.status === 404) {
+          throw new Error(`Studio not found: ${data.error}`);
+        } else {
+          throw new Error(data.error || 'Failed to save coordinates');
+        }
       }
     } catch (error) {
       console.error('Error saving geocoding result:', error);
@@ -166,12 +189,23 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
 
     const studio = pendingStudios[index];
     console.log(`🌍 [${index + 1}/${pendingStudios.length}] Processing: ${studio.title}`);
+    console.log(`📍 Address: ${studio.full_address}`);
 
     try {
+      // Validate studio data before processing
+      if (!studio.full_address || studio.full_address.trim().length === 0) {
+        throw new Error('No address available for geocoding');
+      }
+
       // Geocode the address
       const geocodeResult = await geocodeAddress(studio.full_address);
       
       if (geocodeResult.success) {
+        // Validate geocoding result
+        if (typeof geocodeResult.latitude !== 'number' || typeof geocodeResult.longitude !== 'number') {
+          throw new Error(`Invalid coordinates from geocoding: lat=${geocodeResult.latitude}, lng=${geocodeResult.longitude}`);
+        }
+
         // Save the result
         await saveGeocodingResult(
           studio.id,
@@ -181,11 +215,28 @@ const FrontendGeocoding = ({ onGeocodingComplete }) => {
         );
         
         console.log(`✅ Successfully geocoded: ${studio.title} → ${geocodeResult.latitude}, ${geocodeResult.longitude}`);
-        toast.success(`Geocoded: ${studio.title}`);
+        toast.success(`Geocoded: ${studio.title}`, { duration: 2000 });
+      } else {
+        throw new Error('Geocoding returned unsuccessful result');
       }
     } catch (error) {
       console.error(`❌ Failed to geocode ${studio.title}:`, error.message);
-      toast.error(`Failed: ${studio.title}`);
+      
+      // Show specific error messages
+      if (error.message.includes('Validation error')) {
+        toast.error(`Validation error for ${studio.title}`, { duration: 3000 });
+      } else if (error.message.includes('Studio not found')) {
+        toast.error(`Studio not found: ${studio.title}`, { duration: 3000 });
+      } else if (error.message.includes('ZERO_RESULTS')) {
+        toast.error(`Address not found: ${studio.title}`, { duration: 2000 });
+      } else if (error.message.includes('OVER_QUERY_LIMIT')) {
+        toast.error(`API quota exceeded - pausing`, { duration: 5000 });
+        // Stop processing if we hit quota limits
+        setIsGeocoding(false);
+        return;
+      } else {
+        toast.error(`Failed: ${studio.title}`, { duration: 2000 });
+      }
     }
 
     // Move to next studio

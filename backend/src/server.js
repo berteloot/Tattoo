@@ -320,7 +320,7 @@ async function startServer() {
     
     // Sanity check: verify Studio table schema
     try {
-      await prisma.$queryRaw`SELECT latitude, longitude FROM "Studio" LIMIT 1`;
+      await prisma.$queryRaw`SELECT latitude, longitude FROM "studios" LIMIT 1`;
       console.log('✅ Studio table schema verified');
     } catch (schemaError) {
       console.error('❌ Studio table schema check failed:', schemaError.message);
