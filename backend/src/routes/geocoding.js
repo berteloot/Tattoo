@@ -284,21 +284,49 @@ router.post('/save-result', async (req, res) => {
     }
     
     // Update studio coordinates using Prisma with explicit field whitelisting
-    const updatedStudio = await prisma.studio.update({
-      where: { id: studioId },
-      data: {
-        latitude: latitude,
-        longitude: longitude
-        // Let Prisma handle updatedAt automatically via @updatedAt
-      },
-      select: {
-        id: true,
-        title: true,
-        latitude: true,
-        longitude: true,
-        updatedAt: true
+    // Use raw SQL as fallback if Prisma fails
+    let updatedStudio;
+    try {
+      updatedStudio = await prisma.studio.update({
+        where: { id: studioId },
+        data: {
+          latitude: latitude,
+          longitude: longitude
+        },
+        select: {
+          id: true,
+          title: true,
+          latitude: true,
+          longitude: true,
+          updatedAt: true
+        }
+      });
+    } catch (prismaError) {
+      console.log('⚠️ Prisma update failed, trying raw SQL...', prismaError.message);
+      
+      // Fallback to raw SQL if Prisma fails
+      const result = await prisma.$executeRaw`
+        UPDATE studios 
+        SET latitude = ${latitude}, longitude = ${longitude}, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${studioId}
+      `;
+      
+      if (result === 1) {
+        // Fetch the updated studio
+        updatedStudio = await prisma.studio.findUnique({
+          where: { id: studioId },
+          select: {
+            id: true,
+            title: true,
+            latitude: true,
+            longitude: true,
+            updatedAt: true
+          }
+        });
+      } else {
+        throw new Error('Failed to update studio coordinates');
       }
-    });
+    }
     
     // Note: Geocode cache temporarily disabled due to database schema mismatch
     // TODO: Fix geocode_cache table structure in production
@@ -331,6 +359,16 @@ router.post('/save-result', async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Studio not found'
+      });
+    }
+    
+    // Handle the specific "column 'new' does not exist" error
+    if (error.message && error.message.includes("column 'new' does not exist")) {
+      console.error('🚨 Critical Prisma error - column "new" does not exist');
+      console.error('This suggests a Prisma client or schema mismatch issue');
+      return res.status(500).json({
+        success: false,
+        error: 'Database schema error - please contact support'
       });
     }
     
