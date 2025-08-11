@@ -11,6 +11,7 @@ const SimpleGeocoding = () => {
   const [loadingMaps, setLoadingMaps] = useState(false);
   const [manualApiKey, setManualApiKey] = useState('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [addressQuality, setAddressQuality] = useState(null);
 
   // Load pending studios
   const loadPendingStudios = async () => {
@@ -20,7 +21,13 @@ const SimpleGeocoding = () => {
       
       if (data.success) {
         setPendingStudios(data.data);
+        setAddressQuality(data.address_quality_summary);
         console.log(`📋 Loaded ${data.data.length} studios needing geocoding`);
+        console.log(`📊 Address quality:`, data.address_quality_summary);
+        
+        if (data.invalid > 0) {
+          toast.warning(`${data.invalid} studios have insufficient address data and were skipped`);
+        }
       } else {
         throw new Error(data.error || 'Failed to load studios');
       }

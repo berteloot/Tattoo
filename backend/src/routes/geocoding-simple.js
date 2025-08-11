@@ -70,26 +70,68 @@ router.get('/pending', async (req, res) => {
       orderBy: { createdAt: 'asc' }
     });
 
-    // Build full addresses
+    // Build full addresses with better formatting
     const studiosWithAddress = studios.map(studio => {
+      // Clean and validate each address component
+      const cleanAddress = studio.address ? studio.address.trim().replace(/[,\s]+/g, ' ').trim() : '';
+      const cleanCity = studio.city ? studio.city.trim().replace(/[,\s]+/g, ' ').trim() : '';
+      const cleanState = studio.state ? studio.state.trim().replace(/[,\s]+/g, ' ').trim() : '';
+      const cleanZipCode = studio.zipCode ? studio.zipCode.trim().replace(/[,\s]+/g, ' ').trim() : '';
+      const cleanCountry = studio.country ? studio.country.trim().replace(/[,\s]+/g, ' ').trim() : 'United Kingdom';
+      
+      // Build address parts, filtering out empty or invalid values
       const addressParts = [
-        studio.address,
-        studio.city,
-        studio.state,
-        studio.zipCode,
-        studio.country || 'United Kingdom'
-      ].filter(part => part && part.trim().length > 0);
-
+        cleanAddress,
+        cleanCity,
+        cleanState,
+        cleanZipCode,
+        cleanCountry
+      ].filter(part => part && part.length > 0 && part !== 'null' && part !== 'undefined' && part !== 'N/A' && part !== 'n/a');
+      
+      // Create the full address
+      const full_address = addressParts.join(', ');
+      
+      // Log problematic addresses for debugging
+      if (addressParts.length < 2) {
+        console.log(`⚠️ Studio "${studio.title}" has insufficient address data:`, {
+          address: studio.address,
+          city: studio.city,
+          state: studio.state,
+          zipCode: studio.zipCode,
+          country: studio.country,
+          full_address
+        });
+      }
+      
       return {
         ...studio,
-        full_address: addressParts.join(', ')
+        full_address,
+        address_quality: addressParts.length // Number of valid address components
       };
     });
 
+    // Filter out studios with insufficient address data
+    const validStudios = studiosWithAddress.filter(studio => studio.address_quality >= 2);
+    const invalidStudios = studiosWithAddress.filter(studio => studio.address_quality < 2);
+    
+    if (invalidStudios.length > 0) {
+      console.log(`⚠️ Found ${invalidStudios.length} studios with insufficient address data:`, 
+        invalidStudios.map(s => `${s.title} (${s.address_quality} parts)`)
+      );
+    }
+    
     res.json({
       success: true,
-      data: studiosWithAddress,
-      count: studiosWithAddress.length
+      data: validStudios,
+      count: validStudios.length,
+      total: studiosWithAddress.length,
+      invalid: invalidStudios.length,
+      address_quality_summary: {
+        excellent: validStudios.filter(s => s.address_quality >= 4).length,
+        good: validStudios.filter(s => s.address_quality === 3).length,
+        minimal: validStudios.filter(s => s.address_quality === 2).length,
+        insufficient: invalidStudios.length
+      }
     });
 
   } catch (error) {
