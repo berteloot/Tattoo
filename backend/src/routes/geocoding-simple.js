@@ -97,6 +97,7 @@ router.get('/pending', async (req, res) => {
 // Save geocoding result - SIMPLE VERSION
 router.post('/save-result', async (req, res) => {
   try {
+    console.log('📝 Received geocoding request:', req.body);
     const { studioId, latitude, longitude } = req.body;
 
     // Basic validation
@@ -139,11 +140,13 @@ router.post('/save-result', async (req, res) => {
     }
 
     // Use raw SQL to avoid Prisma issues
+    console.log(`🔄 Updating studio ${studioId} with coordinates: ${lat}, ${lng}`);
     const updateResult = await prisma.$executeRaw`
       UPDATE studios 
       SET latitude = ${lat}, longitude = ${lng}
       WHERE id = ${studioId}
     `;
+    console.log(`📊 Update result:`, updateResult);
 
     if (updateResult === 1) {
       console.log(`✅ Updated coordinates for ${existingStudio.title}: ${lat}, ${lng}`);
@@ -166,10 +169,28 @@ router.post('/save-result', async (req, res) => {
 
   } catch (error) {
     console.error('Error saving geocoding result:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      meta: error.meta,
+      stack: error.stack
+    });
+    
+    // Provide more specific error messages
+    let errorMessage = 'Failed to save coordinates';
+    
+    if (error.code === 'P2025') {
+      errorMessage = 'Studio not found';
+    } else if (error.code === 'P2002') {
+      errorMessage = 'Database constraint violation';
+    } else if (error.message && error.message.includes('column')) {
+      errorMessage = 'Database schema error';
+    }
     
     res.status(500).json({
       success: false,
-      error: 'Failed to save coordinates'
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
