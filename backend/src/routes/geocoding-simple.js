@@ -93,13 +93,55 @@ router.get('/status', async (req, res) => {
     });
     const withoutCoordinates = totalStudios - withCoordinates;
 
+    // Get address quality breakdown for studios without coordinates
+    const studiosNeedingGeocoding = await prisma.studio.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { latitude: null },
+          { longitude: null }
+        ]
+      },
+      select: {
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        country: true
+      }
+    });
+
+    // Calculate address quality
+    const addressQuality = studiosNeedingGeocoding.map(studio => {
+      const addressParts = [
+        studio.address,
+        studio.city,
+        studio.state,
+        studio.zipCode,
+        studio.country
+      ].filter(part => part && part.trim().length > 0 && part !== 'null' && part !== 'undefined' && part !== 'N/A' && part !== 'n/a');
+      
+      return addressParts.length;
+    });
+
+    const excellent = addressQuality.filter(count => count >= 4).length;
+    const good = addressQuality.filter(count => count === 3).length;
+    const minimal = addressQuality.filter(count => count === 2).length;
+    const insufficient = addressQuality.filter(count => count < 2).length;
+
     res.json({
       success: true,
       data: {
         total: totalStudios,
         withCoordinates,
         withoutCoordinates,
-        percentage: totalStudios > 0 ? Math.round((withCoordinates / totalStudios) * 100) : 0
+        percentage: totalStudios > 0 ? Math.round((withCoordinates / totalStudios) * 100) : 0,
+        addressQuality: {
+          excellent,
+          good,
+          minimal,
+          insufficient
+        }
       }
     });
   } catch (error) {
@@ -114,7 +156,7 @@ router.get('/status', async (req, res) => {
 // Get studios that need geocoding
 router.get('/pending', async (req, res) => {
   try {
-    const { limit = 50 } = req.query;
+    const { limit = 1000 } = req.query; // Increased default limit to handle all studios
     
     // Simple query - just get studios without coordinates
     const studios = await prisma.studio.findMany({
@@ -134,7 +176,7 @@ router.get('/pending', async (req, res) => {
         zipCode: true,
         country: true
       },
-      take: parseInt(limit) || 50,
+      take: parseInt(limit) || 1000, // Increased to handle all studios
       orderBy: { createdAt: 'asc' }
     });
 

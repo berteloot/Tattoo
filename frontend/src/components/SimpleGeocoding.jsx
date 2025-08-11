@@ -16,7 +16,7 @@ const SimpleGeocoding = () => {
   // Load pending studios
   const loadPendingStudios = async () => {
     try {
-      const response = await fetch('/api/geocoding/pending?limit=100');
+      const response = await fetch('/api/geocoding/pending?limit=1000');
       const data = await response.json();
       
       if (data.success) {
