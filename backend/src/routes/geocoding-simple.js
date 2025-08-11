@@ -3,6 +3,13 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const { Pool } = require('pg');
 
+// Debug middleware to log all requests to geocoding routes
+router.use((req, res, next) => {
+  console.log(`🔍 [GEOCODING] ${req.method} ${req.path} - IP: ${req.ip}`);
+  console.log(`🔍 [GEOCODING] Headers:`, req.headers);
+  next();
+});
+
 const prisma = new PrismaClient();
 
 // Create a direct PostgreSQL connection pool to bypass Prisma schema issues
@@ -207,7 +214,13 @@ router.get('/pending', async (req, res) => {
 // Save geocoding result - SIMPLE VERSION
 router.post('/save-result', async (req, res) => {
   try {
-    console.log('📝 Received geocoding request:', req.body);
+    console.log('📝 Received geocoding request');
+    console.log('📝 Request headers:', req.headers);
+    console.log('📝 Request body:', req.body);
+    console.log('📝 Request method:', req.method);
+    console.log('📝 Request URL:', req.url);
+    console.log('📝 Request IP:', req.ip);
+    
     const { studioId, latitude, longitude } = req.body;
 
     // Basic validation
