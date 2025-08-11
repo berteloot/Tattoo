@@ -1,8 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { Pool } = require('pg');
 
 const prisma = new PrismaClient();
+
+// Create a direct PostgreSQL connection pool to bypass Prisma schema issues
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 // Simple geocoding status endpoint
 router.get('/status', async (req, res) => {
@@ -139,14 +146,17 @@ router.post('/save-result', async (req, res) => {
       });
     }
 
-    // Use raw SQL to avoid Prisma issues
+    // Use direct PostgreSQL connection to bypass Prisma schema issues
     console.log(`🔄 Updating studio ${studioId} with coordinates: ${lat}, ${lng}`);
-    const updateResult = await prisma.$executeRaw`
-      UPDATE studios 
-      SET latitude = ${lat}, longitude = ${lng}
-      WHERE id = ${studioId}
-    `;
-    console.log(`📊 Update result:`, updateResult);
+    
+    // Use direct PostgreSQL query to avoid Prisma schema validation
+    const query = 'UPDATE studios SET latitude = $1, longitude = $2 WHERE id = $3';
+    const values = [lat, lng, studioId];
+    
+    const result = await pool.query(query, values);
+    console.log(`📊 Update result:`, result.rowCount);
+    
+    const updateResult = result.rowCount;
 
     if (updateResult === 1) {
       console.log(`✅ Updated coordinates for ${existingStudio.title}: ${lat}, ${lng}`);
