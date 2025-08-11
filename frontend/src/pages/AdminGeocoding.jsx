@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import FrontendGeocoding from '../components/FrontendGeocoding';
+import SimpleGeocoding from '../components/SimpleGeocoding';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -62,12 +62,7 @@ const AdminGeocoding = () => {
         </div>
 
         {/* Geocoding Component */}
-        <FrontendGeocoding 
-          onGeocodingComplete={() => {
-            console.log('Geocoding completed!');
-            // You can add additional actions here, like refreshing the map
-          }}
-        />
+        <SimpleGeocoding />
 
         {/* Additional Information */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">

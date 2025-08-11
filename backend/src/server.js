@@ -21,7 +21,7 @@ const adminRoutes = require('./routes/admin');
 const emergencyRoutes = require('./routes/emergency');
 const favoriteRoutes = require('./routes/favorites');
 const studioRoutes = require('./routes/studios');
-const geocodingRoutes = require('./routes/geocoding');
+const geocodingRoutes = require('./routes/geocoding-simple');
 const galleryRoutes = require('./routes/gallery');
 const messagesRoutes = require('./routes/messages');
 
