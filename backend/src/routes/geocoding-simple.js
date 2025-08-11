@@ -11,6 +11,24 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+// Test the pool connection
+pool.on('error', (err) => {
+  console.error('❌ PostgreSQL pool error:', err);
+});
+
+pool.on('connect', () => {
+  console.log('✅ PostgreSQL pool connected successfully');
+});
+
+// Test connection on startup
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('❌ Failed to connect to PostgreSQL:', err.message);
+  } else {
+    console.log('✅ PostgreSQL connection test successful');
+  }
+});
+
 // Simple geocoding status endpoint
 router.get('/status', async (req, res) => {
   try {
@@ -191,9 +209,16 @@ router.post('/save-result', async (req, res) => {
     // Use direct PostgreSQL connection to bypass Prisma schema issues
     console.log(`🔄 Updating studio ${studioId} with coordinates: ${lat}, ${lng}`);
     
+    // Test pool connection first
+    if (!pool.totalCount && !pool.idleCount) {
+      throw new Error('PostgreSQL pool not connected');
+    }
+    
     // Use direct PostgreSQL query to avoid Prisma schema validation
     const query = 'UPDATE studios SET latitude = $1, longitude = $2 WHERE id = $3';
     const values = [lat, lng, studioId];
+    
+    console.log(`🔍 Executing query: ${query} with values: [${values.join(', ')}]`);
     
     const result = await pool.query(query, values);
     console.log(`📊 Update result:`, result.rowCount);
@@ -228,6 +253,33 @@ router.post('/save-result', async (req, res) => {
       stack: error.stack
     });
     
+    // Try Prisma as fallback if pool fails
+    if (error.message && (error.message.includes('pool not connected') || error.message.includes('ECONNREFUSED'))) {
+      console.log('🔄 Pool failed, trying Prisma fallback...');
+      try {
+        const fallbackResult = await prisma.studio.update({
+          where: { id: studioId },
+          data: { latitude: lat, longitude: lng }
+        });
+        console.log('✅ Prisma fallback successful:', fallbackResult.id);
+        return res.json({
+          success: true,
+          data: {
+            studio: {
+              id: studioId,
+              title: existingStudio.title,
+              latitude: lat,
+              longitude: lng
+            },
+            message: 'Coordinates saved successfully (Prisma fallback)'
+          }
+        });
+      } catch (fallbackError) {
+        console.error('❌ Prisma fallback also failed:', fallbackError);
+        error = fallbackError; // Use the fallback error for the main error handling
+      }
+    }
+    
     // Provide more specific error messages
     let errorMessage = 'Failed to save coordinates';
     
@@ -237,6 +289,8 @@ router.post('/save-result', async (req, res) => {
       errorMessage = 'Database constraint violation';
     } else if (error.message && error.message.includes('column')) {
       errorMessage = 'Database schema error';
+    } else if (error.message && error.message.includes('pool')) {
+      errorMessage = 'Database connection error';
     }
     
     res.status(500).json({
