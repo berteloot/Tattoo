@@ -7,6 +7,8 @@ const SimpleGeocoding = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [stats, setStats] = useState({ total: 0, withCoordinates: 0, withoutCoordinates: 0 });
+  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
+  const [loadingMaps, setLoadingMaps] = useState(false);
 
   // Load pending studios
   const loadPendingStudios = async () => {
@@ -40,10 +42,61 @@ const SimpleGeocoding = () => {
     }
   };
 
+  // Load Google Maps API
+  const loadGoogleMapsAPI = () => {
+    if (window.google && window.google.maps) {
+      setGoogleMapsLoaded(true);
+      return Promise.resolve();
+    }
+
+    if (loadingMaps) {
+      return new Promise(resolve => {
+        const checkInterval = setInterval(() => {
+          if (window.google && window.google.maps) {
+            clearInterval(checkInterval);
+            setGoogleMapsLoaded(true);
+            setLoadingMaps(false);
+            resolve();
+          }
+        }, 100);
+      });
+    }
+
+    setLoadingMaps(true);
+    
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=geocoding`;
+      script.async = true;
+      script.defer = true;
+      
+      script.onload = () => {
+        // Wait for Google Maps to be fully loaded
+        const checkInterval = setInterval(() => {
+          if (window.google && window.google.maps && window.google.maps.Geocoder) {
+            clearInterval(checkInterval);
+            setGoogleMapsLoaded(true);
+            setLoadingMaps(false);
+            console.log('✅ Google Maps API loaded for geocoding');
+            resolve();
+          }
+        }, 100);
+      };
+      
+      script.onerror = () => {
+        setLoadingMaps(false);
+        reject(new Error('Failed to load Google Maps API'));
+      };
+      
+      document.head.appendChild(script);
+    });
+  };
+
   // Load data on component mount
   useEffect(() => {
     loadPendingStudios();
     loadStats();
+    loadGoogleMapsAPI();
   }, []);
 
   // Geocode a single address using Google Maps API
@@ -143,10 +196,21 @@ const SimpleGeocoding = () => {
   };
 
   // Start geocoding process
-  const startGeocoding = () => {
+  const startGeocoding = async () => {
     if (pendingStudios.length === 0) {
       toast.error('No studios to geocode');
       return;
+    }
+    
+    if (!googleMapsLoaded) {
+      try {
+        toast.info('Loading Google Maps API...');
+        await loadGoogleMapsAPI();
+        toast.success('Google Maps API loaded!');
+      } catch (error) {
+        toast.error('Failed to load Google Maps API');
+        return;
+      }
     }
     
     setIsGeocoding(true);
@@ -181,10 +245,10 @@ const SimpleGeocoding = () => {
           {!isGeocoding ? (
             <button
               onClick={startGeocoding}
-              disabled={pendingStudios.length === 0}
+              disabled={pendingStudios.length === 0 || loadingMaps}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              Start Geocoding
+              {loadingMaps ? 'Loading Maps...' : 'Start Geocoding'}
             </button>
           ) : (
             <button
@@ -194,6 +258,27 @@ const SimpleGeocoding = () => {
               Stop Geocoding
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Google Maps Status */}
+      <div className="mb-4 p-3 rounded-lg border">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">Google Maps API Status:</span>
+          <div className="flex items-center space-x-2">
+            {loadingMaps && (
+              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            )}
+            <span className={`text-sm px-2 py-1 rounded-full ${
+              googleMapsLoaded 
+                ? 'bg-green-100 text-green-800' 
+                : loadingMaps 
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-red-100 text-red-800'
+            }`}>
+              {googleMapsLoaded ? '✅ Loaded' : loadingMaps ? '🔄 Loading...' : '❌ Not Loaded'}
+            </span>
+          </div>
         </div>
       </div>
 
