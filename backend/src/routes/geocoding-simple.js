@@ -6,9 +6,17 @@ const { Pool } = require('pg');
 const prisma = new PrismaClient();
 
 // Create a direct PostgreSQL connection pool to bypass Prisma schema issues
+console.log('🔧 Initializing PostgreSQL pool...');
+console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
+console.log('🔧 DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log('🔧 DATABASE_URL length:', process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 20, // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
 });
 
 // Test the pool connection
@@ -26,6 +34,41 @@ pool.query('SELECT NOW()', (err, res) => {
     console.error('❌ Failed to connect to PostgreSQL:', err.message);
   } else {
     console.log('✅ PostgreSQL connection test successful');
+  }
+});
+
+// Database health check endpoint
+router.get('/health', async (req, res) => {
+  try {
+    console.log('🏥 Health check requested');
+    console.log('🏥 Pool status:', {
+      totalCount: pool.totalCount,
+      idleCount: pool.idleCount,
+      waitingCount: pool.waitingCount
+    });
+    
+    // Test pool connection
+    const result = await pool.query('SELECT NOW() as timestamp, version() as version');
+    
+    res.json({
+      success: true,
+      data: {
+        timestamp: result.rows[0].timestamp,
+        version: result.rows[0].version,
+        pool: {
+          totalCount: pool.totalCount,
+          idleCount: pool.idleCount,
+          waitingCount: pool.waitingCount
+        }
+      }
+    });
+  } catch (error) {
+    console.error('🏥 Health check failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Database health check failed',
+      details: error.message
+    });
   }
 });
 
