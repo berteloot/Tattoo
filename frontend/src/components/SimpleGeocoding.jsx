@@ -26,7 +26,14 @@ const SimpleGeocoding = () => {
         console.log(`📊 Address quality:`, data.address_quality_summary);
         
         if (data.invalid > 0) {
-          toast.warning(`${data.invalid} studios have insufficient address data and were skipped`);
+          toast(`${data.invalid} studios have insufficient address data and were skipped`, {
+            icon: '⚠️',
+            style: {
+              background: '#fef3c7',
+              color: '#92400e',
+              border: '1px solid #f59e0b'
+            }
+          });
         }
       } else {
         throw new Error(data.error || 'Failed to load studios');
