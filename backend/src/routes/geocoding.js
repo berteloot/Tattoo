@@ -297,8 +297,7 @@ router.post('/save-result', async (req, res) => {
           id: true,
           title: true,
           latitude: true,
-          longitude: true,
-          updatedAt: true
+          longitude: true
         }
       });
     } catch (prismaError) {
@@ -307,7 +306,7 @@ router.post('/save-result', async (req, res) => {
       // Fallback to raw SQL if Prisma fails
       const result = await prisma.$executeRaw`
         UPDATE studios 
-        SET latitude = ${latitude}, longitude = ${longitude}, updated_at = CURRENT_TIMESTAMP
+        SET latitude = ${latitude}, longitude = ${longitude}
         WHERE id = ${studioId}
       `;
       
@@ -319,8 +318,7 @@ router.post('/save-result', async (req, res) => {
             id: true,
             title: true,
             latitude: true,
-            longitude: true,
-            updatedAt: true
+            longitude: true
           }
         });
       } else {

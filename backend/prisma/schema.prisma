@@ -223,7 +223,7 @@ model Studio {
   verifiedBy         String?   @map("verified_by")
   verifiedAt         DateTime? @map("verified_at") @db.Timestamp(6)
   createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt          DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  updatedAt          DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
 
   @@index([latitude, longitude], map: "idx_studios_coordinates")
   @@map("studios")
