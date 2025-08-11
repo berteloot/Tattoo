@@ -307,9 +307,20 @@ router.post('/save-result', async (req, res) => {
     // Use direct PostgreSQL connection to bypass Prisma schema issues
     console.log(`🔄 Updating studio ${studioId} with coordinates: ${lat}, ${lng}`);
     
-    // Test pool connection first
-    if (!pool.totalCount && !pool.idleCount) {
-      throw new Error('PostgreSQL pool not connected');
+    // Test pool connection first (more lenient check)
+    console.log(`🔧 Pool status: totalCount=${pool.totalCount}, idleCount=${pool.idleCount}, waitingCount=${pool.waitingCount}`);
+    
+    // Only check if pool is completely empty
+    if (pool.totalCount === 0 && pool.idleCount === 0) {
+      console.log('⚠️ Pool appears disconnected, attempting to reconnect...');
+      try {
+        await pool.query('SELECT 1');
+        console.log('✅ Pool reconnected successfully');
+      } catch (reconnectError) {
+        console.log('❌ Pool reconnection failed:', reconnectError.message);
+        // Don't throw error, just log it and continue
+        console.log('⚠️ Continuing with pool despite reconnection failure');
+      }
     }
     
     // Use direct PostgreSQL query to avoid Prisma schema validation
