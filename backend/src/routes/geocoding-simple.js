@@ -1,199 +1,58 @@
 const express = require('express');
-const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { Pool } = require('pg');
+const rateLimit = require('express-rate-limit');
 
-// Debug middleware to log all requests to geocoding routes
-router.use((req, res, next) => {
-  console.log(`🔍 [GEOCODING] ${req.method} ${req.path} - IP: ${req.ip}`);
-  console.log(`🔍 [GEOCODING] Headers:`, req.headers);
-  next();
-});
-
+const router = express.Router();
 const prisma = new PrismaClient();
 
-// Create a direct PostgreSQL connection pool to bypass Prisma schema issues
-console.log('🔧 Initializing PostgreSQL pool...');
-console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
-console.log('🔧 DATABASE_URL exists:', !!process.env.DATABASE_URL);
-console.log('🔧 DATABASE_URL length:', process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0);
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+// Rate limiting for geocoding requests
+const geocodingLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many geocoding requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-// Test the pool connection
-pool.on('error', (err) => {
-  console.error('❌ PostgreSQL pool error:', err);
-});
+// Apply rate limiting to all geocoding routes
+router.use(geocodingLimiter);
 
-pool.on('connect', () => {
-  console.log('✅ PostgreSQL pool connected successfully');
-});
-
-// Test connection on startup
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('❌ Failed to connect to PostgreSQL:', err.message);
-  } else {
-    console.log('✅ PostgreSQL connection test successful');
-  }
-});
-
-// Database health check endpoint
-router.get('/health', async (req, res) => {
-  try {
-    console.log('🏥 Health check requested');
-    console.log('🏥 Pool status:', {
-      totalCount: pool.totalCount,
-      idleCount: pool.idleCount,
-      waitingCount: pool.waitingCount
-    });
-    
-    // Test pool connection
-    const result = await pool.query('SELECT NOW() as timestamp, version() as version');
-    
-    res.json({
-      success: true,
-      data: {
-        timestamp: result.rows[0].timestamp,
-        version: result.rows[0].version,
-        pool: {
-          totalCount: pool.totalCount,
-          idleCount: pool.idleCount,
-          waitingCount: pool.waitingCount
-        }
-      }
-    });
-  } catch (error) {
-    console.error('🏥 Health check failed:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Database health check failed',
-      details: error.message
-    });
-  }
-});
-
-// Simple geocoding status endpoint
-router.get('/status', async (req, res) => {
-  try {
-    // Get basic counts
-    const totalStudios = await prisma.studio.count({ where: { isActive: true } });
-    const withCoordinates = await prisma.studio.count({
-      where: {
-        isActive: true,
-        latitude: { not: null },
-        longitude: { not: null }
-      }
-    });
-    const withoutCoordinates = totalStudios - withCoordinates;
-
-    // Get address quality breakdown for studios without coordinates
-    const studiosNeedingGeocoding = await prisma.studio.findMany({
-      where: {
-        isActive: true,
-        OR: [
-          { latitude: null },
-          { longitude: null }
-        ]
-      },
-      select: {
-        address: true,
-        city: true,
-        state: true,
-        zipCode: true,
-        country: true
-      }
-    });
-
-    // Calculate address quality
-    const addressQuality = studiosNeedingGeocoding.map(studio => {
-      const addressParts = [
-        studio.address,
-        studio.city,
-        studio.state,
-        studio.zipCode,
-        studio.country
-      ].filter(part => part && part.trim().length > 0 && part !== 'null' && part !== 'undefined' && part !== 'N/A' && part !== 'n/a');
-      
-      return addressParts.length;
-    });
-
-    const excellent = addressQuality.filter(count => count >= 4).length;
-    const good = addressQuality.filter(count => count === 3).length;
-    const minimal = addressQuality.filter(count => count === 2).length;
-    const insufficient = addressQuality.filter(count => count < 2).length;
-
-    res.json({
-      success: true,
-      data: {
-        total: totalStudios,
-        withCoordinates,
-        withoutCoordinates,
-        percentage: totalStudios > 0 ? Math.round((withCoordinates / totalStudios) * 100) : 0,
-        addressQuality: {
-          excellent,
-          good,
-          minimal,
-          insufficient
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Error getting geocoding status:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get geocoding status'
-    });
-  }
-});
-
-// Add /stats endpoint for frontend compatibility (same as /status)
+// Get geocoding statistics
 router.get('/stats', async (req, res) => {
   try {
-    // Get basic counts
-    const totalStudios = await prisma.studio.count({ where: { isActive: true } });
-    const withCoordinates = await prisma.studio.count({
+    const totalStudios = await prisma.studio.count();
+    const studiosWithCoords = await prisma.studio.count({
       where: {
-        isActive: true,
         latitude: { not: null },
         longitude: { not: null }
       }
     });
-    const withoutCoordinates = totalStudios - withCoordinates;
+    const studiosNeedingGeocoding = totalStudios - studiosWithCoords;
+    const cachedAddresses = await prisma.geocodeCache.count();
 
     res.json({
       success: true,
       data: {
-        total: totalStudios,
-        withCoordinates: withCoordinates,
-        withoutCoordinates: withoutCoordinates,
-        percentage: totalStudios > 0 ? Math.round((withCoordinates / totalStudios) * 100) : 0
+        totalStudios,
+        studiosWithCoords,
+        studiosNeedingGeocoding,
+        cachedAddresses,
+        progress: totalStudios > 0 ? Math.round((studiosWithCoords / totalStudios) * 100) : 0
       }
     });
   } catch (error) {
     console.error('Error getting geocoding stats:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get geocoding statistics'
-    });
+    res.status(500).json({ success: false, error: 'Failed to get geocoding statistics' });
   }
 });
 
 // Get studios that need geocoding
 router.get('/pending', async (req, res) => {
   try {
-    const { limit = 1000 } = req.query; // Increased default limit to handle all studios
+    const limit = parseInt(req.query.limit) || 10;
     
-    // Simple query - just get studios without coordinates
     const studios = await prisma.studio.findMany({
       where: {
-        isActive: true,
         OR: [
           { latitude: null },
           { longitude: null }
@@ -208,356 +67,153 @@ router.get('/pending', async (req, res) => {
         zipCode: true,
         country: true
       },
-      take: parseInt(limit) || 1000, // Increased to handle all studios
-      orderBy: { createdAt: 'asc' }
+      take: limit
     });
 
-    // Build full addresses with better formatting
-    const studiosWithAddress = studios.map(studio => {
-      // Clean and validate each address component
-      const cleanAddress = studio.address ? studio.address.trim().replace(/[,\s]+/g, ' ').trim() : '';
-      const cleanCity = studio.city ? studio.city.trim().replace(/[,\s]+/g, ' ').trim() : '';
-      const cleanState = studio.state ? studio.state.trim().replace(/[,\s]+/g, ' ').trim() : '';
-      const cleanZipCode = studio.zipCode ? studio.zipCode.trim().replace(/[,\s]+/g, ' ').trim() : '';
-      const cleanCountry = studio.country ? studio.country.trim().replace(/[,\s]+/g, ' ').trim() : 'United Kingdom';
-      
-      // Build address parts, filtering out empty or invalid values
-      const addressParts = [
-        cleanAddress,
-        cleanCity,
-        cleanState,
-        cleanZipCode,
-        cleanCountry
-      ].filter(part => part && part.length > 0 && part !== 'null' && part !== 'undefined' && part !== 'N/A' && part !== 'n/a');
-      
-      // Create the full address
-      const full_address = addressParts.join(', ');
-      
-      // Log problematic addresses for debugging
-      if (addressParts.length < 2) {
-        console.log(`⚠️ Studio "${studio.title}" has insufficient address data:`, {
-          address: studio.address,
-          city: studio.city,
-          state: studio.state,
-          zipCode: studio.zipCode,
-          country: studio.country,
-          full_address
-        });
-      }
-      
-      return {
-        ...studio,
-        full_address,
-        address_quality: addressParts.length // Number of valid address components
-      };
-    });
-
-    // Filter out studios with insufficient address data
-    const validStudios = studiosWithAddress.filter(studio => studio.address_quality >= 2);
-    const invalidStudios = studiosWithAddress.filter(studio => studio.address_quality < 2);
-    
-    if (invalidStudios.length > 0) {
-      console.log(`⚠️ Found ${invalidStudios.length} studios with insufficient address data:`, 
-        invalidStudios.map(s => `${s.title} (${s.address_quality} parts)`)
-      );
-    }
-    
     res.json({
       success: true,
-      data: validStudios,
-      count: validStudios.length,
-      total: studiosWithAddress.length,
-      invalid: invalidStudios.length,
-      address_quality_summary: {
-        excellent: validStudios.filter(s => s.address_quality >= 4).length,
-        good: validStudios.filter(s => s.address_quality === 3).length,
-        minimal: validStudios.filter(s => s.address_quality === 2).length,
-        insufficient: invalidStudios.length
-      }
+      data: studios.map(studio => ({
+        ...studio,
+        fullAddress: [studio.address, studio.city, studio.state, studio.zipCode, studio.country]
+          .filter(Boolean)
+          .join(', ')
+      }))
     });
-
   } catch (error) {
-    console.error('Error fetching pending studios:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch pending studios'
-    });
+    console.error('Error getting pending studios:', error);
+    res.status(500).json({ success: false, error: 'Failed to get pending studios' });
   }
 });
 
-// Save geocoding result - SIMPLE VERSION
-router.post('/save-result', async (req, res) => {
-  try {
-    console.log('📝 Received geocoding request');
-    console.log('📝 Request headers:', req.headers);
-    console.log('📝 Request body:', req.body);
-    console.log('📝 Request method:', req.method);
-    console.log('📝 Request URL:', req.url);
-    console.log('📝 Request IP:', req.ip);
-    
-    const { studioId, latitude, longitude } = req.body;
-
-    // Basic validation
-    if (!studioId || !latitude || !longitude) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields: studioId, latitude, longitude'
-      });
-    }
-
-    // Validate coordinates
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
-    
-    if (isNaN(lat) || lat < -90 || lat > 90) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid latitude'
-      });
-    }
-    
-    if (isNaN(lng) || lng < -180 || lng > 180) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid longitude'
-      });
-    }
-
-    // Check if studio exists
-    const existingStudio = await prisma.studio.findUnique({
-      where: { id: studioId },
-      select: { id: true, title: true }
-    });
-
-    if (!existingStudio) {
-      return res.status(404).json({
-        success: false,
-        error: 'Studio not found'
-      });
-    }
-
-    // Use direct PostgreSQL connection to bypass Prisma schema issues
-    console.log(`🔄 Updating studio ${studioId} with coordinates: ${lat}, ${lng}`);
-    
-    // Test pool connection first (more lenient check)
-    console.log(`🔧 Pool status: totalCount=${pool.totalCount}, idleCount=${pool.idleCount}, waitingCount=${pool.waitingCount}`);
-    
-    // Only check if pool is completely empty
-    if (pool.totalCount === 0 && pool.idleCount === 0) {
-      console.log('⚠️ Pool appears disconnected, attempting to reconnect...');
-      try {
-        await pool.query('SELECT 1');
-        console.log('✅ Pool reconnected successfully');
-      } catch (reconnectError) {
-        console.log('❌ Pool reconnection failed:', reconnectError.message);
-        // Don't throw error, just log it and continue
-        console.log('⚠️ Continuing with pool despite reconnection failure');
-      }
-    }
-    
-    // Use direct PostgreSQL query to avoid Prisma schema validation
-    // Use the correct field name 'updated_at' to match the database schema
-    const query = 'UPDATE studios SET latitude = $1, longitude = $2, updated_at = NOW() WHERE id = $3';
-    const values = [lat, lng, studioId];
-    
-    console.log(`🔍 Executing query: ${query} with values: [${values.join(', ')}]`);
-    
-    const result = await pool.query(query, values);
-    console.log(`📊 Update result:`, result.rowCount);
-    
-    const updateResult = result.rowCount;
-
-    if (updateResult === 1) {
-      console.log(`✅ Updated coordinates for ${existingStudio.title}: ${lat}, ${lng}`);
-      
-      res.json({
-        success: true,
-        data: {
-          studio: {
-            id: studioId,
-            title: existingStudio.title,
-            latitude: lat,
-            longitude: lng
-          },
-          message: 'Coordinates saved successfully'
-        }
-      });
-    } else {
-      throw new Error('Update failed - no rows affected');
-    }
-
-  } catch (error) {
-    console.error('Error saving geocoding result:', error);
-    console.error('Error details:', {
-      code: error.code,
-      message: error.message,
-      meta: error.meta,
-      stack: error.stack
-    });
-    
-    // Try Prisma as fallback if pool fails
-    if (error.message && (error.message.includes('pool not connected') || error.message.includes('ECONNREFUSED'))) {
-      console.log('🔄 Pool failed, trying Prisma fallback...');
-      try {
-        const fallbackResult = await prisma.studio.update({
-          where: { id: studioId },
-          data: { latitude: lat, longitude: lng }
-        });
-        console.log('✅ Prisma fallback successful:', fallbackResult.id);
-        return res.json({
-          success: true,
-          data: {
-            studio: {
-              id: studioId,
-              title: existingStudio.title,
-              latitude: lat,
-              longitude: lng
-            },
-            message: 'Coordinates saved successfully (Prisma fallback)'
-          }
-        });
-      } catch (fallbackError) {
-        console.error('❌ Prisma fallback also failed:', fallbackError);
-        error = fallbackError; // Use the fallback error for the main error handling
-      }
-    }
-    
-    // Provide more specific error messages
-    let errorMessage = 'Failed to save coordinates';
-    
-    if (error.code === 'P2025') {
-      errorMessage = 'Studio not found';
-    } else if (error.code === 'P2002') {
-      errorMessage = 'Database constraint violation';
-    } else if (error.message && error.message.includes('column')) {
-      errorMessage = 'Database schema error';
-    } else if (error.message && error.message.includes('pool')) {
-      errorMessage = 'Database connection error';
-    }
-    
-    res.status(500).json({
-      success: false,
-      error: errorMessage,
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-// Get all studios for map display
+// Get all studios (for frontend display)
 router.get('/studios', async (req, res) => {
   try {
     const studios = await prisma.studio.findMany({
-      where: { isActive: true },
       select: {
         id: true,
         title: true,
-        latitude: true,
-        longitude: true,
         address: true,
         city: true,
         state: true,
         zipCode: true,
-        country: true
+        country: true,
+        latitude: true,
+        longitude: true
       }
     });
 
-    // Convert to GeoJSON format
-    const geoJson = {
-      type: 'FeatureCollection',
-      features: studios
-        .filter(studio => studio.latitude && studio.longitude)
-        .map(studio => ({
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [studio.longitude, studio.latitude]
-          },
-          properties: {
-            id: studio.id,
-            title: studio.title,
-            address: studio.address,
-            city: studio.city,
-            state: studio.state,
-            zipCode: studio.zipCode,
-            country: studio.country,
-            hasCoordinates: true
-          }
-        }))
-    };
+    res.json({
+      success: true,
+      data: studios.map(studio => ({
+        ...studio,
+        fullAddress: [studio.address, studio.city, studio.state, studio.zipCode, studio.country]
+          .filter(Boolean)
+          .join(', '),
+        hasCoordinates: !!(studio.latitude && studio.longitude)
+      }))
+    });
+  } catch (error) {
+    console.error('Error getting studios:', error);
+    res.status(500).json({ success: false, error: 'Failed to get studios' });
+  }
+});
+
+// Save geocoding result (updated to use GeocodeCache)
+router.post('/save-result', async (req, res) => {
+  try {
+    const { studioId, latitude, longitude, address } = req.body;
+    
+    if (!studioId || latitude === undefined || longitude === undefined) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: studioId, latitude, longitude' 
+      });
+    }
+
+    console.log(`🔄 Updating studio ${studioId} with coordinates: ${latitude}, ${longitude}`);
+
+    // Update the studio with coordinates
+    const updatedStudio = await prisma.studio.update({
+      where: { id: studioId },
+      data: {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        updatedAt: new Date()
+      }
+    });
+
+    // If address is provided, cache it in GeocodeCache
+    if (address) {
+      const addressHash = Buffer.from(address.toLowerCase().trim()).toString('base64');
+      
+      await prisma.geocodeCache.upsert({
+        where: { address_hash: addressHash },
+        update: {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
+          updated_at: new Date()
+        },
+        create: {
+          address_hash: addressHash,
+          original_address: address,
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude)
+        }
+      });
+    }
+
+    console.log(`✅ Updated coordinates for ${updatedStudio.title}: ${latitude}, ${longitude}`);
 
     res.json({
       success: true,
-      data: geoJson,
-      count: geoJson.features.length,
-      total: studios.length
+      data: {
+        studioId,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        message: `Successfully updated coordinates for ${updatedStudio.title}`
+      }
     });
 
   } catch (error) {
-    console.error('Error fetching studios for map:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch studios'
+    console.error('Error saving geocoding result:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to save geocoding result',
+      details: error.message 
     });
   }
 });
 
-// Get single studio by ID
-router.get('/studios/:id', async (req, res) => {
+// Get cached geocoding results
+router.get('/cache', async (req, res) => {
   try {
-    const { id } = req.params;
-    
-    const studio = await prisma.studio.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        title: true,
-        latitude: true,
-        longitude: true,
-        address: true,
-        city: true,
-        state: true,
-        zipCode: true,
-        country: true
-      }
+    const cache = await prisma.geocodeCache.findMany({
+      orderBy: { updated_at: 'desc' },
+      take: 100
     });
-
-    if (!studio) {
-      return res.status(404).json({
-        success: false,
-        error: 'Studio not found'
-      });
-    }
-
-    // Convert to GeoJSON
-    const geoJson = {
-      type: 'Feature',
-      geometry: studio.latitude && studio.longitude ? {
-        type: 'Point',
-        coordinates: [studio.longitude, studio.latitude]
-      } : null,
-      properties: {
-        id: studio.id,
-        title: studio.title,
-        address: studio.address,
-        city: studio.city,
-        state: studio.state,
-        zipCode: studio.zipCode,
-        country: studio.country,
-        hasCoordinates: !!(studio.latitude && studio.longitude)
-      }
-    };
 
     res.json({
       success: true,
-      data: geoJson
+      data: cache
     });
-
   } catch (error) {
-    console.error('Error fetching studio:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch studio'
+    console.error('Error getting geocoding cache:', error);
+    res.status(500).json({ success: false, error: 'Failed to get geocoding cache' });
+  }
+});
+
+// Clear geocoding cache
+router.delete('/cache', async (req, res) => {
+  try {
+    await prisma.geocodeCache.deleteMany({});
+    
+    res.json({
+      success: true,
+      message: 'Geocoding cache cleared successfully'
     });
+  } catch (error) {
+    console.error('Error clearing geocoding cache:', error);
+    res.status(500).json({ success: false, error: 'Failed to clear geocoding cache' });
   }
 });
 
