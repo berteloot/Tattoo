@@ -9,6 +9,8 @@ const SimpleGeocoding = () => {
   const [stats, setStats] = useState({ total: 0, withCoordinates: 0, withoutCoordinates: 0 });
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [loadingMaps, setLoadingMaps] = useState(false);
+  const [manualApiKey, setManualApiKey] = useState('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   // Load pending studios
   const loadPendingStudios = async () => {
@@ -62,11 +64,17 @@ const SimpleGeocoding = () => {
       });
     }
 
+    // Check if API key is available
+    const apiKey = manualApiKey || import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey || apiKey === 'undefined') {
+      return Promise.reject(new Error('Google Maps API key not configured. Please set VITE_GOOGLE_MAPS_API_KEY in your environment or enter it manually.'));
+    }
+
     setLoadingMaps(true);
     
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=geocoding`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geocoding`;
       script.async = true;
       script.defer = true;
       
@@ -96,6 +104,13 @@ const SimpleGeocoding = () => {
   useEffect(() => {
     loadPendingStudios();
     loadStats();
+    
+    // Check for manual API key in localStorage
+    const savedApiKey = localStorage.getItem('manual_google_maps_api_key');
+    if (savedApiKey) {
+      setManualApiKey(savedApiKey);
+    }
+    
     loadGoogleMapsAPI();
   }, []);
 
@@ -280,6 +295,57 @@ const SimpleGeocoding = () => {
             </span>
           </div>
         </div>
+        
+        {/* API Key Status */}
+        {!googleMapsLoaded && !loadingMaps && (
+          <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+            <div className="flex items-center space-x-2">
+              <span className="text-yellow-600">⚠️</span>
+              <span className="text-sm text-yellow-800">
+                {!import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_GOOGLE_MAPS_API_KEY === 'undefined' 
+                  ? 'Google Maps API key not configured. Please set VITE_GOOGLE_MAPS_API_KEY in your environment.'
+                  : 'Google Maps API failed to load. Check your API key and network connection.'
+                }
+              </span>
+            </div>
+            
+            {/* Manual API Key Input */}
+            <div className="mt-3">
+              <button
+                onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                className="text-sm text-blue-600 hover:text-blue-800 underline"
+              >
+                {showApiKeyInput ? 'Hide' : 'Enter API Key Manually'}
+              </button>
+              
+              {showApiKeyInput && (
+                <div className="mt-2 space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Enter your Google Maps API key"
+                    value={manualApiKey}
+                    onChange={(e) => setManualApiKey(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                  <button
+                    onClick={() => {
+                      if (manualApiKey.trim()) {
+                        // Store in localStorage for this session
+                        localStorage.setItem('manual_google_maps_api_key', manualApiKey.trim());
+                        setShowApiKeyInput(false);
+                        // Try to load with manual key
+                        loadGoogleMapsAPI();
+                      }
+                    }}
+                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                  >
+                    Use This Key
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Stats */}
