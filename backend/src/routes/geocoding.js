@@ -488,4 +488,51 @@ router.get('/cache-stats', async (req, res) => {
   });
 });
 
+// Get geocoding statistics
+router.get('/stats', async (req, res) => {
+  try {
+    // Get total studios count
+    const totalStudios = await prisma.studio.count({
+      where: { isActive: true }
+    });
+
+    // Get studios with coordinates
+    const studiosWithCoordinates = await prisma.studio.count({
+      where: {
+        isActive: true,
+        latitude: { not: null },
+        longitude: { not: null }
+      }
+    });
+
+    // Get studios without coordinates
+    const studiosWithoutCoordinates = await prisma.studio.count({
+      where: {
+        isActive: true,
+        OR: [
+          { latitude: null },
+          { longitude: null }
+        ]
+      }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        total: totalStudios,
+        withCoordinates: studiosWithCoordinates,
+        withoutCoordinates: studiosWithoutCoordinates,
+        percentage: totalStudios > 0 ? Math.round((studiosWithCoordinates / totalStudios) * 100) : 0
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching geocoding stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch geocoding statistics'
+    });
+  }
+});
+
 module.exports = router; // Force complete rebuild 1754773676

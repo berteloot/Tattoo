@@ -153,6 +153,38 @@ router.get('/status', async (req, res) => {
   }
 });
 
+// Add /stats endpoint for frontend compatibility (same as /status)
+router.get('/stats', async (req, res) => {
+  try {
+    // Get basic counts
+    const totalStudios = await prisma.studio.count({ where: { isActive: true } });
+    const withCoordinates = await prisma.studio.count({
+      where: {
+        isActive: true,
+        latitude: { not: null },
+        longitude: { not: null }
+      }
+    });
+    const withoutCoordinates = totalStudios - withCoordinates;
+
+    res.json({
+      success: true,
+      data: {
+        total: totalStudios,
+        withCoordinates: withCoordinates,
+        withoutCoordinates: withoutCoordinates,
+        percentage: totalStudios > 0 ? Math.round((withCoordinates / totalStudios) * 100) : 0
+      }
+    });
+  } catch (error) {
+    console.error('Error getting geocoding stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get geocoding statistics'
+    });
+  }
+});
+
 // Get studios that need geocoding
 router.get('/pending', async (req, res) => {
   try {
@@ -324,7 +356,8 @@ router.post('/save-result', async (req, res) => {
     }
     
     // Use direct PostgreSQL query to avoid Prisma schema validation
-    const query = 'UPDATE studios SET latitude = $1, longitude = $2 WHERE id = $3';
+    // Use the correct field name 'updated_at' to match the database schema
+    const query = 'UPDATE studios SET latitude = $1, longitude = $2, updated_at = NOW() WHERE id = $3';
     const values = [lat, lng, studioId];
     
     console.log(`🔍 Executing query: ${query} with values: [${values.join(', ')}]`);
