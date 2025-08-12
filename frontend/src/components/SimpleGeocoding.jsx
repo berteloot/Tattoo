@@ -184,88 +184,97 @@ const SimpleGeocoding = () => {
     setFailedCount(0);
     setErrors([]);
 
-            // Process studios in batches
-        for (let i = 0; i < pendingStudios.length; i++) {
-          if (!isGeocoding) break; // Allow stopping
+    // Start processing studios one by one
+    processNextStudio(0);
+  };
 
-          const studio = pendingStudios[i];
-          setCurrentIndex(i + 1);
-          setProgress(((i + 1) / pendingStudios.length) * 100);
+  // Process studios one by one recursively
+  const processNextStudio = async (index) => {
+    // Check if we should stop
+    if (!isGeocoding || index >= pendingStudios.length) {
+      console.log('🏁 [DEBUG] Geocoding completed or stopped');
+      setIsGeocoding(false);
       
-      console.log(`🌍 [${i + 1}/${pendingStudios.length}] Processing: ${studio.title}`);
-
-      try {
-        // Build full address
-        const addressParts = [
-          studio.address,
-          studio.city,
-          studio.state,
-          studio.zipCode,
-          studio.country
-        ].filter(Boolean);
-        
-        const fullAddress = addressParts.join(', ');
-        
-        if (!fullAddress) {
-          console.warn(`⚠️ [${i + 1}/${pendingStudios.length}] No address for: ${studio.title}`);
-          setFailedCount(prev => prev + 1);
-          setErrors(prev => [...prev, `${studio.title}: No address available`]);
-          continue;
-        }
-
-        // Geocode address
-        const result = await geocodeAddress(fullAddress);
-        
-        // Save result to backend
-        const response = await fetch('/api/geocoding/save-result', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            studioId: studio.id,
-            latitude: result.latitude,
-            longitude: result.longitude,
-            address: fullAddress
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const saveResult = await response.json();
-        
-        if (saveResult.success) {
-          console.log(`✅ [${i + 1}/${pendingStudios.length}] Successfully geocoded: ${studio.title}`);
-          setGeocodedCount(prev => prev + 1);
-          
-          // Update local state to remove from pending
-          setPendingStudios(prev => prev.filter(s => s.id !== studio.id));
-        } else {
-          throw new Error(saveResult.error || 'Unknown error');
-        }
-
-        // Rate limiting delay
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-      } catch (error) {
-        console.error(`❌ [${i + 1}/${pendingStudios.length}] Failed to geocode ${studio.title}:`, error);
-        setFailedCount(prev => prev + 1);
-        setErrors(prev => [...prev, `${studio.title}: ${error.message}`]);
-        
-        // Continue with next studio
-        continue;
+      if (geocodedCount > 0) {
+        toast.success(`Geocoding completed! ${geocodedCount} studios processed successfully.`);
       }
+      
+      // Refresh data
+      loadPendingStudios();
+      loadStats();
+      return;
     }
 
-    setIsGeocoding(false);
+    const studio = pendingStudios[index];
+    setCurrentIndex(index + 1);
+    setProgress(((index + 1) / pendingStudios.length) * 100);
     
-    if (geocodedCount > 0) {
-      toast.success(`Geocoding completed! ${geocodedCount} studios processed successfully.`);
+    console.log(`🌍 [${index + 1}/${pendingStudios.length}] Processing: ${studio.title}`);
+
+    try {
+      // Build full address
+      const addressParts = [
+        studio.address,
+        studio.city,
+        studio.state,
+        studio.zipCode,
+        studio.country
+      ].filter(Boolean);
+      
+      const fullAddress = addressParts.join(', ');
+      
+      if (!fullAddress) {
+        console.warn(`⚠️ [${index + 1}/${pendingStudios.length}] No address for: ${studio.title}`);
+        setFailedCount(prev => prev + 1);
+        setErrors(prev => [...prev, `${studio.title}: No address available`]);
+        
+        // Process next studio after a short delay
+        setTimeout(() => processNextStudio(index + 1), 100);
+        return;
+      }
+
+      // Geocode address
+      const result = await geocodeAddress(fullAddress);
+      
+      // Save result to backend
+      const response = await fetch('/api/geocoding/save-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studioId: studio.id,
+          latitude: result.latitude,
+          longitude: result.longitude,
+          address: fullAddress
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const saveResult = await response.json();
+      
+      if (saveResult.success) {
+        console.log(`✅ [${index + 1}/${pendingStudios.length}] Successfully geocoded: ${studio.title}`);
+        setGeocodedCount(prev => prev + 1);
+        
+        // Update local state to remove from pending
+        setPendingStudios(prev => prev.filter(s => s.id !== studio.id));
+      } else {
+        throw new Error(saveResult.error || 'Unknown error');
+      }
+
+      // Rate limiting delay before next studio
+      setTimeout(() => processNextStudio(index + 1), 200);
+
+    } catch (error) {
+      console.error(`❌ [${index + 1}/${pendingStudios.length}] Failed to geocode ${studio.title}:`, error);
+      setFailedCount(prev => prev + 1);
+      setErrors(prev => [...prev, `${studio.title}: ${error.message}`]);
+      
+      // Process next studio after error (with delay)
+      setTimeout(() => processNextStudio(index + 1), 500);
     }
-    
-    // Refresh data
-    loadPendingStudios();
-    loadStats();
   };
 
   // Stop geocoding
