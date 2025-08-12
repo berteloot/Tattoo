@@ -1,5 +1,6 @@
 const express = require('express');
 const { prisma } = require('../utils/prisma');
+const crypto = require('crypto'); // Added for caching
 
 const router = express.Router();
 
@@ -135,66 +136,86 @@ router.get('/studios', async (req, res) => {
 
 // Save geocoding result (minimal version to test)
 router.post('/save-result', async (req, res) => {
-  try {
-    console.log('🔍 [GEOCODING] POST /save-result - Processing request');
-    console.log('📝 Request body:', req.body);
-    
-    const { studioId, latitude, longitude, address } = req.body;
-    
-    if (!studioId || latitude === undefined || longitude === undefined) {
-      console.log('❌ Missing required fields:', { studioId, latitude, longitude });
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Missing required fields: studioId, latitude, longitude' 
-      });
-    }
-
-    console.log(`🔄 Would update studio ${studioId} with coordinates: ${latitude}, ${longitude}`);
-    
-    // Update studio coordinates
-    try {
-      const updatedStudio = await prisma.studio.update({
-        where: { id: studioId },
-        data: {
-          latitude: parseFloat(latitude),
-          longitude: parseFloat(longitude)
-        }
-      });
-      
-      console.log(`✅ Studio updated successfully: ${updatedStudio.title}`);
-    } catch (error) {
-      if (error.code === 'P2025') {
-        console.error(`❌ Studio not found: ${studioId}`);
-        return res.status(404).json({
-          success: false,
-          error: `Studio not found: ${studioId}`
-        });
-      }
-      console.error(`❌ Failed to update studio ${studioId}:`, error);
-      return res.status(500).json({
-        success: false,
-        error: `Failed to update studio: ${error.message}`
-      });
-    }
-
-    res.json({
-      success: true,
-      data: {
-        studioId,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        message: `TEMPORARY: Successfully simulated coordinates for studio ${studioId}`
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ Error in save-result:', error);
-    res.status(500).json({ 
+  console.log('🔍 [GEOCODING] POST /save-result - Processing request');
+  console.log('📝 Request body:', req.body);
+  
+  const { studioId, latitude, longitude, address } = req.body;
+  
+  if (!studioId || latitude === undefined || longitude === undefined) {
+    console.log('❌ Missing required fields:', { studioId, latitude, longitude });
+    return res.status(400).json({ 
       success: false, 
-      error: 'Failed to save geocoding result',
-      details: error.message 
+      error: 'Missing required fields: studioId, latitude, longitude' 
     });
   }
+
+  console.log(`🔄 Updating studio ${studioId} with coordinates: ${latitude}, ${longitude}`);
+  
+  // Update studio coordinates
+  let updatedStudio;
+  try {
+    updatedStudio = await prisma.studio.update({
+      where: { id: studioId },
+      data: {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
+      }
+    });
+    
+    console.log(`✅ Studio updated successfully: ${updatedStudio.title}`);
+  } catch (error) {
+    console.error(`❌ Prisma error details:`, {
+      code: error.code,
+      message: error.message,
+      meta: error.meta
+    });
+    
+    if (error.code === 'P2025' || error.message.includes('Record to update not found')) {
+      console.error(`❌ Studio not found: ${studioId}`);
+      return res.status(404).json({
+        success: false,
+        error: `Studio not found: ${studioId}`
+      });
+    }
+    console.error(`❌ Failed to update studio ${studioId}:`, error);
+    return res.status(500).json({
+      success: false,
+      error: `Failed to update studio: ${error.message}`
+    });
+  }
+
+  // Cache the geocoded address
+  try {
+    const addressHash = crypto.createHash('md5').update(address || `${latitude},${longitude}`).digest('hex');
+    await prisma.geocodeCache.upsert({
+      where: { address_hash: addressHash },
+      update: {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        updated_at: new Date()
+      },
+      create: {
+        address_hash: addressHash,
+        original_address: address || `${latitude},${longitude}`,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
+      }
+    });
+    console.log(`💾 Address cached successfully: ${address || `${latitude},${longitude}`}`);
+  } catch (cacheError) {
+    console.warn(`⚠️ Failed to cache address:`, cacheError);
+    // Don't fail the whole request if caching fails
+  }
+
+  res.json({
+    success: true,
+    data: {
+      studioId,
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+      message: `Successfully updated coordinates for ${updatedStudio.title}`
+    }
+  });
 });
 
 // Get cached geocoding results
