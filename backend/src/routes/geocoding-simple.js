@@ -151,16 +151,23 @@ router.post('/save-result', async (req, res) => {
 
     console.log(`🔄 Updating studio ${studioId} with coordinates: ${latitude}, ${longitude}`);
 
-    // Update the studio with coordinates
-    const updatedStudio = await prisma.studio.update({
+    // Update the studio with coordinates using raw SQL to bypass legacy functions
+    const updateResult = await prisma.$executeRaw`
+      UPDATE studios 
+      SET latitude = ${parseFloat(latitude)}, longitude = ${parseFloat(longitude)}
+      WHERE id = ${studioId}
+    `;
+    
+    if (updateResult === 0) {
+      throw new Error('Studio not found');
+    }
+    
+    // Get the updated studio info
+    const updatedStudio = await prisma.studio.findUnique({
       where: { id: studioId },
-      data: {
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude)
-        // Temporarily removed updatedAt to avoid triggering legacy functions
-      }
+      select: { id: true, title: true, latitude: true, longitude: true }
     });
-
+    
     console.log(`✅ Studio updated successfully: ${updatedStudio.title}`);
 
     // If address is provided, cache it in GeocodeCache
