@@ -379,7 +379,7 @@ process.on('unhandledRejection', (err, promise) => {
 
 module.exports = app; // Force rebuild - Sat Aug  9 21:04:14 CEST 2025
 
-// FORCE DEPLOYMENT - Fixed rate limiting trust proxy error v4.1
-// Updated rate limiting configuration to avoid trust proxy validation errors
-// Fixed: Added custom keyGenerator to handle X-Forwarded-For headers properly
+// FORCE DEPLOYMENT - CSP blob URL fix v4.2
+// Updated helmet configuration to properly handle blob URLs
+// Fixed: imgSrc now uses correct blob: syntax without invalid URLs
 // Status: Ready for production deployment
