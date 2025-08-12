@@ -156,8 +156,8 @@ router.post('/save-result', async (req, res) => {
       where: { id: studioId },
       data: {
         latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        updatedAt: new Date()
+        longitude: parseFloat(longitude)
+        // Temporarily removed updatedAt to avoid triggering legacy functions
       }
     });
 
