@@ -2,7 +2,7 @@
 // This component implements automated batch geocoding using Google Maps API
 // Features: Clean interface, progress tracking, rate limiting, error handling
 // Status: Backend API fixed, frontend ready for production deployment
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../contexts/ToastContext';
 
 const SimpleGeocoding = () => {
@@ -45,100 +45,100 @@ const SimpleGeocoding = () => {
   };
 
   // Load Google Maps API
-  const loadGoogleMapsAPI = () => {
+  const loadGoogleMapsAPI = useCallback(() => {
     return new Promise((resolve, reject) => {
       console.log('🔄 [DEBUG] loadGoogleMapsAPI called');
       
+      // Check if already loaded
       if (window.google && window.google.maps) {
-        setGoogleMapsLoaded(true);
-        console.log('✅ [DEBUG] Google Maps API already loaded');
+        console.log('✅ [DEBUG] Google Maps already loaded');
         resolve();
         return;
       }
 
+      // Check API key
       const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-      console.log('🔑 [DEBUG] Loading Google Maps API:', {
-        hasKey: !!apiKey,
-        keyLength: apiKey ? apiKey.length : 0,
-        keyPreview: apiKey ? `${apiKey.substring(0, 10)}...` : 'None'
-      });
-      
-      if (!apiKey) {
-        const error = 'Google Maps API key is missing. Please check your environment configuration.';
-        console.error('❌ [DEBUG]', error);
-        toast.error('Google Maps API key is missing. Please contact support.');
-        reject(new Error(error));
+      if (!apiKey || apiKey === 'Present') {
+        console.error('❌ [DEBUG] No valid Google Maps API key found');
+        reject(new Error('Google Maps API key not configured'));
         return;
       }
 
-      console.log('🚀 [DEBUG] Creating Google Maps script tag...');
+      console.log('🔑 [DEBUG] Loading Google Maps API:', {
+        hasKey: true,
+        keyLength: apiKey.length,
+        keyPreview: `${apiKey.substring(0, 8)}...`
+      });
+
+      // Create script tag with classic loader (not loading=async)
       const script = document.createElement('script');
-      const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async`;
+      const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geocoding`;
+      
+      console.log('🚀 [DEBUG] Creating Google Maps script tag...');
+      console.log('🔗 [DEBUG] Script URL:', scriptUrl);
+      
       script.src = scriptUrl;
       script.async = true;
       script.defer = true;
       
-      console.log('🔗 [DEBUG] Script URL:', scriptUrl);
       console.log('📝 [DEBUG] Script attributes set:', {
         src: script.src,
         async: script.async,
         defer: script.defer
       });
-      
+
+      // Handle script load
       script.onload = () => {
         console.log('✅ [DEBUG] Google Maps API script loaded successfully');
-        console.log('🔍 [DEBUG] Checking window.google:', {
-          hasGoogle: !!window.google,
-          hasMaps: !!(window.google && window.google.maps),
-          hasGeocoder: !!(window.google && window.google.maps && window.google.maps.Geocoder)
-        });
-        setGoogleMapsLoaded(true);
-        resolve();
+        
+        // Wait a bit for the API to fully initialize
+        setTimeout(() => {
+          console.log('🔍 [DEBUG] Checking window.google:', {
+            hasGoogle: !!window.google,
+            hasMaps: !!(window.google && window.google.maps),
+            hasGeocoder: !!(window.google && window.google.maps && window.google.maps.Geocoder)
+          });
+          
+          if (window.google && window.google.maps && window.google.maps.Geocoder) {
+            console.log('✅ [DEBUG] Google Maps API fully loaded with Geocoder');
+            resolve();
+          } else {
+            console.error('❌ [DEBUG] Google Maps API loaded but Geocoder not available');
+            reject(new Error('Google Maps Geocoder not available'));
+          }
+        }, 1000);
       };
-      
-      script.onerror = (error) => {
-        const errorMsg = 'Failed to load Google Maps API script';
-        console.error('❌ [DEBUG]', errorMsg, error);
-        console.error('❌ [DEBUG] Script error details:', {
-          error: error,
-          scriptSrc: script.src,
-          readyState: script.readyState
-        });
-        toast.error('Failed to load Google Maps API. Please check your internet connection.');
-        reject(new Error(errorMsg));
+
+      // Handle script error
+      script.onerror = () => {
+        console.error('❌ [DEBUG] Failed to load Google Maps API script');
+        reject(new Error('Failed to load Google Maps API script'));
       };
-      
+
+      // Append script to document head
       console.log('📝 [DEBUG] Appending script to document head...');
       console.log('📝 [DEBUG] Document head children before:', document.head.children.length);
+      
       document.head.appendChild(script);
+      
       console.log('📝 [DEBUG] Script appended, waiting for load...');
       console.log('📝 [DEBUG] Document head children after:', document.head.children.length);
-      
-      // Add a timeout to catch if the script never loads
-      setTimeout(() => {
-        if (!window.google || !window.google.maps) {
-          console.error('⏰ [DEBUG] Script load timeout - Google Maps still not available after 10 seconds');
-          reject(new Error('Google Maps API script load timeout'));
-        }
-      }, 10000);
     });
-  };
+  }, []);
 
   // Geocode a single address
   const geocodeAddress = async (address) => {
-    return new Promise(async (resolve, reject) => {
-      if (!window.google || !window.google.maps) {
-        reject(new Error('Google Maps API not loaded'));
-        return;
-      }
-
+    return new Promise((resolve, reject) => {
       try {
-        // Use modern importLibrary approach for Geocoder
-        const { Geocoder } = await window.google.maps.importLibrary('geocoding');
-        const geocoder = new Geocoder();
+        if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
+          reject(new Error('Google Maps API not loaded'));
+          return;
+        }
+
+        const geocoder = new window.google.maps.Geocoder();
         
         geocoder.geocode({ address }, (results, status) => {
-          if (status === 'OK' && results[0]) {
+          if (status === 'OK' && results && results[0]) {
             const location = results[0].geometry.location;
             resolve({
               latitude: location.lat(),
@@ -146,7 +146,7 @@ const SimpleGeocoding = () => {
               formattedAddress: results[0].formatted_address
             });
           } else {
-            reject(new Error(`Address not found: ${status}`));
+            reject(new Error(`Geocoding failed: ${status}`));
           }
         });
       } catch (error) {
@@ -222,42 +222,121 @@ const SimpleGeocoding = () => {
     }, 2000); // 2 second delay
   };
 
-  // Start geocoding process
+  // Start batch geocoding
   const startGeocoding = async () => {
     console.log('🚀 [DEBUG] startGeocoding called');
     console.log('🔍 [DEBUG] Current state:', {
       pendingStudiosLength: pendingStudios.length,
-      googleMapsLoaded: googleMapsLoaded,
+      googleMapsLoaded,
       hasWindowGoogle: !!(window.google && window.google.maps)
     });
-    
-    if (pendingStudios.length === 0) {
+
+    if (!pendingStudios.length) {
       toast.error('No studios to geocode');
       return;
     }
-    
-    if (!googleMapsLoaded) {
+
+    if (!googleMapsLoaded || !(window.google && window.google.maps)) {
       console.log('❌ [DEBUG] Google Maps not loaded, attempting to load...');
       try {
-        toast.info('Loading Google Maps API...');
         await loadGoogleMapsAPI();
+        setGoogleMapsLoaded(true);
         console.log('✅ [DEBUG] Google Maps API loaded successfully');
-        toast.success('Google Maps API loaded!');
       } catch (error) {
         console.error('❌ [DEBUG] Failed to load Google Maps API:', error);
         toast.error('Failed to load Google Maps API');
         return;
       }
-    } else {
-      console.log('✅ [DEBUG] Google Maps already loaded');
     }
 
     console.log('✅ [DEBUG] Google Maps API verified, starting geocoding...');
-    
     setIsGeocoding(true);
     setCurrentIndex(0);
-    setProgress(0);
-    processNextStudio(0);
+    setGeocodedCount(0);
+    setFailedCount(0);
+    setErrors([]);
+
+    // Process studios in batches
+    for (let i = 0; i < pendingStudios.length; i++) {
+      if (!isGeocoding) break; // Allow stopping
+
+      const studio = pendingStudios[i];
+      setCurrentIndex(i + 1);
+      
+      console.log(`🌍 [${i + 1}/${pendingStudios.length}] Processing: ${studio.title}`);
+
+      try {
+        // Build full address
+        const addressParts = [
+          studio.address,
+          studio.city,
+          studio.state,
+          studio.zipCode,
+          studio.country
+        ].filter(Boolean);
+        
+        const fullAddress = addressParts.join(', ');
+        
+        if (!fullAddress) {
+          console.warn(`⚠️ [${i + 1}/${pendingStudios.length}] No address for: ${studio.title}`);
+          setFailedCount(prev => prev + 1);
+          setErrors(prev => [...prev, `${studio.title}: No address available`]);
+          continue;
+        }
+
+        // Geocode address
+        const result = await geocodeAddress(fullAddress);
+        
+        // Save result to backend
+        const response = await fetch('/api/geocoding/save-result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studioId: studio.id,
+            latitude: result.latitude,
+            longitude: result.longitude,
+            address: fullAddress
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const saveResult = await response.json();
+        
+        if (saveResult.success) {
+          console.log(`✅ [${i + 1}/${pendingStudios.length}] Successfully geocoded: ${studio.title}`);
+          setGeocodedCount(prev => prev + 1);
+          
+          // Update local state to remove from pending
+          setPendingStudios(prev => prev.filter(s => s.id !== studio.id));
+        } else {
+          throw new Error(saveResult.error || 'Unknown error');
+        }
+
+        // Rate limiting delay
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+      } catch (error) {
+        console.error(`❌ [${i + 1}/${pendingStudios.length}] Failed to geocode ${studio.title}:`, error);
+        setFailedCount(prev => prev + 1);
+        setErrors(prev => [...prev, `${studio.title}: ${error.message}`]);
+        
+        // Continue with next studio
+        continue;
+      }
+    }
+
+    setIsGeocoding(false);
+    
+    if (geocodedCount > 0) {
+      toast.success(`Geocoding completed! ${geocodedCount} studios processed successfully.`);
+    }
+    
+    if (failedCount > 0) {
+      toast.error(`${failedCount} studios failed to geocode. Check the error log below.`);
+    }
   };
 
   // Stop geocoding
