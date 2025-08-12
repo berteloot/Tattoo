@@ -52,28 +52,31 @@ console.log('✅ All required environment variables are configured');
 // Force server restart to pick up new Prisma client with profile picture fields
 console.log('🔄 Server restarting to load updated Prisma client...');
 
-// Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'",
-                          "https://maps.googleapis.com", "https://maps.gstatic.com"],
-      scriptSrcElem: ["'self'", "'unsafe-inline'",
-                              "https://maps.googleapis.com", "https://maps.gstatic.com"],
-      connectSrc: ["'self'",
-                           "https://maps.googleapis.com", "https://maps.gstatic.com",
-                           "wss:", "ws:"],
-      frameSrc: ["'self'", "https://maps.googleapis.com"],
-      objectSrc: ["'none'"],
-      baseUri: ["'self'"],
-      formAction: ["'self'"]
-    },
-  },
-}));
+// Security middleware - TEMPORARILY DISABLED CSP for Google Maps API testing
+// app.use(helmet({
+//   contentSecurityPolicy: {
+//     directives: {
+//       defaultSrc: ["'self'"],
+//       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+//       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+//       imgSrc: ["'self'", "data:", "https:", "blob:"],
+//       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'",
+//                           "https://maps.googleapis.com", "https://maps.gstatic.com"],
+//       scriptSrcElem: ["'self'", "'unsafe-inline'",
+//                               "https://maps.googleapis.com", "https://maps.gstatic.com"],
+//       connectSrc: ["'self'",
+//                            "https://maps.googleapis.com", "https://maps.gstatic.com",
+//                            "wss:", "ws:"],
+//       frameSrc: ["'self'", "https://maps.googleapis.com"],
+//       objectSrc: ["'none'"],
+//       baseUri: ["'self'"],
+//       formAction: ["'self'"]
+//     },
+//   },
+// }));
+
+// TEMPORARY: Disable CSP to test Google Maps API loading
+console.log('⚠️ [DEBUG] CSP temporarily disabled for Google Maps API testing');
 
 // CORS configuration - simplified since everything is on same domain
 app.use(cors({
@@ -383,3 +386,7 @@ module.exports = app; // Force rebuild - Sat Aug  9 21:04:14 CEST 2025
 // Updated helmet configuration to properly handle blob URLs
 // Fixed: imgSrc now uses correct blob: syntax without invalid URLs
 // Status: Ready for production deployment
+
+// FORCE DEPLOYMENT - CSP temporarily disabled for Google Maps API testing v4.3
+// Disabled helmet CSP to isolate Google Maps API loading issue
+// Status: Testing if CSP is the root cause
