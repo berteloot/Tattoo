@@ -48,40 +48,51 @@ const SimpleGeocoding = () => {
     return new Promise((resolve, reject) => {
       if (window.google && window.google.maps) {
         setGoogleMapsLoaded(true);
+        console.log('✅ [DEBUG] Google Maps API already loaded');
         resolve();
         return;
       }
 
       const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-      console.log('🔑 Google Maps API Key:', apiKey ? 'Present' : 'MISSING');
+      console.log('🔑 [DEBUG] Loading Google Maps API:', {
+        hasKey: !!apiKey,
+        keyLength: apiKey ? apiKey.length : 0,
+        keyPreview: apiKey ? `${apiKey.substring(0, 10)}...` : 'None'
+      });
       
       if (!apiKey) {
         const error = 'Google Maps API key is missing. Please check your environment configuration.';
-        console.error('❌', error);
+        console.error('❌ [DEBUG]', error);
         toast.error('Google Maps API key is missing. Please contact support.');
         reject(new Error(error));
         return;
       }
 
+      console.log('🚀 [DEBUG] Creating Google Maps script tag...');
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geocoding&loading=async`;
+      const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geocoding&loading=async`;
+      script.src = scriptUrl;
       script.async = true;
       script.defer = true;
       
+      console.log('🔗 [DEBUG] Script URL:', scriptUrl);
+      
       script.onload = () => {
         setGoogleMapsLoaded(true);
-        console.log('✅ Google Maps API loaded for geocoding');
+        console.log('✅ [DEBUG] Google Maps API script loaded successfully');
         resolve();
       };
       
-      script.onerror = () => {
-        const error = 'Failed to load Google Maps API script';
-        console.error('❌', error);
+      script.onerror = (error) => {
+        const errorMsg = 'Failed to load Google Maps API script';
+        console.error('❌ [DEBUG]', errorMsg, error);
         toast.error('Failed to load Google Maps API. Please check your internet connection.');
-        reject(new Error(error));
+        reject(new Error(errorMsg));
       };
       
+      console.log('📝 [DEBUG] Appending script to document head...');
       document.head.appendChild(script);
+      console.log('📝 [DEBUG] Script appended, waiting for load...');
     });
   };
 
@@ -219,6 +230,14 @@ const SimpleGeocoding = () => {
 
   // Load data on component mount
   useEffect(() => {
+    // Log API key status for debugging
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    console.log('🔑 [DEBUG] Google Maps API Key Status:', {
+      hasKey: !!apiKey,
+      keyLength: apiKey ? apiKey.length : 0,
+      keyPreview: apiKey ? `${apiKey.substring(0, 10)}...` : 'None'
+    });
+    
     loadPendingStudios();
     loadStats();
   }, []);
