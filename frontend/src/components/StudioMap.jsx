@@ -257,15 +257,15 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         const result = await response.json()
         if (result.success) {
           console.log('Using geocoded studios data for map')
-          console.log('Studios with coordinates:', result.data?.length || 0)
+          console.log('Studios with coordinates:', result.data?.studios?.length || 0)
           console.log('Stats:', { 
-            total: result.data?.length || 0,
-            withCoordinates: result.data?.filter(s => s.hasCoordinates)?.length || 0,
-            withoutCoordinates: result.data?.filter(s => !s.hasCoordinates)?.length || 0
+            total: result.data?.studios?.length || 0,
+            withCoordinates: result.data?.studios?.filter(s => s.hasCoordinates)?.length || 0,
+            withoutCoordinates: result.data?.studios?.filter(s => !s.hasCoordinates)?.length || 0
           })
           
-          // Backend returns studios directly, not GeoJSON features
-          const studiosData = result.data || []
+          // Backend returns studios in result.data.studios array
+          const studiosData = result.data?.studios || []
           
           // Add default values for missing fields to prevent errors
           const processedStudiosData = studiosData.map(studio => ({
