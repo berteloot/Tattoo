@@ -242,6 +242,53 @@ router.get('/debug-artists', async (req, res) => {
   }
 });
 
+// Debug endpoint to check what studios exist in the database
+router.get('/debug-studios', async (req, res) => {
+  try {
+    console.log('🔍 [GEOCODING] GET /debug-studios - Processing request');
+    
+    // Get all studios with basic info
+    const allStudios = await prisma.studio.findMany({
+      select: {
+        id: true,
+        title: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        country: true,
+        latitude: true,
+        longitude: true,
+        isActive: true,
+        isVerified: true
+      }
+    });
+
+    // Count studios with and without coordinates
+    const withCoordinates = allStudios.filter(s => s.latitude !== null && s.longitude !== null);
+    const withoutCoordinates = allStudios.filter(s => s.latitude === null || s.longitude === null);
+
+    console.log(`📊 Studio counts: total=${allStudios.length}, withCoords=${withCoordinates.length}, withoutCoords=${withoutCoordinates.length}`);
+
+    res.json({
+      success: true,
+      data: {
+        total: allStudios.length,
+        withCoordinates: withCoordinates.length,
+        withoutCoordinates: withoutCoordinates.length,
+        studios: allStudios.slice(0, 5) // Show first 5 for debugging
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error in debug-studios endpoint:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error debugging studios',
+      details: error.message 
+    });
+  }
+});
+
 // Get studios that need geocoding
 router.get('/pending', async (req, res) => {
   try {
