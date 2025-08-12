@@ -161,6 +161,87 @@ router.get('/count', async (req, res) => {
   }
 });
 
+// Debug endpoint to check artist verification status (no auth required)
+router.get('/debug-artists', async (req, res) => {
+  try {
+    console.log('🔍 [GEOCODING] GET /debug-artists - Processing request');
+    
+    // Get all users with ARTIST role
+    const artistUsers = await prisma.user.findMany({
+      where: {
+        role: {
+          in: ['ARTIST', 'ARTIST_ADMIN']
+        }
+      },
+      include: {
+        artistProfile: true
+      }
+    });
+
+    // Get all artist profiles
+    const artistProfiles = await prisma.artistProfile.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        }
+      }
+    });
+
+    // Get verification stats
+    const verificationStats = await prisma.artistProfile.groupBy({
+      by: ['isVerified', 'verificationStatus'],
+      _count: true
+    });
+
+    res.json({
+      success: true,
+      data: {
+        artistUsers: artistUsers.map(user => ({
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          hasArtistProfile: !!user.artistProfile,
+          artistProfileId: user.artistProfile?.id || null
+        })),
+        artistProfiles: artistProfiles.map(profile => ({
+          id: profile.id,
+          userId: profile.userId,
+          userEmail: profile.user.email,
+          userRole: profile.user.role,
+          isVerified: profile.isVerified,
+          verificationStatus: profile.verificationStatus,
+          isFeatured: profile.isFeatured
+        })),
+        verificationStats,
+        summary: {
+          totalArtistUsers: artistUsers.length,
+          totalArtistProfiles: artistProfiles.length,
+          verifiedProfiles: artistProfiles.filter(p => p.isVerified).length,
+          unverifiedProfiles: artistProfiles.filter(p => !p.isVerified).length
+        }
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error in debug-artists endpoint:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error debugging artists',
+      details: error.message 
+    });
+  }
+});
+
 // Get studios that need geocoding
 router.get('/pending', async (req, res) => {
   try {
