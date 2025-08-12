@@ -52,8 +52,18 @@ const SimpleGeocoding = () => {
         return;
       }
 
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      console.log('🔑 Google Maps API Key:', apiKey ? 'Present' : 'MISSING');
+      
+      if (!apiKey) {
+        const error = 'Google Maps API key is missing. Please check your environment configuration.';
+        console.error('❌', error);
+        reject(new Error(error));
+        return;
+      }
+
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=geocoding&loading=async`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geocoding&loading=async`;
       script.async = true;
       script.defer = true;
       
@@ -64,7 +74,9 @@ const SimpleGeocoding = () => {
       };
       
       script.onerror = () => {
-        reject(new Error('Failed to load Google Maps API'));
+        const error = 'Failed to load Google Maps API script';
+        console.error('❌', error);
+        reject(new Error(error));
       };
       
       document.head.appendChild(script);
