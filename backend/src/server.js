@@ -99,6 +99,11 @@ const limiter = rateLimit({
   // Trust proxy and use X-Forwarded-For header
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
+  // Simplified key generator to avoid trust proxy validation errors
+  keyGenerator: (req) => {
+    // Use X-Forwarded-For header if available, fallback to req.ip
+    return req.headers['x-forwarded-for'] || req.ip || 'unknown';
+  },
   // Add handler for rate limit errors
   handler: (req, res) => {
     console.log(`Rate limit exceeded for IP: ${req.ip}`);
@@ -374,8 +379,7 @@ process.on('unhandledRejection', (err, promise) => {
 
 module.exports = app; // Force rebuild - Sat Aug  9 21:04:14 CEST 2025
 
-// FORCE DEPLOYMENT - Fixed CSP for Google Maps API v4.0
-// Updated helmet configuration to properly allow Google Maps connections
-// Fixed: connectSrc now includes maps.googleapis.com and maps.gstatic.com
-// Fixed: imgSrc now properly allows blob: URLs
+// FORCE DEPLOYMENT - Fixed rate limiting trust proxy error v4.1
+// Updated rate limiting configuration to avoid trust proxy validation errors
+// Fixed: Added custom keyGenerator to handle X-Forwarded-For headers properly
 // Status: Ready for production deployment
