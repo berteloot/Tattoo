@@ -3,9 +3,10 @@
 // Features: Clean interface, progress tracking, rate limiting, error handling
 // Status: Backend API fixed, frontend ready for production deployment
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { useToast } from '../contexts/ToastContext';
 
 const SimpleGeocoding = () => {
+  const toast = useToast();
   const [pendingStudios, setPendingStudios] = useState([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
