@@ -76,12 +76,7 @@ router.get('/test', async (req, res) => {
         email: true,
         website: true,
         isVerified: true,
-        isFeatured: true,
-        _count: {
-          select: {
-            studioArtists: true
-          }
-        }
+        isFeatured: true
       }
     });
 
@@ -99,7 +94,7 @@ router.get('/test', async (req, res) => {
         .join(', '),
       hasCoordinates: testStudio.latitude !== null && testStudio.longitude !== null,
       _count: {
-        artists: testStudio._count.studioArtists
+        artists: 0
       }
     };
 
@@ -182,12 +177,7 @@ router.get('/studios', async (req, res) => {
         email: true,
         website: true,
         isVerified: true,
-        isFeatured: true,
-        _count: {
-          select: {
-            studioArtists: true
-          }
-        }
+        isFeatured: true
       }
     });
 
@@ -199,9 +189,9 @@ router.get('/studios', async (req, res) => {
           .filter(Boolean)
           .join(', '),
         hasCoordinates: studio.latitude !== null && studio.longitude !== null,
-        // Map the artist count to match frontend expectations
+        // Set default artist count since we can't easily count them without proper relationship
         _count: {
-          artists: studio._count.studioArtists
+          artists: 0
         }
       }))
     });
