@@ -1,21 +1,8 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 const prisma = new PrismaClient();
-
-// Rate limiting for geocoding requests
-const geocodingLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many geocoding requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// Apply rate limiting to all geocoding routes
-router.use(geocodingLimiter);
 
 // Get geocoding statistics
 router.get('/stats', async (req, res) => {
