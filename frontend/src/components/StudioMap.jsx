@@ -4,7 +4,7 @@ import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, P
 import { Link } from 'react-router-dom'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import { StudioMessageForm } from './StudioMessageForm'
-import { toast } from 'react-toastify'
+import { useToast } from '../contexts/ToastContext'
 
 const mapContainerStyle = {
   width: '100%',
@@ -33,6 +33,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const [showMessageForm, setShowMessageForm] = useState(false)
   const directionsService = useRef(null)
   const directionsRenderer = useRef(null)
+  const { error: showError } = useToast()
 
   useEffect(() => {
     // Check API health first
@@ -306,17 +307,9 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       setStudios([])
       
       // Show user-friendly error message with retry option
-      toast.error(
-        <div>
-          <p>Failed to load studios from database.</p>
-          <button 
-            onClick={() => fetchStudios()}
-            className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-          >
-            Retry
-          </button>
-        </div>,
-        { autoClose: false }
+      showError(
+        'Failed to load studios',
+        'Unable to load studios from database. Please try again.'
       )
     } finally {
       setLoading(false)
