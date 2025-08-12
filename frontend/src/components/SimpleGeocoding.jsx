@@ -221,21 +221,35 @@ const SimpleGeocoding = () => {
 
   // Start geocoding process
   const startGeocoding = async () => {
+    console.log('🚀 [DEBUG] startGeocoding called');
+    console.log('🔍 [DEBUG] Current state:', {
+      pendingStudiosLength: pendingStudios.length,
+      googleMapsLoaded: googleMapsLoaded,
+      hasWindowGoogle: !!(window.google && window.google.maps)
+    });
+    
     if (pendingStudios.length === 0) {
       toast.error('No studios to geocode');
       return;
     }
     
     if (!googleMapsLoaded) {
+      console.log('❌ [DEBUG] Google Maps not loaded, attempting to load...');
       try {
         toast.info('Loading Google Maps API...');
         await loadGoogleMapsAPI();
+        console.log('✅ [DEBUG] Google Maps API loaded successfully');
         toast.success('Google Maps API loaded!');
       } catch (error) {
+        console.error('❌ [DEBUG] Failed to load Google Maps API:', error);
         toast.error('Failed to load Google Maps API');
         return;
       }
+    } else {
+      console.log('✅ [DEBUG] Google Maps already loaded');
     }
+
+    console.log('✅ [DEBUG] Google Maps API verified, starting geocoding...');
     
     setIsGeocoding(true);
     setCurrentIndex(0);
