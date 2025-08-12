@@ -180,43 +180,9 @@ router.get('/', optionalAuth, [
 
 
 
-    // Get messages for each artist (since it's a separate model)
-    const artistsWithMessages = await Promise.all(
-      artists.map(async (artist) => {
-        const messages = await prisma.artistMessage.findMany({
-          where: {
-            artistId: artist.id,
-            isActive: true,
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } }
-            ]
-          },
-          select: {
-            id: true,
-            title: true,
-            content: true,
-            priority: true,
-            createdAt: true,
-            expiresAt: true
-          },
-          orderBy: [
-            { priority: 'desc' },
-            { createdAt: 'desc' }
-          ],
-          take: 1 // Only show the highest priority message on cards
-        });
-
-        return {
-          ...artist,
-          messages
-        };
-      })
-    );
-
     // Calculate average ratings for each artist
     const artistsWithRatings = await Promise.all(
-      artistsWithMessages.map(async (artist) => {
+      artists.map(async (artist) => {
         const reviews = await prisma.review.findMany({
           where: {
             recipientId: artist.user.id,
