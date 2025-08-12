@@ -183,11 +183,60 @@ router.get('/:id/artists', detectScraping, studioArtistLimiter, async (req, res)
       });
     }
     
-    // Return empty array for now - studio artists feature not fully implemented
-    // This prevents crashes and allows the studio detail page to load
+    // Query the StudioArtist table to get actual linked artists
+    const studioArtists = await prisma.studioArtist.findMany({
+      where: {
+        studioId: req.params.id,
+        isActive: true
+      }
+    });
+    
+    // Get the actual artist profiles and user data
+    const artistsWithProfiles = await Promise.all(
+      studioArtists.map(async (sa) => {
+        const artistProfile = await prisma.artistProfile.findUnique({
+          where: { id: sa.artistId },
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                avatar: true
+              }
+            }
+          }
+        });
+        
+        if (!artistProfile) return null;
+        
+        return {
+          id: sa.artistId,
+          role: sa.role,
+          joinedAt: sa.joinedAt,
+          user: artistProfile.user,
+          profile: {
+            id: artistProfile.id,
+            bio: artistProfile.bio,
+            studioName: artistProfile.studioName,
+            website: artistProfile.website,
+            instagram: artistProfile.instagram,
+            isVerified: artistProfile.isVerified,
+            isFeatured: artistProfile.isFeatured
+          }
+        };
+      })
+    );
+    
+    // Filter out any null results and get the final artists array
+    const artists = artistsWithProfiles.filter(Boolean);
+    
+    console.log(`📊 Found ${artists.length} artists for studio ${studio.title}`);
+    
     res.json({
       success: true,
-      data: []
+      data: artists
     });
   } catch (error) {
     console.error('Error fetching studio artists:', error);
