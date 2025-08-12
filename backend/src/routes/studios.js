@@ -233,6 +233,7 @@ router.get('/:id/artists', detectScraping, studioArtistLimiter, async (req, res)
     const artists = artistsWithProfiles.filter(Boolean);
     
     console.log(`📊 Found ${artists.length} artists for studio ${studio.title}`);
+    console.log('🔍 Studio artists data structure:', JSON.stringify(artists, null, 2));
     
     res.json({
       success: true,
