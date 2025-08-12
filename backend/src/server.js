@@ -35,7 +35,8 @@ const PORT = process.env.PORT || 3001;
 
 // Trust proxy for rate limiting behind load balancers (Render, Heroku, etc.)
 // This is crucial for proper IP detection behind proxies
-app.set('trust proxy', true);
+// Render sits behind Cloudflare and its own proxy, so use 2 hops
+app.set('trust proxy', 2);
 
 // Check required environment variables
 const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
@@ -52,31 +53,43 @@ console.log('✅ All required environment variables are configured');
 // Force server restart to pick up new Prisma client with profile picture fields
 console.log('🔄 Server restarting to load updated Prisma client...');
 
-// Security middleware - TEMPORARILY DISABLED CSP for Google Maps API testing
-// app.use(helmet({
-//   contentSecurityPolicy: {
-//     directives: {
-//       defaultSrc: ["'self'"],
-//       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-//       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-//       imgSrc: ["'self'", "data:", "https:", "blob:"],
-//       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'",
-//                           "https://maps.googleapis.com", "https://maps.gstatic.com"],
-//       scriptSrcElem: ["'self'", "'unsafe-inline'",
-//                               "https://maps.googleapis.com", "https://maps.gstatic.com"],
-//       connectSrc: ["'self'",
-//                            "https://maps.googleapis.com", "https://maps.gstatic.com",
-//                            "wss:", "ws:"],
-//       frameSrc: ["'self'", "https://maps.googleapis.com"],
-//       objectSrc: ["'none'"],
-//       baseUri: ["'self'"],
-//       formAction: ["'self'"]
-//     },
-//   },
-// }));
+// Security middleware - Comprehensive CSP for Google Maps API
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      imgSrc: [
+        "'self'", "data:", "blob:", "https:",
+        "https://*.googleapis.com", "https://*.gstatic.com", "https://*.google.com",
+        "https://mt0.google.com", "https://mt1.google.com",
+        "https://mt2.google.com", "https://mt3.google.com",
+        "https://khms0.googleapis.com", "https://khms1.googleapis.com"
+      ],
+      scriptSrc: [
+        "'self'", "'unsafe-inline'", "'unsafe-eval'",
+        "https://maps.googleapis.com", "https://maps.gstatic.com"
+      ],
+      scriptSrcElem: [
+        "'self'", "'unsafe-inline'",
+        "https://maps.googleapis.com", "https://maps.gstatic.com"
+      ],
+      connectSrc: [
+        "'self'",
+        "https://maps.googleapis.com", "https://maps.gstatic.com",
+        "wss:", "ws:"
+      ],
+    },
+  },
+}));
 
-// TEMPORARY: Disable CSP to test Google Maps API loading
-console.log('⚠️ [DEBUG] CSP temporarily disabled for Google Maps API testing');
+console.log('✅ [DEBUG] Helmet CSP enabled with comprehensive Google Maps configuration');
+
+// FORCE DEPLOYMENT - Fixed trust proxy and comprehensive CSP v4.4
+// Fixed: trust proxy from true to 2 for Render.com behind Cloudflare
+// Fixed: Comprehensive CSP configuration for Google Maps API
+// Status: Ready for production deployment
 
 // CORS configuration - simplified since everything is on same domain
 app.use(cors({
@@ -386,7 +399,3 @@ module.exports = app; // Force rebuild - Sat Aug  9 21:04:14 CEST 2025
 // Updated helmet configuration to properly handle blob URLs
 // Fixed: imgSrc now uses correct blob: syntax without invalid URLs
 // Status: Ready for production deployment
-
-// FORCE DEPLOYMENT - CSP temporarily disabled for Google Maps API testing v4.3
-// Disabled helmet CSP to isolate Google Maps API loading issue
-// Status: Testing if CSP is the root cause
