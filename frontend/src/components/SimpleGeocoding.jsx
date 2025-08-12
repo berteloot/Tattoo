@@ -265,6 +265,16 @@ const SimpleGeocoding = () => {
       keyPreview: apiKey ? `${apiKey.substring(0, 10)}...` : 'None'
     });
     
+    // Debug all VITE_ environment variables
+    console.log('🔍 [DEBUG] All VITE_ environment variables:', {
+      VITE_API_URL: import.meta.env.VITE_API_URL,
+      VITE_GOOGLE_MAPS_API_KEY: import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? 'Present' : 'Missing',
+      VITE_NODE_ENV: import.meta.env.VITE_NODE_ENV,
+      MODE: import.meta.env.MODE,
+      DEV: import.meta.env.DEV,
+      PROD: import.meta.env.PROD
+    });
+    
     loadPendingStudios();
     loadStats();
   }, []);
