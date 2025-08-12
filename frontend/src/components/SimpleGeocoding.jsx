@@ -1,3 +1,6 @@
+// FORCE DEPLOYMENT - Batch Geocoding System v2.0
+// This component implements automated batch geocoding using Google Maps API
+// Features: Clean interface, progress tracking, rate limiting, error handling
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
