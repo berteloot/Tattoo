@@ -91,24 +91,9 @@ const limiter = rateLimit({
   // Trust proxy and use X-Forwarded-For header
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
-  // Key generator that works with proxy
-  keyGenerator: (req) => {
-    try {
-      // Use X-Forwarded-For if available, otherwise use remote address
-      const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || req.connection.remoteAddress;
-      // Clean the IP address (remove any whitespace or invalid characters)
-      const cleanIP = clientIP?.trim() || 'unknown';
-      console.log(`Rate limit key generated for IP: ${cleanIP}`);
-      return cleanIP;
-    } catch (error) {
-      console.error('Error generating rate limit key:', error);
-      return 'unknown';
-    }
-  },
   // Add handler for rate limit errors
   handler: (req, res) => {
-    const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || req.connection.remoteAddress;
-    console.log(`Rate limit exceeded for IP: ${clientIP}`);
+    console.log(`Rate limit exceeded for IP: ${req.ip}`);
     res.status(429).json({
       success: false,
       error: 'Too many requests from this IP, please try again later.'
