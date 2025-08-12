@@ -215,9 +215,9 @@ router.get('/:id/artists', detectScraping, studioArtistLimiter, async (req, res)
           id: sa.artistId,
           role: sa.role,
           joinedAt: sa.joinedAt,
-          user: artistProfile.user,
-          profile: {
+          artist: {
             id: artistProfile.id,
+            user: artistProfile.user,
             bio: artistProfile.bio,
             studioName: artistProfile.studioName,
             website: artistProfile.website,
