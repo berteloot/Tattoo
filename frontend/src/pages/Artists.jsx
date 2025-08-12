@@ -18,11 +18,9 @@ export const Artists = () => {
 
   useEffect(() => {
     console.log('Artists component mounted, fetching data...')
-    // Check API health first
-    checkApiHealth().then(() => {
-      fetchArtists()
-      fetchSpecialties()
-    })
+    // Fetch data directly without health check
+    fetchArtists()
+    fetchSpecialties()
   }, [])
 
   const fetchArtists = async () => {
@@ -30,22 +28,19 @@ export const Artists = () => {
       console.log('Fetching artists from API...')
       console.log('API URL:', import.meta.env.VITE_API_URL || '/api')
       
-      const result = await apiCallWithFallback(
-        () => artistsAPI.getAll({ limit: 20 }),
-        { artists: getDummyArtists() }
-      )
+      const response = await artistsAPI.getAll({ limit: 20 })
+      console.log('API response:', response)
       
-      if (result.isFallback) {
-        console.log('Using fallback artists data')
-        setArtists(result.data.artists)
-      } else {
+      if (response.data?.success) {
         console.log('Using API artists data')
-        setArtists(result.data.data.artists || [])
+        setArtists(response.data.data.artists || [])
+      } else {
+        console.error('API returned error:', response.data)
+        setArtists([])
       }
     } catch (error) {
-      console.error('Unexpected error in fetchArtists:', error)
-      const dummyArtists = getDummyArtists()
-      setArtists(dummyArtists)
+      console.error('Error fetching artists:', error)
+      setArtists([])
     } finally {
       setLoading(false)
     }
