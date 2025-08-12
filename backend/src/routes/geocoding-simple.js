@@ -151,23 +151,31 @@ router.post('/save-result', async (req, res) => {
 
     console.log(`🔄 Would update studio ${studioId} with coordinates: ${latitude}, ${longitude}`);
     
-    // Try using Prisma upsert to see if it bypasses the problematic trigger
-    const updatedStudio = await prisma.studio.upsert({
-      where: { id: studioId },
-      update: {
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude)
-      },
-      create: {
-        id: studioId,
-        title: 'Temporary Studio', // This won't be used since we're updating
-        slug: 'temp-slug', // This won't be used since we're updating
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude)
+    // Update studio coordinates
+    try {
+      const updatedStudio = await prisma.studio.update({
+        where: { id: studioId },
+        data: {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude)
+        }
+      });
+      
+      console.log(`✅ Studio updated successfully: ${updatedStudio.title}`);
+    } catch (error) {
+      if (error.code === 'P2025') {
+        console.error(`❌ Studio not found: ${studioId}`);
+        return res.status(404).json({
+          success: false,
+          error: `Studio not found: ${studioId}`
+        });
       }
-    });
-    
-    console.log(`✅ Studio updated successfully: ${updatedStudio.title}`);
+      console.error(`❌ Failed to update studio ${studioId}:`, error);
+      return res.status(500).json({
+        success: false,
+        error: `Failed to update studio: ${error.message}`
+      });
+    }
 
     res.json({
       success: true,

@@ -73,7 +73,7 @@ const SimpleGeocoding = () => {
 
       console.log('🚀 [DEBUG] Creating Google Maps script tag...');
       const script = document.createElement('script');
-      const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geocoding&loading=async`;
+      const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async`;
       script.src = scriptUrl;
       script.async = true;
       script.defer = true;
@@ -126,30 +126,32 @@ const SimpleGeocoding = () => {
 
   // Geocode a single address
   const geocodeAddress = async (address) => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (!window.google || !window.google.maps) {
         reject(new Error('Google Maps API not loaded'));
         return;
       }
 
-      const geocoder = new window.google.maps.Geocoder();
-      
-      geocoder.geocode({ address }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-          const location = results[0].geometry.location;
-          resolve({
-            latitude: location.lat(),
-            longitude: location.lng(),
-            formattedAddress: results[0].formatted_address
-          });
-        } else if (status === 'ZERO_RESULTS') {
-          reject(new Error('Address not found'));
-        } else if (status === 'OVER_QUERY_LIMIT') {
-          reject(new Error('API quota exceeded'));
-        } else {
-          reject(new Error(`Geocoding failed: ${status}`));
-        }
-      });
+      try {
+        // Use modern importLibrary approach for Geocoder
+        const { Geocoder } = await window.google.maps.importLibrary('geocoding');
+        const geocoder = new Geocoder();
+        
+        geocoder.geocode({ address }, (results, status) => {
+          if (status === 'OK' && results[0]) {
+            const location = results[0].geometry.location;
+            resolve({
+              latitude: location.lat(),
+              longitude: location.lng(),
+              formattedAddress: results[0].formatted_address
+            });
+          } else {
+            reject(new Error(`Address not found: ${status}`));
+          }
+        });
+      } catch (error) {
+        reject(new Error(`Geocoding failed: ${error.message}`));
+      }
     });
   };
 
