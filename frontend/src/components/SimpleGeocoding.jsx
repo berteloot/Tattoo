@@ -46,6 +46,8 @@ const SimpleGeocoding = () => {
   // Load Google Maps API
   const loadGoogleMapsAPI = () => {
     return new Promise((resolve, reject) => {
+      console.log('🔄 [DEBUG] loadGoogleMapsAPI called');
+      
       if (window.google && window.google.maps) {
         setGoogleMapsLoaded(true);
         console.log('✅ [DEBUG] Google Maps API already loaded');
@@ -76,23 +78,48 @@ const SimpleGeocoding = () => {
       script.defer = true;
       
       console.log('🔗 [DEBUG] Script URL:', scriptUrl);
+      console.log('📝 [DEBUG] Script attributes set:', {
+        src: script.src,
+        async: script.async,
+        defer: script.defer
+      });
       
       script.onload = () => {
-        setGoogleMapsLoaded(true);
         console.log('✅ [DEBUG] Google Maps API script loaded successfully');
+        console.log('🔍 [DEBUG] Checking window.google:', {
+          hasGoogle: !!window.google,
+          hasMaps: !!(window.google && window.google.maps),
+          hasGeocoder: !!(window.google && window.google.maps && window.google.maps.Geocoder)
+        });
+        setGoogleMapsLoaded(true);
         resolve();
       };
       
       script.onerror = (error) => {
         const errorMsg = 'Failed to load Google Maps API script';
         console.error('❌ [DEBUG]', errorMsg, error);
+        console.error('❌ [DEBUG] Script error details:', {
+          error: error,
+          scriptSrc: script.src,
+          readyState: script.readyState
+        });
         toast.error('Failed to load Google Maps API. Please check your internet connection.');
         reject(new Error(errorMsg));
       };
       
       console.log('📝 [DEBUG] Appending script to document head...');
+      console.log('📝 [DEBUG] Document head children before:', document.head.children.length);
       document.head.appendChild(script);
       console.log('📝 [DEBUG] Script appended, waiting for load...');
+      console.log('📝 [DEBUG] Document head children after:', document.head.children.length);
+      
+      // Add a timeout to catch if the script never loads
+      setTimeout(() => {
+        if (!window.google || !window.google.maps) {
+          console.error('⏰ [DEBUG] Script load timeout - Google Maps still not available after 10 seconds');
+          reject(new Error('Google Maps API script load timeout'));
+        }
+      }, 10000);
     });
   };
 
@@ -332,7 +359,7 @@ const SimpleGeocoding = () => {
         )}
 
         {/* Progress Bar for Current Batch */}
-        {isGeocoding && (
+        {isGeocoding && currentIndex < pendingStudios.length && (
           <div className="mb-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>Progress: {currentIndex} / {pendingStudios.length}</span>
