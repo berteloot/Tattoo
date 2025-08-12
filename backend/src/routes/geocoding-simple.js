@@ -133,7 +133,7 @@ router.get('/studios', async (req, res) => {
   }
 });
 
-// Save geocoding result (updated to use GeocodeCache)
+// Save geocoding result (minimal version to test)
 router.post('/save-result', async (req, res) => {
   try {
     console.log('🔍 [GEOCODING] POST /save-result - Processing request');
@@ -149,50 +149,11 @@ router.post('/save-result', async (req, res) => {
       });
     }
 
-    console.log(`🔄 Updating studio ${studioId} with coordinates: ${latitude}, ${longitude}`);
-
-    // Update the studio with coordinates using raw SQL to bypass legacy functions
-    const updateResult = await prisma.$executeRaw`
-      UPDATE studios 
-      SET latitude = ${parseFloat(latitude)}, longitude = ${parseFloat(longitude)}
-      WHERE id = ${studioId}
-    `;
+    console.log(`🔄 Would update studio ${studioId} with coordinates: ${latitude}, ${longitude}`);
     
-    if (updateResult === 0) {
-      throw new Error('Studio not found');
-    }
-    
-    // Get the updated studio info
-    const updatedStudio = await prisma.studio.findUnique({
-      where: { id: studioId },
-      select: { id: true, title: true, latitude: true, longitude: true }
-    });
-    
-    console.log(`✅ Studio updated successfully: ${updatedStudio.title}`);
-
-    // If address is provided, cache it in GeocodeCache
-    if (address) {
-      const addressHash = Buffer.from(address.toLowerCase().trim()).toString('base64');
-      
-      await prisma.geocodeCache.upsert({
-        where: { address_hash: addressHash },
-        update: {
-          latitude: parseFloat(latitude),
-          longitude: parseFloat(longitude),
-          updated_at: new Date()
-        },
-        create: {
-          address_hash: addressHash,
-          original_address: address,
-          latitude: parseFloat(latitude),
-          longitude: parseFloat(longitude)
-        }
-      });
-      
-      console.log(`💾 Address cached successfully: ${address}`);
-    }
-
-    console.log(`✅ Updated coordinates for ${updatedStudio.title}: ${latitude}, ${longitude}`);
+    // TEMPORARY: Just return success without updating database
+    // This will help us test if the frontend is working
+    console.log(`✅ TEMPORARY: Simulating successful update for studio ${studioId}`);
 
     res.json({
       success: true,
@@ -200,12 +161,12 @@ router.post('/save-result', async (req, res) => {
         studioId,
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
-        message: `Successfully updated coordinates for ${updatedStudio.title}`
+        message: `TEMPORARY: Successfully simulated coordinates for studio ${studioId}`
       }
     });
 
   } catch (error) {
-    console.error('❌ Error saving geocoding result:', error);
+    console.error('❌ Error in save-result:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Failed to save geocoding result',
