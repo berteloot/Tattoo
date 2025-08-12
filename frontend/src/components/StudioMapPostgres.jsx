@@ -41,8 +41,33 @@ const StudioMapPostgres = ({
       const data = await response.json();
 
       if (data.success) {
-        setStudios(data.data.features || []);
-        console.log(`🗺️ Loaded ${data.data.features?.length || 0} studios from PostgreSQL geocoding`);
+        // Handle both old and new data structures
+        let studiosData = data.data;
+        
+        // If data.data.features exists (GeoJSON format), use that
+        if (data.data.features) {
+          studiosData = data.data.features;
+        }
+        
+        // Add default values for missing fields to prevent errors
+        const processedStudios = studiosData.map(studio => {
+          // Handle both GeoJSON and direct studio formats
+          const studioData = studio.properties || studio;
+          return {
+            ...studioData,
+            phoneNumber: studioData.phoneNumber || null,
+            email: studioData.email || null,
+            website: studioData.website || null,
+            isVerified: studioData.isVerified || false,
+            isFeatured: studioData.isFeatured || false,
+            _count: {
+              artists: studioData._count?.artists || 0
+            }
+          };
+        });
+        
+        setStudios(processedStudios);
+        console.log(`🗺️ Loaded ${processedStudios.length} studios from PostgreSQL geocoding`);
       } else {
         throw new Error(data.error || 'Failed to fetch studios');
       }
@@ -203,21 +228,41 @@ const StudioMapPostgres = ({
         >
           {/* Render studio markers */}
           {studios.map((studio) => {
-            const coordinates = studio.geometry.coordinates;
-            const position = {
+            // Handle both GeoJSON and direct studio formats
+            let coordinates, position, studioId, studioName, studioAddress, isVerified, isFeatured;
+            
+            if (studio.geometry && studio.geometry.coordinates) {
+              // GeoJSON format
+              coordinates = studio.geometry.coordinates;
+              studioId = studio.properties.id;
+              studioName = studio.properties.name;
+              studioAddress = studio.properties.full_address;
+              isVerified = studio.properties.is_verified;
+              isFeatured = studio.properties.is_featured;
+            } else {
+              // Direct studio object format
+              coordinates = [studio.longitude, studio.latitude];
+              studioId = studio.id;
+              studioName = studio.title;
+              studioAddress = studio.fullAddress || `${studio.address}, ${studio.city}, ${studio.state}`;
+              isVerified = studio.isVerified;
+              isFeatured = studio.isFeatured;
+            }
+            
+            position = {
               lng: coordinates[0],
               lat: coordinates[1]
             };
 
             return (
               <Marker
-                key={studio.properties.id}
+                key={studioId}
                 position={position}
                 onClick={() => handleMarkerClick(studio)}
                 icon={{
-                  url: studio.properties.is_featured 
+                  url: isFeatured 
                     ? 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
-                    : studio.properties.is_verified
+                    : isVerified
                     ? 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
                     : 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                   scaledSize: new window.google.maps.Size(32, 32)
@@ -230,30 +275,31 @@ const StudioMapPostgres = ({
           {showInfoWindows && selectedStudio && (
             <InfoWindow
               position={{
-                lng: selectedStudio.geometry.coordinates[0],
-                lat: selectedStudio.geometry.coordinates[1]
+                lng: selectedStudio.longitude || selectedStudio.geometry?.coordinates?.[0],
+                lat: selectedStudio.latitude || selectedStudio.geometry?.coordinates?.[1]
               }}
               onCloseClick={handleInfoWindowClose}
             >
               <div style={{ padding: '5px', maxWidth: '250px' }}>
                 <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>
-                  {selectedStudio.properties.name}
+                  {selectedStudio.title || selectedStudio.properties?.name}
                 </h3>
                 <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#666' }}>
-                  {selectedStudio.properties.full_address}
+                  {selectedStudio.fullAddress || selectedStudio.properties?.full_address}
                 </p>
                 <div style={{ fontSize: '12px', color: '#888' }}>
-                  {selectedStudio.properties.is_verified && (
+                  {(selectedStudio.isVerified || selectedStudio.properties?.is_verified) && (
                     <span style={{ color: 'green', marginRight: '10px' }}>✓ Verified</span>
                   )}
-                  {selectedStudio.properties.is_featured && (
+                  {(selectedStudio.isFeatured || selectedStudio.properties?.is_featured) && (
                     <span style={{ color: 'blue' }}>⭐ Featured</span>
                   )}
                 </div>
                 <button
                   onClick={() => {
                     // Navigate to studio detail page
-                    window.location.href = `/studios/${selectedStudio.properties.id}`;
+                    const studioId = selectedStudio.id || selectedStudio.properties?.id;
+                    window.location.href = `/studios/${studioId}`;
                   }}
                   style={{
                     marginTop: '10px',

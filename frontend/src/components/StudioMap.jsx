@@ -306,39 +306,35 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         const result = await response.json()
         if (result.success) {
           console.log('Using geocoded studios data for map')
-          console.log('Studios with coordinates:', result.data.features?.length || 0)
+          console.log('Studios with coordinates:', result.data?.length || 0)
           console.log('Stats:', { 
-            total: result.count || result.data.features?.length || 0,
-            withCoordinates: result.withCoordinates || 0,
-            withoutCoordinates: result.withoutCoordinates || 0
+            total: result.data?.length || 0,
+            withCoordinates: result.data?.filter(s => s.hasCoordinates)?.length || 0,
+            withoutCoordinates: result.data?.filter(s => !s.hasCoordinates)?.length || 0
           })
           
-          // Convert GeoJSON features to studio objects
-          const studiosData = result.data.features?.map(feature => ({
-            id: feature.properties.id,
-            title: feature.properties.title,
-            address: feature.properties.address,
-            city: feature.properties.city,
-            state: feature.properties.state,
-            zipCode: feature.properties.zipCode,
-            country: feature.properties.country,
-            latitude: feature.geometry?.coordinates?.[1] || null, // GeoJSON uses [lng, lat]
-            longitude: feature.geometry?.coordinates?.[0] || null,
-            website: feature.properties.website,
-            phoneNumber: feature.properties.phoneNumber,
-            email: feature.properties.email,
-            isVerified: feature.properties.isVerified,
-            isFeatured: feature.properties.isFeatured,
-            hasCoordinates: feature.properties.hasCoordinates,
-            needsGeocoding: feature.properties.needsGeocoding
-          })) || []
+          // Backend returns studios directly, not GeoJSON features
+          const studiosData = result.data || []
+          
+          // Add default values for missing fields to prevent errors
+          const processedStudiosData = studiosData.map(studio => ({
+            ...studio,
+            phoneNumber: studio.phoneNumber || null,
+            email: studio.email || null,
+            website: studio.website || null,
+            isVerified: studio.isVerified || false,
+            isFeatured: studio.isFeatured || false,
+            _count: {
+              artists: studio._count?.artists || 0
+            }
+          }))
           
           // Filter out studios without coordinates for map display
-          const studiosWithCoordinates = studiosData.filter(studio => studio.hasCoordinates)
+          const studiosWithCoordinates = processedStudiosData.filter(studio => studio.hasCoordinates)
           setStudios(studiosWithCoordinates)
           
           // Log studios that need geocoding
-          const studiosNeedingGeocoding = studiosData.filter(studio => studio.needsGeocoding)
+          const studiosNeedingGeocoding = studiosData.filter(studio => !studio.hasCoordinates)
           if (studiosNeedingGeocoding.length > 0) {
             console.log('Studios needing geocoding:', studiosNeedingGeocoding.map(s => s.title))
           }

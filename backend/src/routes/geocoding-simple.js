@@ -54,6 +54,69 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+// Test endpoint to verify data structure
+router.get('/test', async (req, res) => {
+  try {
+    const testStudio = await prisma.studio.findFirst({
+      where: {
+        latitude: { not: null },
+        longitude: { not: null }
+      },
+      select: {
+        id: true,
+        title: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        country: true,
+        latitude: true,
+        longitude: true,
+        phoneNumber: true,
+        email: true,
+        website: true,
+        isVerified: true,
+        isFeatured: true,
+        _count: {
+          select: {
+            studioArtists: true
+          }
+        }
+      }
+    });
+
+    if (!testStudio) {
+      return res.json({
+        success: false,
+        error: 'No studios with coordinates found'
+      });
+    }
+
+    const processedStudio = {
+      ...testStudio,
+      fullAddress: [testStudio.address, testStudio.city, testStudio.state, testStudio.zipCode, testStudio.country]
+        .filter(Boolean)
+        .join(', '),
+      hasCoordinates: testStudio.latitude !== null && testStudio.longitude !== null,
+      _count: {
+        artists: testStudio._count.studioArtists
+      }
+    };
+
+    res.json({
+      success: true,
+      data: {
+        original: testStudio,
+        processed: processedStudio,
+        message: 'Test studio data structure'
+      }
+    });
+  } catch (error) {
+    console.error('Error in test endpoint:', error);
+    res.status(500).json({ success: false, error: 'Failed to get test data' });
+  }
+});
+
 // Get studios that need geocoding
 router.get('/pending', async (req, res) => {
   try {
@@ -114,7 +177,17 @@ router.get('/studios', async (req, res) => {
         zipCode: true,
         country: true,
         latitude: true,
-        longitude: true
+        longitude: true,
+        phoneNumber: true,
+        email: true,
+        website: true,
+        isVerified: true,
+        isFeatured: true,
+        _count: {
+          select: {
+            studioArtists: true
+          }
+        }
       }
     });
 
@@ -125,7 +198,11 @@ router.get('/studios', async (req, res) => {
         fullAddress: [studio.address, studio.city, studio.state, studio.zipCode, studio.country]
           .filter(Boolean)
           .join(', '),
-        hasCoordinates: studio.latitude !== null && studio.longitude !== null
+        hasCoordinates: studio.latitude !== null && studio.longitude !== null,
+        // Map the artist count to match frontend expectations
+        _count: {
+          artists: studio._count.studioArtists
+        }
       }))
     });
   } catch (error) {
