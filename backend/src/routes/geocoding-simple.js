@@ -57,6 +57,8 @@ router.get('/stats', async (req, res) => {
 // Test endpoint to verify data structure
 router.get('/test', async (req, res) => {
   try {
+    console.log('🔍 [GEOCODING] GET /test - Processing request');
+    
     const testStudio = await prisma.studio.findFirst({
       where: {
         latitude: { not: null },
@@ -107,8 +109,55 @@ router.get('/test', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error in test endpoint:', error);
-    res.status(500).json({ success: false, error: 'Failed to get test data' });
+    console.error('❌ Error in test endpoint:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get test data',
+      details: error.message 
+    });
+  }
+});
+
+// Simple count endpoint to test database connection
+router.get('/count', async (req, res) => {
+  try {
+    console.log('🔍 [GEOCODING] GET /count - Processing request');
+    
+    const totalCount = await prisma.studio.count();
+    const withCoordsCount = await prisma.studio.count({
+      where: {
+        latitude: { not: null },
+        longitude: { not: null }
+      }
+    });
+    
+    console.log(`📊 Count results: total=${totalCount}, withCoords=${withCoordsCount}`);
+    
+    res.json({
+      success: true,
+      data: {
+        total: totalCount,
+        withCoordinates: withCoordsCount,
+        withoutCoordinates: totalCount - withCoordsCount
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error in count endpoint:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get count',
+      details: error.message 
+    });
   }
 });
 
@@ -162,6 +211,8 @@ router.get('/pending', async (req, res) => {
 // Get all studios (for frontend display)
 router.get('/studios', async (req, res) => {
   try {
+    console.log('🔍 [GEOCODING] GET /studios - Processing request');
+    
     const studios = await prisma.studio.findMany({
       select: {
         id: true,
@@ -181,23 +232,38 @@ router.get('/studios', async (req, res) => {
       }
     });
 
+    console.log(`📊 Found ${studios.length} studios total`);
+
+    const processedStudios = studios.map(studio => ({
+      ...studio,
+      fullAddress: [studio.address, studio.city, studio.state, studio.zipCode, studio.country]
+        .filter(Boolean)
+        .join(', '),
+      hasCoordinates: studio.latitude !== null && studio.longitude !== null,
+      // Set default artist count since we can't easily count them without proper relationship
+      _count: {
+        artists: 0
+      }
+    }));
+
+    console.log(`✅ Successfully processed ${processedStudios.length} studios`);
+
     res.json({
       success: true,
-      data: studios.map(studio => ({
-        ...studio,
-        fullAddress: [studio.address, studio.city, studio.state, studio.zipCode, studio.country]
-          .filter(Boolean)
-          .join(', '),
-        hasCoordinates: studio.latitude !== null && studio.longitude !== null,
-        // Set default artist count since we can't easily count them without proper relationship
-        _count: {
-          artists: 0
-        }
-      }))
+      data: processedStudios
     });
   } catch (error) {
-    console.error('Error getting studios:', error);
-    res.status(500).json({ success: false, error: 'Failed to get studios' });
+    console.error('❌ Error getting studios:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get studios',
+      details: error.message 
+    });
   }
 });
 
