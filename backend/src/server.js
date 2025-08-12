@@ -59,10 +59,50 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-      imgSrc: ["'self'", "data:", "https:", "blob:", "blob:https:", "blob:https://tattooed-world-backend.onrender.com", "blob:*"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://maps.googleapis.com", "https://maps.gstatic.com"],
-      scriptSrcElem: ["'self'", "'unsafe-inline'", "https://maps.googleapis.com", "https://maps.gstatic.com"],
-      connectSrc: ["'self'", "https://maps.googleapis.com", "wss:", "ws:"],
+      imgSrc: [
+        "'self'", 
+        "data:", 
+        "https:", 
+        "blob:", 
+        "blob:https:", 
+        "blob:https://tattooed-world-backend.onrender.com", 
+        "blob:*",
+        "https://maps.googleapis.com",
+        "https://maps.gstatic.com",
+        "https://mt1.google.com",
+        "https://mt2.google.com",
+        "https://mt3.google.com"
+      ],
+      scriptSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "'unsafe-eval'", 
+        "https://maps.googleapis.com", 
+        "https://maps.gstatic.com"
+      ],
+      scriptSrcElem: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "https://maps.googleapis.com", 
+        "https://maps.gstatic.com"
+      ],
+      connectSrc: [
+        "'self'", 
+        "https://maps.googleapis.com", 
+        "https://maps.gstatic.com",
+        "https://mt1.google.com",
+        "https://mt2.google.com", 
+        "https://mt3.google.com",
+        "wss:", 
+        "ws:"
+      ],
+      frameSrc: [
+        "'self'",
+        "https://maps.googleapis.com"
+      ],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"]
     },
   },
 }));
