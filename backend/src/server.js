@@ -100,7 +100,14 @@ const limiter = rateLimit({
     });
   }
 });
-app.use('/api/', limiter);
+
+// Apply rate limiting to all /api/ routes EXCEPT geocoding (admin tool)
+app.use('/api/', (req, res, next) => {
+  if (req.path.startsWith('/geocoding')) {
+    return next(); // Skip rate limiting for geocoding routes
+  }
+  limiter(req, res, next);
+});
 
 // Logging middleware
 if (process.env.NODE_ENV === 'development') {
