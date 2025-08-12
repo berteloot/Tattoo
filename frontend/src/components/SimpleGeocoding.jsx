@@ -184,15 +184,20 @@ const SimpleGeocoding = () => {
     setFailedCount(0);
     setErrors([]);
 
+    // Use a local variable to track geocoding state to avoid race conditions
+    let shouldContinue = true;
+    
     // Start processing studios one by one
-    processNextStudio(0);
+    processNextStudio(0, shouldContinue);
   };
 
   // Process studios one by one recursively
-  const processNextStudio = async (index) => {
+  const processNextStudio = async (index, shouldContinue) => {
+    console.log(`🔍 [DEBUG] processNextStudio(${index}) called with shouldContinue: ${shouldContinue}, pendingStudios.length: ${pendingStudios.length}`);
+    
     // Check if we should stop
-    if (!isGeocoding || index >= pendingStudios.length) {
-      console.log('🏁 [DEBUG] Geocoding completed or stopped');
+    if (!shouldContinue || index >= pendingStudios.length) {
+      console.log('🏁 [DEBUG] Geocoding completed or stopped', { shouldContinue, index, pendingStudiosLength: pendingStudios.length });
       setIsGeocoding(false);
       
       if (geocodedCount > 0) {
@@ -229,7 +234,7 @@ const SimpleGeocoding = () => {
         setErrors(prev => [...prev, `${studio.title}: No address available`]);
         
         // Process next studio after a short delay
-        setTimeout(() => processNextStudio(index + 1), 100);
+        setTimeout(() => processNextStudio(index + 1, shouldContinue), 100);
         return;
       }
 
@@ -265,7 +270,7 @@ const SimpleGeocoding = () => {
       }
 
       // Rate limiting delay before next studio
-      setTimeout(() => processNextStudio(index + 1), 200);
+      setTimeout(() => processNextStudio(index + 1, shouldContinue), 200);
 
     } catch (error) {
       console.error(`❌ [${index + 1}/${pendingStudios.length}] Failed to geocode ${studio.title}:`, error);
@@ -273,7 +278,7 @@ const SimpleGeocoding = () => {
       setErrors(prev => [...prev, `${studio.title}: ${error.message}`]);
       
       // Process next studio after error (with delay)
-      setTimeout(() => processNextStudio(index + 1), 500);
+      setTimeout(() => processNextStudio(index + 1, shouldContinue), 500);
     }
   };
 
