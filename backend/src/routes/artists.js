@@ -180,7 +180,7 @@ router.get('/', optionalAuth, [
 
 
 
-    // Calculate average ratings for each artist
+    // Calculate average ratings for each artist (fixed)
     const artistsWithRatings = await Promise.all(
       artists.map(async (artist) => {
         const reviews = await prisma.review.findMany({
