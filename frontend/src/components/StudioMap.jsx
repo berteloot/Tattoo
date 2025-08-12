@@ -242,7 +242,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       
       // If focusing on a specific studio, fetch just that studio
       if (focusStudioId) {
-        response = await fetch(`/api/geocoding/studios/${focusStudioId}`)
+        response = await fetch(`/api/studios/${focusStudioId}`)
       } else {
         // Build query parameters for all studios
         const params = new URLSearchParams()
@@ -250,7 +250,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         if (filterVerified) params.append('verified', 'true')
         if (filterFeatured) params.append('featured', 'true')
         
-        response = await fetch(`/api/geocoding/studios?${params.toString()}`)
+        response = await fetch(`/api/studios?${params.toString()}`)
       }
       
       if (response.ok) {
