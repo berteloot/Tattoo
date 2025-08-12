@@ -151,9 +151,25 @@ router.post('/save-result', async (req, res) => {
 
     console.log(`🔄 Would update studio ${studioId} with coordinates: ${latitude}, ${longitude}`);
     
-    // TEMPORARY: Just return success without updating database
-    // This will help us test if the frontend is working
-    console.log(`✅ TEMPORARY: Simulating successful update for studio ${studioId}`);
+    // Update the studio with coordinates using raw SQL to bypass legacy functions
+    // Only update latitude and longitude to avoid triggering problematic triggers
+    const updateResult = await prisma.$executeRaw`
+      UPDATE studios 
+      SET latitude = ${parseFloat(latitude)}, longitude = ${parseFloat(longitude)}
+      WHERE id = ${studioId}
+    `;
+    
+    if (updateResult === 0) {
+      throw new Error('Studio not found');
+    }
+    
+    // Get the updated studio info
+    const updatedStudio = await prisma.studio.findUnique({
+      where: { id: studioId },
+      select: { id: true, title: true, latitude: true, longitude: true }
+    });
+    
+    console.log(`✅ Studio updated successfully: ${updatedStudio.title}`);
 
     res.json({
       success: true,
