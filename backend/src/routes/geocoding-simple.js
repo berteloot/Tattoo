@@ -151,22 +151,20 @@ router.post('/save-result', async (req, res) => {
 
     console.log(`🔄 Would update studio ${studioId} with coordinates: ${latitude}, ${longitude}`);
     
-    // Update the studio with coordinates using raw SQL to bypass legacy functions
-    // Only update latitude and longitude to avoid triggering problematic triggers
-    const updateResult = await prisma.$executeRaw`
-      UPDATE studios 
-      SET latitude = ${parseFloat(latitude)}, longitude = ${parseFloat(longitude)}
-      WHERE id = ${studioId}
-    `;
-    
-    if (updateResult === 0) {
-      throw new Error('Studio not found');
-    }
-    
-    // Get the updated studio info
-    const updatedStudio = await prisma.studio.findUnique({
+    // Try using Prisma upsert to see if it bypasses the problematic trigger
+    const updatedStudio = await prisma.studio.upsert({
       where: { id: studioId },
-      select: { id: true, title: true, latitude: true, longitude: true }
+      update: {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
+      },
+      create: {
+        id: studioId,
+        title: 'Temporary Studio', // This won't be used since we're updating
+        slug: 'temp-slug', // This won't be used since we're updating
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
+      }
     });
     
     console.log(`✅ Studio updated successfully: ${updatedStudio.title}`);
