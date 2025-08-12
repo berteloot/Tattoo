@@ -4,6 +4,7 @@ import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, P
 import { Link } from 'react-router-dom'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import { StudioMessageForm } from './StudioMessageForm'
+import { toast } from 'react-toastify'
 
 const mapContainerStyle = {
   width: '100%',
@@ -231,57 +232,6 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     getDirections(selectedStudio, fromAddress.trim())
   }
 
-  const getDummyStudios = () => [
-    {
-      id: '1',
-      title: 'Ink & Soul Studio',
-      address: '123 Main Street',
-      city: 'Montreal',
-      state: 'Quebec',
-      zipCode: 'H2X 1Y1',
-      latitude: 45.5017,
-      longitude: -73.5673,
-      phoneNumber: '+1-514-555-0101',
-      email: 'info@inkandsoul.com',
-      website: 'https://inkandsoul.com',
-      isVerified: true,
-      isFeatured: true,
-      _count: { artists: 5 }
-    },
-    {
-      id: '2',
-      title: 'Black Canvas Tattoo',
-      address: '456 Oak Avenue',
-      city: 'Montreal',
-      state: 'Quebec',
-      zipCode: 'H3A 2B2',
-      latitude: 45.5048,
-      longitude: -73.5732,
-      phoneNumber: '+1-514-555-0202',
-      email: 'hello@blackcanvas.com',
-      website: 'https://blackcanvas.com',
-      isVerified: true,
-      isFeatured: false,
-      _count: { artists: 3 }
-    },
-    {
-      id: '3',
-      title: 'Simple Lines Studio',
-      address: '789 Pine Street',
-      city: 'Montreal',
-      state: 'Quebec',
-      zipCode: 'H4B 3C3',
-      latitude: 45.4972,
-      longitude: -73.5784,
-      phoneNumber: '+1-514-555-0303',
-      email: 'contact@simplelines.com',
-      website: 'https://simplelines.com',
-      isVerified: true,
-      isFeatured: true,
-      _count: { artists: 4 }
-    }
-  ]
-
   const fetchStudios = async () => {
     try {
       console.log('Fetching studios for map...')
@@ -339,15 +289,35 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
             console.log('Studios needing geocoding:', studiosNeedingGeocoding.map(s => s.title))
           }
         } else {
-          throw new Error('Geocoding API returned error')
+          console.error('API returned error:', result)
+          throw new Error(`Geocoding API returned error: ${result.error || 'Unknown error'}`)
         }
       } else {
-        throw new Error('Geocoding API request failed')
+        console.error('API request failed:', response.status, response.statusText)
+        const errorText = await response.text()
+        console.error('Error response body:', errorText)
+        throw new Error(`Geocoding API request failed: ${response.status} ${response.statusText}`)
       }
     } catch (error) {
       console.error('Error fetching geocoded studios for map:', error)
-      console.log('Using fallback studios data for map')
-      setStudios(getDummyStudios())
+      console.log('Failed to fetch studios from database')
+      
+      // Don't use dummy data - either show error or empty state
+      setStudios([])
+      
+      // Show user-friendly error message with retry option
+      toast.error(
+        <div>
+          <p>Failed to load studios from database.</p>
+          <button 
+            onClick={() => fetchStudios()}
+            className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>,
+        { autoClose: false }
+      )
     } finally {
       setLoading(false)
     }
@@ -357,6 +327,25 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  // Show message if no studios loaded
+  if (!studios || studios.length === 0) {
+    return (
+      <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="text-center">
+          <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">No Studios Found</h3>
+          <p className="text-gray-500 mb-4">Unable to load studios from the database</p>
+          <button 
+            onClick={() => fetchStudios()}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry Loading Studios
+          </button>
+        </div>
       </div>
     )
   }
