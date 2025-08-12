@@ -136,6 +136,21 @@ router.get('/', optionalAuth, [
       where.isFeatured = true;
     }
 
+    // Debug: Log the where clause and query parameters
+    console.log('🔍 [ARTISTS] Query parameters:', {
+      page,
+      limit,
+      specialty,
+      city,
+      minRating,
+      maxPrice,
+      lat,
+      lng,
+      radius,
+      featured
+    });
+    console.log('🔍 [ARTISTS] Where clause:', JSON.stringify(where, null, 2));
+
     // Get artists with their basic info and average rating
     const artists = await prisma.artistProfile.findMany({
       where,
@@ -198,6 +213,16 @@ router.get('/', optionalAuth, [
       }
     });
 
+    // Debug: Log the raw query results
+    console.log('🔍 [ARTISTS] Raw query results count:', artists.length);
+    console.log('🔍 [ARTISTS] First artist sample:', artists[0] ? {
+      id: artists[0].id,
+      userId: artists[0].userId,
+      isVerified: artists[0].isVerified,
+      verificationStatus: artists[0].verificationStatus,
+      user: artists[0].user
+    } : 'No artists found');
+
     // Calculate average ratings for each artist
     const artistsWithRatings = await Promise.all(
       artists.map(async (artist) => {
@@ -230,6 +255,27 @@ router.get('/', optionalAuth, [
 
     // Get total count for pagination
     const total = await prisma.artistProfile.count({ where });
+
+    // Debug: Log the final response data
+    console.log('🔍 [ARTISTS] Final response data:', {
+      totalArtists: filteredArtists.length,
+      totalCount: total,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+    console.log('🔍 [ARTISTS] First filtered artist sample:', filteredArtists[0] ? {
+      id: filteredArtists[0].id,
+      userId: filteredArtists[0].userId,
+      isVerified: filteredArtists[0].isVerified,
+      verificationStatus: filteredArtists[0].verificationStatus,
+      user: filteredArtists[0].user,
+      averageRating: filteredArtists[0].averageRating,
+      reviewCount: filteredArtists[0].reviewCount
+    } : 'No filtered artists found');
 
     res.json({
       success: true,
