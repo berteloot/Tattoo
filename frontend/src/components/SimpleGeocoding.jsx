@@ -58,6 +58,7 @@ const SimpleGeocoding = () => {
       if (!apiKey) {
         const error = 'Google Maps API key is missing. Please check your environment configuration.';
         console.error('❌', error);
+        toast.error('Google Maps API key is missing. Please contact support.');
         reject(new Error(error));
         return;
       }
@@ -76,6 +77,7 @@ const SimpleGeocoding = () => {
       script.onerror = () => {
         const error = 'Failed to load Google Maps API script';
         console.error('❌', error);
+        toast.error('Failed to load Google Maps API. Please check your internet connection.');
         reject(new Error(error));
       };
       
@@ -291,6 +293,24 @@ const SimpleGeocoding = () => {
             </button>
           )}
         </div>
+
+        {/* API Key Status */}
+        {!googleMapsLoaded && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center">
+              <div className="text-yellow-600 mr-2">⚠️</div>
+              <div>
+                <h3 className="font-semibold text-yellow-800">Google Maps API Status</h3>
+                <p className="text-yellow-700 text-sm">
+                  {import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? 
+                    'API key is configured. Loading Google Maps API...' : 
+                    'Google Maps API key is missing. Please contact support to configure the API key.'
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Progress Bar for Current Batch */}
         {isGeocoding && (
