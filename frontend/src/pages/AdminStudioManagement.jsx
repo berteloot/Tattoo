@@ -39,7 +39,9 @@ const AdminStudioManagement = () => {
   // Bulk selection states
   const [selectedStudios, setSelectedStudios] = useState(new Set());
   const [selectAll, setSelectAll] = useState(false);
+  const [selectAllPages, setSelectAllPages] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [allStudioIds, setAllStudioIds] = useState(new Set());
   
   // Filters
   const [filters, setFilters] = useState({
@@ -104,6 +106,24 @@ const AdminStudioManagement = () => {
       showErrorToast('Error', 'Failed to fetch studios');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAllStudioIds = async () => {
+    try {
+      const params = new URLSearchParams({
+        page: 1,
+        limit: 1000, // Get a large number to cover all studios
+        ...filters
+      });
+      
+      const response = await api.get(`/admin/studios?${params}`);
+      const allIds = new Set(response.data.data.studios.map(studio => studio.id));
+      setAllStudioIds(allIds);
+      return allIds;
+    } catch (error) {
+      console.error('Error fetching all studio IDs:', error);
+      return new Set();
     }
   };
 
@@ -199,15 +219,41 @@ const AdminStudioManagement = () => {
   };
 
   // Bulk selection functions
-  const handleSelectAll = () => {
-    if (selectAll) {
+  const handleSelectAll = async () => {
+    if (selectAllPages) {
+      // Deselect all pages
+      setSelectedStudios(new Set());
+      setSelectAll(false);
+      setSelectAllPages(false);
+      setShowBulkActions(false);
+    } else if (selectAll) {
+      // Deselect current page only
       setSelectedStudios(new Set());
       setSelectAll(false);
       setShowBulkActions(false);
     } else {
-      const allStudioIds = studios.map(studio => studio.id);
-      setSelectedStudios(new Set(allStudioIds));
+      // Select current page only
+      const currentPageStudioIds = studios.map(studio => studio.id);
+      setSelectedStudios(new Set(currentPageStudioIds));
       setSelectAll(true);
+      setSelectAllPages(false);
+      setShowBulkActions(true);
+    }
+  };
+
+  const handleSelectAllPages = async () => {
+    if (selectAllPages) {
+      // Deselect all pages
+      setSelectedStudios(new Set());
+      setSelectAll(false);
+      setSelectAllPages(false);
+      setShowBulkActions(false);
+    } else {
+      // Select all pages
+      const allIds = await fetchAllStudioIds();
+      setSelectedStudios(allIds);
+      setSelectAll(false);
+      setSelectAllPages(true);
       setShowBulkActions(true);
     }
   };
@@ -220,7 +266,16 @@ const AdminStudioManagement = () => {
       newSelected.add(studioId);
     }
     setSelectedStudios(newSelected);
-    setSelectAll(newSelected.size === studios.length);
+    
+    // Update selection states
+    if (selectAllPages) {
+      // If we're selecting all pages, any individual selection should clear that state
+      setSelectAllPages(false);
+      setSelectAll(newSelected.size === studios.length);
+    } else {
+      setSelectAll(newSelected.size === studios.length);
+    }
+    
     setShowBulkActions(newSelected.size > 0);
   };
 
@@ -463,6 +518,16 @@ const AdminStudioManagement = () => {
               <div className="flex items-center space-x-4">
                 <span className="text-sm font-medium text-blue-900">
                   {selectedStudios.size} studio{selectedStudios.size !== 1 ? 's' : ''} selected
+                  {selectAllPages && (
+                    <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                      All Pages
+                    </span>
+                  )}
+                  {selectAll && !selectAllPages && (
+                    <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                      This Page
+                    </span>
+                  )}
                 </span>
                 <button
                   onClick={() => {
@@ -515,13 +580,27 @@ const AdminStudioManagement = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={selectAll}
-                        onChange={handleSelectAll}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={selectAllPages}
+                          onChange={handleSelectAllPages}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          title="Select all studios across all pages"
+                        />
+                        <span className="ml-2 text-xs text-gray-500">All Pages</span>
+                      </div>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={selectAll && !selectAllPages}
+                          onChange={handleSelectAll}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          title="Select all studios on current page"
+                        />
+                        <span className="ml-2 text-xs text-gray-500">This Page</span>
+                      </div>
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
