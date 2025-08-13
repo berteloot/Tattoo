@@ -240,12 +240,9 @@ export const ArtistProfile = () => {
               {/* Studio Information */}
               {artist.studioName && (
                 <div className="mb-4">
-                  <Link 
-                    to={`/studios/${artist.studioName.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="text-xl text-blue-600 hover:text-blue-800 font-medium transition-colors"
-                  >
+                  <div className="text-xl text-gray-700 font-medium">
                     {artist.studioName}
-                  </Link>
+                  </div>
                   {/* Studio Address */}
                   {(artist.address || artist.city) && (
                     <div className="flex items-start mt-2 text-sm text-gray-600">
