@@ -127,7 +127,7 @@ router.get('/', async (req, res) => {
       }
     });
 
-    // Get artist counts for each studio
+    // Get artist counts for each studio and add hasCoordinates property
     const studiosWithArtistCounts = await Promise.all(
       studios.map(async (studio) => {
         const artistCount = await prisma.studioArtist.count({
@@ -139,6 +139,7 @@ router.get('/', async (req, res) => {
         
         return {
           ...studio,
+          hasCoordinates: !!(studio.latitude && studio.longitude),
           _count: {
             artists: artistCount
           }
