@@ -82,6 +82,7 @@ model ArtistProfile {
   gallery                TattooGallery[]
   services               Service[]          @relation("ArtistProfileToService")
   specialties            Specialty[]        @relation("ArtistProfileToSpecialty")
+  messages               ArtistMessage[]
 
   @@map("artist_profiles")
 }
@@ -371,4 +372,26 @@ enum studio_role {
   MANAGER
   ARTIST
   GUEST
+}
+
+model ArtistMessage {
+  id          String    @id @default(cuid())
+  artistId    String
+  title       String?
+  content     String
+  priority    String    @default("LOW") // LOW, MEDIUM, HIGH
+  isActive    Boolean   @default(true)
+  showOnCard  Boolean   @default(true)
+  showOnProfile Boolean @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  artist      ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  @@index([artistId])
+  @@index([isActive])
+  @@index([priority])
+  @@index([expiresAt])
+  @@map("artist_messages")
 }
