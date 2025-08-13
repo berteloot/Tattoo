@@ -257,6 +257,9 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         const result = await response.json()
         if (result.success) {
           console.log('Using geocoded studios data for map')
+          console.log('🔍 Full API response:', result)
+          console.log('🔍 Data structure:', result.data)
+          console.log('🔍 Studios array:', result.data?.studios)
           console.log('Studios with coordinates:', result.data?.studios?.length || 0)
           console.log('Stats:', { 
             total: result.data?.studios?.length || 0,
