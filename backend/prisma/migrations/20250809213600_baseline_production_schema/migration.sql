@@ -256,7 +256,7 @@ END $$;
 
 -- Add indexes for performance
 CREATE INDEX IF NOT EXISTS "idx_admin_actions_admin_id" ON "admin_actions"("adminId");
-CREATE INDEX IF NOT EXISTS "idx_admin_actions_timestamp" ON "admin_actions"("timestamp");
+CREATE INDEX IF NOT EXISTS "idx_admin_actions_created_at" ON "admin_actions"("createdAt");
 CREATE INDEX IF NOT EXISTS "idx_tattoo_gallery_artist_id" ON "tattoo_gallery"("artistId");
 CREATE INDEX IF NOT EXISTS "idx_tattoo_gallery_created_at" ON "tattoo_gallery"("createdAt");
 CREATE INDEX IF NOT EXISTS "idx_tattoo_gallery_is_approved" ON "tattoo_gallery"("isApproved");

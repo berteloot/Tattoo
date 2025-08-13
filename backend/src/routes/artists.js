@@ -170,13 +170,7 @@ router.get('/', optionalAuth, [
             price: true
           }
         },
-        studio: {
-          select: {
-            id: true,
-            title: true,
-            slug: true
-          }
-        },
+
         messages: {
           where: {
             isActive: true,
@@ -215,7 +209,7 @@ router.get('/', optionalAuth, [
 
 
 
-    // Calculate average ratings for each artist (fixed)
+    // Calculate average ratings and add studio information for each artist
     const artistsWithRatings = await Promise.all(
       artists.map(async (artist) => {
         const reviews = await prisma.review.findMany({
@@ -232,10 +226,30 @@ router.get('/', optionalAuth, [
           ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
           : 0;
 
+        // Search for studio by name if studioName exists
+        let studio = null;
+        if (artist.studioName) {
+          studio = await prisma.studio.findFirst({
+            where: {
+              title: {
+                equals: artist.studioName.trim(),
+                mode: 'insensitive'
+              },
+              isActive: true
+            },
+            select: {
+              id: true,
+              title: true,
+              slug: true
+            }
+          });
+        }
+
         return {
           ...artist,
           averageRating: Math.round(averageRating * 10) / 10,
-          reviewCount: reviews.length
+          reviewCount: reviews.length,
+          studio
         };
       })
     );
