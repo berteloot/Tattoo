@@ -15,7 +15,7 @@ const AdminUserManagement = () => {
     info: typeof toast.info
   });
   
-  const { success, error } = toast;
+  const { success, error: showError } = toast;
   
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +60,7 @@ const AdminUserManagement = () => {
       setUsers(response.data.data.users);
       setPagination(response.data.data.pagination);
     } catch (error) {
-      error('Error fetching users');
+      showError('Error fetching users');
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
@@ -75,7 +75,7 @@ const AdminUserManagement = () => {
       setSelectedUser(response.data.data.user);
       setShowUserModal(true);
     } catch (error) {
-      error('Error fetching user details');
+      showError('Error fetching user details');
       console.error('Error fetching user details:', error);
     }
   };
@@ -89,7 +89,7 @@ const AdminUserManagement = () => {
       setShowUserModal(false);
       setSelectedUser(null);
     } catch (error) {
-      error(error.response?.data?.error || 'Error updating user');
+      showError('Error updating user', error.response?.data?.error || 'An error occurred while updating the user');
       console.error('Error updating user:', error);
     }
   };
@@ -106,7 +106,7 @@ const AdminUserManagement = () => {
       setDeleteReason('');
       fetchUsers();
     } catch (error) {
-      error(error.response?.data?.error || 'Error deactivating user');
+      showError('Error deactivating user', error.response?.data?.error || 'An error occurred while deactivating the user');
       console.error('Error deleting user:', error);
     }
   };
@@ -123,7 +123,7 @@ const AdminUserManagement = () => {
       setPermanentDeleteReason('');
       fetchUsers();
     } catch (error) {
-      error(error.response?.data?.error || 'Error permanently deleting user');
+      showError('Error permanently deleting user', error.response?.data?.error || 'An error occurred while permanently deleting the user');
       console.error('Error permanently deleting user:', error);
     }
   };
@@ -138,7 +138,7 @@ const AdminUserManagement = () => {
       setRestoreReason('');
       fetchUsers();
     } catch (error) {
-      error(error.response?.data?.error || 'Error restoring user');
+      showError('Error restoring user', error.response?.data?.error || 'An error occurred while restoring the user');
       console.error('Error restoring user:', error);
     }
   };

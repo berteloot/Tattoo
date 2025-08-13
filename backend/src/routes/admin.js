@@ -387,13 +387,29 @@ router.delete('/users/:id/permanent', [
     const user = await prisma.user.findUnique({
       where: { id },
       include: { 
-        artistProfile: true,
+        artistProfile: {
+          include: {
+            _count: {
+              select: {
+                flash: true,
+                gallery: true,
+                favorites: true,
+                messages: true,
+                services: true,
+                specialties: true
+              }
+            }
+          }
+        },
         reviewsGiven: true,
         reviewsReceived: true,
         _count: {
           select: {
             reviewsGiven: true,
-            reviewsReceived: true
+            reviewsReceived: true,
+            favorites: true,
+            galleryLikes: true,
+            galleryComments: true
           }
         }
       }
@@ -424,39 +440,121 @@ router.delete('/users/:id/permanent', [
 
     console.log(`🔄 Starting permanent deletion of user: ${user.email} (ID: ${id})`);
     console.log(`📊 User data to be deleted: ${user._count.reviewsGiven} reviews given, ${user._count.reviewsReceived} reviews received`);
+    
+    if (user.artistProfile) {
+      console.log(`🎨 Artist profile data to be deleted: ${user.artistProfile._count.flash} flash items, ${user.artistProfile._count.gallery} gallery items, ${user.artistProfile._count.favorites} favorites, ${user.artistProfile._count.messages} messages, ${user.artistProfile._count.services} services, ${user.artistProfile._count.specialties} specialties`);
+    }
+    
+    console.log(`💾 Additional user data: ${user._count.favorites} favorites, ${user._count.galleryLikes} gallery likes, ${user._count.galleryComments} gallery comments`);
 
     // Use a transaction to ensure all related data is deleted
     const result = await prisma.$transaction(async (tx) => {
-      // Delete all reviews given by this user
-      await tx.review.deleteMany({
-        where: { authorId: id }
-      });
-
-      // Delete all reviews received by this user
-      await tx.review.deleteMany({
-        where: { recipientId: id }
-      });
-
-      // Delete all flash items by this user
-      if (user.artistProfile) {
-        await tx.flash.deleteMany({
-          where: { artistId: user.artistProfile.id }
+      try {
+        console.log('🔄 Starting transaction for user deletion...');
+        
+        // Delete all reviews given by this user
+        console.log('🗑️ Deleting reviews given by user...');
+        await tx.review.deleteMany({
+          where: { authorId: id }
         });
-      }
 
-      // Delete artist profile if it exists
-      if (user.artistProfile) {
-        await tx.artistProfile.delete({
+        // Delete all reviews received by this user
+        console.log('🗑️ Deleting reviews received by user...');
+        await tx.review.deleteMany({
+          where: { recipientId: id }
+        });
+
+        // If user has an artist profile, delete all related data first
+        if (user.artistProfile) {
+          console.log('🎨 Deleting artist profile related data...');
+          
+          // Delete all gallery items (tattoo gallery) - this must be first due to foreign key constraints
+          console.log('🖼️ Deleting tattoo gallery items...');
+          await tx.tattooGallery.deleteMany({
+            where: { artistId: user.artistProfile.id }
+          });
+
+          // Delete all flash items
+          console.log('⚡ Deleting flash items...');
+          await tx.flash.deleteMany({
+            where: { artistId: user.artistProfile.id }
+          });
+
+          // Delete all favorites for this artist
+          console.log('❤️ Deleting artist favorites...');
+          await tx.favorite.deleteMany({
+            where: { artistId: user.artistProfile.id }
+          });
+
+          // Delete all artist messages
+          console.log('💬 Deleting artist messages...');
+          await tx.artistMessage.deleteMany({
+            where: { artistId: user.artistProfile.id }
+          });
+
+          // Delete all studio artist relationships
+          console.log('🏢 Deleting studio artist relationships...');
+          await tx.studioArtist.deleteMany({
+            where: { artistId: user.artistProfile.id }
+          });
+
+          // Note: Gallery likes, comments, and views are automatically deleted due to onDelete: Cascade
+          // when we delete the tattoo gallery items above
+
+          // Clear many-to-many relationships with services and specialties
+          console.log('🔗 Clearing service relationships...');
+          await tx.artistProfile.update({
+            where: { id: user.artistProfile.id },
+            data: {
+              services: { set: [] },
+              specialties: { set: [] }
+            }
+          });
+
+          // Also clear the junction tables directly to ensure they're empty
+          console.log('🔗 Clearing specialty junction table...');
+          await tx.$executeRaw`DELETE FROM "_ArtistProfileToSpecialty" WHERE "A" = ${user.artistProfile.id}`;
+          
+          console.log('🔗 Clearing service junction table...');
+          await tx.$executeRaw`DELETE FROM "_ArtistProfileToService" WHERE "A" = ${user.artistProfile.id}`;
+
+          // Finally delete the artist profile
+          console.log('👤 Deleting artist profile...');
+          await tx.artistProfile.delete({
+            where: { userId: id }
+          });
+        }
+
+        // Delete all favorites where this user is the favoriter
+        console.log('❤️ Deleting user favorites...');
+        await tx.favorite.deleteMany({
           where: { userId: id }
         });
+
+        // Delete all gallery likes by this user
+        console.log('👍 Deleting user gallery likes...');
+        await tx.tattooGalleryLike.deleteMany({
+          where: { userId: id }
+        });
+
+        // Delete all gallery comments by this user
+        console.log('💬 Deleting user gallery comments...');
+        await tx.tattooGalleryComment.deleteMany({
+          where: { userId: id }
+        });
+
+        // Finally, delete the user
+        console.log('👤 Deleting user...');
+        const deletedUser = await tx.user.delete({
+          where: { id }
+        });
+
+        console.log('✅ Transaction completed successfully');
+        return deletedUser;
+      } catch (txError) {
+        console.error('❌ Transaction error:', txError);
+        throw txError;
       }
-
-      // Finally, delete the user
-      const deletedUser = await tx.user.delete({
-        where: { id }
-      });
-
-      return deletedUser;
     });
 
     // Log admin action
@@ -480,7 +578,20 @@ router.delete('/users/:id/permanent', [
         deletedData: {
           reviewsGiven: user._count.reviewsGiven,
           reviewsReceived: user._count.reviewsReceived,
-          hadArtistProfile: !!user.artistProfile
+          hadArtistProfile: !!user.artistProfile,
+          artistData: user.artistProfile ? {
+            flashItems: user.artistProfile._count.flash,
+            galleryItems: user.artistProfile._count.gallery,
+            favorites: user.artistProfile._count.favorites,
+            messages: user.artistProfile._count.messages,
+            services: user.artistProfile._count.services,
+            specialties: user.artistProfile._count.specialties
+          } : null,
+          userData: {
+            favorites: user._count.favorites,
+            galleryLikes: user._count.galleryLikes,
+            galleryComments: user._count.galleryComments
+          }
         }
       }
     });
