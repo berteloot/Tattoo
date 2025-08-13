@@ -96,7 +96,8 @@ router.get('/', async (req, res) => {
       verified, 
       featured, 
       page = 1, 
-      limit = 20 
+      limit = 20,
+      all = false
     } = req.query;
     
     const where = {
@@ -118,14 +119,20 @@ router.get('/', async (req, res) => {
       where.isFeatured = featured === 'true';
     }
     
-    const studios = await prisma.studio.findMany({
+    // If all=true, fetch all studios without pagination for map display
+    const queryOptions = {
       where,
-      skip: (page - 1) * limit,
-      take: parseInt(limit),
       orderBy: {
         title: 'asc'
       }
-    });
+    };
+    
+    if (all !== 'true') {
+      queryOptions.skip = (page - 1) * limit;
+      queryOptions.take = parseInt(limit);
+    }
+    
+    const studios = await prisma.studio.findMany(queryOptions);
 
     // Get artist counts for each studio and add hasCoordinates property
     const studiosWithArtistCounts = await Promise.all(

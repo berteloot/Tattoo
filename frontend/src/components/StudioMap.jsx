@@ -249,6 +249,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         if (searchTerm) params.append('search', searchTerm)
         if (filterVerified) params.append('verified', 'true')
         if (filterFeatured) params.append('featured', 'true')
+        params.append('all', 'true') // Fetch all studios for map display
         
         response = await fetch(`/api/studios?${params.toString()}`)
       }
