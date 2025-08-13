@@ -164,7 +164,29 @@ router.get('/', optionalAuth, [
             price: true
           }
         },
-
+        messages: {
+          where: {
+            isActive: true,
+            showOnCard: true,
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: new Date() } }
+            ]
+          },
+          select: {
+            id: true,
+            title: true,
+            content: true,
+            priority: true,
+            createdAt: true,
+            expiresAt: true
+          },
+          orderBy: [
+            { priority: 'desc' },
+            { createdAt: 'desc' }
+          ],
+          take: 1 // Only show the highest priority message on cards
+        },
         _count: {
           select: {
             flash: true
@@ -498,7 +520,28 @@ router.get('/:id', optionalAuth, async (req, res) => {
           orderBy: { createdAt: 'desc' },
           take: 20
         },
-
+        messages: {
+          where: {
+            isActive: true,
+            showOnProfile: true,
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: new Date() } }
+            ]
+          },
+          select: {
+            id: true,
+            title: true,
+            content: true,
+            priority: true,
+            createdAt: true,
+            expiresAt: true
+          },
+          orderBy: [
+            { priority: 'desc' },
+            { createdAt: 'desc' }
+          ]
+        },
         _count: {
           select: {
             flash: true
