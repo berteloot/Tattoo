@@ -290,8 +290,18 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
           // Log studios that need geocoding
           const studiosNeedingGeocoding = studiosData.filter(studio => !studio.hasCoordinates)
           if (studiosNeedingGeocoding.length > 0) {
-            console.log('Studios needing geocoding:', studiosNeedingGeocoding.map(s => s.title))
+            console.log('🔍 Studios needing geocoding:', studiosNeedingGeocoding.map(s => s.title))
+            console.log('🔍 First studio sample:', {
+              title: studiosNeedingGeocoding[0]?.title,
+              hasCoordinates: studiosNeedingGeocoding[0]?.hasCoordinates,
+              latitude: studiosNeedingGeocoding[0]?.latitude,
+              longitude: studiosNeedingGeocoding[0]?.longitude,
+              address: studiosNeedingGeocoding[0]?.address
+            })
           }
+          
+          console.log('🔍 Studios with coordinates:', studiosWithCoordinates.length)
+          console.log('🔍 Total studios processed:', processedStudiosData.length)
         } else {
           console.error('API returned error:', result)
           throw new Error(`Geocoding API returned error: ${result.error || 'Unknown error'}`)
