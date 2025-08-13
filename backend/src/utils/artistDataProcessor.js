@@ -112,6 +112,26 @@ const processArtistData = (data, isUpdate = false) => {
     processed.maxPrice = safeParseFloat(data.maxPrice);
   }
 
+  // Process profile picture fields
+  if (data.profilePictureUrl !== undefined) {
+    processed.profilePictureUrl = safeTrim(data.profilePictureUrl);
+  }
+  if (data.profilePicturePublicId !== undefined) {
+    processed.profilePicturePublicId = safeTrim(data.profilePicturePublicId);
+  }
+  if (data.profilePictureWidth !== undefined) {
+    processed.profilePictureWidth = parseInt(data.profilePictureWidth) || null;
+  }
+  if (data.profilePictureHeight !== undefined) {
+    processed.profilePictureHeight = parseInt(data.profilePictureHeight) || null;
+  }
+  if (data.profilePictureFormat !== undefined) {
+    processed.profilePictureFormat = safeTrim(data.profilePictureFormat);
+  }
+  if (data.profilePictureBytes !== undefined) {
+    processed.profilePictureBytes = parseInt(data.profilePictureBytes) || null;
+  }
+
   // Process arrays
   if (data.specialtyIds !== undefined) {
     processed.specialtyIds = Array.isArray(data.specialtyIds) ? data.specialtyIds : [];
@@ -152,6 +172,13 @@ const createArtistProfileData = (processedData, userId) => {
     hourlyRate: processedData.hourlyRate,
     minPrice: processedData.minPrice,
     maxPrice: processedData.maxPrice,
+    // Profile picture fields
+    profilePictureUrl: processedData.profilePictureUrl,
+    profilePicturePublicId: processedData.profilePicturePublicId,
+    profilePictureWidth: processedData.profilePictureWidth,
+    profilePictureHeight: processedData.profilePictureHeight,
+    profilePictureFormat: processedData.profilePictureFormat,
+    profilePictureBytes: processedData.profilePictureBytes,
     specialties: {
       connect: processedData.specialtyIds.map(id => ({ id }))
     },
@@ -189,6 +216,14 @@ const updateArtistProfileData = (processedData) => {
   if (processedData.hourlyRate !== undefined) updateData.hourlyRate = processedData.hourlyRate;
   if (processedData.minPrice !== undefined) updateData.minPrice = processedData.minPrice;
   if (processedData.maxPrice !== undefined) updateData.maxPrice = processedData.maxPrice;
+
+  // Profile picture fields
+  if (processedData.profilePictureUrl !== undefined) updateData.profilePictureUrl = processedData.profilePictureUrl;
+  if (processedData.profilePicturePublicId !== undefined) updateData.profilePicturePublicId = processedData.profilePicturePublicId;
+  if (processedData.profilePictureWidth !== undefined) updateData.profilePictureWidth = processedData.profilePictureWidth;
+  if (processedData.profilePictureHeight !== undefined) updateData.profilePictureHeight = processedData.profilePictureHeight;
+  if (processedData.profilePictureFormat !== undefined) updateData.profilePictureFormat = processedData.profilePictureFormat;
+  if (processedData.profilePictureBytes !== undefined) updateData.profilePictureBytes = processedData.profilePictureBytes;
 
   // Handle relationships
   if (processedData.specialtyIds !== undefined) {

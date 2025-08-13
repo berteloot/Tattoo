@@ -80,7 +80,8 @@ router.get('/', optionalAuth, [
       lat,
       lng,
       radius,
-      featured
+      featured,
+      verificationStatus
     } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -103,8 +104,9 @@ router.get('/', optionalAuth, [
           in: ['ARTIST', 'ARTIST_ADMIN']
         },
         isActive: true
-      },
-      isVerified: true
+      }
+      // Removed isVerified: true to show both verified and pending artists
+      // This allows new artists to be visible immediately for development/testing
     };
 
     if (specialty) {
@@ -134,6 +136,10 @@ router.get('/', optionalAuth, [
 
     if (featured === 'true') {
       where.isFeatured = true;
+    }
+
+    if (verificationStatus) {
+      where.verificationStatus = verificationStatus;
     }
 
 
@@ -1206,18 +1212,45 @@ router.post('/profile-picture/upload', protect, authorize('ARTIST', 'ADMIN', 'AR
     // Get image dimensions
     const dimensions = await getImageDimensions(uploadedFile.buffer);
 
-    // Update the artist profile with the new image data
-    const updatedProfile = await prisma.artistProfile.update({
-      where: { userId: req.user.id },
-      data: {
-        profilePictureUrl: uploadResult.url,
-        profilePicturePublicId: uploadResult.public_id,
-        profilePictureWidth: dimensions.width,
-        profilePictureHeight: dimensions.height,
-        profilePictureFormat: uploadedFile.mimetype.split('/')[1],
-        profilePictureBytes: uploadedFile.size
-      }
+    // Check if artist profile exists
+    const artistProfile = await prisma.artistProfile.findUnique({
+      where: { userId: req.user.id }
     });
+
+    let updatedProfile;
+    if (artistProfile) {
+      // Update existing profile
+      updatedProfile = await prisma.artistProfile.update({
+        where: { userId: req.user.id },
+        data: {
+          profilePictureUrl: uploadResult.url,
+          profilePicturePublicId: uploadResult.public_id,
+          profilePictureWidth: dimensions.width,
+          profilePictureHeight: dimensions.height,
+          profilePictureFormat: uploadedFile.mimetype.split('/')[1],
+          profilePictureBytes: uploadedFile.size
+        }
+      });
+    } else {
+      // For new profiles, just return the image data
+      // The profile will be created when the user submits the complete form
+      console.log('ℹ️ No artist profile exists yet. Image uploaded and ready for profile creation.');
+      
+      // Return the image data without creating a profile
+      return res.json({
+        success: true,
+        data: {
+          url: uploadResult.url,
+          publicId: uploadResult.public_id,
+          width: dimensions.width,
+          height: dimensions.height,
+          format: uploadedFile.mimetype.split('/')[1],
+          bytes: uploadedFile.size,
+          profileCreated: false,
+          message: 'Profile picture uploaded successfully. Please complete your profile information to save it.'
+        }
+      });
+    }
 
     console.log('✅ Profile picture uploaded successfully:', {
       userId: req.user.id,
