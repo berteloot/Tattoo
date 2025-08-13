@@ -4,6 +4,36 @@
  */
 
 /**
+ * Search for existing studio by name
+ * @param {string} studioName - Studio name to search for
+ * @returns {Object|null} - Studio object if found, null otherwise
+ */
+async function findStudioByName(studioName) {
+  if (!studioName || typeof studioName !== 'string') return null;
+  
+  try {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const studio = await prisma.studio.findFirst({
+      where: {
+        title: {
+          equals: studioName.trim(),
+          mode: 'insensitive'
+        },
+        isActive: true
+      }
+    });
+    
+    await prisma.$disconnect();
+    return studio;
+  } catch (error) {
+    console.error('Error searching for studio:', error);
+    return null;
+  }
+}
+
+/**
  * Sanitize and process artist profile data for database operations
  * @param {Object} data - Raw form data
  * @param {boolean} isUpdate - Whether this is an update operation
@@ -37,6 +67,10 @@ const processArtistData = (data, isUpdate = false) => {
 
   if (data.studioName !== undefined) {
     processed.studioName = safeTrim(data.studioName);
+  }
+
+  if (data.studioId !== undefined) {
+    processed.studioId = safeTrim(data.studioId);
   }
 
   if (data.website !== undefined) {
@@ -155,6 +189,7 @@ const createArtistProfileData = (processedData, userId) => {
     userId,
     bio: processedData.bio,
     studioName: processedData.studioName,
+    studioId: processedData.studioId, // Add studioId for linking
     website: processedData.website,
     instagram: processedData.instagram,
     facebook: processedData.facebook,
@@ -199,6 +234,7 @@ const updateArtistProfileData = (processedData) => {
   // Only include fields that are defined (not undefined)
   if (processedData.bio !== undefined) updateData.bio = processedData.bio;
   if (processedData.studioName !== undefined) updateData.studioName = processedData.studioName;
+  if (processedData.studioId !== undefined) updateData.studioId = processedData.studioId;
   if (processedData.website !== undefined) updateData.website = processedData.website;
   if (processedData.instagram !== undefined) updateData.instagram = processedData.instagram;
   if (processedData.facebook !== undefined) updateData.facebook = processedData.facebook;
@@ -244,5 +280,6 @@ const updateArtistProfileData = (processedData) => {
 module.exports = {
   processArtistData,
   createArtistProfileData,
-  updateArtistProfileData
+  updateArtistProfileData,
+  findStudioByName
 }; 

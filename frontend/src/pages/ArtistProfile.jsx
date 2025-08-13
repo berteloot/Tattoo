@@ -240,9 +240,20 @@ export const ArtistProfile = () => {
               {/* Studio Information */}
               {artist.studioName && (
                 <div className="mb-4">
-                  <div className="text-xl text-gray-700 font-medium">
-                    {artist.studioName}
-                  </div>
+                  {artist.studio ? (
+                    // Studio is linked - make it clickable
+                    <Link 
+                      to={`/studios/${artist.studio.slug}`}
+                      className="text-xl text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                    >
+                      {artist.studioName}
+                    </Link>
+                  ) : (
+                    // Studio is not linked - show as plain text
+                    <div className="text-xl text-gray-700 font-medium">
+                      {artist.studioName}
+                    </div>
+                  )}
                   {/* Studio Address */}
                   {(artist.address || artist.city) && (
                     <div className="flex items-start mt-2 text-sm text-gray-600">

@@ -42,6 +42,7 @@ model ArtistProfile {
   userId                 String             @unique
   bio                    String?
   studioName             String?
+  studioId               String?            @map("studio_id")
   website                String?
   instagram              String?
   facebook               String?
@@ -83,6 +84,7 @@ model ArtistProfile {
   services               Service[]          @relation("ArtistProfileToService")
   specialties            Specialty[]        @relation("ArtistProfileToSpecialty")
   messages               ArtistMessage[]
+  studio                 Studio?            @relation(fields: [studioId], references: [id])
 
   @@map("artist_profiles")
 }
@@ -203,6 +205,7 @@ model Studio {
   verifiedAt         DateTime? @map("verified_at") @db.Timestamp(6)
   createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt          DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
+  artists            ArtistProfile[]
 
   @@index([latitude, longitude], map: "idx_studios_coordinates")
   @@map("studios")

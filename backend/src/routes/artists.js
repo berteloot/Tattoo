@@ -170,6 +170,13 @@ router.get('/', optionalAuth, [
             price: true
           }
         },
+        studio: {
+          select: {
+            id: true,
+            title: true,
+            slug: true
+          }
+        },
         messages: {
           where: {
             isActive: true,
@@ -722,6 +729,20 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistPro
     // Process and validate the form data
     const processedData = processArtistData(req.body, false);
     
+    // Search for existing studio if studioName is provided
+    if (processedData.studioName) {
+      const { findStudioByName } = require('../utils/artistDataProcessor');
+      const existingStudio = await findStudioByName(processedData.studioName);
+      
+      if (existingStudio) {
+        // Link to existing studio
+        processedData.studioId = existingStudio.id;
+        console.log(`🔗 Linking artist to existing studio: ${existingStudio.title} (ID: ${existingStudio.id})`);
+      } else {
+        console.log(`⚠️ Studio not found: ${processedData.studioName} - will store as text only`);
+      }
+    }
+    
     // Create the artist profile data object
     const profileData = createArtistProfileData(processedData, req.user.id);
 
@@ -816,6 +837,22 @@ router.put('/:id', protect, validateArtistProfile(true), async (req, res) => {
 
     // Process and validate the form data
     const processedData = processArtistData(req.body, true);
+    
+    // Search for existing studio if studioName is provided
+    if (processedData.studioName) {
+      const { findStudioByName } = require('../utils/artistDataProcessor');
+      const existingStudio = await findStudioByName(processedData.studioName);
+      
+      if (existingStudio) {
+        // Link to existing studio
+        processedData.studioId = existingStudio.id;
+        console.log(`🔗 Linking artist to existing studio: ${existingStudio.title} (ID: ${existingStudio.id})`);
+      } else {
+        // Clear studioId if studio name doesn't match any existing studio
+        processedData.studioId = null;
+        console.log(`⚠️ Studio not found: ${processedData.studioName} - clearing studio link`);
+      }
+    }
     
     // Create the update data object
     const updateData = updateArtistProfileData(processedData);
