@@ -498,28 +498,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
           orderBy: { createdAt: 'desc' },
           take: 20
         },
-        messages: {
-          where: {
-            isActive: true,
-            showOnProfile: true,
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } }
-            ]
-          },
-          select: {
-            id: true,
-            title: true,
-            content: true,
-            priority: true,
-            createdAt: true,
-            expiresAt: true
-          },
-          orderBy: [
-            { priority: 'desc' },
-            { createdAt: 'desc' }
-          ]
-        },
+
         _count: {
           select: {
             flash: true
@@ -934,8 +913,16 @@ router.get('/:id/studios', async (req, res) => {
         artistId: id,
         isActive: true
       },
-      include: {
-        studio: {
+      orderBy: {
+        joinedAt: 'desc'
+      }
+    });
+
+    // Get studio details separately since StudioArtist doesn't have studio relationship
+    const studiosWithDetails = await Promise.all(
+      studioArtists.map(async (sa) => {
+        const studio = await prisma.studio.findUnique({
+          where: { id: sa.studioId },
           select: {
             id: true,
             title: true,
@@ -954,16 +941,18 @@ router.get('/:id/studios', async (req, res) => {
             isFeatured: true,
             verificationStatus: true
           }
-        }
-      },
-      orderBy: {
-        joinedAt: 'desc'
-      }
-    });
+        });
+
+        return {
+          ...sa,
+          studio
+        };
+      })
+    );
 
     res.json({
       success: true,
-      data: studioArtists
+      data: studiosWithDetails
     });
   } catch (error) {
     console.error('Get artist studios error:', error);
