@@ -379,7 +379,7 @@ model ArtistMessage {
   artistId    String
   title       String?
   content     String
-  priority    String    @default("LOW") // LOW, MEDIUM, HIGH
+  priority    Int       @default(1) // 1=Low, 2=Medium, 3=High
   isActive    Boolean   @default(true)
   showOnCard  Boolean   @default(true)
   showOnProfile Boolean @default(true)
