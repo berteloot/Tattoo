@@ -94,6 +94,14 @@ export const ArtistDashboard = () => {
     console.log('🔍 ArtistDashboard mounted')
     console.log('User state:', user)
     console.log('User artist profile:', user?.artistProfile)
+    
+    // Check if user is creating new profile or editing existing one
+    if (user?.artistProfile?.id) {
+      console.log('✅ User has existing artist profile - EDITING MODE')
+    } else {
+      console.log('📝 User creating new artist profile - CREATION MODE')
+    }
+    
     loadDashboardData()
   }, [])
 
@@ -489,12 +497,19 @@ export const ArtistDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Artist Dashboard</h1>
-          <p className="mt-2 text-gray-600">Manage your profile, portfolio, and business</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {user?.artistProfile?.id ? 'Artist Dashboard' : 'Create Artist Profile'}
+          </h1>
+          <p className="mt-2 text-gray-600">
+            {user?.artistProfile?.id 
+              ? 'Manage your profile, portfolio, and business' 
+              : 'Set up your artist profile to start showcasing your work'
+            }
+          </p>
         </div>
 
-        {/* Profile Creation Banner */}
-        {!user?.artistProfile?.id && (
+        {/* Profile Creation/Management Banner */}
+        {!user?.artistProfile?.id ? (
           <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -506,7 +521,23 @@ export const ArtistDashboard = () => {
                 <h3 className="text-lg font-medium text-blue-900">Create Your Artist Profile</h3>
                 <p className="mt-1 text-blue-700">
                   To start adding flash items and managing your portfolio, you need to create your artist profile first. 
-                  Click the "Edit" button in the Profile Management section below to get started.
+                  Fill out the form below to get started.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-green-900">Profile Active</h3>
+                <p className="mt-1 text-green-700">
+                  Your artist profile is active and verified. You can edit your profile, add flash items, and manage your portfolio below.
                 </p>
               </div>
             </div>
