@@ -76,13 +76,13 @@ model ArtistProfile {
   profilePictureHeight   Int?
   profilePictureFormat   String?
   profilePictureBytes    Int?
+  messages               ArtistMessage[]
   user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites              Favorite[]         @relation("FavoriteArtist")
   flash                  Flash[]
   gallery                TattooGallery[]
   services               Service[]          @relation("ArtistProfileToService")
   specialties            Specialty[]        @relation("ArtistProfileToSpecialty")
-  messages               ArtistMessage[]
 
   @@map("artist_profiles")
 }
@@ -346,6 +346,27 @@ model TattooGalleryView {
   @@map("tattoo_gallery_views")
 }
 
+model ArtistMessage {
+  id            String        @id @default(cuid())
+  artistId      String
+  title         String?
+  content       String
+  priority      Int           @default(1)
+  isActive      Boolean       @default(true)
+  showOnCard    Boolean       @default(true)
+  showOnProfile Boolean       @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  artist        ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+  @@index([isActive])
+  @@index([priority])
+  @@index([expiresAt])
+  @@map("artist_messages")
+}
+
 enum UserRole {
   CLIENT
   ARTIST
@@ -372,26 +393,4 @@ enum studio_role {
   MANAGER
   ARTIST
   GUEST
-}
-
-model ArtistMessage {
-  id          String    @id @default(cuid())
-  artistId    String
-  title       String?
-  content     String
-  priority    Int       @default(1) // 1=Low, 2=Medium, 3=High
-  isActive    Boolean   @default(true)
-  showOnCard  Boolean   @default(true)
-  showOnProfile Boolean @default(true)
-  expiresAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  artist      ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  
-  @@index([artistId])
-  @@index([isActive])
-  @@index([priority])
-  @@index([expiresAt])
-  @@map("artist_messages")
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
+import { useLocation } from 'react-router-dom'
 import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
 import ImageUpload from '../components/ImageUpload'
 import ProfilePictureUpload from '../components/ProfilePictureUpload'
@@ -14,6 +15,7 @@ import { MessageManagement } from '../components/MessageManagement'
 export const ArtistDashboard = () => {
   const { user } = useAuth()
   const { success, error: showError } = useToast()
+  const location = useLocation()
   
   // State management
   const [profile, setProfile] = useState(null)
@@ -102,8 +104,15 @@ export const ArtistDashboard = () => {
       console.log('📝 User creating new artist profile - CREATION MODE')
     }
     
+    // Handle studio creation success message
+    if (location.state?.studioCreated) {
+      success(location.state.message || 'Studio created successfully!')
+      // Clear the navigation state
+      window.history.replaceState({}, document.title)
+    }
+    
     loadDashboardData()
-  }, [])
+  }, [location.state, success])
 
   const loadDashboardData = async () => {
     console.log('🔍 Loading dashboard data...')

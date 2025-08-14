@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, Plus, MapPin, ExternalLink, CheckCircle, XCircle, X } from 'lucide-react';
 import { studiosAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import AddressAutocomplete from './AddressAutocomplete';
 
 const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -127,10 +128,13 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
   });
 
   const handleCreateStudio = async (studioName) => {
-    // Set the studio name and show the creation form
-    setCreateFormData(prev => ({ ...prev, title: studioName }));
-    setShowCreateForm(true);
-    setShowResults(false);
+    console.log('🎯 handleCreateStudio called with:', studioName);
+    // Redirect to dedicated studio creation page with pre-filled studio name
+    navigate('/create-studio', { 
+      state: { 
+        prefillStudioName: studioName 
+      } 
+    });
   };
 
   const handleAddressSelect = (placeData) => {
@@ -146,12 +150,16 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
 
   const handleCreateStudioSubmit = async (e) => {
     e.preventDefault();
+    console.log('🚀 handleCreateStudioSubmit called');
+    console.log('📋 Form data:', createFormData);
     
     // Validate required fields
     if (!createFormData.address || !createFormData.city || !createFormData.state || !createFormData.country) {
+      console.log('❌ Validation failed - missing fields');
       showError('Missing Information', 'Address, city, state, and country are required');
       return;
     }
+    console.log('✅ Validation passed');
 
     console.log('🔍 Creating studio with data:', createFormData);
     setIsLinking(true);

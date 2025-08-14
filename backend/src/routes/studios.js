@@ -84,9 +84,9 @@ router.post('/', protect, async (req, res) => {
         zipCode: zipCode || null,
         country: country || null,
         isActive: true,
-        isVerified: false,
+        isVerified: true, // Auto-approve new studios
         isFeatured: false,
-        verificationStatus: 'PENDING',
+        verificationStatus: 'APPROVED', // Auto-approve new studios
         claimedBy: req.user.id,
         claimedAt: new Date()
       }

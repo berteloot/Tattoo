@@ -28,6 +28,7 @@ import AdminContent from './pages/AdminContent'
 import { Favorites } from './pages/Favorites'
 import Studios from './pages/Studios'
 import StudioDetail from './pages/StudioDetail'
+import CreateStudio from './pages/CreateStudio'
 import Map from './pages/Map'
 import { HomeEditorial } from './pages/HomeEditorial'
 import TattooGallery from './pages/TattooGallery'
@@ -62,6 +63,7 @@ function App() {
               <Route path="/flash" element={<FlashGallery />} />
               <Route path="/studios" element={<Studios />} />
               <Route path="/studios/:id" element={<StudioDetail />} />
+              <Route path="/create-studio" element={<CreateStudio />} />
               <Route path="/map" element={<Map />} />
               <Route path="/gallery" element={<TattooGallery />} />
               <Route path="/gallery/:id" element={<GalleryDetail />} />
