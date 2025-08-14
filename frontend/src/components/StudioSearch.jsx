@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Plus, MapPin, ExternalLink, CheckCircle, XCircle, X } from 'lucide-react';
+import { Search, Plus, MapPin, ExternalLink, CheckCircle, XCircle, Globe } from 'lucide-react';
 import { studiosAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
-import AddressAutocomplete from './AddressAutocomplete';
 
 const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
   const navigate = useNavigate();
@@ -116,17 +115,6 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
     }
   };
 
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [createFormData, setCreateFormData] = useState({
-    title: '',
-    address: '',
-    city: '',
-    state: '',
-    country: 'USA',
-    phoneNumber: '',
-    email: ''
-  });
-
   const handleCreateStudio = async (studioName) => {
     console.log('🎯 handleCreateStudio called with:', studioName);
     // Redirect to dedicated studio creation page with pre-filled studio name
@@ -135,118 +123,6 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
         prefillStudioName: studioName 
       } 
     });
-  };
-
-  const handleAddressSelect = (placeData) => {
-    // Auto-fill form fields when address is selected from Google Places
-    setCreateFormData(prev => ({
-      ...prev,
-      address: placeData.address || prev.address,
-      city: placeData.city || prev.city,
-      state: placeData.state || prev.state,
-      country: placeData.country || prev.country
-    }));
-  };
-
-  const handleCreateStudioSubmit = async (e) => {
-    e.preventDefault();
-    console.log('🚀 handleCreateStudioSubmit called');
-    console.log('📋 Form data:', createFormData);
-    
-    // Validate required fields
-    if (!createFormData.address || !createFormData.city || !createFormData.state || !createFormData.country) {
-      console.log('❌ Validation failed - missing fields');
-      showError('Missing Information', 'Address, city, state, and country are required');
-      return;
-    }
-    console.log('✅ Validation passed');
-
-    console.log('🔍 Creating studio with data:', createFormData);
-    setIsLinking(true);
-    
-    try {
-      // Create a new studio with complete information
-      const newStudio = {
-        title: createFormData.title,
-        slug: createFormData.title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-        address: createFormData.address,
-        city: createFormData.city,
-        state: createFormData.state,
-        country: createFormData.country,
-        phoneNumber: createFormData.phoneNumber || '',
-        email: createFormData.email || '',
-        website: '',
-        isActive: true,
-        isVerified: false,
-        verificationStatus: 'PENDING'
-      };
-
-      console.log('🚀 Sending studio creation request:', newStudio);
-
-      // Create the studio
-      const response = await studiosAPI.create(newStudio);
-      console.log('✅ Studio creation response:', response);
-      
-      if (response.data.success) {
-        const createdStudio = response.data.data.studio;
-        console.log('🎉 Studio created successfully:', createdStudio);
-        
-        // If user has an artist profile, automatically claim the newly created studio
-        if (currentArtistId) {
-          console.log('🔗 Claiming studio for existing artist profile');
-          await studiosAPI.claim(createdStudio.id);
-          showSuccess(`Successfully created and claimed ${createdStudio.title}`, 'You are now the owner of this studio');
-        } else {
-          console.log('📝 Studio created for new artist profile');
-          showSuccess(`Studio created: ${createdStudio.title}`, 'Studio will be linked to your profile');
-        }
-        
-        // Close the form and reset
-        setShowCreateForm(false);
-        setSearchQuery('');
-        setCreateFormData({
-          title: '',
-          address: '',
-          city: '',
-          state: '',
-          country: 'USA',
-          phoneNumber: '',
-          email: ''
-        });
-        
-        // IMPORTANT: Callback to parent component to continue profile creation
-        console.log('🔄 Calling onStudioLinked callback with:', createdStudio);
-        if (onStudioLinked) {
-          onStudioLinked(createdStudio);
-        } else {
-          console.warn('⚠️ onStudioLinked callback not provided');
-        }
-      } else {
-        console.error('❌ Studio creation failed:', response.data);
-        showError('Studio Creation Failed', response.data.error || 'Unknown error occurred');
-      }
-    } catch (error) {
-      console.error('❌ Error creating studio:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      
-      try {
-        if (error.response?.data?.error) {
-          showError('Error creating studio', error.response.data.error);
-        } else if (error.message) {
-          showError('Error creating studio', error.message);
-        } else {
-          showError('Error creating studio', 'Failed to create studio. Please try again.');
-        }
-      } catch (toastError) {
-        console.error('Error showing toast:', toastError);
-      }
-    } finally {
-      setIsLinking(false);
-    }
   };
 
   const getStudioStatus = (studio) => {
@@ -271,14 +147,9 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for studio name..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Search for your studio name..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
-          {isSearching && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -287,66 +158,43 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
         <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-96 overflow-y-auto">
           {searchResults.map((studio) => {
             const status = getStudioStatus(studio);
-            const StatusIcon = status.icon;
-            
             return (
-              <div key={studio.id} className="p-4 border-b border-gray-100 hover:bg-gray-50">
-                <div className="flex items-start justify-between">
+              <div key={studio.id} className="p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+                <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-medium text-gray-900">{studio.title}</h3>
-                      <StatusIcon className={`h-4 w-4 ${status.color}`} />
-                      <span className={`text-xs ${status.color}`}>{status.text}</span>
+                      <span className={`inline-flex items-center gap-1 text-xs ${status.color}`}>
+                        <status.icon className="h-3 w-3" />
+                        {status.text}
+                      </span>
                     </div>
-                    
                     {studio.address && (
                       <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
                         <MapPin className="h-3 w-3" />
-                        <span className="flex-1">
-                          {studio.address}
-                          {studio.city && `, ${studio.city}`}
-                          {studio.state && `, ${studio.state}`}
-                        </span>
-                        {studio.latitude && studio.longitude && (
-                          <button
-                            onClick={() => window.open(`/map?lat=${studio.latitude}&lng=${studio.longitude}`, '_blank')}
-                            className="text-blue-600 hover:text-blue-800 transition-colors"
-                            title="View on map"
-                          >
-                            <MapPin className="h-3 w-3" />
-                          </button>
-                        )}
+                        <span>{studio.address}, {studio.city}, {studio.state}</span>
                       </div>
                     )}
-                    
-                    {studio._count && (
-                      <p className="text-xs text-gray-500">
-                        {studio._count.artists} artist{studio._count.artists !== 1 ? 's' : ''} linked
-                      </p>
-                    )}
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      {studio.website && (
+                        <a
+                          href={studio.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                        >
+                          <Globe className="h-3 w-3" />
+                          Website
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  
                   <div className="flex gap-2 ml-4">
-                    {studio.website && (
-                      <a
-                        href={studio.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                        title="Visit website"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
-                    
                     {studio.claimedBy ? (
-                      <button
-                        onClick={() => handleLinkToStudio(studio)}
-                        disabled={isLinking}
-                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {isLinking ? 'Linking...' : 'Join Studio'}
-                      </button>
+                      <span className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                        Already Claimed
+                      </span>
                     ) : (
                       <button
                         onClick={() => handleClaimStudio(studio)}
@@ -384,209 +232,6 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
         </div>
       )}
 
-      {/* Studio Creation Form */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Create New Studio</h3>
-              <button
-                onClick={() => setShowCreateForm(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleCreateStudioSubmit} className="space-y-4">
-              {/* Google Places Autocomplete Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
-                <p className="text-sm text-blue-800">
-                  <strong>💡 Pro Tip:</strong> Start typing in the Address field to see Google Places suggestions. 
-                  Selecting an address will automatically fill in the City, State, and Country fields!
-                </p>
-              </div>
-
-              {/* Studio Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Studio Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={createFormData.title}
-                  onChange={(e) => setCreateFormData(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                  readOnly
-                />
-                <p className="text-xs text-gray-500 mt-1">Studio name is set from your search</p>
-              </div>
-
-              {/* Address */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Address <span className="text-red-500">*</span>
-                </label>
-                <AddressAutocomplete
-                  value={createFormData.address}
-                  onChange={(e) => setCreateFormData(prev => ({ ...prev, address: e.target.value }))}
-                  onPlaceSelect={handleAddressSelect}
-                  placeholder="Start typing your address..."
-                  className="w-full"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Start typing to see address suggestions from Google Places
-                </p>
-              </div>
-
-              {/* City */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  City <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={createFormData.city}
-                  onChange={(e) => setCreateFormData(prev => ({ ...prev, city: e.target.value }))}
-                  placeholder="Will be auto-filled from address"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
-                  required
-                  readOnly
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Auto-filled from address selection
-                </p>
-              </div>
-
-              {/* State */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  State/Province <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={createFormData.state}
-                  onChange={(e) => setCreateFormData(prev => ({ ...prev, state: e.target.value }))}
-                  placeholder="Will be auto-filled from address"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
-                  required
-                  readOnly
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Auto-filled from address selection
-                </p>
-              </div>
-
-              {/* Country */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Country <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={createFormData.country}
-                  onChange={(e) => setCreateFormData(prev => ({ ...prev, country: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                >
-                  <option value="">Select country (auto-filled from address)</option>
-                  <option value="USA">United States</option>
-                  <option value="Canada">Canada</option>
-                  <option value="UK">United Kingdom</option>
-                  <option value="Australia">Australia</option>
-                  <option value="Germany">Germany</option>
-                  <option value="France">France</option>
-                  <option value="Spain">Spain</option>
-                  <option value="Italy">Italy</option>
-                  <option value="Netherlands">Netherlands</option>
-                  <option value="Belgium">Belgium</option>
-                  <option value="Switzerland">Switzerland</option>
-                  <option value="Austria">Austria</option>
-                  <option value="Sweden">Sweden</option>
-                  <option value="Norway">Norway</option>
-                  <option value="Denmark">Denmark</option>
-                  <option value="Finland">Finland</option>
-                  <option value="Poland">Poland</option>
-                  <option value="Czech Republic">Czech Republic</option>
-                  <option value="Hungary">Hungary</option>
-                  <option value="Slovakia">Slovakia</option>
-                  <option value="Slovenia">Slovenia</option>
-                  <option value="Croatia">Croatia</option>
-                  <option value="Serbia">Serbia</option>
-                  <option value="Bulgaria">Bulgaria</option>
-                  <option value="Romania">Romania</option>
-                  <option value="Greece">Greece</option>
-                  <option value="Portugal">Portugal</option>
-                  <option value="Ireland">Ireland</option>
-                  <option value="Iceland">Iceland</option>
-                  <option value="Luxembourg">Luxembourg</option>
-                  <option value="Liechtenstein">Liechtenstein</option>
-                  <option value="Monaco">Monaco</option>
-                  <option value="Andorra">Andorra</option>
-                  <option value="San Marino">San Marino</option>
-                  <option value="Vatican City">Vatican City</option>
-                  <option value="Malta">Malta</option>
-                  <option value="Cyprus">Cyprus</option>
-                  <option value="Estonia">Estonia</option>
-                  <option value="Latvia">Latvia</option>
-                  <option value="Lithuania">Lithuania</option>
-                  <option value="Other">Other</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Auto-filled from address selection, but can be manually changed
-                </p>
-              </div>
-
-              {/* Phone Number */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={createFormData.phoneNumber}
-                  onChange={(e) => setCreateFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                  placeholder="+1 (555) 123-4567"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={createFormData.email}
-                  onChange={(e) => setCreateFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="studio@example.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateForm(false)}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLinking}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isLinking ? 'Creating...' : 'Create Studio'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* Click outside to close */}
       {showResults && (
         <div
@@ -598,4 +243,4 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
   );
 };
 
-export default StudioSearch; 
+export default StudioSearch;
