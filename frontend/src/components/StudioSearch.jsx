@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus, MapPin, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Plus, MapPin, ExternalLink, CheckCircle, XCircle, X } from 'lucide-react';
 import { studiosAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 
@@ -114,16 +114,46 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
     }
   };
 
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    title: '',
+    address: '',
+    city: '',
+    state: '',
+    country: 'USA',
+    phoneNumber: '',
+    email: ''
+  });
+
   const handleCreateStudio = async (studioName) => {
+    // Set the studio name and show the creation form
+    setCreateFormData(prev => ({ ...prev, title: studioName }));
+    setShowCreateForm(true);
+    setShowResults(false);
+  };
+
+  const handleCreateStudioSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!createFormData.address || !createFormData.city || !createFormData.state || !createFormData.country) {
+      showError('Missing Information', 'Address, city, state, and country are required');
+      return;
+    }
+
     setIsLinking(true);
     try {
-      // Create a new studio with basic information
+      // Create a new studio with complete information
       const newStudio = {
-        title: studioName,
-        slug: studioName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        title: createFormData.title,
+        slug: createFormData.title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        address: createFormData.address,
+        city: createFormData.city,
+        state: createFormData.state,
+        country: createFormData.country,
+        phoneNumber: createFormData.phoneNumber || '',
+        email: createFormData.email || '',
         website: '',
-        phoneNumber: '',
-        email: '',
         isActive: true,
         isVerified: false,
         verificationStatus: 'PENDING'
@@ -143,8 +173,17 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
           showSuccess(`Studio created: ${createdStudio.title}`, 'Studio will be claimed when you create your profile');
         }
         
-        setShowResults(false);
+        setShowCreateForm(false);
         setSearchQuery('');
+        setCreateFormData({
+          title: '',
+          address: '',
+          city: '',
+          state: '',
+          country: 'USA',
+          phoneNumber: '',
+          email: ''
+        });
         
         // Callback to parent component
         if (onStudioLinked) {
@@ -298,6 +337,187 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
                 {isLinking ? 'Creating...' : 'Create Studio'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Studio Creation Form */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Create New Studio</h3>
+              <button
+                onClick={() => setShowCreateForm(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateStudioSubmit} className="space-y-4">
+              {/* Studio Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Studio Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={createFormData.title}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                  readOnly
+                />
+                <p className="text-xs text-gray-500 mt-1">Studio name is set from your search</p>
+              </div>
+
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={createFormData.address}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, address: e.target.value }))}
+                  placeholder="123 Main Street"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* City */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  City <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={createFormData.city}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, city: e.target.value }))}
+                  placeholder="New York"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* State */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  State/Province <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={createFormData.state}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, state: e.target.value }))}
+                  placeholder="NY"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Country */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Country <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={createFormData.country}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, country: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="USA">United States</option>
+                  <option value="Canada">Canada</option>
+                  <option value="UK">United Kingdom</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Germany">Germany</option>
+                  <option value="France">France</option>
+                  <option value="Spain">Spain</option>
+                  <option value="Italy">Italy</option>
+                  <option value="Netherlands">Netherlands</option>
+                  <option value="Belgium">Belgium</option>
+                  <option value="Switzerland">Switzerland</option>
+                  <option value="Austria">Austria</option>
+                  <option value="Sweden">Sweden</option>
+                  <option value="Norway">Norway</option>
+                  <option value="Denmark">Denmark</option>
+                  <option value="Finland">Finland</option>
+                  <option value="Poland">Poland</option>
+                  <option value="Czech Republic">Czech Republic</option>
+                  <option value="Hungary">Hungary</option>
+                  <option value="Slovakia">Slovakia</option>
+                  <option value="Slovenia">Slovenia</option>
+                  <option value="Croatia">Croatia</option>
+                  <option value="Serbia">Serbia</option>
+                  <option value="Bulgaria">Bulgaria</option>
+                  <option value="Romania">Romania</option>
+                  <option value="Greece">Greece</option>
+                  <option value="Portugal">Portugal</option>
+                  <option value="Ireland">Ireland</option>
+                  <option value="Iceland">Iceland</option>
+                  <option value="Luxembourg">Luxembourg</option>
+                  <option value="Liechtenstein">Liechtenstein</option>
+                  <option value="Monaco">Monaco</option>
+                  <option value="Andorra">Andorra</option>
+                  <option value="San Marino">San Marino</option>
+                  <option value="Vatican City">Vatican City</option>
+                  <option value="Malta">Malta</option>
+                  <option value="Cyprus">Cyprus</option>
+                  <option value="Estonia">Estonia</option>
+                  <option value="Latvia">Latvia</option>
+                  <option value="Lithuania">Lithuania</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              {/* Phone Number */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={createFormData.phoneNumber}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  placeholder="+1 (555) 123-4567"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={createFormData.email}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="studio@example.com"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateForm(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLinking}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isLinking ? 'Creating...' : 'Create Studio'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

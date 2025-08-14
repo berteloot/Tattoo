@@ -22,6 +22,34 @@ router.post('/', protect, async (req, res) => {
       });
     }
     
+    if (!address || !address.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio address is required'
+      });
+    }
+    
+    if (!city || !city.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio city is required'
+      });
+    }
+    
+    if (!state || !state.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio state/province is required'
+      });
+    }
+    
+    if (!country || !country.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio country is required'
+      });
+    }
+    
     // Generate slug if not provided
     const studioSlug = slug || title.toLowerCase().replace(/[^a-z0-9]/g, '-');
     

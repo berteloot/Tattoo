@@ -612,7 +612,8 @@ export const ArtistDashboard = () => {
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                       <p className="text-sm text-blue-800 mb-3">
                         <strong>Studio Requirement:</strong> You must be linked to a studio to create your artist profile. 
-                        Search for your studio below or create a new one if it doesn't exist.
+                        Search for your studio below or create a new one if it doesn't exist. When creating a new studio, 
+                        you'll need to provide the studio name, address, city, state, and country.
                       </p>
                       <StudioSearch 
                         onStudioLinked={(studio) => {
