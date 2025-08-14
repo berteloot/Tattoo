@@ -14,8 +14,15 @@ router.post('/', protect, async (req, res) => {
   try {
     const { title, slug, website, phoneNumber, email, address, city, state, zipCode, country } = req.body;
     
+    // Log the received data for debugging
+    console.log('📝 Studio creation request:', {
+      title, address, city, state, country, zipCode,
+      hasTitle: !!title, hasAddress: !!address, hasCity: !!city, hasState: !!state, hasCountry: !!country
+    });
+    
     // Validate required fields
     if (!title || !title.trim()) {
+      console.log('❌ Validation failed: Missing title');
       return res.status(400).json({
         success: false,
         error: 'Studio title is required'
@@ -23,6 +30,7 @@ router.post('/', protect, async (req, res) => {
     }
     
     if (!address || !address.trim()) {
+      console.log('❌ Validation failed: Missing address');
       return res.status(400).json({
         success: false,
         error: 'Studio address is required'
@@ -30,6 +38,7 @@ router.post('/', protect, async (req, res) => {
     }
     
     if (!city || !city.trim()) {
+      console.log('❌ Validation failed: Missing city');
       return res.status(400).json({
         success: false,
         error: 'Studio city is required'
@@ -37,6 +46,7 @@ router.post('/', protect, async (req, res) => {
     }
     
     if (!state || !state.trim()) {
+      console.log('❌ Validation failed: Missing state');
       return res.status(400).json({
         success: false,
         error: 'Studio state/province is required'
@@ -44,6 +54,7 @@ router.post('/', protect, async (req, res) => {
     }
     
     if (!country || !country.trim()) {
+      console.log('❌ Validation failed: Missing country');
       return res.status(400).json({
         success: false,
         error: 'Studio country is required'

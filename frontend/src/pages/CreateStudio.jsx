@@ -8,7 +8,7 @@ import { ArrowLeft, MapPin, Building2, CheckCircle } from 'lucide-react';
 const CreateStudio = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showSuccess, showError } = useToast();
+  const { success, error } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -55,7 +55,7 @@ const CreateStudio = () => {
     
     // Validate required fields
     if (!formData.title || !formData.address || !formData.city || !formData.state || !formData.country) {
-      showError('Missing Information', 'Please fill in all required fields');
+      error('Missing Information', 'Please fill in all required fields');
       return;
     }
 
@@ -84,7 +84,7 @@ const CreateStudio = () => {
         const createdStudio = response.data.data.studio;
         console.log('✅ Studio created successfully:', createdStudio);
         
-        showSuccess(
+        success(
           'Studio Created Successfully!', 
           `${createdStudio.title} has been created and approved. You can now create your artist profile.`
         );
@@ -98,11 +98,11 @@ const CreateStudio = () => {
           } 
         });
       } else {
-        showError('Studio Creation Failed', response.data.error || 'Unknown error occurred');
+        error('Studio Creation Failed', response.data.error || 'Unknown error occurred');
       }
-    } catch (error) {
-      console.error('❌ Error creating studio:', error);
-      showError('Error Creating Studio', error.response?.data?.error || error.message || 'Failed to create studio');
+    } catch (err) {
+      console.error('❌ Error creating studio:', err);
+      error('Error Creating Studio', err.response?.data?.error || err.message || 'Failed to create studio');
     } finally {
       setLoading(false);
     }
