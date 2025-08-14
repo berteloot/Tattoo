@@ -2324,7 +2324,7 @@ router.post('/studios/bulk-delete', protect, adminOnly, async (req, res) => {
         adminId: req.user.id,
         action: 'BULK_DELETE_STUDIOS',
         targetType: 'STUDIO',
-        targetId: null,
+        targetId: 'BULK_OPERATION',
         details: `Bulk deleted ${deletedStudios.count} studios`
       }
     });
@@ -2487,7 +2487,7 @@ router.post('/geocoding/clear-queue', async (req, res) => {
         adminId: req.user.id,
         action: 'CLEAR_GEOCODING_QUEUE',
         targetType: 'SYSTEM',
-        targetId: null,
+        targetId: 'SYSTEM_OPERATION',
         details: `Cleared geocoding queue with ${clearedCount} pending studios`
       }
     });
@@ -2544,7 +2544,7 @@ router.post('/geocoding/process-all', async (req, res) => {
         adminId: req.user.id,
         action: 'PROCESS_ALL_GEOCODING',
         targetType: 'SYSTEM',
-        targetId: null,
+        targetId: 'SYSTEM_OPERATION',
         details: `Triggered geocoding for ${studiosNeedingGeocoding.length} studios`
       }
     });
