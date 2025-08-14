@@ -72,9 +72,10 @@ const processArtistData = (data, isUpdate = false) => {
     processed.studioName = safeTrim(data.studioName);
   }
 
-  if (data.studioId !== undefined) {
-    processed.studioId = safeTrim(data.studioId);
-  }
+  // Remove studioId processing since it doesn't exist in the schema
+  // if (data.studioId !== undefined) {
+  //   processed.studioId = safeTrim(data.studioId);
+  // }
 
   if (data.website !== undefined) {
     processed.website = safeTrim(data.website);
@@ -192,7 +193,8 @@ const createArtistProfileData = (processedData, userId) => {
     userId,
     bio: processedData.bio,
     studioName: processedData.studioName,
-    studioId: processedData.studioId, // Add studioId for linking
+    // Remove studioId since it doesn't exist in the schema
+    // studioId: processedData.studioId, // Add studioId for linking
     website: processedData.website,
     instagram: processedData.instagram,
     facebook: processedData.facebook,
@@ -237,7 +239,8 @@ const updateArtistProfileData = (processedData) => {
   // Only include fields that are defined (not undefined)
   if (processedData.bio !== undefined) updateData.bio = processedData.bio;
   if (processedData.studioName !== undefined) updateData.studioName = processedData.studioName;
-  if (processedData.studioId !== undefined) updateData.studioId = processedData.studioId;
+  // Remove studioId since it doesn't exist in the schema
+  // if (processedData.studioId !== undefined) updateData.studioId = processedData.studioId;
   if (processedData.website !== undefined) updateData.website = processedData.website;
   if (processedData.instagram !== undefined) updateData.instagram = processedData.instagram;
   if (processedData.facebook !== undefined) updateData.facebook = processedData.facebook;

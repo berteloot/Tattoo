@@ -765,16 +765,15 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistPro
     const processedData = processArtistData(req.body, false);
     
     // Search for existing studio if studioName is provided
+    let existingStudio = null;
     if (processedData.studioName) {
       console.log(`🔍 Searching for studio: "${processedData.studioName}"`);
       try {
         const { findStudioByName } = require('../utils/artistDataProcessor');
-        const existingStudio = await findStudioByName(processedData.studioName);
+        existingStudio = await findStudioByName(processedData.studioName);
         
         if (existingStudio) {
-          // Link to existing studio
-          processedData.studioId = existingStudio.id;
-          console.log(`🔗 Linking artist to existing studio: ${existingStudio.title} (ID: ${existingStudio.id})`);
+          console.log(`🔗 Found existing studio: ${existingStudio.title} (ID: ${existingStudio.id})`);
         } else {
           console.log(`⚠️ Studio not found: "${processedData.studioName}" - will store as text only`);
         }
@@ -784,11 +783,10 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistPro
       }
     }
     
-    // Create the artist profile data object
+    // Create the artist profile data object (without studioId)
     console.log('🔍 Creating profile data with:', {
       userId: req.user.id,
       studioName: processedData.studioName,
-      studioId: processedData.studioId,
       bio: processedData.bio?.substring(0, 50) + '...',
       specialtyIds: processedData.specialtyIds,
       serviceIds: processedData.serviceIds
@@ -827,6 +825,25 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistPro
         }
       }
     });
+
+    // If we found an existing studio, create the StudioArtist relationship
+    if (existingStudio) {
+      try {
+        console.log(`🔗 Creating StudioArtist relationship for studio: ${existingStudio.title}`);
+        await prisma.studioArtist.create({
+          data: {
+            studioId: existingStudio.id,
+            artistId: artistProfile.id,
+            role: 'ARTIST',
+            isActive: true
+          }
+        });
+        console.log(`✅ Successfully linked artist to studio: ${existingStudio.title}`);
+      } catch (relationshipError) {
+        console.error('❌ Error creating StudioArtist relationship:', relationshipError);
+        // Continue anyway, the profile was created successfully
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -890,22 +907,19 @@ router.put('/:id', protect, validateArtistProfile(true), async (req, res) => {
     const processedData = processArtistData(req.body, true);
     
     // Search for existing studio if studioName is provided
+    let existingStudio = null;
     if (processedData.studioName) {
       const { findStudioByName } = require('../utils/artistDataProcessor');
-      const existingStudio = await findStudioByName(processedData.studioName);
+      existingStudio = await findStudioByName(processedData.studioName);
       
       if (existingStudio) {
-        // Link to existing studio
-        processedData.studioId = existingStudio.id;
-        console.log(`🔗 Linking artist to existing studio: ${existingStudio.title} (ID: ${existingStudio.id})`);
+        console.log(`🔗 Found existing studio: ${existingStudio.title} (ID: ${existingStudio.id})`);
       } else {
-        // Clear studioId if studio name doesn't match any existing studio
-        processedData.studioId = null;
         console.log(`⚠️ Studio not found: ${processedData.studioName} - clearing studio link`);
       }
     }
     
-    // Create the update data object
+    // Create the update data object (without studioId)
     const updateData = updateArtistProfileData(processedData);
 
     const updatedProfile = await prisma.artistProfile.update({
@@ -924,6 +938,35 @@ router.put('/:id', protect, validateArtistProfile(true), async (req, res) => {
         services: true
       }
     });
+
+    // Handle studio relationship updates
+    if (processedData.studioName !== undefined) {
+      try {
+        // Remove existing studio relationships
+        await prisma.studioArtist.deleteMany({
+          where: {
+            artistId: id
+          }
+        });
+
+        // If we found a new studio, create the relationship
+        if (existingStudio) {
+          console.log(`🔗 Creating new StudioArtist relationship for studio: ${existingStudio.title}`);
+          await prisma.studioArtist.create({
+            data: {
+              studioId: existingStudio.id,
+              artistId: id,
+              role: 'ARTIST',
+              isActive: true
+            }
+          });
+          console.log(`✅ Successfully linked artist to studio: ${existingStudio.title}`);
+        }
+      } catch (relationshipError) {
+        console.error('❌ Error updating StudioArtist relationships:', relationshipError);
+        // Continue anyway, the profile was updated successfully
+      }
+    }
 
     res.json({
       success: true,
