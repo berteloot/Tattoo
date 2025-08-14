@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, Plus, MapPin, ExternalLink, CheckCircle, XCircle, X } from 'lucide-react';
 import { studiosAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
+import AddressAutocomplete from './AddressAutocomplete';
 
 const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -130,6 +131,17 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
     setCreateFormData(prev => ({ ...prev, title: studioName }));
     setShowCreateForm(true);
     setShowResults(false);
+  };
+
+  const handleAddressSelect = (placeData) => {
+    // Auto-fill form fields when address is selected from Google Places
+    setCreateFormData(prev => ({
+      ...prev,
+      address: placeData.address || prev.address,
+      city: placeData.city || prev.city,
+      state: placeData.state || prev.state,
+      country: placeData.country || prev.country
+    }));
   };
 
   const handleCreateStudioSubmit = async (e) => {
@@ -356,6 +368,14 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
             </div>
             
             <form onSubmit={handleCreateStudioSubmit} className="space-y-4">
+              {/* Google Places Autocomplete Info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+                <p className="text-sm text-blue-800">
+                  <strong>💡 Pro Tip:</strong> Start typing in the Address field to see Google Places suggestions. 
+                  Selecting an address will automatically fill in the City, State, and Country fields!
+                </p>
+              </div>
+
               {/* Studio Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -377,14 +397,16 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Address <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <AddressAutocomplete
                   value={createFormData.address}
                   onChange={(e) => setCreateFormData(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="123 Main Street"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
+                  onPlaceSelect={handleAddressSelect}
+                  placeholder="Start typing your address..."
+                  className="w-full"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Start typing to see address suggestions from Google Places
+                </p>
               </div>
 
               {/* City */}
@@ -396,10 +418,14 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
                   type="text"
                   value={createFormData.city}
                   onChange={(e) => setCreateFormData(prev => ({ ...prev, city: e.target.value }))}
-                  placeholder="New York"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Will be auto-filled from address"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
                   required
+                  readOnly
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Auto-filled from address selection
+                </p>
               </div>
 
               {/* State */}
@@ -411,10 +437,14 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
                   type="text"
                   value={createFormData.state}
                   onChange={(e) => setCreateFormData(prev => ({ ...prev, state: e.target.value }))}
-                  placeholder="NY"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Will be auto-filled from address"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
                   required
+                  readOnly
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Auto-filled from address selection
+                </p>
               </div>
 
               {/* Country */}
@@ -428,6 +458,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 >
+                  <option value="">Select country (auto-filled from address)</option>
                   <option value="USA">United States</option>
                   <option value="Canada">Canada</option>
                   <option value="UK">United Kingdom</option>
@@ -470,6 +501,9 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
                   <option value="Lithuania">Lithuania</option>
                   <option value="Other">Other</option>
                 </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Auto-filled from address selection, but can be manually changed
+                </p>
               </div>
 
               {/* Phone Number */}
