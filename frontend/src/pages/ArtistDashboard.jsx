@@ -104,9 +104,21 @@ export const ArtistDashboard = () => {
       console.log('📝 User creating new artist profile - CREATION MODE')
     }
     
-    // Handle studio creation success message
-    if (location.state?.studioCreated) {
+    // Handle studio creation success message and pre-fill studio info
+    if (location.state?.studioCreated && location.state?.studio) {
       success(location.state.message || 'Studio created successfully!')
+      
+      // Pre-fill studio information for new profile creation
+      if (!user?.artistProfile?.id && location.state.studio) {
+        const studio = location.state.studio
+        console.log('🎯 Pre-filling studio info:', studio)
+        setFormData(prev => ({
+          ...prev,
+          studioName: studio.title,
+          studioId: studio.id
+        }))
+      }
+      
       // Clear the navigation state
       window.history.replaceState({}, document.title)
     }
