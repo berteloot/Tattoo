@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { studiosAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
-import { AddressAutocomplete } from '../components/AddressAutocomplete';
+import AddressAutocomplete from '../components/AddressAutocomplete';
 import { ArrowLeft, MapPin, Building2, CheckCircle } from 'lucide-react';
 
 const CreateStudio = () => {
