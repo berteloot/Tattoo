@@ -214,12 +214,12 @@ const createArtistProfileData = (processedData, userId) => {
     profilePictureHeight: processedData.profilePictureHeight,
     profilePictureFormat: processedData.profilePictureFormat,
     profilePictureBytes: processedData.profilePictureBytes,
-    specialties: {
+    specialties: processedData.specialtyIds && processedData.specialtyIds.length > 0 ? {
       connect: processedData.specialtyIds.map(id => ({ id }))
-    },
-    services: {
+    } : undefined,
+    services: processedData.serviceIds && processedData.serviceIds.length > 0 ? {
       connect: processedData.serviceIds.map(id => ({ id }))
-    }
+    } : undefined
   };
 };
 
@@ -262,13 +262,13 @@ const updateArtistProfileData = (processedData) => {
   if (processedData.profilePictureBytes !== undefined) updateData.profilePictureBytes = processedData.profilePictureBytes;
 
   // Handle relationships
-  if (processedData.specialtyIds !== undefined) {
+  if (processedData.specialtyIds !== undefined && processedData.specialtyIds.length > 0) {
     updateData.specialties = {
       set: processedData.specialtyIds.map(id => ({ id }))
     };
   }
 
-  if (processedData.serviceIds !== undefined) {
+  if (processedData.serviceIds !== undefined && processedData.serviceIds.length > 0) {
     updateData.services = {
       set: processedData.serviceIds.map(id => ({ id }))
     };
