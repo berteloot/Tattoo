@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { LoadScript } from '@react-google-maps/api'
+import { LoadScript, StandaloneSearchBox } from '@react-google-maps/api'
 import { MapPin } from 'lucide-react'
 
 // Static libraries array to prevent LoadScript reloading
@@ -38,32 +38,24 @@ const AddressAutocomplete = ({
     setApiError('Failed to load Google Maps. Please check your API key configuration.')
   }
 
-  // Initialize Google Places Autocomplete service
-  useEffect(() => {
-    if (googleMapsApiKey && window.google && window.google.maps && window.google.maps.places) {
-      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
-        types: ['address'],
-        componentRestrictions: { country: [] }, // Allow all countries
-        fields: ['address_components', 'geometry', 'place_id', 'formatted_address']
-      });
+  const [searchBox, setSearchBox] = useState(null)
 
-      autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-        if (place && place.place_id) {
-          handlePlaceSelect(place);
-        }
-      });
+  // Handle search box load
+  const onSearchBoxLoad = (ref) => {
+    setSearchBox(ref)
+    setApiError(null) // Clear any previous errors
+  }
 
-      // Store autocomplete instance for cleanup
-      inputRef.current.autocomplete = autocomplete;
-
-      return () => {
-        if (inputRef.current && inputRef.current.autocomplete) {
-          window.google.maps.event.clearInstanceListeners(inputRef.current.autocomplete);
-        }
-      };
+  // Handle place selection from search box
+  const onPlacesChanged = () => {
+    if (searchBox) {
+      const places = searchBox.getPlaces()
+      if (places && places.length > 0) {
+        const place = places[0]
+        handlePlaceSelect(place)
+      }
     }
-  }, [googleMapsApiKey]);
+  }
 
   // Handle place selection from suggestions
   const handlePlaceSelect = (place) => {
@@ -184,15 +176,20 @@ const AddressAutocomplete = ({
       >
         <div className="relative">
           <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            disabled={disabled}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder={placeholder}
-          />
+          <StandaloneSearchBox
+            onLoad={onSearchBoxLoad}
+            onPlacesChanged={onPlacesChanged}
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              disabled={disabled}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder={placeholder}
+            />
+          </StandaloneSearchBox>
           {isLoading && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
