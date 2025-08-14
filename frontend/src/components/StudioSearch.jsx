@@ -153,7 +153,9 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       return;
     }
 
+    console.log('🔍 Creating studio with data:', createFormData);
     setIsLinking(true);
+    
     try {
       // Create a new studio with complete information
       const newStudio = {
@@ -171,20 +173,27 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
         verificationStatus: 'PENDING'
       };
 
+      console.log('🚀 Sending studio creation request:', newStudio);
+
       // Create the studio
       const response = await studiosAPI.create(newStudio);
+      console.log('✅ Studio creation response:', response);
       
       if (response.data.success) {
         const createdStudio = response.data.data.studio;
+        console.log('🎉 Studio created successfully:', createdStudio);
         
         // If user has an artist profile, automatically claim the newly created studio
         if (currentArtistId) {
+          console.log('🔗 Claiming studio for existing artist profile');
           await studiosAPI.claim(createdStudio.id);
           showSuccess(`Successfully created and claimed ${createdStudio.title}`, 'You are now the owner of this studio');
         } else {
-          showSuccess(`Studio created: ${createdStudio.title}`, 'Studio will be claimed when you create your profile');
+          console.log('📝 Studio created for new artist profile');
+          showSuccess(`Studio created: ${createdStudio.title}`, 'Studio will be linked to your profile');
         }
         
+        // Close the form and reset
         setShowCreateForm(false);
         setSearchQuery('');
         setCreateFormData({
@@ -197,18 +206,32 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
           email: ''
         });
         
-        // Callback to parent component
+        // IMPORTANT: Callback to parent component to continue profile creation
+        console.log('🔄 Calling onStudioLinked callback with:', createdStudio);
         if (onStudioLinked) {
           onStudioLinked(createdStudio);
+        } else {
+          console.warn('⚠️ onStudioLinked callback not provided');
         }
+      } else {
+        console.error('❌ Studio creation failed:', response.data);
+        showError('Studio Creation Failed', response.data.error || 'Unknown error occurred');
       }
     } catch (error) {
-      console.error('Error creating studio:', error);
+      console.error('❌ Error creating studio:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
       try {
         if (error.response?.data?.error) {
           showError('Error creating studio', error.response.data.error);
+        } else if (error.message) {
+          showError('Error creating studio', error.message);
         } else {
-          showError('Error creating studio', 'Failed to create studio');
+          showError('Error creating studio', 'Failed to create studio. Please try again.');
         }
       } catch (toastError) {
         console.error('Error showing toast:', toastError);

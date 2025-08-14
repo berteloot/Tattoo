@@ -617,11 +617,16 @@ export const ArtistDashboard = () => {
                       </p>
                       <StudioSearch 
                         onStudioLinked={(studio) => {
-                          setFormData(prev => ({
-                            ...prev,
-                            studioName: studio.title,
-                            studioId: studio.id
-                          }));
+                          console.log('🎯 Studio linked callback received:', studio);
+                          setFormData(prev => {
+                            const updated = {
+                              ...prev,
+                              studioName: studio.title,
+                              studioId: studio.id
+                            };
+                            console.log('🔄 Updated form data:', updated);
+                            return updated;
+                          });
                         }}
                         currentArtistId={user?.artistProfile?.id}
                       />

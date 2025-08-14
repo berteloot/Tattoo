@@ -98,18 +98,18 @@ const AddressAutocomplete = ({
       }
     })
 
-    // Construct full address
-    const fullAddress = place.formatted_address || `${streetNumber} ${route}`.trim()
+    // Construct street address only (without city/state/zip)
+    const streetAddress = `${streetNumber} ${route}`.trim()
     
-    // Update input value
-    setInputValue(fullAddress)
+    // Update input value to show only street address
+    setInputValue(streetAddress)
     setShowSuggestions(false)
     setSuggestions([])
 
     // Call the onPlaceSelect callback with parsed data
     if (onPlaceSelect) {
       onPlaceSelect({
-        address: fullAddress,
+        address: streetAddress, // Only street address
         city,
         state,
         zipCode,
