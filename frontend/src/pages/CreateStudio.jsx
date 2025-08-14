@@ -52,9 +52,11 @@ const CreateStudio = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🎯 Form submission started');
     
     // Validate required fields
     if (!formData.title || !formData.address || !formData.city || !formData.state || !formData.country) {
+      console.log('❌ Validation failed:', { title: !!formData.title, address: !!formData.address, city: !!formData.city, state: !!formData.state, country: !!formData.country });
       error('Missing Information', 'Please fill in all required fields');
       return;
     }

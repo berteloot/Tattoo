@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { LoadScript, Autocomplete } from '@react-google-maps/api'
+import { LoadScript } from '@react-google-maps/api'
 import { MapPin } from 'lucide-react'
 
 // Static libraries array to prevent LoadScript reloading
@@ -38,16 +38,32 @@ const AddressAutocomplete = ({
     setApiError('Failed to load Google Maps. Please check your API key configuration.')
   }
 
-  // Handle place selection from autocomplete
-  const onPlaceChanged = () => {
-    if (inputRef.current) {
-      const autocomplete = inputRef.current
-      const place = autocomplete.getPlace()
-      if (place && place.place_id) {
-        handlePlaceSelect(place)
-      }
+  // Initialize Google Places Autocomplete service
+  useEffect(() => {
+    if (googleMapsApiKey && window.google && window.google.maps && window.google.maps.places) {
+      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
+        types: ['address'],
+        componentRestrictions: { country: [] }, // Allow all countries
+        fields: ['address_components', 'geometry', 'place_id', 'formatted_address']
+      });
+
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        if (place && place.place_id) {
+          handlePlaceSelect(place);
+        }
+      });
+
+      // Store autocomplete instance for cleanup
+      inputRef.current.autocomplete = autocomplete;
+
+      return () => {
+        if (inputRef.current && inputRef.current.autocomplete) {
+          window.google.maps.event.clearInstanceListeners(inputRef.current.autocomplete);
+        }
+      };
     }
-  }
+  }, [googleMapsApiKey]);
 
   // Handle place selection from suggestions
   const handlePlaceSelect = (place) => {
@@ -120,8 +136,6 @@ const AddressAutocomplete = ({
     
     // Update input value to show only street address
     setInputValue(streetAddress)
-    setShowSuggestions(false)
-    setSuggestions([])
 
     // Call the onPlaceSelect callback with parsed data
     if (onPlaceSelect) {
@@ -149,7 +163,6 @@ const AddressAutocomplete = ({
             type="text"
             value={inputValue}
             onChange={handleInputChange}
-            onFocus={handleInputFocus}
             disabled={disabled}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder={placeholder}
@@ -171,21 +184,15 @@ const AddressAutocomplete = ({
       >
         <div className="relative">
           <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Autocomplete
-            onLoad={(autocomplete) => {
-              inputRef.current = autocomplete
-            }}
-            onPlaceChanged={onPlaceChanged}
-          >
-            <input
-              type="text"
-              value={inputValue}
-              onChange={handleInputChange}
-              disabled={disabled}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder={placeholder}
-            />
-          </Autocomplete>
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            disabled={disabled}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder={placeholder}
+          />
           {isLoading && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
