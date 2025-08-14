@@ -766,20 +766,36 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistPro
     
     // Search for existing studio if studioName is provided
     if (processedData.studioName) {
-      const { findStudioByName } = require('../utils/artistDataProcessor');
-      const existingStudio = await findStudioByName(processedData.studioName);
-      
-      if (existingStudio) {
-        // Link to existing studio
-        processedData.studioId = existingStudio.id;
-        console.log(`🔗 Linking artist to existing studio: ${existingStudio.title} (ID: ${existingStudio.id})`);
-      } else {
-        console.log(`⚠️ Studio not found: ${processedData.studioName} - will store as text only`);
+      console.log(`🔍 Searching for studio: "${processedData.studioName}"`);
+      try {
+        const { findStudioByName } = require('../utils/artistDataProcessor');
+        const existingStudio = await findStudioByName(processedData.studioName);
+        
+        if (existingStudio) {
+          // Link to existing studio
+          processedData.studioId = existingStudio.id;
+          console.log(`🔗 Linking artist to existing studio: ${existingStudio.title} (ID: ${existingStudio.id})`);
+        } else {
+          console.log(`⚠️ Studio not found: "${processedData.studioName}" - will store as text only`);
+        }
+      } catch (studioError) {
+        console.error('❌ Error searching for studio:', studioError);
+        console.log(`⚠️ Studio search failed for "${processedData.studioName}" - will store as text only`);
       }
     }
     
     // Create the artist profile data object
+    console.log('🔍 Creating profile data with:', {
+      userId: req.user.id,
+      studioName: processedData.studioName,
+      studioId: processedData.studioId,
+      bio: processedData.bio?.substring(0, 50) + '...',
+      specialtyIds: processedData.specialtyIds,
+      serviceIds: processedData.serviceIds
+    });
+    
     const profileData = createArtistProfileData(processedData, req.user.id);
+    console.log('✅ Profile data created:', Object.keys(profileData));
 
     const artistProfile = await prisma.artistProfile.create({
       data: profileData,

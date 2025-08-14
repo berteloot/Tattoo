@@ -33,6 +33,9 @@ async function findStudioByName(studioName) {
   }
 }
 
+// Export the function
+module.exports.findStudioByName = findStudioByName;
+
 /**
  * Sanitize and process artist profile data for database operations
  * @param {Object} data - Raw form data
