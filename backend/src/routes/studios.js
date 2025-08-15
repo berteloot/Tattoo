@@ -767,6 +767,377 @@ router.post('/:id/contact', [
   }
 });
 
+// Request to join studio (for artists who want to join an already-claimed studio)
+router.post('/:id/join-request', protect, async (req, res) => {
+  try {
+    // Check if user has an artist profile
+    if (!req.user.artistProfile) {
+      return res.status(400).json({
+        success: false,
+        error: 'You must have an artist profile to join a studio'
+      });
+    }
+
+    const { id } = req.params;
+    const { message } = req.body; // Optional message to studio owner
+
+    // Check if studio exists
+    const studio = await prisma.studio.findUnique({
+      where: { id },
+      include: {
+        artists: {
+          where: {
+            role: { in: ['OWNER', 'MANAGER'] },
+            isActive: true
+          },
+          include: {
+            artist: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+
+    // Check if studio is active
+    if (!studio.isActive) {
+      return res.status(400).json({
+        success: false,
+        error: 'Studio is not currently active'
+      });
+    }
+
+    // Check if artist is already a member of this studio
+    const existingMembership = await prisma.studioArtist.findFirst({
+      where: {
+        studioId: id,
+        artistId: req.user.artistProfile.id,
+        isActive: true
+      }
+    });
+
+    if (existingMembership) {
+      return res.status(400).json({
+        success: false,
+        error: 'You are already a member of this studio'
+      });
+    }
+
+    // Check if there's already a pending request
+    const pendingRequest = await prisma.studioJoinRequest.findFirst({
+      where: {
+        studioId: id,
+        artistId: req.user.artistProfile.id,
+        status: 'PENDING'
+      }
+    });
+
+    if (pendingRequest) {
+      return res.status(400).json({
+        success: false,
+        error: 'You already have a pending request to join this studio'
+      });
+    }
+
+    // Create join request
+    const joinRequest = await prisma.studioJoinRequest.create({
+      data: {
+        studioId: id,
+        artistId: req.user.artistProfile.id,
+        message: message || null,
+        status: 'PENDING',
+        requestedAt: new Date()
+      },
+      include: {
+        artist: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Send notification email to studio owners/managers if they exist
+    if (studio.artists.length > 0) {
+      try {
+        const artistName = `${req.user.firstName} ${req.user.lastName}`;
+        const studioName = studio.title;
+        
+        for (const studioMember of studio.artists) {
+          if (studioMember.artist.user.email) {
+            await emailService.sendStudioJoinRequestEmail({
+              to: studioMember.artist.user.email,
+              studioOwnerName: `${studioMember.artist.user.firstName} ${studioMember.artist.user.lastName}`,
+              artistName: artistName,
+              studioName: studioName,
+              message: message || 'No message provided',
+              requestId: joinRequest.id
+            });
+          }
+        }
+      } catch (emailError) {
+        console.error('Error sending studio join request emails:', emailError);
+        // Continue even if email fails
+      }
+    }
+
+    res.json({
+      success: true,
+      data: joinRequest,
+      message: 'Join request submitted successfully. Studio owners will be notified.'
+    });
+  } catch (error) {
+    console.error('Error submitting studio join request:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to submit join request'
+    });
+  }
+});
+
+// Get pending join requests for a studio (studio owners/managers only)
+router.get('/:id/join-requests', protect, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if studio exists
+    const studio = await prisma.studio.findUnique({
+      where: { id }
+    });
+
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+
+    // Check if user has permission to view join requests
+    const userMembership = await prisma.studioArtist.findFirst({
+      where: {
+        studioId: id,
+        artistId: req.user.artistProfile?.id,
+        role: { in: ['OWNER', 'MANAGER'] },
+        isActive: true
+      }
+    });
+
+    if (req.user.role !== 'ADMIN' && !userMembership) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only studio owners/managers or admins can view join requests'
+      });
+    }
+
+    // Get pending join requests
+    const joinRequests = await prisma.studioJoinRequest.findMany({
+      where: {
+        studioId: id,
+        status: 'PENDING'
+      },
+      include: {
+        artist: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+                avatar: true
+              }
+            },
+            specialties: {
+              select: {
+                name: true,
+                category: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        requestedAt: 'desc'
+      }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        studio: {
+          id: studio.id,
+          title: studio.title
+        },
+        joinRequests
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching studio join requests:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch join requests'
+    });
+  }
+});
+
+// Approve/reject join request (studio owners/managers only)
+router.put('/:id/join-requests/:requestId', protect, async (req, res) => {
+  try {
+    const { id, requestId } = req.params;
+    const { action, message } = req.body; // action: 'APPROVE' or 'REJECT'
+
+    if (!['APPROVE', 'REJECT'].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Action must be either APPROVE or REJECT'
+      });
+    }
+
+    // Check if studio exists
+    const studio = await prisma.studio.findUnique({
+      where: { id }
+    });
+
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        error: 'Studio not found'
+      });
+    }
+
+    // Check if user has permission to approve/reject requests
+    const userMembership = await prisma.studioArtist.findFirst({
+      where: {
+        studioId: id,
+        artistId: req.user.artistProfile?.id,
+        role: { in: ['OWNER', 'MANAGER'] },
+        isActive: true
+      }
+    });
+
+    if (req.user.role !== 'ADMIN' && !userMembership) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only studio owners/managers or admins can approve/reject join requests'
+      });
+    }
+
+    // Get the join request
+    const joinRequest = await prisma.studioJoinRequest.findUnique({
+      where: { id: requestId },
+      include: {
+        artist: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!joinRequest) {
+      return res.status(404).json({
+        success: false,
+        error: 'Join request not found'
+      });
+    }
+
+    if (joinRequest.studioId !== id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Join request does not belong to this studio'
+      });
+    }
+
+    if (joinRequest.status !== 'PENDING') {
+      return res.status(400).json({
+        success: false,
+        error: 'Join request is no longer pending'
+      });
+    }
+
+    // Update the join request status
+    const updatedRequest = await prisma.studioJoinRequest.update({
+      where: { id: requestId },
+      data: {
+        status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+        respondedAt: new Date(),
+        responseMessage: message || null,
+        respondedBy: req.user.id
+      }
+    });
+
+    // If approved, add artist to studio
+    if (action === 'APPROVE') {
+      await prisma.studioArtist.create({
+        data: {
+          studioId: id,
+          artistId: joinRequest.artistId,
+          role: 'ARTIST',
+          isActive: true,
+          joinedAt: new Date()
+        }
+      });
+    }
+
+    // Send notification email to the artist
+    try {
+      const studioName = studio.title;
+      const responderName = `${req.user.firstName} ${req.user.lastName}`;
+      
+      await emailService.sendStudioJoinRequestResponseEmail({
+        to: joinRequest.artist.user.email,
+        artistName: `${joinRequest.artist.user.firstName} ${joinRequest.artist.user.lastName}`,
+        studioName: studioName,
+        responderName: responderName,
+        action: action,
+        message: message || null
+      });
+    } catch (emailError) {
+      console.error('Error sending join request response email:', emailError);
+      // Continue even if email fails
+    }
+
+    res.json({
+      success: true,
+      data: updatedRequest,
+      message: `Join request ${action.toLowerCase()}d successfully`
+    });
+  } catch (error) {
+    console.error('Error processing studio join request:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process join request'
+    });
+  }
+});
+
 // Get specific studio
 router.get('/:id', detectScraping, studioArtistLimiter, async (req, res) => {
   try {

@@ -33,6 +33,7 @@ model User {
   reviewsReceived         Review[]               @relation("ReviewRecipient")
   galleryComments         TattooGalleryComment[]
   galleryLikes            TattooGalleryLike[]
+  studioJoinRequestsResponded StudioJoinRequest[] @relation("StudioJoinRequestResponder")
 
   @@map("users")
 }
@@ -83,6 +84,8 @@ model ArtistProfile {
   gallery                TattooGallery[]
   services               Service[]          @relation("ArtistProfileToService")
   specialties            Specialty[]        @relation("ArtistProfileToSpecialty")
+  studioArtists          StudioArtist[]
+  studioJoinRequests     StudioJoinRequest[]
 
   @@map("artist_profiles")
 }
@@ -204,6 +207,10 @@ model Studio {
   createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt          DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
 
+  // Relationships
+  studioArtists      StudioArtist[]
+  joinRequests       StudioJoinRequest[]
+
   @@index([latitude, longitude], map: "idx_studios_coordinates")
   @@map("studios")
 }
@@ -216,6 +223,10 @@ model StudioArtist {
   isActive Boolean?     @default(true) @map("is_active")
   joinedAt DateTime?    @default(now()) @map("joined_at") @db.Timestamp(6)
   leftAt   DateTime?    @map("left_at") @db.Timestamp(6)
+
+  // Relationships
+  studio   Studio       @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  artist   ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@unique([studioId, artistId], map: "unique_studio_artist")
   @@map("studio_artists")
@@ -365,6 +376,29 @@ model ArtistMessage {
   @@index([priority])
   @@index([expiresAt])
   @@map("artist_messages")
+}
+
+model StudioJoinRequest {
+  id              String    @id @default(cuid())
+  studioId        String    @map("studio_id")
+  artistId        String    @map("artist_id")
+  message         String?
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  requestedAt     DateTime  @default(now()) @map("requested_at")
+  respondedAt     DateTime? @map("responded_at")
+  responseMessage String?   @map("response_message")
+  respondedBy     String?   @map("responded_by")
+  
+  // Relationships
+  studio          Studio    @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  artist          ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  responder       User?     @relation("StudioJoinRequestResponder", fields: [respondedBy], references: [id])
+
+  @@index([studioId])
+  @@index([artistId])
+  @@index([status])
+  @@index([requestedAt])
+  @@map("studio_join_requests")
 }
 
 enum UserRole {

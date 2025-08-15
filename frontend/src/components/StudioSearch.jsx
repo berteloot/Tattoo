@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Plus, MapPin, ExternalLink, CheckCircle, XCircle, Globe } from 'lucide-react';
+import { Search, Plus, MapPin, ExternalLink, CheckCircle, XCircle, Globe, UserPlus } from 'lucide-react';
 import { studiosAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 
@@ -10,6 +10,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const { error: showError, success: showSuccess } = useToast();
 
@@ -115,6 +116,43 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
     }
   };
 
+  const handleRequestToJoin = async (studio) => {
+    setIsRequesting(true);
+    try {
+      // If user has an artist profile, submit join request
+      if (currentArtistId) {
+        await studiosAPI.requestToJoin(studio.id, {
+          message: `I would like to join ${studio.title} as an artist.`
+        });
+        showSuccess(`Join request submitted for ${studio.title}`, 'Studio owners will be notified of your request');
+      } else {
+        // For new users, just store the studio info for profile creation
+        showSuccess(`Studio selected: ${studio.title}`, 'Studio will be linked when you create your profile');
+      }
+      
+      setShowResults(false);
+      setSearchQuery('');
+      
+      // Callback to parent component
+      if (onStudioLinked) {
+        onStudioLinked(studio);
+      }
+    } catch (error) {
+      console.error('Error requesting to join studio:', error);
+      try {
+        if (error.response?.data?.error) {
+          showError('Error submitting join request', error.response.data.error);
+        } else {
+          showError('Error submitting join request', 'Failed to submit join request');
+        }
+      } catch (toastError) {
+        console.error('Error showing toast:', toastError);
+      }
+    } finally {
+      setIsRequesting(false);
+    }
+  };
+
   const handleCreateStudio = async (studioName) => {
     console.log('🎯 handleCreateStudio called with:', studioName);
     // Redirect to dedicated studio creation page with pre-filled studio name
@@ -192,9 +230,14 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
                   </div>
                   <div className="flex gap-2 ml-4">
                     {studio.claimedBy ? (
-                      <span className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded">
-                        Already Claimed
-                      </span>
+                      <button
+                        onClick={() => handleRequestToJoin(studio)}
+                        disabled={isRequesting}
+                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                      >
+                        <UserPlus className="h-3 w-3" />
+                        {isRequesting ? 'Requesting...' : 'Request to Join'}
+                      </button>
                     ) : (
                       <button
                         onClick={() => handleClaimStudio(studio)}

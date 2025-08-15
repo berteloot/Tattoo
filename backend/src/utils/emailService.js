@@ -607,6 +607,121 @@ class EmailService {
 
     return this.sendEmail(to, emailSubject, htmlContent)
   }
+
+  // Send studio join request email to studio owners/managers
+  async sendStudioJoinRequestEmail({ to, studioOwnerName, artistName, studioName, message, requestId }) {
+    try {
+      const subjectLine = `Artist ${artistName} wants to join ${studioName}`
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 28px;">Studio Join Request</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">${studioName}</p>
+          </div>
+          
+          <div style="padding: 40px; background: white;">
+            <h2 style="color: #333; margin-bottom: 20px;">Hi ${studioOwnerName}!</h2>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              An artist has requested to join <strong>${studioName}</strong>.
+            </p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">Artist Details:</h3>
+              <p style="color: #666; line-height: 1.6; margin: 0;">
+                <strong>Name:</strong> ${artistName}<br>
+                <strong>Request ID:</strong> ${requestId}
+              </p>
+            </div>
+            
+            ${message ? `
+            <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">Message from Artist:</h3>
+              <p style="color: #666; line-height: 1.6; margin: 0; white-space: pre-wrap;">${message}</p>
+            </div>
+            ` : ''}
+            
+            <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #856404; margin-top: 0;">Next Steps:</h3>
+              <p style="color: #856404; line-height: 1.6; margin: 0;">
+                Log into your Tattooed World account to review and approve/reject this request. 
+                You can view all pending requests in your studio management dashboard.
+              </p>
+            </div>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              Thank you for being part of the Tattooed World community!
+            </p>
+          </div>
+        </div>
+      `
+      
+      return await this.sendEmail(to, subjectLine, htmlContent)
+    } catch (error) {
+      console.error('Error sending studio join request email:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Send studio join request response email to artist
+  async sendStudioJoinRequestResponseEmail({ to, artistName, studioName, responderName, action, message }) {
+    try {
+      const subjectLine = `Your request to join ${studioName} has been ${action.toLowerCase()}d`
+      const actionColor = action === 'APPROVE' ? '#28a745' : '#dc3545'
+      const actionText = action === 'APPROVE' ? 'approved' : 'rejected'
+      
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 28px;">Studio Join Request ${action}</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">${studioName}</p>
+          </div>
+          
+          <div style="padding: 40px; background: white;">
+            <h2 style="color: #333; margin-bottom: 20px;">Hi ${artistName}!</h2>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              Your request to join <strong>${studioName}</strong> has been <span style="color: ${actionColor}; font-weight: bold;">${actionText}</span> by <strong>${responderName}</strong>.
+            </p>
+            
+            ${action === 'APPROVE' ? `
+            <div style="background: #d4edda; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #c3e6cb;">
+              <h3 style="color: #155724; margin-top: 0;">🎉 Welcome to ${studioName}!</h3>
+              <p style="color: #155724; line-height: 1.6; margin: 0;">
+                You are now a member of the studio. You can update your profile to show your association with ${studioName} 
+                and start collaborating with other artists in the studio.
+              </p>
+            </div>
+            ` : `
+            <div style="background: #f8d7da; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #f5c6cb;">
+              <h3 style="color: #721c24; margin-top: 0;">Request Not Approved</h3>
+              <p style="color: #721c24; line-height: 1.6; margin: 0;">
+                Unfortunately, your request to join ${studioName} was not approved at this time. 
+                You can still work independently or apply to other studios.
+              </p>
+            </div>
+            `}
+            
+            ${message ? `
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">Message from ${responderName}:</h3>
+              <p style="color: #666; line-height: 1.6; margin: 0; white-space: pre-wrap;">${message}</p>
+            </div>
+            ` : ''}
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              Thank you for being part of the Tattooed World community!
+            </p>
+          </div>
+        </div>
+      `
+      
+      return await this.sendEmail(to, subjectLine, htmlContent)
+    } catch (error) {
+      console.error('Error sending studio join request response email:', error)
+      return { success: false, error: error.message }
+    }
+  }
 }
 
 module.exports = new EmailService() 
