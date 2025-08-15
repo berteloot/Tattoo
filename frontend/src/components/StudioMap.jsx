@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { GoogleMap, LoadScript, Marker, InfoWindow, DirectionsRenderer } from '@react-google-maps/api'
 import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, Phone, Mail, MessageSquare } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -56,7 +56,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   }, [searchTerm])
 
   // Memoize the search parameters to prevent unnecessary re-renders
-  const searchParams = React.useMemo(() => ({
+  const searchParams = useMemo(() => ({
     searchTerm,
     filterVerified,
     filterFeatured,
