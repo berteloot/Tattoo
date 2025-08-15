@@ -1,5 +1,5 @@
 import { StudioMap } from '../components/StudioMap'
-import { MapPin, Search, Filter } from 'lucide-react'
+import { MapPin, Search, Filter, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
@@ -8,13 +8,24 @@ const Map = () => {
   const [filterVerified, setFilterVerified] = useState(false)
   const [filterFeatured, setFilterFeatured] = useState(false)
   const [focusStudioId, setFocusStudioId] = useState(null)
+  const [focusCoordinates, setFocusCoordinates] = useState(null)
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
     // Check if there's a studio ID in the URL params
     const studioId = searchParams.get('studio')
+    const lat = searchParams.get('lat')
+    const lng = searchParams.get('lng')
+    
     if (studioId) {
       setFocusStudioId(studioId)
+    }
+    
+    if (lat && lng) {
+      setFocusCoordinates({
+        lat: parseFloat(lat),
+        lng: parseFloat(lng)
+      })
     }
   }, [searchParams])
 
@@ -22,9 +33,17 @@ const Map = () => {
     e.preventDefault()
     // Clear focus when searching
     setFocusStudioId(null)
-    // TODO: Implement search functionality for map
+    setFocusCoordinates(null)
+    // Search is handled automatically by the StudioMap component
     console.log('Searching for:', searchTerm)
     console.log('Filters:', { verified: filterVerified, featured: filterFeatured })
+  }
+
+  // Clear search and reset map view
+  const handleClearSearch = () => {
+    setSearchTerm('')
+    setFocusStudioId(null)
+    setFocusCoordinates(null)
   }
 
   return (
@@ -50,11 +69,21 @@ const Map = () => {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Search studios..."
+                      placeholder="Search studios by name, city, or address..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-80"
                     />
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        onClick={handleClearSearch}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        title="Clear search"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                   
                   <div className="flex gap-2">
@@ -96,9 +125,30 @@ const Map = () => {
       {/* Map Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <StudioMap searchTerm={searchTerm} filterVerified={filterVerified} filterFeatured={filterFeatured} focusStudioId={focusStudioId} />
+          <StudioMap 
+            searchTerm={searchTerm} 
+            filterVerified={filterVerified} 
+            filterFeatured={filterFeatured} 
+            focusStudioId={focusStudioId}
+            focusCoordinates={focusCoordinates}
+          />
         </div>
         
+        {/* Search Results Info */}
+        {searchTerm && (
+          <div className="mt-6 bg-blue-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">🔍 Search Results</h3>
+            <p className="text-blue-800">
+              Showing studios matching "<strong>{searchTerm}</strong>"
+              {filterVerified && " (Verified only)"}
+              {filterFeatured && " (Featured only)"}
+            </p>
+            <p className="text-sm text-blue-700 mt-1">
+              Use the filters above to narrow down your search results
+            </p>
+          </div>
+        )}
+
         {/* Map Legend */}
         <div className="mt-6 bg-white rounded-lg shadow p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Map Legend</h3>
@@ -126,15 +176,14 @@ const Map = () => {
         <div className="mt-6 bg-blue-50 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-blue-900 mb-2">💡 Tips</h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Click on any studio marker to see details and get directions</li>
-            <li>• Use the "Get Directions" feature to find the best route</li>
-            <li>• Studios with coordinates are shown on the map</li>
-            <li>• Studios without coordinates need geocoding to appear on map</li>
-            <li>• Verified studios are marked with a green badge</li>
-            <li>• Featured studios are highlighted with a yellow badge</li>
-            <li>• Use the search bar to find specific studios by name</li>
-            <li>• Filter by verified or featured studios using the checkboxes</li>
-            <li>• Click the map pin on a studio page to focus on that studio</li>
+            <li>• <strong>Search:</strong> Type studio name, city, or address to find specific studios</li>
+            <li>• <strong>Filters:</strong> Use checkboxes to show only verified or featured studios</li>
+            <li>• <strong>Map Navigation:</strong> Click on any studio marker to see details and get directions</li>
+            <li>• <strong>Directions:</strong> Use the "Get Directions" feature to find the best route</li>
+            <li>• <strong>Studio Focus:</strong> Click the map pin on a studio page to focus on that studio</li>
+            <li>• <strong>Coordinates:</strong> Studios with coordinates are shown on the map</li>
+            <li>• <strong>Status Badges:</strong> Verified studios have green badges, featured studios have purple badges</li>
+            <li>• <strong>Clear Search:</strong> Click the X button to clear your search and see all studios</li>
           </ul>
         </div>
       </div>

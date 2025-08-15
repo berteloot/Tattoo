@@ -16,7 +16,7 @@ const center = {
   lng: -73.5673
 }
 
-export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatured = false, focusStudioId = null }) => {
+export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatured = false, focusStudioId = null, focusCoordinates = null }) => {
   const [studios, setStudios] = useState([])
   const [selectedStudio, setSelectedStudio] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -56,6 +56,16 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       }
     }
   }, [focusStudioId, studios])
+
+  // Focus on specific coordinates when focusCoordinates changes
+  useEffect(() => {
+    if (focusCoordinates) {
+      setMapCenter(focusCoordinates)
+      setMapZoom(15)
+      // Clear any selected studio when focusing on coordinates
+      setSelectedStudio(null)
+    }
+  }, [focusCoordinates])
 
   // Initialize directions service and geocoder when map loads
   const onMapLoad = (map) => {

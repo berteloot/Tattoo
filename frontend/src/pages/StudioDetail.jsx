@@ -249,7 +249,7 @@ const StudioDetail = () => {
                   </div>
                   {studio.latitude && studio.longitude && (
                     <Link
-                      to="/map"
+                      to={`/map?studio=${studio.id}&lat=${studio.latitude}&lng=${studio.longitude}`}
                       className="ml-2 text-blue-600 hover:text-blue-800 transition-colors flex-shrink-0"
                       title="View on map"
                     >
