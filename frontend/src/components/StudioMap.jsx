@@ -20,6 +20,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const [studios, setStudios] = useState([])
   const [selectedStudio, setSelectedStudio] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [searching, setSearching] = useState(false)
   const [mapError, setMapError] = useState(false)
   const [directions, setDirections] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
@@ -40,7 +41,19 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     checkApiHealth().then(() => {
       fetchStudios()
     })
-  }, [searchTerm, filterVerified, filterFeatured, focusStudioId])
+  }, [filterVerified, filterFeatured, focusStudioId])
+
+  // Debounced search effect
+  useEffect(() => {
+    if (searchTerm !== undefined) {
+      setSearching(true)
+      const timeoutId = setTimeout(() => {
+        fetchStudios()
+      }, 500) // 500ms delay
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [searchTerm])
 
   // Focus on specific studio when focusStudioId changes
   useEffect(() => {
@@ -270,16 +283,27 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
           console.log('Using geocoded studios data for map')
           console.log('🔍 Full API response:', result)
           console.log('🔍 Data structure:', result.data)
-          console.log('🔍 Studios array:', result.data?.studios)
-          console.log('Studios with coordinates:', result.data?.studios?.length || 0)
-          console.log('Stats:', { 
-            total: result.data?.studios?.length || 0,
-            withCoordinates: result.data?.studios?.filter(s => s.hasCoordinates)?.length || 0,
-            withoutCoordinates: result.data?.studios?.filter(s => !s.hasCoordinates)?.length || 0
-          })
           
-          // Backend returns studios in result.data.studios array
-          const studiosData = result.data?.studios || []
+          let studiosData = []
+          
+          // Handle different response structures
+          if (focusStudioId) {
+            // Single studio response - result.data is the studio object
+            if (result.data && result.data.id) {
+              studiosData = [result.data]
+            }
+          } else {
+            // Multiple studios response - result.data.studios is the array
+            studiosData = result.data?.studios || []
+          }
+          
+          console.log('🔍 Studios array:', studiosData)
+          console.log('Studios with coordinates:', studiosData.length || 0)
+          console.log('Stats:', { 
+            total: studiosData.length || 0,
+            withCoordinates: studiosData.filter(s => s.hasCoordinates)?.length || 0,
+            withoutCoordinates: studiosData.filter(s => !s.hasCoordinates)?.length || 0
+          })
           
           // Add default values for missing fields to prevent errors
           const processedStudiosData = studiosData.map(studio => ({
@@ -337,6 +361,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       )
     } finally {
       setLoading(false)
+      setSearching(false)
     }
   }
 
@@ -344,6 +369,17 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  if (searching) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Searching for studios...</p>
+        </div>
       </div>
     )
   }
