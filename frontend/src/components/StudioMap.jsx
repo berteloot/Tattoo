@@ -55,6 +55,14 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     }
   }, [searchTerm])
 
+  // Memoize the search parameters to prevent unnecessary re-renders
+  const searchParams = React.useMemo(() => ({
+    searchTerm,
+    filterVerified,
+    filterFeatured,
+    focusStudioId
+  }), [searchTerm, filterVerified, filterFeatured, focusStudioId])
+
   // Focus on specific studio when focusStudioId changes
   useEffect(() => {
     if (focusStudioId && studios.length > 0) {
@@ -379,6 +387,9 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Searching for studios...</p>
+          {searchTerm && (
+            <p className="text-sm text-gray-500 mt-2">Searching for: "{searchTerm}"</p>
+          )}
         </div>
       </div>
     )
@@ -441,7 +452,63 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
   return (
     <div className="w-full">
+      {/* Search Results Header */}
+      {(searchTerm || filterVerified || filterFeatured) && (
+        <div className="bg-white border-b border-gray-200 px-4 py-3 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Search Results
+              </h3>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                {searchTerm && (
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    "{searchTerm}"
+                  </span>
+                )}
+                {filterVerified && (
+                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                    Verified Only
+                  </span>
+                )}
+                {filterFeatured && (
+                  <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                    Featured Only
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-500">
+                {studios.length} studio{studios.length !== 1 ? 's' : ''} found
+              </div>
+              {(searchTerm || filterVerified || filterFeatured) && (
+                <button
+                  onClick={() => {
+                    // Reset search state
+                    if (typeof window !== 'undefined') {
+                      // Clear URL parameters
+                      const url = new URL(window.location)
+                      url.searchParams.delete('search')
+                      url.searchParams.delete('verified')
+                      url.searchParams.delete('featured')
+                      window.history.replaceState({}, '', url)
+                    }
+                    // Trigger parent component to clear search
+                    window.dispatchEvent(new CustomEvent('clearMapSearch'))
+                  }}
+                  className="text-sm text-gray-500 hover:text-gray-700 underline"
+                >
+                  Clear Search
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <LoadScript 
+        key={`maps-${searchParams.searchTerm}-${searchParams.filterVerified}-${searchParams.filterFeatured}`}
         googleMapsApiKey={googleMapsApiKey}
         onError={(error) => {
           console.error('Google Maps failed to load:', error)

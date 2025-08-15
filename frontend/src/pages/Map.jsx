@@ -29,6 +29,20 @@ const Map = () => {
     }
   }, [searchParams])
 
+  // Listen for clear search event from StudioMap
+  useEffect(() => {
+    const handleClearSearch = () => {
+      setSearchTerm('')
+      setFilterVerified(false)
+      setFilterFeatured(false)
+      setFocusStudioId(null)
+      setFocusCoordinates(null)
+    }
+
+    window.addEventListener('clearMapSearch', handleClearSearch)
+    return () => window.removeEventListener('clearMapSearch', handleClearSearch)
+  }, [])
+
   const handleSearch = (e) => {
     e.preventDefault()
     // Clear focus when searching
