@@ -57,6 +57,7 @@ function App() {
               <Route path="/artists" element={<Artists />} />
               <Route path="/artists/:id" element={<ArtistProfile />} />
               <Route path="/flash" element={<FlashGallery />} />
+              <Route path="/flash/:id" element={<FlashDetail />} />
               <Route path="/studios" element={<Studios />} />
               <Route path="/studios/:id" element={<StudioDetail />} />
               <Route path="/create-studio" element={<CreateStudio />} />
