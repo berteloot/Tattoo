@@ -245,11 +245,11 @@ router.get('/', optionalAuth, [
             }
           });
           
-          // If not found locally, try to fetch from production API
-          if (!studio) {
+          // If not found locally and production API is configured, try to fetch from production
+          if (!studio && process.env.PRODUCTION_API_URL) {
             try {
               const axios = require('axios');
-              const productionResponse = await axios.get(`https://tattooed-world-backend.onrender.com/api/studios?search=${encodeURIComponent(artist.studioName.trim())}&limit=1`);
+              const productionResponse = await axios.get(`${process.env.PRODUCTION_API_URL}/api/studios?search=${encodeURIComponent(artist.studioName.trim())}&limit=1`);
               
               if (productionResponse.data.success && productionResponse.data.data.studios.length > 0) {
                 const productionStudio = productionResponse.data.data.studios[0];
