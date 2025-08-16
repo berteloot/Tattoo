@@ -538,7 +538,14 @@ const FlashCard = ({ item }) => (
           </div>
           <div>
             <p className="font-semibold text-gray-900">
-              {item.artist.user.firstName} {item.artist.user.lastName}
+              <Link
+                to={`/artists/${item.artist.id}`}
+                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                title={`View ${item.artist.user.firstName} ${item.artist.user.lastName}'s profile`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {item.artist.user.firstName} {item.artist.user.lastName}
+              </Link>
             </p>
             <p className="text-sm text-gray-500">{item.artist.city}</p>
           </div>
