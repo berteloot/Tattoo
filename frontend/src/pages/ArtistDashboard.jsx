@@ -251,8 +251,8 @@ export const ArtistDashboard = () => {
         totalFlash: (flashData || []).length
       })
 
-    } catch (error) {
-      console.error('Error loading dashboard data:', error)
+    } catch (err) {
+      console.error('Error loading dashboard data:', err)
       showError('Error loading dashboard data')
     } finally {
       setLoading(false)
@@ -361,7 +361,7 @@ export const ArtistDashboard = () => {
     
     // Check if user has artist profile
     if (!user?.artistProfile?.id) {
-              showError('You need to create an artist profile first before adding flash items.')
+      showError('You need to create an artist profile first before adding flash items.')
       return
     }
     
@@ -394,10 +394,10 @@ export const ArtistDashboard = () => {
       })
       setShowFlashForm(false)
       success('Flash item created successfully!')
-    } catch (error) {
-      console.error('Error creating flash item:', error)
-      const errorMessage = error.response?.data?.error || 'Error creating flash item'
-      error(errorMessage)
+    } catch (err) {
+      console.error('Error creating flash item:', err)
+      const errorMessage = err.response?.data?.error || 'Error creating flash item'
+      showError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -463,8 +463,8 @@ export const ArtistDashboard = () => {
             console.log('🔄 Linking to studio:', studioToLink.title)
             await studiosAPI.claim(studioToLink.id)
             success(`Successfully linked to ${studioToLink.title}!`)
-          } catch (error) {
-            console.error('❌ Error linking to studio:', error)
+          } catch (err) {
+            console.error('❌ Error linking to studio:', err)
             // Continue anyway, the profile was created successfully
           }
         }
@@ -478,8 +478,8 @@ export const ArtistDashboard = () => {
             // Update the user context with the new profile
             window.location.reload() // Simple refresh to get updated user data
           }
-        } catch (error) {
-          console.error('❌ Error refreshing user data:', error)
+        } catch (err) {
+          console.error('❌ Error refreshing user data:', err)
           // Continue anyway, the profile was created successfully
         }
       }
@@ -487,13 +487,13 @@ export const ArtistDashboard = () => {
       setProfile(response.data.data.artistProfile || response.data.data.artist)
       setEditing(false)
       console.log('✅ Form submission completed successfully')
-    } catch (error) {
-      console.error('❌ Error saving profile:', error)
-      console.error('❌ Error response:', error.response)
-      console.error('❌ Error message:', error.message)
-      console.error('❌ Error details:', error.response?.data)
-      const errorMessage = error.response?.data?.error || 'Error saving profile'
-              showError(errorMessage)
+    } catch (err) {
+      console.error('❌ Error saving profile:', err)
+      console.error('❌ Error response:', err.response)
+      console.error('❌ Error message:', err.message)
+      console.error('❌ Error details:', err.response?.data)
+      const errorMessage = err.response?.data?.error || 'Error saving profile'
+      showError(errorMessage)
     } finally {
       setLoading(false)
       console.log('✅ Loading state set to false')
