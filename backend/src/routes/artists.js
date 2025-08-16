@@ -523,6 +523,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const { id } = req.params;
 
+    console.log('🔍 Querying artist profile for ID:', id);
+    
     const artist = await prisma.artistProfile.findUnique({
       where: { id },
       include: {
@@ -630,6 +632,24 @@ router.get('/:id', optionalAuth, async (req, res) => {
       galleryItems: artist.gallery,
       totalCount: artist._count?.gallery || 0
     });
+
+    // Additional debug: Check what gallery items exist in database
+    try {
+      const allGalleryItems = await prisma.tattooGallery.findMany({
+        where: { artistId: id },
+        select: {
+          id: true,
+          title: true,
+          isHidden: true,
+          isApproved: true,
+          clientConsent: true,
+          imageUrl: true
+        }
+      });
+      console.log('🔍 All gallery items in database:', allGalleryItems);
+    } catch (dbError) {
+      console.error('❌ Error querying gallery items:', dbError);
+    }
 
     if (!artist) {
       return res.status(404).json({
