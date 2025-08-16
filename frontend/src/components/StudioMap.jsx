@@ -44,6 +44,14 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     })
   }, [filterVerified, filterFeatured, focusStudioId])
 
+  // Memoize the search parameters to prevent unnecessary re-renders
+  const searchParams = useMemo(() => ({
+    searchTerm,
+    filterVerified,
+    filterFeatured,
+    focusStudioId
+  }), [searchTerm, filterVerified, filterFeatured, focusStudioId])
+
   // Debounced search effect
   useEffect(() => {
     if (searchTerm !== undefined) {
@@ -60,14 +68,6 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   useEffect(() => {
     setGoogleMapsLoaded(false)
   }, [searchParams])
-
-  // Memoize the search parameters to prevent unnecessary re-renders
-  const searchParams = useMemo(() => ({
-    searchTerm,
-    filterVerified,
-    filterFeatured,
-    focusStudioId
-  }), [searchTerm, filterVerified, filterFeatured, focusStudioId])
 
   // Focus on specific studio when focusStudioId changes
   useEffect(() => {
