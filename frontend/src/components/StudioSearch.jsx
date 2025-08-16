@@ -133,6 +133,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
       
       // Callback to parent component
       if (onStudioLinked) {
+        console.log('🎯 handleJoinStudio: Calling onStudioLinked with studio:', studio);
         onStudioLinked(studio);
       }
     } catch (error) {
@@ -229,7 +230,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
                   <div className="flex gap-2 ml-4">
                     {studio.claimedBy ? (
                       <button
-                        onClick={() => handleRequestToJoin(studio)}
+                        onClick={() => handleJoinStudio(studio)}
                         disabled={isRequesting}
                         className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
                       >

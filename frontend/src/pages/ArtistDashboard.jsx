@@ -675,6 +675,8 @@ export const ArtistDashboard = () => {
                       <StudioSearch 
                         onStudioLinked={(studio) => {
                           console.log('🎯 Studio linked callback received:', studio);
+                          console.log('🎯 Studio ID:', studio.id);
+                          console.log('🎯 Studio Title:', studio.title);
                           setFormData(prev => {
                             const updated = {
                               ...prev,
