@@ -149,7 +149,6 @@ export const ArtistDashboard = () => {
             setFormData({
               bio: artist.bio || '',
               studioName: artist.studioName || '',
-              studioId: artist.studioId || '',
               website: artist.website || '',
               instagram: artist.instagram || '',
               facebook: artist.facebook || '',
@@ -418,7 +417,6 @@ export const ArtistDashboard = () => {
     console.log('🔍 Bio field value:', formData.bio)
     console.log('🔍 Bio field length:', formData.bio?.length)
     console.log('🔍 Studio field value:', formData.studioName)
-    console.log('🔍 Studio ID:', formData.studioId)
     console.log('🔍 Specialty IDs:', formData.specialtyIds)
     console.log('🔍 Service IDs:', formData.serviceIds)
     
@@ -429,8 +427,8 @@ export const ArtistDashboard = () => {
       return
     }
     
-    if (!formData.studioName || !formData.studioId) {
-      console.error('❌ Studio validation failed - not linked to studio')
+    if (!formData.studioName) {
+      console.error('❌ Studio validation failed - no studio name')
       showError('You must be linked to a studio to create your artist profile')
       return
     }
@@ -453,8 +451,9 @@ export const ArtistDashboard = () => {
         
         // If user has selected a studio but doesn't have a profile yet, link them to the studio after profile creation
         let studioToLink = null;
-        if (formData.studioId && formData.studioName) {
-          studioToLink = { id: formData.studioId, title: formData.studioName };
+        if (formData.studioName) {
+          // We'll need to find the studio by name to get the ID for linking
+          studioToLink = { title: formData.studioName };
         }
         
         // Create new profile
@@ -680,8 +679,7 @@ export const ArtistDashboard = () => {
                           setFormData(prev => {
                             const updated = {
                               ...prev,
-                              studioName: studio.title,
-                              studioId: studio.id
+                              studioName: studio.title
                             };
                             console.log('🔄 Updated form data:', updated);
                             return updated;
