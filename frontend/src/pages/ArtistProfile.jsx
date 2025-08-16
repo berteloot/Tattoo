@@ -96,22 +96,7 @@ export const ArtistProfile = () => {
     }
   }
 
-  const handleLeaveStudio = async (studioId, studioName) => {
-    try {
-      await api.post(`/studios/${studioId}/leave`)
-      showSuccessToast(`Successfully left ${studioName}`)
-      
-      // Refresh the studios list
-      const studiosResult = await artistsAPI.getStudios(id)
-      if (studiosResult.data?.data) {
-        setStudios(studiosResult.data.data)
-      }
-    } catch (error) {
-      console.error('Error leaving studio:', error)
-      const errorMessage = error.response?.data?.error || 'Failed to leave studio'
-      showErrorToast('Error leaving studio', errorMessage)
-    }
-  }
+
 
   const getDummyArtist = (artistId) => ({
     id: artistId,
@@ -623,12 +608,9 @@ export const ArtistProfile = () => {
               )}
             </div>
 
-            {/* Studio Memberships */}
+            {/* Studio Information */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Studio Memberships</h2>
-              <p className="text-gray-600 text-sm mb-4">
-                Artists can be members of multiple studios to showcase their work and availability across different locations.
-              </p>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Studio Information</h2>
             </div>
             
             {studios && studios.length > 0 ? (
@@ -698,24 +680,13 @@ export const ArtistProfile = () => {
                           </div>
                         </div>
                         
-                        <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                        <div className="mt-3 pt-3 border-t border-gray-100">
                           <Link
                             to={`/studios/${studio.id}`}
                             className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                           >
                             View Studio Details →
                           </Link>
-                          
-                          {/* Show Leave Studio button only if current user is viewing their own profile */}
-                          {isAuthenticated && user?.artistProfile?.id === artist.id && (
-                            <button
-                              onClick={() => handleLeaveStudio(studio.id, studio.title)}
-                              className="text-red-600 hover:text-red-800 text-sm font-medium hover:underline transition-colors"
-                              title={`Leave ${studio.title}`}
-                            >
-                              Leave Studio
-                            </button>
-                          )}
                         </div>
                       </div>
                     );

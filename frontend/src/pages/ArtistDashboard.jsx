@@ -9,6 +9,7 @@ import { CheckCircle, Image as ImageIcon, Eye } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import StudioSearch from '../components/StudioSearch'
+import StudioMemberships from '../components/StudioMemberships'
 import { FavoriteClients } from '../components/FavoriteClients'
 import { MessageManagement } from '../components/MessageManagement'
 
@@ -1218,18 +1219,35 @@ export const ArtistDashboard = () => {
         {user?.artistProfile?.id && (
           <div className="mt-8">
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Find Your Studio</h2>
-              <StudioSearch 
-                onStudioLinked={(studio) => {
-                  // Update form data when studio is linked from this section
-                  setFormData(prev => ({
-                    ...prev,
-                    studioName: studio.title,
-                    studioId: studio.id
-                  }));
-                }}
-                currentArtistId={user.artistProfile.id}
-              />
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Studio Management</h2>
+              
+              {/* Current Studio Memberships */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Current Studio Memberships</h3>
+                <StudioMemberships 
+                  artistId={user.artistProfile.id}
+                  onStudioLeft={() => {
+                    // Refresh the page or update data when studio is left
+                    window.location.reload();
+                  }}
+                />
+              </div>
+              
+              {/* Find New Studio */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Find New Studio</h3>
+                <StudioSearch 
+                  onStudioLinked={(studio) => {
+                    // Update form data when studio is linked from this section
+                    setFormData(prev => ({
+                      ...prev,
+                      studioName: studio.title,
+                      studioId: studio.id
+                    }));
+                  }}
+                  currentArtistId={user.artistProfile.id}
+                />
+              </div>
             </div>
           </div>
         )}
