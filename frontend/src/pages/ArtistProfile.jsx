@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { 
   Star, 
   MapPin, 
@@ -35,6 +35,7 @@ import { useToast } from '../contexts/ToastContext'
 
 export const ArtistProfile = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
   const { success: showSuccessToast } = useToast()
   const [artist, setArtist] = useState(null)
@@ -417,16 +418,26 @@ export const ArtistProfile = () => {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {artist.flash.map((flashItem) => (
-                      <div key={flashItem.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="aspect-square overflow-hidden">
+                      <div 
+                        key={flashItem.id} 
+                        className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+                        onClick={() => navigate(`/flash/${flashItem.id}`)}
+                        title={`View ${flashItem.title} details`}
+                      >
+                        <div className="aspect-square overflow-hidden relative">
                           <img
                             src={flashItem.imageUrl}
                             alt={flashItem.title}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white font-medium text-sm">
+                              Click to view details
+                            </div>
+                          </div>
                         </div>
                         <div className="p-4">
-                          <h3 className="font-medium text-gray-900 mb-2">{flashItem.title}</h3>
+                          <h3 className="font-medium text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{flashItem.title}</h3>
                           {flashItem.description && (
                             <p className="text-sm text-gray-600 mb-3 line-clamp-2">{flashItem.description}</p>
                           )}
@@ -477,16 +488,26 @@ export const ArtistProfile = () => {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {artist.gallery.map((galleryItem) => (
-                      <div key={galleryItem.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="aspect-square overflow-hidden">
+                      <div 
+                        key={galleryItem.id} 
+                        className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+                        onClick={() => navigate(`/gallery/${galleryItem.id}`)}
+                        title={`View ${galleryItem.title} details`}
+                      >
+                        <div className="aspect-square overflow-hidden relative">
                           <img
                             src={galleryItem.thumbnailUrl || galleryItem.imageUrl}
                             alt={galleryItem.title}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white font-medium text-sm">
+                              Click to view details
+                            </div>
+                          </div>
                         </div>
                         <div className="p-4">
-                          <h3 className="font-medium text-gray-900 mb-2">{galleryItem.title}</h3>
+                          <h3 className="font-medium text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{galleryItem.title}</h3>
                           {galleryItem.description && (
                             <p className="text-sm text-gray-600 mb-3 line-clamp-2">{galleryItem.description}</p>
                           )}
@@ -528,6 +549,7 @@ export const ArtistProfile = () => {
                                 <span
                                   key={index}
                                   className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
+                                  onClick={(e) => e.stopPropagation()}
                                 >
                                   {tag}
                                 </span>
