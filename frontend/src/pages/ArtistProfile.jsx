@@ -37,7 +37,7 @@ export const ArtistProfile = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
-  const { success: showSuccessToast } = useToast()
+  const { success: showSuccessToast, error: showErrorToast } = useToast()
   const [artist, setArtist] = useState(null)
   const [reviews, setReviews] = useState([])
   const [studios, setStudios] = useState([])
@@ -88,11 +88,28 @@ export const ArtistProfile = () => {
       // Fallback to copying URL to clipboard
       try {
         await navigator.clipboard.writeText(profileUrl)
-        showSuccessToast('Profile URL copied to clipboard!')
+        showSuccessToast('Share failed - please copy the URL manually')
       } catch (clipboardError) {
         console.error('Clipboard access failed:', clipboardError)
         showSuccessToast('Share failed - please copy the URL manually')
       }
+    }
+  }
+
+  const handleLeaveStudio = async (studioId, studioName) => {
+    try {
+      await api.post(`/studios/${studioId}/leave`)
+      showSuccessToast(`Successfully left ${studioName}`)
+      
+      // Refresh the studios list
+      const studiosResult = await artistsAPI.getStudios(id)
+      if (studiosResult.data?.data) {
+        setStudios(studiosResult.data.data)
+      }
+    } catch (error) {
+      console.error('Error leaving studio:', error)
+      const errorMessage = error.response?.data?.error || 'Failed to leave studio'
+      showErrorToast('Error leaving studio', errorMessage)
     }
   }
 
@@ -584,10 +601,16 @@ export const ArtistProfile = () => {
               )}
             </div>
 
-            {/* Studios */}
-            {studios && studios.length > 0 && (
+            {/* Studio Memberships */}
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Studio Memberships</h2>
+              <p className="text-gray-600 text-sm mb-4">
+                Artists can be members of multiple studios to showcase their work and availability across different locations.
+              </p>
+            </div>
+            
+            {studios && studios.length > 0 ? (
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Studios</h2>
                 <div className="space-y-4">
                   {studios.map((studioArtist) => {
                     const studio = studioArtist.studio;
@@ -653,17 +676,38 @@ export const ArtistProfile = () => {
                           </div>
                         </div>
                         
-                        <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
                           <Link
                             to={`/studios/${studio.id}`}
                             className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                           >
                             View Studio Details →
                           </Link>
+                          
+                          {/* Show Leave Studio button only if current user is viewing their own profile */}
+                          {isAuthenticated && user?.artistProfile?.id === artist.id && (
+                            <button
+                              onClick={() => handleLeaveStudio(studio.id, studio.title)}
+                              className="text-red-600 hover:text-red-800 text-sm font-medium hover:underline transition-colors"
+                              title={`Leave ${studio.title}`}
+                            >
+                              Leave Studio
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="text-center py-8">
+                  <div className="text-gray-400 mb-4">
+                    <MapPin className="h-16 w-16 mx-auto" />
+                  </div>
+                  <p className="text-gray-500 text-sm mb-2">No studio memberships yet</p>
+                  <p className="text-gray-400 text-xs">This artist can join multiple studios to showcase their work</p>
                 </div>
               </div>
             )}

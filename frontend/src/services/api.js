@@ -131,7 +131,8 @@ export const studiosAPI = {
   removeArtist: (studioId, artistId) => api.delete(`/studios/${studioId}/artists/${artistId}`),
   getArtists: (studioId) => api.get(`/studios/${studioId}/artists`),
   leaveStudio: (studioId) => api.post(`/studios/${studioId}/leave`),
-  requestToJoin: (studioId, data) => api.post(`/studios/${studioId}/join-request`, data),
+  joinStudio: (studioId, data) => api.post(`/studios/${studioId}/join`, data),
+  leaveStudio: (studioId) => api.post(`/studios/${studioId}/leave`),
   getJoinRequests: (studioId) => api.get(`/studios/${studioId}/join-requests`),
   respondToJoinRequest: (studioId, requestId, data) => api.put(`/studios/${studioId}/join-requests/${requestId}`, data),
 }

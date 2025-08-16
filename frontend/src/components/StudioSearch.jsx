@@ -116,15 +116,13 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
     }
   };
 
-  const handleRequestToJoin = async (studio) => {
+  const handleJoinStudio = async (studio) => {
     setIsRequesting(true);
     try {
-      // If user has an artist profile, submit join request
+      // If user has an artist profile, join studio immediately
       if (currentArtistId) {
-        await studiosAPI.requestToJoin(studio.id, {
-          message: `I would like to join ${studio.title} as an artist.`
-        });
-        showSuccess(`Join request submitted for ${studio.title}`, 'Studio owners will be notified of your request');
+        await studiosAPI.joinStudio(studio.id);
+        showSuccess(`Successfully joined ${studio.title}!`, 'You are now a member of this studio');
       } else {
         // For new users, just store the studio info for profile creation
         showSuccess(`Studio selected: ${studio.title}`, 'Studio will be linked when you create your profile');
@@ -138,12 +136,12 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
         onStudioLinked(studio);
       }
     } catch (error) {
-      console.error('Error requesting to join studio:', error);
+      console.error('Error joining studio:', error);
       try {
         if (error.response?.data?.error) {
-          showError('Error submitting join request', error.response.data.error);
+          showError('Error joining studio', error.response.data.error);
         } else {
-          showError('Error submitting join request', 'Failed to submit join request');
+          showError('Error joining studio', 'Failed to join studio');
         }
       } catch (toastError) {
         console.error('Error showing toast:', toastError);
@@ -236,7 +234,7 @@ const StudioSearch = ({ onStudioLinked, currentArtistId }) => {
                         className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
                       >
                         <UserPlus className="h-3 w-3" />
-                        {isRequesting ? 'Requesting...' : 'Request to Join'}
+                        {isRequesting ? 'Joining...' : 'Join Studio'}
                       </button>
                     ) : (
                       <button
