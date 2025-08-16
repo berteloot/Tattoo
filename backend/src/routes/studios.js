@@ -870,6 +870,18 @@ router.post('/:id/leave', protect, async (req, res) => {
     console.log('🔍 Leave studio request - Artist Profile:', req.user.artistProfile?.id);
     console.log('🔍 Leave studio request - Studio ID:', req.params.id);
     
+    // Check if Prisma client is connected
+    try {
+      await prisma.$connect();
+      console.log('✅ Prisma client connected successfully');
+    } catch (dbError) {
+      console.error('❌ Database connection failed:', dbError);
+      return res.status(500).json({
+        success: false,
+        error: 'Database connection failed'
+      });
+    }
+    
     // Check if user has an artist profile
     if (!req.user.artistProfile) {
       console.log('❌ User does not have artist profile');
@@ -929,10 +941,19 @@ router.post('/:id/leave', protect, async (req, res) => {
       message: `Successfully left ${studio.title}`
     });
   } catch (error) {
-    console.error('Error leaving studio:', error);
+    console.error('❌ Error leaving studio:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error message:', error.message);
+    
+    // Check for specific Prisma errors
+    if (error.code) {
+      console.error('❌ Prisma error code:', error.code);
+    }
+    
     res.status(500).json({
       success: false,
-      error: 'Failed to leave studio'
+      error: 'Failed to leave studio',
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });
