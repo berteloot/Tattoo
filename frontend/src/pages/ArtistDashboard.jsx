@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom'
 import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
 import ImageUpload from '../components/ImageUpload'
 import ProfilePictureUpload from '../components/ProfilePictureUpload'
-import { CheckCircle, Image as ImageIcon } from 'lucide-react'
+import { CheckCircle, Image as ImageIcon, Eye } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import StudioSearch from '../components/StudioSearch'
@@ -20,12 +20,15 @@ export const ArtistDashboard = () => {
   // State management
   const [profile, setProfile] = useState(null)
   const [flash, setFlash] = useState([])
+  const [gallery, setGallery] = useState([])
   const [reviews, setReviews] = useState([])
   const [specialties, setSpecialties] = useState([])
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [showFlashForm, setShowFlashForm] = useState(false)
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
   
   // Form states
@@ -89,7 +92,7 @@ export const ArtistDashboard = () => {
     totalReviews: 0,
     averageRating: 0,
     totalFlash: 0,
-    monthlyEarnings: 0
+    totalGallery: 0
   })
 
   useEffect(() => {
@@ -140,10 +143,16 @@ export const ArtistDashboard = () => {
         try {
           const profileResponse = await artistsAPI.getById(user.artistProfile.id)
           console.log('✅ Profile response:', profileResponse)
+          console.log('🔍 Full profile response structure:', JSON.stringify(profileResponse, null, 2))
           if (profileResponse?.data?.data?.artist) {
             const artist = profileResponse.data.data.artist
             setProfile(artist)
             console.log('✅ Profile set:', artist)
+            
+            // Set gallery data from profile
+            setGallery(artist.gallery || [])
+            console.log('✅ Gallery data set:', artist.gallery?.length || 0, 'items')
+            console.log('🔍 Gallery data details:', artist.gallery)
             
             // Set form data with safety checks
             setFormData({
@@ -247,7 +256,8 @@ export const ArtistDashboard = () => {
         profileViews: Math.floor(Math.random() * 100) + 10, // Mock data since profileViews column was removed
         totalReviews: (reviewsData || []).length,
         averageRating: Math.round(avgRating * 10) / 10,
-        totalFlash: (flashData || []).length
+        totalFlash: (flashData || []).length,
+        totalGallery: (gallery || []).length
       })
 
     } catch (err) {
@@ -445,33 +455,18 @@ export const ArtistDashboard = () => {
         // Update existing profile
         response = await artistsAPI.updateProfile(user.artistProfile.id, formData)
         console.log('✅ Update response:', response)
+        setSuccessMessage('Profile updated successfully! You can now view your public profile and add flash items.')
+        setShowSuccessBanner(true)
         success('Profile updated successfully!')
       } else {
         console.log('🔄 Creating new profile')
         
-        // If user has selected a studio but doesn't have a profile yet, link them to the studio after profile creation
-        let studioToLink = null;
-        if (formData.studioName) {
-          // We'll need to find the studio by name to get the ID for linking
-          studioToLink = { title: formData.studioName };
-        }
-        
         // Create new profile
         response = await artistsAPI.createProfile(formData)
         console.log('✅ Create response:', response)
+        setSuccessMessage('Profile created successfully! You can now view your public profile and start adding flash items.')
+        setShowSuccessBanner(true)
         success('Profile created successfully!')
-        
-        // If user had selected a studio, link them to it now that they have a profile
-        if (studioToLink) {
-          try {
-            console.log('🔄 Linking to studio:', studioToLink.title)
-            await studiosAPI.claim(studioToLink.id)
-            success(`Successfully linked to ${studioToLink.title}!`)
-          } catch (err) {
-            console.error('❌ Error linking to studio:', err)
-            // Continue anyway, the profile was created successfully
-          }
-        }
         
         // Refresh user data to get the new profile ID
         try {
@@ -531,7 +526,63 @@ export const ArtistDashboard = () => {
               : 'Set up your artist profile to start showcasing your work'
             }
           </p>
+          
+          {/* Navigation Links */}
+          {user?.artistProfile?.id && (
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                to={`/artists/${user.artistProfile.id}`}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                View Public Profile
+              </Link>
+              <Link
+                to="/dashboard/gallery"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <ImageIcon className="w-4 h-4 mr-2" />
+                Manage Gallery
+              </Link>
+            </div>
+          )}
         </div>
+
+        {/* Success Banner */}
+        {showSuccessBanner && (
+          <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-lg font-medium text-green-900">Success!</h3>
+                  <p className="mt-1 text-green-700">{successMessage}</p>
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                {user?.artistProfile?.id && (
+                  <Link
+                    to={`/artists/${user.artistProfile.id}`}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Profile
+                  </Link>
+                )}
+                <button
+                  onClick={() => setShowSuccessBanner(false)}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Profile Creation/Management Banner */}
         {!user?.artistProfile?.id ? (
@@ -553,18 +604,27 @@ export const ArtistDashboard = () => {
           </div>
         ) : (
           <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-lg font-medium text-green-900">Profile Active</h3>
+                  <p className="mt-1 text-green-700">
+                    Your artist profile is active and verified. You can edit your profile, add flash items, and manage your portfolio below.
+                  </p>
+                </div>
               </div>
-              <div className="ml-3">
-                <h3 className="text-lg font-medium text-green-900">Profile Active</h3>
-                <p className="mt-1 text-green-700">
-                  Your artist profile is active and verified. You can edit your profile, add flash items, and manage your portfolio below.
-                </p>
-              </div>
+              <Link
+                to={`/artists/${user.artistProfile.id}`}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                View Profile
+              </Link>
             </div>
           </div>
         )}
@@ -628,6 +688,19 @@ export const ArtistDashboard = () => {
             </div>
           </div>
 
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Gallery Items</p>
+                <p className="text-2xl font-semibold text-gray-900">{analytics.totalGallery}</p>
+              </div>
+            </div>
+          </div>
 
         </div>
 
@@ -637,16 +710,27 @@ export const ArtistDashboard = () => {
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900">Profile Management</h2>
-                <button
-                  onClick={() => setEditing(!editing)}
-                  className={`px-4 py-2 text-sm font-medium rounded-md ${
-                    !user?.artistProfile?.id 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'text-blue-600 hover:text-blue-500'
-                  }`}
-                >
-                  {editing ? 'Cancel' : (!user?.artistProfile?.id ? 'Create Profile' : 'Edit')}
-                </button>
+                <div className="flex items-center space-x-3">
+                  {user?.artistProfile?.id && (
+                    <Link
+                      to={`/artists/${user.artistProfile.id}`}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Profile
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => setEditing(!editing)}
+                    className={`px-4 py-2 text-sm font-medium rounded-md ${
+                      !user?.artistProfile?.id 
+                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        : 'text-blue-600 hover:text-blue-500'
+                    }`}
+                  >
+                    {editing ? 'Cancel' : (!user?.artistProfile?.id ? 'Create Profile' : 'Edit')}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1219,7 +1303,7 @@ export const ArtistDashboard = () => {
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                               </svg>
                             ))}
                             <span className="ml-2 text-sm text-gray-500">{review.rating || 0}/5</span>
@@ -1537,6 +1621,56 @@ export const ArtistDashboard = () => {
           </div>
         )}
 
+        {/* Next Steps Section */}
+        {user?.artistProfile?.id && (
+          <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6">
+            <h2 className="text-xl font-semibold text-blue-900 mb-4">Next Steps</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <div className="text-blue-600 text-2xl mb-2">📸</div>
+                <h3 className="font-medium text-gray-900 mb-2">Add Flash Items</h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  Create flash designs that clients can choose from. Add pricing, complexity, and time estimates.
+                </p>
+                <button
+                  onClick={() => setShowFlashForm(true)}
+                  className="w-full px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                >
+                  Add Flash Item
+                </button>
+              </div>
+              
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <div className="text-blue-600 text-2xl mb-2">🎨</div>
+                <h3 className="font-medium text-gray-900 mb-2">Build Portfolio</h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  Upload your completed tattoo work to showcase your skills and attract new clients.
+                </p>
+                <Link
+                  to="/dashboard/gallery"
+                  className="block w-full px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors text-center"
+                >
+                  Manage Gallery
+                </Link>
+              </div>
+              
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <div className="text-blue-600 text-2xl mb-2">👁️</div>
+                <h3 className="font-medium text-gray-900 mb-2">View Profile</h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  See how your profile appears to potential clients and make sure everything looks perfect.
+                </p>
+                <Link
+                  to={`/artists/${user.artistProfile.id}`}
+                  className="block w-full px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors text-center"
+                >
+                  View Profile
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tattoo Gallery Management */}
         <div className="mt-8 bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
@@ -1586,6 +1720,119 @@ export const ArtistDashboard = () => {
                   <CheckCircle className="w-5 h-5" />
                   <span>Create Artist Profile</span>
                 </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Gallery Preview */}
+        <div className="mt-8 bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Tattoo Gallery Preview</h2>
+              {user?.artistProfile?.id && (
+                <Link 
+                  to="/dashboard/gallery"
+                  className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500 flex items-center space-x-2"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Manage Gallery</span>
+                </Link>
+              )}
+            </div>
+          </div>
+          <div className="p-6">
+            {gallery && gallery.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {gallery.slice(0, 6).map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg overflow-hidden">
+                    <img
+                      src={item.imageUrl || item.thumbnailUrl || 'https://via.placeholder.com/400x300?text=No+Image'}
+                      alt={item.title || 'Gallery Item'}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-4">
+                      <h3 className="text-lg font-medium text-gray-900">{item.title || 'Untitled'}</h3>
+                      {item.description && (
+                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                      )}
+                      <div className="mt-2 space-y-1">
+                        {item.tattooStyle && (
+                          <p className="text-xs text-gray-500">
+                            <span className="font-medium">Style:</span> {item.tattooStyle}
+                          </p>
+                        )}
+                        {item.bodyLocation && (
+                          <p className="text-xs text-gray-500">
+                            <span className="font-medium">Location:</span> {item.bodyLocation}
+                          </p>
+                        )}
+                        {item.tattooSize && (
+                          <p className="text-xs text-gray-500">
+                            <span className="font-medium">Size:</span> {item.tattooSize}
+                          </p>
+                        )}
+                        {item.colorType && (
+                          <p className="text-xs text-gray-500">
+                            <span className="font-medium">Color:</span> {item.colorType}
+                          </p>
+                        )}
+                        {item.sessionCount && (
+                          <p className="text-xs text-gray-500">
+                            <span className="font-medium">Sessions:</span> {item.sessionCount}
+                          </p>
+                        )}
+                        {item.hoursSpent && (
+                          <p className="text-xs text-gray-500">
+                            <span className="font-medium">Hours:</span> {item.hoursSpent}
+                          </p>
+                        )}
+                      </div>
+                      {item.tags && item.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {item.tags.map((tag, index) => (
+                            <span key={index} className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {item.completedAt && (
+                        <p className="text-xs text-gray-400 mt-2">
+                          Completed: {new Date(item.completedAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-gray-400 text-4xl mb-4">🎨</div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Gallery Items Yet</h3>
+                <p className="text-gray-600 mb-6">
+                  {user?.artistProfile?.id 
+                    ? 'Start building your tattoo portfolio by uploading your completed work.'
+                    : 'Create your artist profile first to start building your tattoo portfolio.'
+                  }
+                </p>
+                {user?.artistProfile?.id ? (
+                  <Link
+                    to="/dashboard/gallery"
+                    className="inline-flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    <ImageIcon className="w-5 h-5" />
+                    <span>Upload Gallery Items</span>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    <span>Create Artist Profile</span>
+                  </button>
+                )}
               </div>
             )}
           </div>

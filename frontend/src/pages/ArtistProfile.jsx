@@ -219,13 +219,25 @@ export const ArtistProfile = () => {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Link 
-            to="/" 
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Artists
-          </Link>
+          <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
+            <Link 
+              to="/" 
+              className="hover:text-gray-700 transition-colors"
+            >
+              Home
+            </Link>
+            <span>/</span>
+            <Link 
+              to="/artists" 
+              className="hover:text-gray-700 transition-colors"
+            >
+              Artists
+            </Link>
+            <span>/</span>
+            <span className="text-gray-900 font-medium">
+              {artist.user.firstName} {artist.user.lastName}
+            </span>
+          </div>
           
           <div className="flex items-start space-x-6">
             {/* Artist Avatar */}
@@ -258,6 +270,16 @@ export const ArtistProfile = () => {
                   </span>
                 )}
                 <FavoriteButton artistId={artist.id} size="w-8 h-8" />
+                
+                {/* Dashboard Link for Artist Viewing Own Profile */}
+                {isAuthenticated && user?.id === artist.user.id && (
+                  <Link
+                    to="/dashboard"
+                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Dashboard
+                  </Link>
+                )}
               </div>
               
               {/* Studio Information */}
