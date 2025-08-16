@@ -568,6 +568,32 @@ router.get('/:id', optionalAuth, async (req, res) => {
           orderBy: { createdAt: 'desc' },
           take: 20
         },
+        gallery: {
+          where: { 
+            isApproved: true,
+            isHidden: false,
+            clientConsent: true
+          },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            imageUrl: true,
+            thumbnailUrl: true,
+            tattooStyle: true,
+            bodyLocation: true,
+            tattooSize: true,
+            colorType: true,
+            sessionCount: true,
+            hoursSpent: true,
+            tags: true,
+            categories: true,
+            completedAt: true,
+            createdAt: true
+          },
+          orderBy: { completedAt: 'desc' },
+          take: 20
+        },
         messages: {
           where: {
             isActive: true,
@@ -592,7 +618,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
         },
         _count: {
           select: {
-            flash: true
+            flash: true,
+            gallery: true
           }
         }
       }

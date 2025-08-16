@@ -133,6 +133,8 @@ export const ArtistProfile = () => {
         console.log('Artist data:', artistResult.data.data.artist)
         console.log('Flash items:', artistResult.data.data.artist?.flash)
         console.log('Flash count:', artistResult.data.data.artist?._count?.flash)
+        console.log('Gallery items:', artistResult.data.data.artist?.gallery)
+        console.log('Gallery count:', artistResult.data.data.artist?._count?.gallery)
         setArtist(artistResult.data.data.artist)
         setReviews(artistResult.data.data.reviews || [])
       }
@@ -471,13 +473,93 @@ export const ArtistProfile = () => {
             {/* Tattoo Gallery / Portfolio */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Tattoo Portfolio</h2>
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Eye className="w-8 h-8 text-gray-400" />
+              {artist.gallery && artist.gallery.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {artist.gallery.map((galleryItem) => (
+                      <div key={galleryItem.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                        <div className="aspect-square overflow-hidden">
+                          <img
+                            src={galleryItem.thumbnailUrl || galleryItem.imageUrl}
+                            alt={galleryItem.title}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-medium text-gray-900 mb-2">{galleryItem.title}</h3>
+                          {galleryItem.description && (
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{galleryItem.description}</p>
+                          )}
+                          <div className="space-y-2">
+                            {galleryItem.tattooStyle && (
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-500">Style:</span>
+                                <span className="font-medium text-gray-700">{galleryItem.tattooStyle}</span>
+                              </div>
+                            )}
+                            {galleryItem.bodyLocation && (
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-500">Location:</span>
+                                <span className="font-medium text-gray-700">{galleryItem.bodyLocation}</span>
+                              </div>
+                            )}
+                            {galleryItem.tattooSize && (
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-500">Size:</span>
+                                <span className="font-medium text-gray-700">{galleryItem.tattooSize}</span>
+                              </div>
+                            )}
+                            {galleryItem.sessionCount > 1 && (
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-500">Sessions:</span>
+                                <span className="font-medium text-gray-700">{galleryItem.sessionCount}</span>
+                              </div>
+                            )}
+                            {galleryItem.hoursSpent && (
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-500">Hours:</span>
+                                <span className="font-medium text-gray-700">{galleryItem.hoursSpent}</span>
+                              </div>
+                            )}
+                          </div>
+                          {galleryItem.tags && galleryItem.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-3">
+                              {galleryItem.tags.slice(0, 3).map((tag, index) => (
+                                <span
+                                  key={index}
+                                  className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {galleryItem.completedAt && (
+                            <div className="text-xs text-gray-400 mt-2">
+                              Completed {new Date(galleryItem.completedAt).toLocaleDateString()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {artist._count && artist._count.gallery > artist.gallery.length && (
+                    <div className="text-center mt-4">
+                      <p className="text-sm text-gray-500">
+                        Showing {artist.gallery.length} of {artist._count.gallery} portfolio items
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Eye className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-sm">No portfolio items available yet</p>
+                  <p className="text-gray-400 text-xs mt-1">Check back later for completed tattoo work</p>
                 </div>
-                <p className="text-gray-500 text-sm">Portfolio coming soon</p>
-                <p className="text-gray-400 text-xs mt-1">We're working on adding a tattoo gallery feature</p>
-              </div>
+              )}
             </div>
 
             {/* Studios */}
