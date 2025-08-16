@@ -306,6 +306,7 @@ export const ArtistDashboard = () => {
   }
 
   const handleImageUpload = (imageData) => {
+    console.log('📋 ArtistDashboard: Received image data:', imageData);
     setFlashFormData(prev => ({
       ...prev,
       imageUrl: imageData.imageUrl,
@@ -368,6 +369,7 @@ export const ArtistDashboard = () => {
     try {
       setLoading(true)
       
+      console.log('📋 ArtistDashboard: Submitting flash data:', flashFormData);
       const response = await flashAPI.create(flashFormData)
       setFlash(prev => [response.data.data.flash, ...prev])
       setFlashFormData({

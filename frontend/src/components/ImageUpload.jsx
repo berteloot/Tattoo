@@ -110,6 +110,7 @@ const ImageUpload = ({
       }
 
       // Call parent callback with uploaded image data
+      console.log('📋 ImageUpload: Upload successful, calling callback with data:', result.data);
       if (onUpload) {
         onUpload([result.data.imageUrl]); // Support new callback structure
       } else if (onImageUpload) {
