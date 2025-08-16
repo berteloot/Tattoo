@@ -130,6 +130,9 @@ export const ArtistProfile = () => {
         setReviews(artistResult.data.reviews)
       } else {
         console.log('Using API artist profile data')
+        console.log('Artist data:', artistResult.data.data.artist)
+        console.log('Flash items:', artistResult.data.data.artist?.flash)
+        console.log('Flash count:', artistResult.data.data.artist?._count?.flash)
         setArtist(artistResult.data.data.artist)
         setReviews(artistResult.data.data.reviews || [])
       }
@@ -404,6 +407,78 @@ export const ArtistProfile = () => {
                 </div>
               </div>
             )}
+
+            {/* Flash Items / Portfolio */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Available Flash Designs</h2>
+              {artist.flash && artist.flash.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {artist.flash.map((flashItem) => (
+                      <div key={flashItem.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                        <div className="aspect-square overflow-hidden">
+                          <img
+                            src={flashItem.imageUrl}
+                            alt={flashItem.title}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-medium text-gray-900 mb-2">{flashItem.title}</h3>
+                          {flashItem.description && (
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{flashItem.description}</p>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-lg font-semibold text-primary-600">
+                              ${flashItem.basePrice}
+                            </span>
+                            {flashItem.tags && flashItem.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {flashItem.tags.slice(0, 3).map((tag, index) => (
+                                  <span
+                                    key={index}
+                                    className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {artist._count && artist._count.flash > artist.flash.length && (
+                    <div className="text-center mt-4">
+                      <p className="text-sm text-gray-500">
+                        Showing {artist.flash.length} of {artist._count.flash} designs
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Eye className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-sm">No flash designs available yet</p>
+                  <p className="text-gray-400 text-xs mt-1">Check back later for new designs</p>
+                </div>
+              )}
+            </div>
+
+            {/* Tattoo Gallery / Portfolio */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Tattoo Portfolio</h2>
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Eye className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-500 text-sm">Portfolio coming soon</p>
+                <p className="text-gray-400 text-xs mt-1">We're working on adding a tattoo gallery feature</p>
+              </div>
+            </div>
 
             {/* Studios */}
             {studios && studios.length > 0 && (
