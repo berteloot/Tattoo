@@ -22,16 +22,21 @@ const FlashDetail = () => {
   const fetchFlashItem = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Fetching flash item with ID:', id);
       const response = await api.get(`/flash/${id}`);
+      
+      console.log('🔍 Flash API response:', response.data);
       
       if (response.data.success) {
         setFlashItem(response.data.data.flash);
+        console.log('✅ Flash item set:', response.data.data.flash);
       } else {
+        console.error('❌ Flash API returned success: false');
         error('Error', 'Failed to load flash item');
         navigate('/flash');
       }
     } catch (err) {
-      console.error('Error fetching flash item:', err);
+      console.error('❌ Error fetching flash item:', err);
       error('Error', 'Failed to load flash item');
       navigate('/flash');
     } finally {
@@ -73,6 +78,7 @@ const FlashDetail = () => {
   }
 
   if (!flashItem) {
+    console.log('❌ Flash item is null/undefined');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -90,6 +96,8 @@ const FlashDetail = () => {
       </div>
     );
   }
+
+  console.log('🎨 Rendering FlashDetail with item:', flashItem);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -211,14 +219,14 @@ const FlashDetail = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Repeatable</span>
                   <span className="text-gray-900 font-medium">
-                    {flashItem.isRepeatable ? 'Yes' : 'No'}
+                    {flashItem.isRepeatable !== undefined ? (flashItem.isRepeatable ? 'Yes' : 'No') : 'Not specified'}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Available</span>
-                  <span className={`font-medium ${flashItem.isAvailable ? 'text-green-600' : 'text-red-600'}`}>
-                    {flashItem.isAvailable ? 'Yes' : 'No'}
+                  <span className={`font-medium ${flashItem.isAvailable !== undefined ? (flashItem.isAvailable ? 'text-green-600' : 'text-red-600') : 'text-gray-600'}`}>
+                    {flashItem.isAvailable !== undefined ? (flashItem.isAvailable ? 'Yes' : 'No') : 'Not specified'}
                   </span>
                 </div>
 
