@@ -570,9 +570,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
         },
         gallery: {
           where: { 
-            isApproved: true,
-            isHidden: false,
-            clientConsent: true
+            // Show all gallery items for now to debug the issue
+            // Temporarily removed all filters to see what exists
           },
           select: {
             id: true,
@@ -623,6 +622,13 @@ router.get('/:id', optionalAuth, async (req, res) => {
           }
         }
       }
+    });
+
+    // Debug gallery data
+    console.log('🔍 Artist gallery data:', {
+      galleryCount: artist.gallery?.length || 0,
+      galleryItems: artist.gallery,
+      totalCount: artist._count?.gallery || 0
     });
 
     if (!artist) {
