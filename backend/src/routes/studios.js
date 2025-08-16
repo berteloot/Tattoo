@@ -866,8 +866,13 @@ router.post('/:id/join', protect, async (req, res) => {
 // Leave a studio
 router.post('/:id/leave', protect, async (req, res) => {
   try {
+    console.log('🔍 Leave studio request - User:', req.user.id);
+    console.log('🔍 Leave studio request - Artist Profile:', req.user.artistProfile?.id);
+    console.log('🔍 Leave studio request - Studio ID:', req.params.id);
+    
     // Check if user has an artist profile
     if (!req.user.artistProfile) {
+      console.log('❌ User does not have artist profile');
       return res.status(400).json({
         success: false,
         error: 'You must have an artist profile to leave a studio'
@@ -889,6 +894,7 @@ router.post('/:id/leave', protect, async (req, res) => {
     }
 
     // Check if artist is a member of this studio
+    console.log('🔍 Checking studio membership for studio:', id, 'and artist:', req.user.artistProfile.id);
     const existingMembership = await prisma.studioArtist.findFirst({
       where: {
         studioId: id,
@@ -897,7 +903,10 @@ router.post('/:id/leave', protect, async (req, res) => {
       }
     });
 
+    console.log('🔍 Existing membership found:', existingMembership);
+
     if (!existingMembership) {
+      console.log('❌ User is not a member of this studio');
       return res.status(400).json({
         success: false,
         error: 'You are not a member of this studio'
@@ -905,6 +914,7 @@ router.post('/:id/leave', protect, async (req, res) => {
     }
 
     // Deactivate the membership (soft delete)
+    console.log('🔍 Deactivating studio membership:', existingMembership.id);
     await prisma.studioArtist.update({
       where: { id: existingMembership.id },
       data: {
@@ -913,6 +923,7 @@ router.post('/:id/leave', protect, async (req, res) => {
       }
     });
 
+    console.log('✅ Successfully left studio:', studio.title);
     res.json({
       success: true,
       message: `Successfully left ${studio.title}`

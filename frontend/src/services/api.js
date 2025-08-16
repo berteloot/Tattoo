@@ -132,7 +132,6 @@ export const studiosAPI = {
   getArtists: (studioId) => api.get(`/studios/${studioId}/artists`),
   leaveStudio: (studioId) => api.post(`/studios/${studioId}/leave`),
   joinStudio: (studioId, data) => api.post(`/studios/${studioId}/join`, data),
-  leaveStudio: (studioId) => api.post(`/studios/${studioId}/leave`),
   getJoinRequests: (studioId) => api.get(`/studios/${studioId}/join-requests`),
   respondToJoinRequest: (studioId, requestId, data) => api.put(`/studios/${studioId}/join-requests/${requestId}`, data),
 }
