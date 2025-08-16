@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Heart, MessageCircle, Eye, Share2, ArrowLeft, Star, Clock, MapPin, Tag } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -293,7 +293,17 @@ const GalleryDetail = () => {
                 )}
                 <div>
                   <div className="font-medium text-gray-900">
-                    {galleryItem.artist?.user?.firstName} {galleryItem.artist?.user?.lastName}
+                    {galleryItem.artist?.id ? (
+                      <Link
+                        to={`/artists/${galleryItem.artist.id}`}
+                        className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                        title={`View ${galleryItem.artist.user.firstName} ${galleryItem.artist.user.lastName}'s profile`}
+                      >
+                        {galleryItem.artist.user.firstName} {galleryItem.artist.user.lastName}
+                      </Link>
+                    ) : (
+                      <span>{galleryItem.artist?.user?.firstName} {galleryItem.artist?.user?.lastName}</span>
+                    )}
                   </div>
                   {galleryItem.artist?.studioName && (
                     <div className="text-sm text-gray-600">{galleryItem.artist.studioName}</div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Heart, MessageCircle, Eye, Filter, Search, Grid, List, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -235,7 +235,17 @@ const TattooGallery = () => {
           
           <div className="text-right">
             <div className="font-semibold text-gray-800">
-              {item.artist?.user?.firstName} {item.artist?.user?.lastName}
+              {item.artist?.id ? (
+                <Link
+                  to={`/artists/${item.artist.id}`}
+                  className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                  title={`View ${item.artist.user.firstName} ${item.artist.user.lastName}'s profile`}
+                >
+                  {item.artist.user.firstName} {item.artist.user.lastName}
+                </Link>
+              ) : (
+                <span>{item.artist?.user?.firstName} {item.artist?.user?.lastName}</span>
+              )}
             </div>
             {item.hoursSpent && (
               <div className="text-xs">
@@ -322,7 +332,17 @@ const TattooGallery = () => {
             
             <div className="text-right">
               <div className="font-semibold text-gray-800">
-                {item.artist?.user?.firstName} {item.artist?.user?.lastName}
+                {item.artist?.id ? (
+                  <Link
+                    to={`/artists/${item.artist.id}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                    title={`View ${item.artist.user.firstName} ${item.artist.user.lastName}'s profile`}
+                  >
+                    {item.artist.user.firstName} {item.artist.user.lastName}
+                  </Link>
+                ) : (
+                  <span>{item.artist?.user?.firstName} {item.artist?.user?.lastName}</span>
+                )}
               </div>
               {item.hoursSpent && (
                 <div className="text-xs text-gray-500">
