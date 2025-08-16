@@ -55,6 +55,17 @@ a:hover { color: var(--accent-red); text-decoration: underline; text-underline-o
 .nav a { text-transform: uppercase; font-size: 13px; }
 .nav a[aria-current="page"] { text-decoration: underline; text-underline-offset: 2px; }
 
+/* Ensure error messages and notifications are visible above navigation */
+.error-message, .alert, .notification, .toast {
+  z-index: 1000 !important;
+}
+
+/* Form validation errors should have proper spacing from top */
+form .error-message, form .alert {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
 /* Hero */
 .hero { padding: 48px 0 24px; border-bottom: 1px solid var(--border); }
 .hero .deck { max-width: 60ch; color: var(--muted); }

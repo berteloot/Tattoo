@@ -241,7 +241,7 @@ export const Layout = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main id="main-content" className="container" style={{ padding: '40px 0' }}>
+      <main id="main-content" className="container" style={{ padding: '48px 0' }}>
         {children}
       </main>
 
