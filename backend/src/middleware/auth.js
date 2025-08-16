@@ -9,14 +9,20 @@ const prisma = new PrismaClient();
 const protect = async (req, res, next) => {
   let token;
 
+  console.log('🔍 Auth middleware - Headers:', req.headers.authorization ? 'Authorization header present' : 'No authorization header');
+  console.log('🔍 Auth middleware - URL:', req.originalUrl);
+  console.log('🔍 Auth middleware - Method:', req.method);
+
   // Check for token in headers
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       // Get token from header
       token = req.headers.authorization.split(' ')[1];
+      console.log('🔍 Auth middleware - Token extracted:', token ? 'Token present' : 'No token');
 
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('🔍 Auth middleware - Token decoded:', { id: decoded.id, hasId: !!decoded.id });
 
       // Get user from token
       const user = await prisma.user.findUnique({
@@ -48,6 +54,12 @@ const protect = async (req, res, next) => {
         });
       }
 
+      console.log('🔍 Auth middleware - User found:', { 
+        id: user.id, 
+        email: user.email, 
+        hasArtistProfile: !!user.artistProfile,
+        artistProfileId: user.artistProfile?.id 
+      });
       req.user = user;
       next();
     } catch (error) {
