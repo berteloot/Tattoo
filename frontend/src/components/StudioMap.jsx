@@ -32,6 +32,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const [mapCenter, setMapCenter] = useState(center)
   const [mapZoom, setMapZoom] = useState(10)
   const [showMessageForm, setShowMessageForm] = useState(false)
+  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false)
   const directionsService = useRef(null)
   const directionsRenderer = useRef(null)
   const { error: showError } = useToast()
@@ -54,6 +55,11 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       return () => clearTimeout(timeoutId)
     }
   }, [searchTerm])
+
+  // Reset Google Maps loaded state when search parameters change
+  useEffect(() => {
+    setGoogleMapsLoaded(false)
+  }, [searchParams])
 
   // Memoize the search parameters to prevent unnecessary re-renders
   const searchParams = useMemo(() => ({
@@ -88,28 +94,46 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     }
   }, [focusCoordinates])
 
-  // Initialize directions service and geocoder when map loads
+    // Initialize directions service and geocoder when map loads
   const onMapLoad = (map) => {
-    if (window.google) {
-      directionsService.current = new window.google.maps.DirectionsService()
-      directionsRenderer.current = new window.google.maps.DirectionsRenderer({
-        suppressMarkers: true, // We'll handle our own markers
-        polylineOptions: {
-          strokeColor: '#3B82F6',
-          strokeWeight: 6,
-          strokeOpacity: 0.9
-        },
-        suppressInfoWindows: false
-      })
-      directionsRenderer.current.setMap(map)
-      
-      // Initialize geocoder for address lookup
-      setGeocoder(new window.google.maps.Geocoder())
+    // Only initialize if Google Maps is fully loaded
+    if (googleMapsLoaded && window.google && window.google.maps) {
+      try {
+        directionsService.current = new window.google.maps.DirectionsService()
+        directionsRenderer.current = new window.google.maps.DirectionsRenderer({
+          suppressMarkers: true, // We'll handle our own markers
+          polylineOptions: {
+            strokeColor: '#3B82F6',
+            strokeWeight: 6,
+            strokeOpacity: 0.9
+          },
+          suppressInfoWindows: false
+        })
+        directionsRenderer.current.setMap(map)
+        
+        // Initialize geocoder for address lookup
+        setGeocoder(new window.google.maps.Geocoder())
+      } catch (error) {
+        console.error('Error initializing Google Maps services:', error)
+      }
+    } else {
+      console.warn('Google Maps API not fully loaded yet, retrying...')
+      // Retry after a short delay
+      setTimeout(() => {
+        if (googleMapsLoaded) {
+          onMapLoad(map)
+        }
+      }, 100)
     }
   }
 
   // Get user's current location (optional)
   const getUserLocation = () => {
+    if (!googleMapsLoaded) {
+      alert('Please wait for the map to fully load before getting your location.')
+      return null
+    }
+    
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by this browser.')
       return null
@@ -135,7 +159,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
   // Geocode address to coordinates
   const geocodeAddress = async (address) => {
-    if (!geocoder) return null
+    if (!googleMapsLoaded || !geocoder) return null
 
     return new Promise((resolve, reject) => {
       geocoder.geocode({ address }, (results, status) => {
@@ -154,8 +178,8 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
   // Get directions to selected studio
   const getDirections = async (studio, originAddress = null) => {
-    if (!directionsService.current) {
-      alert('Directions service not available')
+    if (!googleMapsLoaded || !directionsService.current) {
+      alert('Directions service not available. Please wait for the map to fully load.')
       return
     }
 
@@ -518,6 +542,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         onLoad={() => {
           console.log('Google Maps loaded successfully')
           setMapError(false)
+          setGoogleMapsLoaded(true)
         }}
       >
         {mapError ? (
@@ -542,6 +567,14 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        ) : !googleMapsLoaded ? (
+          <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Loading Map...</h3>
+              <p className="text-gray-500">Please wait while Google Maps initializes</p>
             </div>
           </div>
         ) : (
