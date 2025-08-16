@@ -370,6 +370,9 @@ export const ArtistDashboard = () => {
       setLoading(true)
       
       console.log('📋 ArtistDashboard: Submitting flash data:', flashFormData);
+      console.log('📋 ArtistDashboard: Description field value:', flashFormData.description);
+      console.log('📋 ArtistDashboard: Description field type:', typeof flashFormData.description);
+      console.log('📋 ArtistDashboard: Description field length:', flashFormData.description?.length);
       const response = await flashAPI.create(flashFormData)
       setFlash(prev => [response.data.data.flash, ...prev])
       setFlashFormData({

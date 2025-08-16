@@ -244,7 +244,10 @@ router.post('/upload', protect, authorize('ARTIST', 'ARTIST_ADMIN'), handleUploa
  * @desc    Create new flash item (supports both URL and file upload)
  * @access  Private (ARTIST role)
  */
-router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
+router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), (req, res, next) => {
+  console.log('🔍 Flash creation request body:', req.body);
+  next();
+}, [
   body('title')
     .trim()
     .isLength({ min: 1, max: 100 })
@@ -252,48 +255,93 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
   body('description')
     .optional()
     .trim()
-    .isLength({ max: 500 })
+    .custom((value) => {
+      if (value === '') return true; // Allow empty strings
+      if (value && value.length > 500) {
+        throw new Error('Description must be less than 500 characters');
+      }
+      return true;
+    })
     .withMessage('Description must be less than 500 characters'),
   body('imageUrl')
     .notEmpty()
     .withMessage('Image URL is required'),
   body('imagePublicId')
     .optional()
-    .isString()
+    .custom((value) => {
+      if (value === null || value === undefined || value === '') return true; // Allow null/undefined/empty
+      if (typeof value === 'string') return true; // Allow strings
+      throw new Error('Image public ID must be a string');
+    })
     .withMessage('Image public ID must be a string'),
   body('basePrice')
     .optional()
-    .isFloat({ min: 0 })
+    .custom((value) => {
+      if (value === '' || value === null || value === undefined) return true; // Allow empty/null values
+      const num = parseFloat(value);
+      if (isNaN(num) || num < 0) {
+        throw new Error('Base price must be a positive number');
+      }
+      return true;
+    })
     .withMessage('Base price must be a positive number'),
   body('complexity')
     .optional()
-    .isIn(['SIMPLE', 'MEDIUM', 'COMPLEX', 'MASTERPIECE'])
+    .custom((value) => {
+      if (value === null || value === undefined) return true; // Allow null/undefined
+      if (['SIMPLE', 'MEDIUM', 'COMPLEX', 'MASTERPIECE'].includes(value)) return true;
+      throw new Error('Complexity must be one of: SIMPLE, MEDIUM, COMPLEX, MASTERPIECE');
+    })
     .withMessage('Complexity must be one of: SIMPLE, MEDIUM, COMPLEX, MASTERPIECE'),
   body('timeEstimate')
     .optional()
-    .isInt({ min: 1 })
+    .custom((value) => {
+      if (value === null || value === undefined) return true; // Allow null/undefined
+      const num = parseInt(value);
+      if (isNaN(num) || num < 1) {
+        throw new Error('Time estimate must be a positive integer');
+      }
+      return true;
+    })
     .withMessage('Time estimate must be a positive integer'),
   body('isRepeatable')
     .optional()
-    .isBoolean()
+    .custom((value) => {
+      if (value === null || value === undefined) return true; // Allow null/undefined
+      if (typeof value === 'boolean') return true; // Allow booleans
+      throw new Error('isRepeatable must be a boolean');
+    })
     .withMessage('isRepeatable must be a boolean'),
   body('sizePricing')
     .optional()
-    .isObject()
+    .custom((value) => {
+      if (value === null || value === undefined) return true; // Allow null/undefined
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) return true; // Allow objects
+      throw new Error('Size pricing must be an object');
+    })
     .withMessage('Size pricing must be an object'),
   body('tags')
     .optional()
-    .isArray()
+    .custom((value) => {
+      if (value === null || value === undefined) return true; // Allow null/undefined
+      if (Array.isArray(value)) return true; // Allow arrays
+      throw new Error('Tags must be an array');
+    })
     .withMessage('Tags must be an array'),
   body('isAvailable')
     .optional()
-    .isBoolean()
+    .custom((value) => {
+      if (value === null || value === undefined) return true; // Allow null/undefined
+      if (typeof value === 'boolean') return true; // Allow booleans
+      throw new Error('isAvailable must be a boolean');
+    })
     .withMessage('isAvailable must be a boolean')
 ], async (req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Flash validation errors:', errors.array());
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
@@ -394,7 +442,13 @@ router.put('/:id', protect, authorize('ARTIST', 'ARTIST_ADMIN'), [
   body('description')
     .optional()
     .trim()
-    .isLength({ max: 500 })
+    .custom((value) => {
+      if (value === '') return true; // Allow empty strings
+      if (value && value.length > 500) {
+        throw new Error('Description must be less than 500 characters');
+      }
+      return true;
+    })
     .withMessage('Description must be less than 500 characters'),
   body('imageUrl')
     .optional()
