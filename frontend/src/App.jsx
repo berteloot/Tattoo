@@ -13,6 +13,7 @@ import { Artists } from './pages/Artists'
 import { ArtistProfile } from './pages/ArtistProfile'
 import { ArtistDashboard } from './pages/ArtistDashboard'
 import { FlashGallery } from './pages/FlashGallery'
+import { FlashDetail } from './pages/FlashDetail'
 import { UserProfile } from './pages/UserProfile'
 import EmailVerification from './pages/EmailVerification'
 import AdminUserManagement from './pages/AdminUserManagement'
@@ -40,6 +41,8 @@ import CookiePolicy from './pages/CookiePolicy'
 import ContactUs from './pages/ContactUs'
 
 function App() {
+  console.log('🚀 App component rendering...');
+  
   return (
     <ErrorBoundary>
       <ToastProvider>
