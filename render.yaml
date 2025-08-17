@@ -33,8 +33,8 @@ services:
         fi
       else
         echo "❌ Frontend dist directory NOT created"
-        echo "Checking for any build errors..."
-        npm run build || echo "Build failed with error"
+        echo "Build failed - checking for errors..."
+        exit 1
       fi
       cd ..
     startCommand: cd backend && npm run start:prod

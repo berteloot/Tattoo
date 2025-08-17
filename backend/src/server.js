@@ -252,16 +252,52 @@ app.get('/api', (req, res) => {
 // Serve static files from the React app build directory
 const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
 
-// Check if frontend build exists
-const frontendExists = require('fs').existsSync(frontendBuildPath);
+// Enhanced check for frontend build with better logging
+const fs = require('fs');
+const frontendExists = fs.existsSync(frontendBuildPath);
 const indexHtmlPath = path.join(frontendBuildPath, 'index.html');
+
+// Log detailed information about the frontend build
+console.log('🔍 Frontend build check:');
+console.log('  - Path:', frontendBuildPath);
+console.log('  - Exists:', frontendExists);
+if (frontendExists) {
+  try {
+    const buildContents = fs.readdirSync(frontendBuildPath);
+    console.log('  - Contents:', buildContents);
+    
+    // Check for critical files
+    const hasIndexHtml = fs.existsSync(indexHtmlPath);
+    const hasAssetsDir = fs.existsSync(path.join(frontendBuildPath, 'assets'));
+    console.log('  - Has index.html:', hasIndexHtml);
+    console.log('  - Has assets directory:', hasAssetsDir);
+    
+    if (!hasIndexHtml || !hasAssetsDir) {
+      console.warn('⚠️ Frontend build appears incomplete');
+      console.warn('  - Missing index.html:', !hasIndexHtml);
+      console.warn('  - Missing assets directory:', !hasAssetsDir);
+    }
+  } catch (error) {
+    console.error('❌ Error reading frontend build directory:', error.message);
+  }
+}
 
 if (!frontendExists) {
   console.warn('⚠️ Frontend build not found at:', frontendBuildPath);
   console.warn('⚠️ This might be a development environment or build issue');
   
-  // Serve a simple fallback page for non-API routes
+  // Serve a simple fallback page for non-API routes, but NOT for asset requests
   app.get('*', (req, res) => {
+    // Don't serve HTML for asset requests - return 404 instead
+    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+      return res.status(404).json({ 
+        error: 'Asset not found', 
+        message: 'Frontend build is not available',
+        path: req.path 
+      });
+    }
+    
+    // Only serve HTML for actual page requests
     res.status(200).send(`
       <!DOCTYPE html>
       <html>
@@ -292,11 +328,21 @@ if (!frontendExists) {
 } else {
   console.log('✅ Frontend build found at:', frontendBuildPath);
   
-  // Serve static files from the React build directory
+  // Enhanced static file serving with proper MIME types
   app.use(express.static(frontendBuildPath, {
     maxAge: '1y', // Cache static assets for 1 year
     etag: true,
-    lastModified: true
+    lastModified: true,
+    setHeaders: (res, path) => {
+      // Ensure proper MIME types for critical assets
+      if (path.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (path.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      } else if (path.endsWith('.html')) {
+        res.setHeader('Content-Type', 'text/html');
+      }
+    }
   }));
 
   // Handle React routing, return all requests to React app (except API routes)
@@ -307,7 +353,7 @@ if (!frontendExists) {
     }
     
     // Check if index.html exists
-    if (!require('fs').existsSync(indexHtmlPath)) {
+    if (!fs.existsSync(indexHtmlPath)) {
       console.error('❌ index.html not found at:', indexHtmlPath);
       return res.status(500).json({ error: 'Frontend build incomplete' });
     }
