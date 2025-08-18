@@ -91,9 +91,30 @@ console.log('✅ [DEBUG] Helmet CSP enabled with comprehensive Google Maps confi
 // Fixed: Comprehensive CSP configuration for Google Maps API
 // Status: Ready for production deployment
 
-// CORS configuration - simplified since everything is on same domain
+// CORS configuration - Strict allow-list for security
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || 'http://localhost:5173,https://tattooed-world-backend.onrender.com').split(',').filter(Boolean);
+
+// Validate CORS configuration
+if (allowedOrigins.length === 0) {
+  console.error('❌ CORS_ORIGINS environment variable is required for security');
+  console.error('Please set CORS_ORIGINS to a comma-separated list of allowed origins');
+  process.exit(1);
+}
+
+console.log('🔒 CORS allowed origins:', allowedOrigins);
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || true,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`🚨 CORS blocked request from unauthorized origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -374,7 +395,7 @@ async function startServer() {
     console.log(`📊 Environment: ${process.env.NODE_ENV}`);
     console.log(`🌐 Trust Proxy: ${app.get('trust proxy')}`);
     console.log(`📁 Frontend build path: ${frontendBuildPath}`);
-    console.log(`🔗 CORS Origin: ${process.env.CORS_ORIGIN || 'true'}`);
+    console.log(`🔒 CORS Origins: ${allowedOrigins.join(', ')}`);
     
     // Test database connection
     console.log('🔄 Testing database connection...');
