@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { GoogleMap, LoadScript, Marker, InfoWindow, DirectionsRenderer } from '@react-google-maps/api'
 import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, Phone, Mail, MessageSquare, List } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -35,16 +35,10 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const [showMessageForm, setShowMessageForm] = useState(false)
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false)
   const [viewMode, setViewMode] = useState('map') // 'map' or 'list'
+  const [googleMapsServices, setGoogleMapsServices] = useState(null)
   const directionsService = useRef(null)
   const directionsRenderer = useRef(null)
   const { error: showError } = useToast()
-
-  useEffect(() => {
-    // Check API health first
-    checkApiHealth().then(() => {
-      fetchStudios()
-    })
-  }, [filterVerified, filterFeatured, focusStudioId])
 
   // Memoize the search parameters to prevent unnecessary re-renders
   const searchParams = useMemo(() => ({
@@ -53,6 +47,68 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     filterFeatured,
     focusStudioId
   }), [searchTerm, filterVerified, filterFeatured, focusStudioId])
+
+  // Initialize Google Maps services only once
+  const initializeGoogleMapsServices = useCallback(() => {
+    if (window.google?.maps && !googleMapsServices) {
+      try {
+        const services = {
+          DirectionsService: new window.google.maps.DirectionsService(),
+          DirectionsRenderer: new window.google.maps.DirectionsRenderer(),
+          Geocoder: new window.google.maps.Geocoder()
+        }
+        setGoogleMapsServices(services)
+        directionsService.current = services.DirectionsService
+        directionsRenderer.current = services.DirectionsRenderer
+        console.log('✅ Google Maps services initialized successfully')
+      } catch (error) {
+        console.error('❌ Failed to initialize Google Maps services:', error)
+        setMapError(true)
+      }
+    }
+  }, [googleMapsServices])
+
+  // Cleanup function to prevent memory leaks
+  const cleanupGoogleMapsServices = useCallback(() => {
+    if (googleMapsServices) {
+      try {
+        if (directionsRenderer.current) {
+          directionsRenderer.current.setMap(null)
+        }
+        setGoogleMapsServices(null)
+        directionsService.current = null
+        directionsRenderer.current = null
+      } catch (error) {
+        console.warn('Warning during Google Maps cleanup:', error)
+      }
+    }
+  }, [googleMapsServices])
+
+  // Initialize Google Maps services when loaded
+  useEffect(() => {
+    if (googleMapsLoaded && !googleMapsServices) {
+      initializeGoogleMapsServices()
+    }
+  }, [googleMapsLoaded, googleMapsServices, initializeGoogleMapsServices])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupGoogleMapsServices()
+    }
+  }, [cleanupGoogleMapsServices])
+
+  // Reset Google Maps loaded state when search parameters change
+  useEffect(() => {
+    setGoogleMapsLoaded(false)
+  }, [searchParams])
+
+  useEffect(() => {
+    // Check API health first
+    checkApiHealth().then(() => {
+      fetchStudios()
+    })
+  }, [filterVerified, filterFeatured, focusStudioId])
 
   // Debounced search effect
   useEffect(() => {
@@ -65,11 +121,6 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       return () => clearTimeout(timeoutId)
     }
   }, [searchTerm])
-
-  // Reset Google Maps loaded state when search parameters change
-  useEffect(() => {
-    setGoogleMapsLoaded(false)
-  }, [searchParams])
 
   // Retry function for error boundary
   const handleMapRetry = () => {
@@ -924,46 +975,32 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                 }}
               >
               {/* User Location Marker */}
-              {userLocation && (
+              {userLocation && googleMapsServices && (
                 <Marker
                   position={userLocation}
                   icon={{
-                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="12" fill="#3B82F6"/>
-                        <circle cx="12" cy="12" r="8" fill="white"/>
-                        <circle cx="12" cy="12" r="4" fill="#3B82F6"/>
-                      </svg>
-                    `),
-                    scaledSize: window.google?.maps ? new window.google.maps.Size(24, 24) : undefined,
-                    anchor: window.google?.maps ? new window.google.maps.Point(12, 12) : undefined
+                    url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                    scaledSize: new window.google.maps.Size(30, 30)
                   }}
+                  title="Your Location"
                 />
               )}
 
-              {(studios || []).map((studio) => {
+              {/* Studio Markers */}
+              {googleMapsServices && (studios || []).map((studio) => {
                 // Only show studios with coordinates
                 if (!studio.latitude || !studio.longitude) return null;
                 
                 return (
                   <Marker
                     key={studio.id}
-                    position={{
-                      lat: parseFloat(studio.latitude),
-                      lng: parseFloat(studio.longitude)
-                    }}
-                    onClick={() => setSelectedStudio(studio)}
+                    position={{ lat: parseFloat(studio.latitude), lng: parseFloat(studio.longitude) }}
                     icon={{
-                      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="16" cy="16" r="16" fill="#3B82F6"/>
-                          <circle cx="16" cy="16" r="12" fill="white"/>
-                          <circle cx="16" cy="16" r="8" fill="#3B82F6"/>
-                        </svg>
-                      `),
-                      scaledSize: window.google?.maps ? new window.google.maps.Size(32, 32) : undefined,
-                      anchor: window.google?.maps ? new window.google.maps.Point(16, 16) : undefined
+                      url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                      scaledSize: new window.google.maps.Size(25, 25)
                     }}
+                    title={studio.title}
+                    onClick={() => setSelectedStudio(studio)}
                   />
                 );
               })}
