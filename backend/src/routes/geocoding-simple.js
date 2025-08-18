@@ -6,8 +6,16 @@ const router = express.Router();
 
 // Logging middleware for all geocoding routes
 router.use((req, res, next) => {
+  // Safe logging - never log full headers in production
+  const headersSafe = {
+    'user-agent': req.get('user-agent'),
+    'x-request-id': req.get('x-request-id'),
+    'content-type': req.get('content-type'),
+    'accept': req.get('accept')
+  };
+  
   console.log(`🔍 [GEOCODING] ${req.method} ${req.path} - IP: ${req.ip}`);
-  console.log(`🔍 [GEOCODING] Headers:`, req.headers);
+  console.log(`🔍 [GEOCODING] Safe Headers:`, headersSafe);
   next();
 });
 

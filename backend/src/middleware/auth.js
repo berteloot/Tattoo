@@ -7,7 +7,7 @@ const { prisma } = require('../utils/prisma');
 const protect = async (req, res, next) => {
   let token;
 
-  console.log('🔍 Auth middleware - Headers:', req.headers.authorization ? 'Authorization header present' : 'No authorization header');
+  // Safe logging - never log sensitive header information
   console.log('🔍 Auth middleware - URL:', req.originalUrl);
   console.log('🔍 Auth middleware - Method:', req.method);
 
@@ -16,11 +16,11 @@ const protect = async (req, res, next) => {
     try {
       // Get token from header
       token = req.headers.authorization.split(' ')[1];
-      console.log('🔍 Auth middleware - Token extracted:', token ? 'Token present' : 'No token');
+      // Safe logging - never log token presence or content
 
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log('🔍 Auth middleware - Token decoded:', { id: decoded.id, hasId: !!decoded.id });
+      // Safe logging - never log decoded token data
 
       // Get user from token
       const user = await prisma.user.findUnique({
@@ -52,12 +52,8 @@ const protect = async (req, res, next) => {
         });
       }
 
-      console.log('🔍 Auth middleware - User found:', { 
-        id: user.id, 
-        email: user.email, 
-        hasArtistProfile: !!user.artistProfile,
-        artistProfileId: user.artistProfile?.id 
-      });
+      // Safe logging - never log sensitive user information
+      console.log('🔍 Auth middleware - User authenticated successfully');
       req.user = user;
       next();
     } catch (error) {
@@ -94,13 +90,10 @@ const authorize = (...roles) => {
     const user = req.user.user || req.user;
     const userRole = user.role;
 
+    // Safe logging - never log sensitive user object information
     console.log('🔍 Authorization check:', {
       userRole,
-      allowedRoles: roles,
-      userObject: req.user,
-      processedUser: user,
-      hasArtistProfile: !!req.user.artistProfile,
-      artistProfileId: req.user.artistProfile?.id
+      allowedRoles: roles
     });
 
     if (!userRole) {
@@ -112,10 +105,7 @@ const authorize = (...roles) => {
     }
 
     if (!roles.includes(userRole)) {
-      console.log('❌ Authorization failed: User role not authorized', {
-        userRole,
-        allowedRoles: roles
-      });
+      console.log('❌ Authorization failed: User role not authorized');
       return res.status(403).json({
         success: false,
         error: `User role '${userRole}' is not authorized to access this route. Allowed roles: ${roles.join(', ')}`
@@ -295,7 +285,8 @@ const optionalAuth = async (req, res, next) => {
       }
     } catch (error) {
       // Token is invalid, but we don't fail the request
-      console.log('Optional auth token invalid:', error.message);
+      // Safe logging - never log token validation errors in detail
+      console.log('Optional auth token invalid');
     }
   }
 
