@@ -352,7 +352,14 @@ if (!frontendExists) {
     }
   }));
 
-  // Handle React routing, return all requests to React app (except API routes)
+}
+
+// Error handling middleware - MUST come before React catch-all to avoid masking 404s
+app.use(notFound);
+app.use(errorHandler);
+
+// React catch-all route - MUST be last to handle SPA routing without masking API 404s
+if (frontendExists) {
   app.get('*', (req, res) => {
     // Skip API routes
     if (req.path.startsWith('/api/')) {
@@ -369,10 +376,6 @@ if (!frontendExists) {
     res.sendFile(indexHtmlPath);
   });
 }
-
-// Error handling middleware
-app.use(notFound);
-app.use(errorHandler);
 
 // Test database connection and start server
 async function startServer() {
