@@ -3,7 +3,7 @@ import { GoogleMap, Marker, InfoWindow, DirectionsRenderer } from '@react-google
 import { MarkerClusterer } from '@react-google-maps/api'
 import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, Phone, Mail, MessageSquare, List } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
+
 import { StudioMessageForm } from './StudioMessageForm'
 import { useToast } from '../contexts/ToastContext'
 import { useGoogleMaps } from '../contexts/GoogleMapsContext'
@@ -133,10 +133,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   }, [studios, isGoogleMapsLoaded])
 
   useEffect(() => {
-    // Check API health first
-    checkApiHealth().then(() => {
-      fetchStudios()
-    })
+    fetchStudios()
   }, [filterVerified, filterFeatured, focusStudioId])
 
   // Debounced search effect
@@ -188,10 +185,8 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       console.log('Fetching studios for map...')
       console.log('Search params:', Object.fromEntries(params))
 
-      const result = await apiCallWithFallback(
-        `/api/studios?${params.toString()}`,
-        'Failed to fetch studios'
-      )
+      const response = await fetch(`/api/studios?${params.toString()}`)
+      const result = await response.json()
 
       if (result.success) {
         const studiosData = result.data.studios || []
