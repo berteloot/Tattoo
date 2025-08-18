@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const { execSync } = require('child_process');
 require('dotenv').config();
@@ -175,6 +176,9 @@ if (process.env.NODE_ENV === 'development') {
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Cookie parsing middleware for refresh tokens
+app.use(cookieParser());
 
 // Health check endpoint
 app.get('/health', (req, res) => {

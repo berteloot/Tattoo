@@ -1,0 +1,43 @@
+{
+  "name": "tattooed-world",
+  "version": "1.0.0",
+  "description": "Tattoo Artist Locator - Full Stack Application",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm install && npx prisma generate",
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "start": "cd backend && npm run start:prod",
+    "start:dev": "cd backend && npm run dev",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "db:setup": "cd backend && npm run db:deploy && npm run db:seed",
+    "db:seed": "cd backend && npm run db:seed",
+    "db:studio": "cd backend && npm run db:studio",
+    "clean": "rm -rf node_modules backend/node_modules frontend/node_modules backend/dist frontend/dist",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  },
+  "keywords": [
+    "tattoo",
+    "artists",
+    "fullstack",
+    "react",
+    "express",
+    "postgresql"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.11.0"
+  }
+}

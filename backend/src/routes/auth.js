@@ -214,12 +214,39 @@ router.post('/login', [
       });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user.id },
+    // Generate short-lived access token (15 minutes)
+    const accessToken = jwt.sign(
+      { id: user.id, type: 'access' },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m' }
     );
+
+    // Generate long-lived refresh token (7 days)
+    const refreshToken = jwt.sign(
+      { id: user.id, type: 'refresh' },
+      process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
+    );
+
+    // Store refresh token hash in database for security
+    const refreshTokenHash = require('crypto').createHash('sha256').update(refreshToken).digest('hex');
+    
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshTokenHash,
+        refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+      }
+    });
+
+    // Set refresh token as httpOnly, secure cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/api/auth/refresh' // Only accessible via refresh endpoint
+    });
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
@@ -229,7 +256,7 @@ router.post('/login', [
       message: 'Login successful',
       data: {
         user: userWithoutPassword,
-        token
+        accessToken
       }
     });
   } catch (error) {
@@ -237,6 +264,120 @@ router.post('/login', [
     res.status(500).json({
       success: false,
       error: 'Server error during login'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh access token using refresh token
+ * @access  Public
+ */
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        error: 'Refresh token not found'
+      });
+    }
+
+    // Verify refresh token
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid refresh token'
+      });
+    }
+
+    // Check if token is a refresh token
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token type'
+      });
+    }
+
+    // Get user and verify refresh token hash
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id }
+    });
+
+    if (!user || !user.isActive) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not found or inactive'
+      });
+    }
+
+    // Verify refresh token hash
+    const refreshTokenHash = require('crypto').createHash('sha256').update(refreshToken).digest('hex');
+    if (user.refreshTokenHash !== refreshTokenHash) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid refresh token'
+      });
+    }
+
+    // Check if refresh token is expired
+    if (user.refreshTokenExpiry && new Date() > user.refreshTokenExpiry) {
+      return res.status(401).json({
+        success: false,
+        error: 'Refresh token expired'
+      });
+    }
+
+    // Generate new access token
+    const newAccessToken = jwt.sign(
+      { id: user.id, type: 'access' },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m' }
+    );
+
+    // Generate new refresh token (rotate refresh tokens for security)
+    const newRefreshToken = jwt.sign(
+      { id: user.id, type: 'refresh' },
+      process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
+    );
+
+    // Update refresh token hash in database
+    const newRefreshTokenHash = require('crypto').createHash('sha256').update(newRefreshToken).digest('hex');
+    
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshTokenHash: newRefreshTokenHash,
+        refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+      }
+    });
+
+    // Set new refresh token as httpOnly, secure cookie
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/api/auth/refresh' // Only accessible via refresh endpoint
+    });
+
+    res.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      data: {
+        accessToken: newAccessToken
+      }
+    });
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while refreshing token'
     });
   }
 });
@@ -698,14 +839,39 @@ router.post('/resend-verification', [
 
 /**
  * @route   POST /api/auth/logout
- * @desc    Logout user (client-side token removal)
+ * @desc    Logout user and invalidate refresh token
  * @access  Private
  */
-router.post('/logout', protect, (req, res) => {
-  res.json({
-    success: true,
-    message: 'Logout successful'
-  });
+router.post('/logout', protect, async (req, res) => {
+  try {
+    // Invalidate refresh token in database
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        refreshTokenHash: null,
+        refreshTokenExpiry: null
+      }
+    });
+
+    // Clear refresh token cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/api/auth/refresh'
+    });
+
+    res.json({
+      success: true,
+      message: 'Logout successful'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error during logout'
+    });
+  }
 });
 
 /**

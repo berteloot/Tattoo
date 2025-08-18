@@ -48,21 +48,40 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor to handle errors
+// Response interceptor to handle errors and automatic token refresh
 api.interceptors.response.use(
   (response) => {
     return response
   },
-  (error) => {
-    // Only clear token and redirect for non-auth routes that return 401
+  async (error) => {
+    // Handle 401 errors (token expired)
     if (error.response?.status === 401 && 
         !error.config.url.includes('/auth/') && 
         !error.config.url.includes('/login') && 
-        !error.config.url.includes('/register')) {
-      console.log('Token expired or invalid, clearing token')
-      localStorage.removeItem('token')
-      // Don't redirect automatically, let components handle it
+        !error.config.url.includes('/register') &&
+        !error.config.url.includes('/refresh')) {
+      
+      console.log('Access token expired, attempting automatic refresh...')
+      
+      try {
+        // Try to refresh the token
+        const refreshResponse = await authAPI.refreshToken()
+        
+        if (refreshResponse.data && refreshResponse.data.success) {
+          const { accessToken } = refreshResponse.data.data
+          
+          // Update the failed request with new token
+          error.config.headers.Authorization = `Bearer ${accessToken}`
+          
+          // Retry the original request
+          return api.request(error.config)
+        }
+      } catch (refreshError) {
+        console.log('Token refresh failed, user needs to login')
+        // Let the component handle the auth failure
+      }
     }
+    
     return Promise.reject(error)
   }
 )
@@ -72,6 +91,7 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
   logout: () => api.post('/auth/logout'),
+  refreshToken: () => api.post('/auth/refresh'), // New refresh token endpoint
   getProfile: () => api.get('/auth/me'),
   updateProfile: (profileData) => api.put('/auth/profile', profileData),
   changePassword: (passwordData) => api.put('/auth/change-password', passwordData),

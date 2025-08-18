@@ -1,0 +1,430 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String                 @id @default(cuid())
+  email                   String                 @unique
+  password                String
+  role                    UserRole               @default(CLIENT)
+  firstName               String
+  lastName                String
+  phone                   String?
+  avatar                  String?
+  isActive                Boolean                @default(true)
+  isVerified              Boolean                @default(false)
+  emailVerified           Boolean                @default(false)
+  emailVerificationToken  String?
+  emailVerificationExpiry DateTime?
+  resetToken              String?
+  resetTokenExpiry        DateTime?
+  lastLoginAt             DateTime?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  adminActions            AdminAction[]          @relation("AdminPerformer")
+  artistProfile           ArtistProfile?
+  favorites               Favorite[]             @relation("FavoriteUser")
+  reviewsGiven            Review[]               @relation("ReviewAuthor")
+  reviewsReceived         Review[]               @relation("ReviewRecipient")
+  galleryComments         TattooGalleryComment[]
+  galleryLikes            TattooGalleryLike[]
+  studioJoinRequestsResponded StudioJoinRequest[] @relation("StudioJoinRequestResponder")
+
+  @@map("users")
+}
+
+model ArtistProfile {
+  id                     String             @id @default(cuid())
+  userId                 String             @unique
+  bio                    String?
+  studioName             String?
+  website                String?
+  instagram              String?
+  facebook               String?
+  twitter                String?
+  youtube                String?
+  linkedin               String?
+  calendlyUrl            String?
+  latitude               Float?
+  longitude              Float?
+  address                String?
+  city                   String?
+  state                  String?
+  zipCode                String?
+  country                String?
+  hourlyRate             Float?
+  minPrice               Float?
+  maxPrice               Float?
+  isVerified             Boolean            @default(false)
+  isFeatured             Boolean            @default(false)
+  verificationStatus     VerificationStatus @default(PENDING)
+  verificationNotes      String?
+  verifiedAt             DateTime?
+  verifiedBy             String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  lastViewedAt           DateTime?
+  profileViews           Int                @default(0)
+  pinterest              String?            @db.VarChar(255)
+  profilePictureUrl      String?
+  profilePicturePublicId String?
+  profilePictureWidth    Int?
+  profilePictureHeight   Int?
+  profilePictureFormat   String?
+  profilePictureBytes    Int?
+  messages               ArtistMessage[]
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites              Favorite[]         @relation("FavoriteArtist")
+  flash                  Flash[]
+  gallery                TattooGallery[]
+  services               Service[]          @relation("ArtistProfileToService")
+  specialties            Specialty[]        @relation("ArtistProfileToSpecialty")
+  studioArtists          StudioArtist[]
+  studioJoinRequests     StudioJoinRequest[]
+
+  @@map("artist_profiles")
+}
+
+model Specialty {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  category    String
+  description String?
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  artists     ArtistProfile[] @relation("ArtistProfileToSpecialty")
+
+  @@map("specialties")
+}
+
+model Service {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  description String?
+  price       Float?
+  duration    Int?
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  artists     ArtistProfile[] @relation("ArtistProfileToService")
+
+  @@map("services")
+}
+
+model Flash {
+  id            String          @id @default(cuid())
+  artistId      String
+  title         String
+  description   String?
+  imageUrl      String
+  imagePublicId String?
+  imageWidth    Int?
+  imageHeight   Int?
+  imageFormat   String?
+  imageBytes    Int?
+  basePrice     Float?
+  complexity    FlashComplexity @default(MEDIUM)
+  timeEstimate  Int?
+  isRepeatable  Boolean         @default(true)
+  sizePricing   Json?
+  isAvailable   Boolean         @default(true)
+  isApproved    Boolean         @default(true)
+  tags          String[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  isHidden      Boolean?        @default(false)
+  artist        ArtistProfile   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@map("flash")
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  authorId    String
+  recipientId String
+  rating      Int      @default(5)
+  title       String?
+  comment     String?
+  images      String[]
+  isVerified  Boolean  @default(false)
+  isHidden    Boolean  @default(false)
+  isApproved  Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  author      User     @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  recipient   User     @relation("ReviewRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@unique([authorId, recipientId])
+  @@map("reviews")
+}
+
+model AdminAction {
+  id         String   @id @default(cuid())
+  adminId    String
+  action     String
+  targetType String
+  targetId   String
+  details    String?
+  createdAt  DateTime @default(now())
+  admin      User     @relation("AdminPerformer", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("admin_actions")
+}
+
+model Studio {
+  id                 String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  title              String
+  slug               String    @unique
+  website            String?
+  phoneNumber        String?   @map("phone_number")
+  email              String?
+  facebookUrl        String?   @map("facebook_url")
+  instagramUrl       String?   @map("instagram_url")
+  twitterUrl         String?   @map("twitter_url")
+  linkedinUrl        String?   @map("linkedin_url")
+  youtubeUrl         String?   @map("youtube_url")
+  latitude           Float?
+  longitude          Float?
+  address            String?
+  city               String?
+  state              String?
+  zipCode            String?   @map("zip_code")
+  country            String?
+  isActive           Boolean?  @default(true) @map("is_active")
+  isVerified         Boolean?  @default(false) @map("is_verified")
+  isFeatured         Boolean?  @default(false) @map("is_featured")
+  verificationStatus String?   @default("PENDING") @map("verification_status")
+  claimedBy          String?   @map("claimed_by")
+  claimedAt          DateTime? @map("claimed_at") @db.Timestamp(6)
+  verifiedBy         String?   @map("verified_by")
+  verifiedAt         DateTime? @map("verified_at") @db.Timestamp(6)
+  createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt          DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
+
+  // Relationships
+  studioArtists      StudioArtist[]
+  joinRequests       StudioJoinRequest[]
+
+  @@index([latitude, longitude], map: "idx_studios_coordinates")
+  @@map("studios")
+}
+
+model StudioArtist {
+  id       String       @id @default(dbgenerated("(gen_random_uuid())::text"))
+  studioId String       @map("studio_id")
+  artistId String       @map("artist_id")
+  role     studio_role? @default(ARTIST)
+  isActive Boolean?     @default(true) @map("is_active")
+  joinedAt DateTime?    @default(now()) @map("joined_at") @db.Timestamp(6)
+  leftAt   DateTime?    @map("left_at") @db.Timestamp(6)
+
+  // Relationships
+  studio   Studio       @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  artist   ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([studioId, artistId], map: "unique_studio_artist")
+  @@map("studio_artists")
+}
+
+model Favorite {
+  id        String        @id @default(cuid())
+  userId    String
+  artistId  String
+  createdAt DateTime      @default(now())
+  artist    ArtistProfile @relation("FavoriteArtist", fields: [artistId], references: [id], onDelete: Cascade)
+  user      User          @relation("FavoriteUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, artistId])
+  @@index([artistId], map: "idx_favorites_artist_id")
+  @@index([createdAt], map: "idx_favorites_created_at")
+  @@index([userId], map: "idx_favorites_user_id")
+  @@map("favorites")
+}
+
+model GeocodeCache {
+  id               String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  address_hash     String    @unique
+  original_address String
+  latitude         Float
+  longitude        Float
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([address_hash], map: "idx_geocode_cache_address_hash")
+  @@index([updated_at], map: "idx_geocode_cache_updated_at")
+  @@map("geocode_cache")
+}
+
+model TattooGallery {
+  id                  String                 @id @default(cuid())
+  artistId            String
+  title               String
+  description         String?
+  imageUrl            String
+  imagePublicId       String?
+  imageWidth          Int?
+  imageHeight         Int?
+  imageFormat         String?
+  imageBytes          Int?
+  thumbnailUrl        String?
+  tattooStyle         String?
+  bodyLocation        String?
+  tattooSize          String?
+  colorType           String?
+  sessionCount        Int                    @default(1)
+  hoursSpent          Int?
+  clientConsent       Boolean                @default(false)
+  clientAnonymous     Boolean                @default(true)
+  clientAgeVerified   Boolean                @default(false)
+  isBeforeAfter       Boolean                @default(false)
+  beforeImageUrl      String?
+  beforeImagePublicId String?
+  afterImageUrl       String?
+  afterImagePublicId  String?
+  isFeatured          Boolean                @default(false)
+  isApproved          Boolean                @default(false)
+  isHidden            Boolean                @default(false)
+  tags                String[]
+  categories          String[]
+  completedAt         DateTime?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  artist              ArtistProfile          @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  comments            TattooGalleryComment[]
+  likes               TattooGalleryLike[]
+  views               TattooGalleryView[]
+
+  @@index([artistId])
+  @@index([tattooStyle])
+  @@index([bodyLocation])
+  @@index([isFeatured])
+  @@index([isApproved])
+  @@index([createdAt])
+  @@index([tags])
+  @@index([categories])
+  @@map("tattoo_gallery")
+}
+
+model TattooGalleryLike {
+  id            String        @id @default(cuid())
+  galleryItemId String
+  userId        String
+  createdAt     DateTime      @default(now())
+  galleryItem   TattooGallery @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([galleryItemId, userId])
+  @@index([galleryItemId])
+  @@index([userId])
+  @@map("tattoo_gallery_likes")
+}
+
+model TattooGalleryComment {
+  id            String        @id @default(cuid())
+  galleryItemId String
+  userId        String
+  comment       String
+  isApproved    Boolean       @default(true)
+  isHidden      Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  galleryItem   TattooGallery @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([galleryItemId])
+  @@index([userId])
+  @@index([isApproved])
+  @@map("tattoo_gallery_comments")
+}
+
+model TattooGalleryView {
+  id            String        @id @default(cuid())
+  galleryItemId String
+  viewerIp      String?
+  userAgent     String?
+  referrer      String?
+  viewedAt      DateTime      @default(now())
+  galleryItem   TattooGallery @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
+
+  @@index([galleryItemId])
+  @@index([viewedAt])
+  @@map("tattoo_gallery_views")
+}
+
+model ArtistMessage {
+  id            String        @id @default(cuid())
+  artistId      String
+  title         String?
+  content       String
+  priority      Int           @default(1)
+  isActive      Boolean       @default(true)
+  showOnCard    Boolean       @default(true)
+  showOnProfile Boolean       @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  artist        ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+  @@index([isActive])
+  @@index([priority])
+  @@index([expiresAt])
+  @@map("artist_messages")
+}
+
+model StudioJoinRequest {
+  id              String    @id @default(cuid())
+  studioId        String    @map("studio_id")
+  artistId        String    @map("artist_id")
+  message         String?
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  requestedAt     DateTime  @default(now()) @map("requested_at")
+  respondedAt     DateTime? @map("responded_at")
+  responseMessage String?   @map("response_message")
+  respondedBy     String?   @map("responded_by")
+  
+  // Relationships
+  studio          Studio    @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  artist          ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  responder       User?     @relation("StudioJoinRequestResponder", fields: [respondedBy], references: [id])
+
+  @@index([studioId])
+  @@index([artistId])
+  @@index([status])
+  @@index([requestedAt])
+  @@map("studio_join_requests")
+}
+
+enum UserRole {
+  CLIENT
+  ARTIST
+  ADMIN
+  ARTIST_ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum FlashComplexity {
+  SIMPLE
+  MEDIUM
+  COMPLEX
+  MASTERPIECE
+}
+
+enum studio_role {
+  OWNER
+  MANAGER
+  ARTIST
+  GUEST
+}

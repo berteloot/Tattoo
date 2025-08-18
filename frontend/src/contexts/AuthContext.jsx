@@ -16,19 +16,37 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [accessToken, setAccessToken] = useState(null) // Store access token in memory only
   const navigate = useNavigate()
   const { success: showSuccessToast, error: showErrorToast } = useToast()
 
-  // Check if user is logged in on app start
+  // Check if user is logged in on app start using refresh token
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      fetchUser()
-    } else {
+    // Try to refresh token on app start
+    refreshAccessToken()
+  }, [])
+
+  // Function to refresh access token using refresh token cookie
+  const refreshAccessToken = async () => {
+    try {
+      const response = await authAPI.refreshToken()
+      
+      if (response.data && response.data.success) {
+        const { accessToken: newAccessToken } = response.data.data
+        setAccessToken(newAccessToken)
+        api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`
+        
+        // Fetch user profile with new token
+        await fetchUser()
+      } else {
+        // No valid refresh token, user needs to login
+        setLoading(false)
+      }
+    } catch (error) {
+      console.log('No valid refresh token, user needs to login')
       setLoading(false)
     }
-  }, [])
+  }
 
   const fetchUser = async () => {
     try {
@@ -43,12 +61,20 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Error fetching user:', error)
       
-      // Only clear token if it's a 401 error (token is invalid)
+      // Handle 401 errors (token expired or invalid)
       if (error.response?.status === 401) {
-        console.log('Token is invalid, clearing token and user data')
-        localStorage.removeItem('token')
-        delete api.defaults.headers.common['Authorization']
-        setUser(null)
+        console.log('Access token expired, attempting to refresh...')
+        
+        try {
+          // Try to refresh the access token
+          await refreshAccessToken()
+        } catch (refreshError) {
+          console.log('Token refresh failed, user needs to login')
+          // Clear all auth state
+          setAccessToken(null)
+          setUser(null)
+          delete api.defaults.headers.common['Authorization']
+        }
       } else {
         // For other errors (like 500), keep the token but set user to null temporarily
         console.log('Server error, keeping token but clearing user data temporarily')
@@ -67,20 +93,21 @@ export const AuthProvider = ({ children }) => {
       
       // Handle successful login
       if (response && response.data && response.data.success) {
-        const { token, user } = response.data.data || {}
+        const { accessToken, user } = response.data.data || {}
         
-        if (token && user) {
-          // Store token and update user state
-          localStorage.setItem('token', token)
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+        if (accessToken && user) {
+          // Store access token in memory only (not localStorage)
+          setAccessToken(accessToken)
+          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
           setUser(user)
           
           console.log('Login successful, navigating to home')
+          console.log('Access token stored in memory, refresh token in httpOnly cookie')
           navigate('/')
           
           return { success: true }
         } else {
-          console.error('Missing token or user in response')
+          console.error('Missing access token or user in response')
           return { success: false, error: 'Invalid response from server' }
         }
       } else {
@@ -182,17 +209,18 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // Call logout API (optional - for server-side cleanup)
+      // Call logout API to invalidate refresh token on server
       await authAPI.logout()
     } catch (error) {
       console.warn('Logout API call failed, but proceeding with local logout:', error)
     } finally {
       // Always perform local cleanup
-      localStorage.removeItem('token')
-      delete api.defaults.headers.common['Authorization']
+      setAccessToken(null)
       setUser(null)
+      delete api.defaults.headers.common['Authorization']
       
       console.log('Logout completed, navigating to home')
+      console.log('Access token cleared from memory, refresh token invalidated on server')
       navigate('/')
       
       return { success: true, message: 'Logged out successfully' }
@@ -223,18 +251,12 @@ export const AuthProvider = ({ children }) => {
     }))
   }
 
-  const loginWithToken = (token, user) => {
-    localStorage.setItem('token', token)
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    setUser(user)
-    navigate('/')
-  }
+  // Note: loginWithToken removed - tokens are now managed securely via refresh flow
 
   const value = {
     user,
     loading,
     login,
-    loginWithToken,
     register,
     logout,
     updateProfile,
