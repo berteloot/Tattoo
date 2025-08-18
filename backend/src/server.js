@@ -182,7 +182,7 @@ app.get('/debug-paths', (req, res) => {
   
   try {
     const currentDir = __dirname;
-    const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
+    const frontendBuildPath = path.join(__dirname, '../frontend/dist');
     const backendDir = path.join(__dirname, '..');
     const rootDir = path.join(__dirname, '../..');
     
@@ -258,7 +258,7 @@ app.get('/api', (req, res) => {
 });
 
 // Serve static files from the React app build directory
-const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
+const frontendBuildPath = path.join(__dirname, '../frontend/dist');
 
 // Enhanced check for frontend build with better logging
 const frontendExists = fs.existsSync(frontendBuildPath);
@@ -268,6 +268,8 @@ const indexHtmlPath = path.join(frontendBuildPath, 'index.html');
 console.log('🔍 Frontend build check:');
 console.log('  - Path:', frontendBuildPath);
 console.log('  - Exists:', frontendExists);
+console.log('  - Current directory:', __dirname);
+
 if (frontendExists) {
   try {
     const buildContents = fs.readdirSync(frontendBuildPath);
