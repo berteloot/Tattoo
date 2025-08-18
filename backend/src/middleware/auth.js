@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../utils/prisma');
+const logger = require('../utils/logger');
 
 /**
  * Protect routes - verify JWT token
@@ -7,9 +8,8 @@ const { prisma } = require('../utils/prisma');
 const protect = async (req, res, next) => {
   let token;
 
-  // Safe logging - never log sensitive header information
-  console.log('🔍 Auth middleware - URL:', req.originalUrl);
-  console.log('🔍 Auth middleware - Method:', req.method);
+  // Development-only logging - never in production
+  logger.request(req.method, req.originalUrl, req.ip);
 
   // Check for token in headers
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -60,12 +60,13 @@ const protect = async (req, res, next) => {
         });
       }
 
-      // Safe logging - never log sensitive user information
-      console.log('🔍 Auth middleware - User authenticated successfully');
+      // Development-only logging - never in production
+      logger.auth('User authenticated successfully', { userId: user.id, role: user.role });
       req.user = user;
       next();
     } catch (error) {
-      console.error('Token verification error:', error);
+      // Always log errors (development and production)
+      logger.error('Token verification error:', error);
       return res.status(401).json({
         success: false,
         error: 'Not authorized, token failed'
@@ -87,7 +88,8 @@ const protect = async (req, res, next) => {
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      console.log('❌ Authorization failed: No user found');
+      // Always log authorization failures (development and production)
+      logger.warn('Authorization failed: No user found');
       return res.status(401).json({
         success: false,
         error: 'Not authorized, no user found'
@@ -98,14 +100,16 @@ const authorize = (...roles) => {
     const user = req.user.user || req.user;
     const userRole = user.role;
 
-    // Safe logging - never log sensitive user object information
-    console.log('🔍 Authorization check:', {
+    // Development-only logging - never in production
+    logger.auth('Authorization check', {
       userRole,
-      allowedRoles: roles
+      allowedRoles: roles,
+      userId: user.id
     });
 
     if (!userRole) {
-      console.log('❌ Authorization failed: User role not found');
+      // Always log authorization failures (development and production)
+      logger.warn('Authorization failed: User role not found', { userId: user.id });
       return res.status(401).json({
         success: false,
         error: 'User role not found'
@@ -113,14 +117,20 @@ const authorize = (...roles) => {
     }
 
     if (!roles.includes(userRole)) {
-      console.log('❌ Authorization failed: User role not authorized');
+      // Always log authorization failures (development and production)
+      logger.warn('Authorization failed: User role not authorized', {
+        userId: user.id,
+        userRole,
+        allowedRoles: roles
+      });
       return res.status(403).json({
         success: false,
         error: `User role '${userRole}' is not authorized to access this route. Allowed roles: ${roles.join(', ')}`
       });
     }
 
-    console.log('✅ Authorization successful for role:', userRole);
+    // Development-only logging - never in production
+    logger.auth('Authorization successful', { userId: user.id, role: userRole });
     next();
   };
 };
@@ -256,7 +266,8 @@ const requireOwnership = (resourceType) => {
       req.resource = resource;
       next();
     } catch (error) {
-      console.error('Ownership check error:', error);
+      // Always log errors (development and production)
+      logger.error('Ownership check error:', error);
       return res.status(500).json({
         success: false,
         error: 'Error checking resource ownership'
@@ -294,7 +305,7 @@ const optionalAuth = async (req, res, next) => {
     } catch (error) {
       // Token is invalid, but we don't fail the request
       // Safe logging - never log token validation errors in detail
-      console.log('Optional auth token invalid');
+      logger.warn('Optional auth token invalid');
     }
   }
 

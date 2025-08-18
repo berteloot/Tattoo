@@ -1,31 +1,29 @@
 const express = require('express');
 const { prisma } = require('../utils/prisma');
 const crypto = require('crypto'); // Added for caching
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
 // Logging middleware for all geocoding routes
 router.use((req, res, next) => {
-  // Safe logging - never log full headers in production
-  const headersSafe = {
+  // Development-only logging - never in production
+  logger.request(req.method, req.path, req.ip, {
     'user-agent': req.get('user-agent'),
     'x-request-id': req.get('x-request-id'),
     'content-type': req.get('content-type'),
     'accept': req.get('accept')
-  };
-  
-  console.log(`🔍 [GEOCODING] ${req.method} ${req.path} - IP: ${req.ip}`);
-  console.log(`🔍 [GEOCODING] Safe Headers:`, headersSafe);
+  });
   next();
 });
 
 // Get geocoding statistics
 router.get('/stats', async (req, res) => {
   try {
-    console.log('🔍 [GEOCODING] GET /stats - Processing request');
+    logger.geocoding('GET /stats - Processing request');
     
     const totalStudios = await prisma.studio.count();
-    console.log(`📊 Total studios found: ${totalStudios}`);
+    logger.database('Total studios found', { count: totalStudios });
     
     const studiosWithCoords = await prisma.studio.count({
       where: {
@@ -33,7 +31,7 @@ router.get('/stats', async (req, res) => {
         longitude: { not: null }
       }
     });
-    console.log(`📍 Studios with coordinates: ${studiosWithCoords}`);
+    logger.database('Studios with coordinates', { count: studiosWithCoords });
     
     const studiosNeedingGeocoding = totalStudios - studiosWithCoords;
     const cachedAddresses = await prisma.geocodeCache.count();
@@ -46,14 +44,15 @@ router.get('/stats', async (req, res) => {
       progress: totalStudios > 0 ? Math.round((studiosWithCoords / totalStudios) * 100) : 0
     };
     
-    console.log(`📈 Stats calculated:`, stats);
+    logger.geocoding('Stats calculated', stats);
     
     res.json({
       success: true,
       data: stats
     });
   } catch (error) {
-    console.error('❌ Error getting geocoding stats:', error);
+    // Always log errors (development and production)
+    logger.error('Error getting geocoding stats:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Failed to get geocoding statistics',
@@ -65,7 +64,7 @@ router.get('/stats', async (req, res) => {
 // Test endpoint to verify data structure
 router.get('/test', async (req, res) => {
   try {
-    console.log('🔍 [GEOCODING] GET /test - Processing request');
+    logger.geocoding('GET /test - Processing request');
     
     const testStudio = await prisma.studio.findFirst({
       where: {
@@ -117,8 +116,9 @@ router.get('/test', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Error in test endpoint:', error);
-    console.error('❌ Error details:', {
+    // Always log errors (development and production)
+    logger.error('Error in test endpoint:', error);
+    logger.error('Error details:', {
       message: error.message,
       stack: error.stack,
       name: error.name
@@ -134,7 +134,7 @@ router.get('/test', async (req, res) => {
 // Simple count endpoint to test database connection
 router.get('/count', async (req, res) => {
   try {
-    console.log('🔍 [GEOCODING] GET /count - Processing request');
+    logger.geocoding('GET /count - Processing request');
     
     const totalCount = await prisma.studio.count();
     const withCoordsCount = await prisma.studio.count({
@@ -144,7 +144,7 @@ router.get('/count', async (req, res) => {
       }
     });
     
-    console.log(`📊 Count results: total=${totalCount}, withCoords=${withCoordsCount}`);
+    logger.database('Count results', { total: totalCount, withCoords: withCoordsCount });
     
     res.json({
       success: true,
@@ -155,8 +155,9 @@ router.get('/count', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Error in count endpoint:', error);
-    console.error('❌ Error details:', {
+    // Always log errors (development and production)
+    logger.error('Error in count endpoint:', error);
+    logger.error('Error details:', {
       message: error.message,
       stack: error.stack,
       name: error.name
@@ -172,7 +173,7 @@ router.get('/count', async (req, res) => {
 // Debug endpoint to check artist verification status (no auth required)
 router.get('/debug-artists', async (req, res) => {
   try {
-    console.log('🔍 [GEOCODING] GET /debug-artists - Processing request');
+    logger.geocoding('GET /debug-artists - Processing request');
     
     // Get all users with ARTIST role
     const artistUsers = await prisma.user.findMany({
@@ -236,8 +237,9 @@ router.get('/debug-artists', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Error in debug-artists endpoint:', error);
-    console.error('❌ Error details:', {
+    // Always log errors (development and production)
+    logger.error('Error in debug-artists endpoint:', error);
+    logger.error('Error details:', {
       message: error.message,
       stack: error.stack,
       name: error.name
@@ -253,7 +255,7 @@ router.get('/debug-artists', async (req, res) => {
 // Debug endpoint to check what studios exist in the database
 router.get('/debug-studios', async (req, res) => {
   try {
-    console.log('🔍 [GEOCODING] GET /debug-studios - Processing request');
+    logger.geocoding('GET /debug-studios - Processing request');
     
     // Get all studios with basic info
     const allStudios = await prisma.studio.findMany({
@@ -276,7 +278,7 @@ router.get('/debug-studios', async (req, res) => {
     const withCoordinates = allStudios.filter(s => s.latitude !== null && s.longitude !== null);
     const withoutCoordinates = allStudios.filter(s => s.latitude === null || s.longitude === null);
 
-    console.log(`📊 Studio counts: total=${allStudios.length}, withCoords=${withCoordinates.length}, withoutCoords=${withoutCoordinates.length}`);
+    logger.database('Studio counts', { total: allStudios.length, withCoords: withCoordinates.length, withoutCoords: withoutCoordinates.length });
 
     res.json({
       success: true,
@@ -288,7 +290,8 @@ router.get('/debug-studios', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Error in debug-studios endpoint:', error);
+    // Always log errors (development and production)
+    logger.error('Error in debug-studios endpoint:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Error debugging studios',
@@ -300,9 +303,9 @@ router.get('/debug-studios', async (req, res) => {
 // Get studios that need geocoding
 router.get('/pending', async (req, res) => {
   try {
-    console.log('🔍 [GEOCODING] GET /pending - Processing request');
+    logger.geocoding('GET /pending - Processing request');
     const limit = parseInt(req.query.limit) || 10;
-    console.log(`📋 Requested limit: ${limit}`);
+    logger.geocoding('Requested limit', { limit });
     
     const studios = await prisma.studio.findMany({
       where: {
@@ -323,7 +326,7 @@ router.get('/pending', async (req, res) => {
       take: limit
     });
 
-    console.log(`📋 Found ${studios.length} studios needing geocoding`);
+    logger.geocoding('Found studios needing geocoding', { count: studios.length });
 
     res.json({
       success: true,
@@ -335,7 +338,8 @@ router.get('/pending', async (req, res) => {
       }))
     });
   } catch (error) {
-    console.error('❌ Error getting pending studios:', error);
+    // Always log errors (development and production)
+    logger.error('Error getting pending studios:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Failed to get pending studios',
@@ -347,7 +351,7 @@ router.get('/pending', async (req, res) => {
 // Get all studios (for frontend display)
 router.get('/studios', async (req, res) => {
   try {
-    console.log('🔍 [GEOCODING] GET /studios - Processing request');
+    logger.geocoding('GET /studios - Processing request');
     
     const studios = await prisma.studio.findMany({
       select: {
@@ -368,7 +372,7 @@ router.get('/studios', async (req, res) => {
       }
     });
 
-    console.log(`📊 Found ${studios.length} studios total`);
+    logger.database('Found studios total', { count: studios.length });
 
     const processedStudios = studios.map(studio => ({
       ...studio,
@@ -382,15 +386,16 @@ router.get('/studios', async (req, res) => {
       }
     }));
 
-    console.log(`✅ Successfully processed ${processedStudios.length} studios`);
+    logger.geocoding('Successfully processed studios', { count: processedStudios.length });
 
     res.json({
       success: true,
       data: processedStudios
     });
   } catch (error) {
-    console.error('❌ Error getting studios:', error);
-    console.error('❌ Error details:', {
+    // Always log errors (development and production)
+    logger.error('Error getting studios:', error);
+    logger.error('Error details:', {
       message: error.message,
       stack: error.stack,
       name: error.name
@@ -405,20 +410,20 @@ router.get('/studios', async (req, res) => {
 
 // Save geocoding result (minimal version to test)
 router.post('/save-result', async (req, res) => {
-  console.log('🔍 [GEOCODING] POST /save-result - Processing request');
-  console.log('📝 Request body:', req.body);
+  logger.geocoding('POST /save-result - Processing request');
+  logger.requestBody('Request body', req.body);
   
   const { studioId, latitude, longitude, address } = req.body;
   
   if (!studioId || latitude === undefined || longitude === undefined) {
-    console.log('❌ Missing required fields:', { studioId, latitude, longitude });
+    logger.error('Missing required fields', { studioId, latitude, longitude });
     return res.status(400).json({ 
       success: false, 
       error: 'Missing required fields: studioId, latitude, longitude' 
     });
   }
 
-  console.log(`🔄 Updating studio ${studioId} with coordinates: ${latitude}, ${longitude}`);
+  logger.geocoding('Updating studio coordinates', { studioId, latitude, longitude });
   
   // Update studio coordinates
   let updatedStudio;
@@ -431,22 +436,23 @@ router.post('/save-result', async (req, res) => {
       }
     });
     
-    console.log(`✅ Studio updated successfully: ${updatedStudio.title}`);
+    logger.geocoding('Studio updated successfully', { studioId: updatedStudio.id });
   } catch (error) {
-    console.error(`❌ Prisma error details:`, {
+    // Always log errors (development and production)
+    logger.error('Prisma error details', {
       code: error.code,
       message: error.message,
       meta: error.meta
     });
     
     if (error.code === 'P2025' || error.message.includes('Record to update not found')) {
-      console.error(`❌ Studio not found: ${studioId}`);
+      logger.error('Studio not found', { studioId });
       return res.status(404).json({
         success: false,
         error: `Studio not found: ${studioId}`
       });
     }
-    console.error(`❌ Failed to update studio ${studioId}:`, error);
+    logger.error('Failed to update studio', { studioId, error });
     return res.status(500).json({
       success: false,
       error: `Failed to update studio: ${error.message}`
@@ -470,9 +476,10 @@ router.post('/save-result', async (req, res) => {
         longitude: parseFloat(longitude)
       }
     });
-    console.log(`💾 Address cached successfully: ${address || `${latitude},${longitude}`}`);
+    logger.geocoding('Address cached successfully', { address: address || `${latitude},${longitude}` });
   } catch (cacheError) {
-    console.warn(`⚠️ Failed to cache address:`, cacheError);
+    // Always log warnings (development and production)
+    logger.warn('Failed to cache address', { error: cacheError });
     // Don't fail the whole request if caching fails
   }
 
@@ -500,7 +507,8 @@ router.get('/cache', async (req, res) => {
       data: cache
     });
   } catch (error) {
-    console.error('Error getting geocoding cache:', error);
+    // Always log errors (development and production)
+    logger.error('Error getting geocoding cache', { error });
     res.status(500).json({ success: false, error: 'Failed to get geocoding cache' });
   }
 });
@@ -515,7 +523,8 @@ router.delete('/cache', async (req, res) => {
       message: 'Geocoding cache cleared successfully'
     });
   } catch (error) {
-    console.error('Error clearing geocoding cache:', error);
+    // Always log errors (development and production)
+    logger.error('Error clearing geocoding cache', { error });
     res.status(500).json({ success: false, error: 'Failed to clear geocoding cache' });
   }
 });
