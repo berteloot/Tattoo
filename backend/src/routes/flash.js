@@ -1,12 +1,11 @@
 const express = require('express');
 const { body, query, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../utils/prisma');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
 const { handleUpload } = require('../middleware/upload');
 const { uploadImage, deleteImage, getThumbnailUrl } = require('../utils/cloudinary');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 /**
  * @route   GET /api/flash

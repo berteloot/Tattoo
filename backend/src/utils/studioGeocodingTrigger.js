@@ -1,7 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('./prisma');
 const axios = require('axios');
-
-const prisma = new PrismaClient();
 
 class StudioGeocodingTrigger {
   constructor() {

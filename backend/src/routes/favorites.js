@@ -1,10 +1,9 @@
 const express = require('express')
 const { body, param, validationResult } = require('express-validator')
 const { protect } = require('../middleware/auth')
-const { PrismaClient } = require('@prisma/client')
+const { prisma } = require('../utils/prisma')
 
 const router = express.Router()
-const prisma = new PrismaClient()
 
 // Get user's favorite artists
 router.get('/', protect, async (req, res) => {

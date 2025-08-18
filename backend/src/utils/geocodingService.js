@@ -1,7 +1,5 @@
 const axios = require('axios');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const { prisma } = require('./prisma');
 
 // Cache for geocoding results
 const geocodeCache = new Map();

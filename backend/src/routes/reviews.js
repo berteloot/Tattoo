@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, query, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../utils/prisma');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
 const emailService = require('../utils/emailService');
 const contentFilter = require('../utils/contentFilter');
@@ -8,7 +8,6 @@ const multer = require('multer');
 const path = require('path');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Configure multer for image uploads
 const storage = multer.memoryStorage();

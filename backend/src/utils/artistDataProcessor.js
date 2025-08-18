@@ -12,8 +12,7 @@ async function findStudioByName(studioName) {
   if (!studioName || typeof studioName !== 'string') return null;
   
   try {
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
+    const { prisma } = require('./prisma');
     
     const studio = await prisma.studio.findFirst({
       where: {
@@ -25,7 +24,6 @@ async function findStudioByName(studioName) {
       }
     });
     
-    await prisma.$disconnect();
     return studio;
   } catch (error) {
     console.error('Error searching for studio:', error);

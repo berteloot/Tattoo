@@ -1,12 +1,11 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../utils/prisma');
 const { protect, authorize, artistOnly, artistOrAdmin } = require('../middleware/auth');
 const { handleUpload } = require('../middleware/upload');
 const { uploadImage, deleteImage } = require('../utils/cloudinary');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Get all gallery items with filtering
 // PRODUCTION DEBUG: This endpoint should work after database schema fix
