@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { MapPin, Play, Pause, Trash2, RefreshCw, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { getAuthorizationHeader } from '../utils/tokenManager';
 
 const AdminGeocodingManagement = () => {
   const { user } = useAuth();
@@ -28,7 +29,7 @@ const AdminGeocodingManagement = () => {
       setRefreshing(true);
       const response = await fetch('/api/admin/geocoding/status', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': getAuthorizationHeader() || ''
         }
       });
       
@@ -53,7 +54,7 @@ const AdminGeocodingManagement = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': getAuthorizationHeader() || ''
         },
         body: JSON.stringify({ studioId })
       });
@@ -79,7 +80,7 @@ const AdminGeocodingManagement = () => {
       const response = await fetch('/api/admin/geocoding/clear-queue', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': getAuthorizationHeader() || ''
         }
       });
       
@@ -104,7 +105,7 @@ const AdminGeocodingManagement = () => {
       const response = await fetch('/api/admin/geocoding/process-all', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': getAuthorizationHeader() || ''
         }
       });
       

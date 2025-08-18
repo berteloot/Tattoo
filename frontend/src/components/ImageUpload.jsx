@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, X, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { getAuthorizationHeader } from '../utils/tokenManager';
 
 const ImageUpload = ({ 
   onImageUpload, 
@@ -72,7 +73,7 @@ const ImageUpload = ({
       const response = await fetch(uploadEndpoint, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': getAuthorizationHeader() || ''
         },
         body: formData
       });

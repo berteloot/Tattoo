@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getAuthorizationHeader, isTokenExpiringSoon } from '../utils/tokenManager'
 
 // Create axios instance - use environment variable or fallback based on environment
 const getApiUrl = () => {
@@ -27,12 +28,13 @@ export const api = axios.create({
   withCredentials: true,
 })
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token from secure in-memory storage
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    // Get token from secure in-memory storage (no localStorage)
+    const authHeader = getAuthorizationHeader()
+    if (authHeader) {
+      config.headers.Authorization = authHeader
     }
     
     // Ensure FormData is sent with correct Content-Type

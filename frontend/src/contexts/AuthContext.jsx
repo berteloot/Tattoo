@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, authAPI } from '../services/api'
 import { useToast } from './ToastContext'
+import { setAccessToken, clearAccessToken, getAccessToken } from '../utils/tokenManager'
 
 const AuthContext = createContext()
 
@@ -33,8 +34,8 @@ export const AuthProvider = ({ children }) => {
       
       if (response.data && response.data.success) {
         const { accessToken: newAccessToken } = response.data.data
+        // Store token securely in memory using token manager
         setAccessToken(newAccessToken)
-        api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`
         
         // Fetch user profile with new token
         await fetchUser()
@@ -96,13 +97,12 @@ export const AuthProvider = ({ children }) => {
         const { accessToken, user } = response.data.data || {}
         
         if (accessToken && user) {
-          // Store access token in memory only (not localStorage)
+          // Store access token securely in memory using token manager
           setAccessToken(accessToken)
-          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
           setUser(user)
           
           console.log('Login successful, navigating to home')
-          console.log('Access token stored in memory, refresh token in httpOnly cookie')
+          console.log('Access token stored securely in memory, refresh token in httpOnly cookie')
           navigate('/')
           
           return { success: true }
@@ -171,8 +171,8 @@ export const AuthProvider = ({ children }) => {
           const { token, user } = response.data.data || {}
           
           if (token && user) {
-            localStorage.setItem('token', token)
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+            // Store token securely in memory using token manager
+            setAccessToken(token)
             setUser(user)
             
             navigate('/')
@@ -214,13 +214,12 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.warn('Logout API call failed, but proceeding with local logout:', error)
     } finally {
-      // Always perform local cleanup
-      setAccessToken(null)
+      // Always perform local cleanup using secure token manager
+      clearAccessToken()
       setUser(null)
-      delete api.defaults.headers.common['Authorization']
       
       console.log('Logout completed, navigating to home')
-      console.log('Access token cleared from memory, refresh token invalidated on server')
+      console.log('Access token securely cleared from memory, refresh token invalidated on server')
       navigate('/')
       
       return { success: true, message: 'Logged out successfully' }
