@@ -15,6 +15,8 @@ const getCSPConfig = () => {
     styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
     connectSrc: ["'self'", "wss:", "ws:"],
+    scriptSrc: ["'self'", "'unsafe-inline'"], // Always define scriptSrc
+    scriptSrcElem: ["'self'", "'unsafe-inline'"], // Always define scriptSrcElem
     objectSrc: ["'none'"],
     baseUri: ["'self'"],
     formAction: ["'self'"],
@@ -40,14 +42,12 @@ const getCSPConfig = () => {
   if (process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY) {
     // Only include the specific Google Maps endpoints actually used
     baseCSP.scriptSrc = [
-      "'self'",
-      "'unsafe-inline'", // Required for React development
+      ...baseCSP.scriptSrc,
       "https://maps.googleapis.com" // Only the main Maps API
     ];
     
     baseCSP.scriptSrcElem = [
-      "'self'",
-      "'unsafe-inline'",
+      ...baseCSP.scriptSrcElem,
       "https://maps.googleapis.com"
     ];
 

@@ -332,7 +332,7 @@ const Studios = () => {
                 <div className="flex items-center space-x-2">
                   <Users className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-600">
-                    {studio._count?.artists || 0} artists
+                    {studio._count?.studioArtists || 0} artists
                   </span>
                 </div>
                 

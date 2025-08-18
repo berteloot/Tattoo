@@ -427,7 +427,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
             isVerified: studio.isVerified || false,
             isFeatured: studio.isFeatured || false,
             _count: {
-              artists: studio._count?.artists || 0
+              artists: studio._count?.studioArtists || 0
             }
           }))
           
@@ -708,7 +708,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <div className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
-                        <span>{studio._count?.artists || 0} artists</span>
+                        <span>{studio._count?.studioArtists || 0} artists</span>
                       </div>
                       {studio.latitude && studio.longitude && (
                         <button
@@ -1064,7 +1064,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                       <div className="flex items-center space-x-1">
                         <Users className="w-3 h-3 text-gray-500" />
                         <span className="text-xs text-gray-600">
-                          {selectedStudio._count?.artists || 0} artists
+                          {selectedStudio._count?.studioArtists || 0} artists
                         </span>
                       </div>
                     </div>

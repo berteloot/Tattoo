@@ -668,7 +668,7 @@ const AdminStudioManagement = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {studio._count?.artists || 0} artists
+                      {studio._count?.studioArtists || 0} artists
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(studio.createdAt).toLocaleDateString()}

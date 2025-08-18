@@ -726,7 +726,7 @@ export const ArtistMap = () => {
                     <div className="flex items-center space-x-1">
                       <Users className="w-3 h-3 text-gray-500" />
                       <span className="text-xs text-gray-600">
-                        {selectedStudio._count?.artists || 0} artists
+                        {selectedStudio._count?.studioArtists || 0} artists
                       </span>
                     </div>
                   </div>

@@ -61,7 +61,7 @@ const StudioMapPostgres = ({
             isVerified: studioData.isVerified || false,
             isFeatured: studioData.isFeatured || false,
             _count: {
-              artists: studioData._count?.artists || 0
+              artists: studioData._count?.studioArtists || 0
             }
           };
         });

@@ -175,7 +175,7 @@ router.get('/', async (req, res) => {
       include: {
         _count: {
           select: {
-            artists: {
+            studioArtists: {
               where: {
                 isActive: true
               }
