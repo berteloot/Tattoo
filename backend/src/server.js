@@ -10,6 +10,8 @@ require('dotenv').config();
 
 // Import database client
 const { prisma, testConnection } = require('./utils/prisma');
+const { getCSPForEnvironment, validateCSP, logCSPConfig } = require('./utils/csp');
+const logger = require('./utils/logger');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -54,43 +56,25 @@ console.log('✅ All required environment variables are configured');
 // Force server restart to pick up new Prisma client with profile picture fields
 console.log('🔄 Server restarting to load updated Prisma client...');
 
-// Security middleware - Comprehensive CSP for Google Maps API
+// Security middleware - Minimal and verified CSP configuration
+const cspConfig = getCSPForEnvironment();
+
+// Validate CSP configuration before applying
+try {
+  validateCSP(cspConfig);
+  logCSPConfig(cspConfig);
+} catch (error) {
+  console.error('❌ CSP validation failed:', error.message);
+  process.exit(1);
+}
+
 app.use(helmet({
   contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-      imgSrc: [
-        "'self'", "data:", "blob:", "https:",
-        "https://*.googleapis.com", "https://*.gstatic.com", "https://*.google.com",
-        "https://mt0.google.com", "https://mt1.google.com",
-        "https://mt2.google.com", "https://mt3.google.com",
-        "https://khms0.googleapis.com", "https://khms1.googleapis.com"
-      ],
-      scriptSrc: [
-        "'self'", "'unsafe-inline'", "'unsafe-eval'",
-        "https://maps.googleapis.com", "https://maps.gstatic.com"
-      ],
-      scriptSrcElem: [
-        "'self'", "'unsafe-inline'",
-        "https://maps.googleapis.com", "https://maps.gstatic.com"
-      ],
-      connectSrc: [
-        "'self'",
-        "https://maps.googleapis.com", "https://maps.gstatic.com",
-        "wss:", "ws:"
-      ],
-    },
-  },
+    directives: cspConfig
+  }
 }));
 
-console.log('✅ [DEBUG] Helmet CSP enabled with comprehensive Google Maps configuration');
-
-// FORCE DEPLOYMENT - Fixed trust proxy and comprehensive CSP v4.4
-// Fixed: trust proxy from true to 2 for Render.com behind Cloudflare
-// Fixed: Comprehensive CSP configuration for Google Maps API
-// Status: Ready for production deployment
+logger.info('Helmet CSP enabled with minimal, verified configuration');
 
 // CORS configuration - Strict allow-list for security
 const allowedOrigins = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || 'http://localhost:5173,https://tattooed-world-backend.onrender.com').split(',').filter(Boolean);
@@ -276,7 +260,6 @@ app.get('/api', (req, res) => {
 const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
 
 // Enhanced check for frontend build with better logging
-const fs = require('fs');
 const frontendExists = fs.existsSync(frontendBuildPath);
 const indexHtmlPath = path.join(frontendBuildPath, 'index.html');
 
