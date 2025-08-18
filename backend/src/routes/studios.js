@@ -170,29 +170,32 @@ router.get('/', async (req, res) => {
       queryOptions.take = parseInt(limit);
     }
     
-    const studios = await prisma.studio.findMany(queryOptions);
+    const studios = await prisma.studio.findMany({
+      ...queryOptions,
+      include: {
+        _count: {
+          select: {
+            artists: {
+              where: {
+                isActive: true
+              }
+            }
+          }
+        }
+      }
+    });
 
-    // Get artist counts for each studio and add hasCoordinates property
-    const studiosWithArtistCounts = await Promise.all(
-      studios.map(async (studio) => {
-        const artistCount = await prisma.studioArtist.count({
-          where: {
-            studioId: studio.id,
-            isActive: true
-          }
-        });
-        
-        return {
-          ...studio,
-          hasCoordinates: !!(studio.latitude && studio.longitude),
-          _count: {
-            artists: artistCount
-          }
-        };
-      })
-    );
+    // Add hasCoordinates property to each studio
+    const studiosWithArtistCounts = studios.map(studio => ({
+      ...studio,
+      hasCoordinates: !!(studio.latitude && studio.longitude)
+    }));
     
     const total = await prisma.studio.count({ where });
+    
+    // Add caching headers for better performance
+    res.set('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
+    res.set('ETag', `studios-${total}-${Date.now()}`);
     
     res.json({
       success: true,
@@ -218,30 +221,14 @@ router.get('/', async (req, res) => {
 // Get artists for a studio
 router.get('/:id/artists', detectScraping, studioArtistLimiter, async (req, res) => {
   try {
-    const studio = await prisma.studio.findUnique({
-      where: { id: req.params.id }
-    });
-    
-    if (!studio) {
-      return res.status(404).json({
-        success: false,
-        error: 'Studio not found'
-      });
-    }
-    
-    // Query the StudioArtist table to get actual linked artists
+    // Query the StudioArtist table to get actual linked artists with all related data
     const studioArtists = await prisma.studioArtist.findMany({
       where: {
         studioId: req.params.id,
         isActive: true
-      }
-    });
-    
-    // Get the actual artist profiles and user data
-    const artistsWithProfiles = await Promise.all(
-      studioArtists.map(async (sa) => {
-        const artistProfile = await prisma.artistProfile.findUnique({
-          where: { id: sa.artistId },
+      },
+      include: {
+        artist: {
           include: {
             user: {
               select: {
@@ -253,33 +240,35 @@ router.get('/:id/artists', detectScraping, studioArtistLimiter, async (req, res)
               }
             }
           }
-        });
-        
-        if (!artistProfile) return null;
-        
-        return {
-          id: sa.artistId,
-          role: sa.role,
-          joinedAt: sa.joinedAt,
-          artist: {
-            id: artistProfile.id,
-            user: artistProfile.user,
-            bio: artistProfile.bio,
-            studioName: artistProfile.studioName,
-            website: artistProfile.website,
-            instagram: artistProfile.instagram,
-            isVerified: artistProfile.isVerified,
-            isFeatured: artistProfile.isFeatured
-          }
-        };
-      })
-    );
+        }
+      }
+    });
     
-    // Filter out any null results and get the final artists array
-    const artists = artistsWithProfiles.filter(Boolean);
+    // Transform the data to match the expected structure
+    const artists = studioArtists
+      .filter(sa => sa.artist) // Filter out any null artist profiles
+      .map(sa => ({
+        id: sa.artistId,
+        role: sa.role,
+        joinedAt: sa.joinedAt,
+        artist: {
+          id: sa.artist.id,
+          user: sa.artist.user,
+          bio: sa.artist.bio,
+          studioName: sa.artist.studioName,
+          website: sa.artist.website,
+          instagram: sa.artist.instagram,
+          isVerified: sa.artist.isVerified,
+          isFeatured: sa.artist.isFeatured
+        }
+      }));
     
-    console.log(`📊 Found ${artists.length} artists for studio ${studio.title}`);
+    console.log(`📊 Found ${artists.length} artists for studio ${artists[0]?.artist?.studioName}`);
     console.log('🔍 Studio artists data structure:', JSON.stringify(artists, null, 2));
+    
+    // Add caching headers for better performance
+    res.set('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
+    res.set('ETag', `studio-artists-${req.params.id}-${artists.length}`);
     
     res.json({
       success: true,

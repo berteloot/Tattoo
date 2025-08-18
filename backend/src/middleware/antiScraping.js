@@ -73,7 +73,14 @@ const detectScraping = (req, res, next) => {
     return value && value.includes(',');
   });
   
-  if (hasMultipleIPs) {
+  // Only log if there are suspicious patterns beyond just multiple IPs
+  // Multiple IPs are normal when using Render.com behind Cloudflare
+  const isActuallySuspicious = hasMultipleIPs && (
+    // Add additional suspicious criteria here if needed
+    false // For now, just multiple IPs is not suspicious
+  );
+  
+  if (isActuallySuspicious) {
     console.log('Suspicious request detected:', {
       ip: req.ip,
       userAgent,

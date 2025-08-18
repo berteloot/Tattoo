@@ -257,6 +257,19 @@ app.get('/api', (req, res) => {
   });
 });
 
+// Favicon handler to prevent 500 errors
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end(); // No content response for favicon
+});
+
+// Vite.svg handler to prevent 500 errors (legacy asset reference)
+app.get('/vite.svg', (req, res) => {
+  res.status(204).end(); // No content response for vite.svg
+});
+
+// 404 handler for API routes only - this should come after all API routes
+app.use('/api/*', notFound);
+
 // Serve static files from the React app build directory
 const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
 
@@ -357,7 +370,6 @@ if (!frontendExists) {
 }
 
 // Error handling middleware - MUST come before React catch-all to avoid masking 404s
-app.use(notFound);
 app.use(errorHandler);
 
 // React catch-all route - MUST be last to handle SPA routing without masking API 404s
