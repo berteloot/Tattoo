@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { GoogleMap, LoadScript, Marker, InfoWindow, DirectionsRenderer } from '@react-google-maps/api'
-import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, Phone, Mail, MessageSquare } from 'lucide-react'
+import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, Phone, Mail, MessageSquare, List } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import { StudioMessageForm } from './StudioMessageForm'
@@ -34,6 +34,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const [mapZoom, setMapZoom] = useState(10)
   const [showMessageForm, setShowMessageForm] = useState(false)
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false)
+  const [viewMode, setViewMode] = useState('map') // 'map' or 'list'
   const directionsService = useRef(null)
   const directionsRenderer = useRef(null)
   const { error: showError } = useToast()
@@ -532,6 +533,32 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
               </div>
             </div>
             <div className="flex items-center gap-4">
+              {/* View Toggle */}
+              <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('map')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                    viewMode === 'map'
+                      ? 'bg-white text-primary-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  <Map className="w-4 h-4 inline mr-1" />
+                  Map
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                    viewMode === 'list'
+                      ? 'bg-white text-primary-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  <List className="w-4 h-4 inline mr-1" />
+                  List
+                </button>
+              </div>
+              
               <div className="text-sm text-gray-500">
                 {studios.length} studio{studios.length !== 1 ? 's' : ''} found
               </div>
@@ -560,19 +587,154 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         </div>
       )}
 
-      <LoadScript 
-        googleMapsApiKey={googleMapsApiKey}
-        onError={(error) => {
-          console.error('Google Maps failed to load:', error)
-          // Show fallback when Google Maps fails
-          setMapError(true)
-        }}
-        onLoad={() => {
-          console.log('Google Maps loaded successfully')
-          setMapError(false)
-          setGoogleMapsLoaded(true)
-        }}
-      >
+      {/* Studio List View */}
+      {viewMode === 'list' && (
+        <div className="bg-white rounded-lg border border-gray-200 mb-4">
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Studio List View
+            </h3>
+            <p className="text-sm text-gray-600">
+              Browse all {studios.length} studio{studios.length !== 1 ? 's' : ''} found
+            </p>
+          </div>
+          
+          <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+            {studios.map((studio) => (
+              <div key={studio.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        {studio.title}
+                      </h4>
+                      <div className="flex items-center gap-1">
+                        {studio.isVerified && (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                            Verified
+                          </span>
+                        )}
+                        {studio.isFeatured && (
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                            Featured
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 mb-2">
+                      <p className="flex items-center gap-1 mb-1">
+                        <MapPin className="w-4 h-4" />
+                        {studio.address}, {studio.city}, {studio.state} {studio.zipCode}
+                      </p>
+                      {studio.phoneNumber && (
+                        <p className="flex items-center gap-1 mb-1">
+                          <Phone className="w-4 h-4" />
+                          <a 
+                            href={`tel:${studio.phoneNumber}`}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            {studio.phoneNumber}
+                          </a>
+                        </p>
+                      )}
+                      {studio.email && (
+                        <p className="flex items-center gap-1 mb-1">
+                          <Mail className="w-4 h-4" />
+                          <button
+                            onClick={() => {
+                              setSelectedStudio(studio)
+                              setShowMessageForm(true)
+                            }}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            Send Message
+                          </button>
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        <span>{studio._count?.artists || 0} artists</span>
+                      </div>
+                      {studio.latitude && studio.longitude && (
+                        <button
+                          onClick={() => {
+                            setViewMode('map')
+                            setMapCenter({
+                              lat: parseFloat(studio.latitude),
+                              lng: parseFloat(studio.longitude)
+                            })
+                            setMapZoom(15)
+                            setSelectedStudio(studio)
+                          }}
+                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                          <Map className="w-3 h-3" />
+                          Show on Map
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col gap-2 ml-4">
+                    <Link
+                      to={`/studios/${studio.id}`}
+                      className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors text-center"
+                    >
+                      View Details
+                    </Link>
+                    
+                    {studio.latitude && studio.longitude && (
+                      <button
+                        onClick={() => {
+                          setSelectedStudio(studio)
+                          setShowDirectionsForm(true)
+                          setFromAddress('')
+                        }}
+                        className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Navigation className="w-4 h-4" />
+                        Directions
+                      </button>
+                    )}
+                    
+                    {studio.website && (
+                      <a
+                        href={studio.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-blue-100 text-blue-700 text-sm rounded-lg hover:bg-blue-200 transition-colors text-center flex items-center justify-center gap-1"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Website
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Map View */}
+      {viewMode === 'map' && (
+        <LoadScript 
+          googleMapsApiKey={googleMapsApiKey}
+          onError={(error) => {
+            console.error('Google Maps failed to load:', error)
+            // Show fallback when Google Maps fails
+            setMapError(true)
+          }}
+          onLoad={() => {
+            console.log('Google Maps loaded successfully')
+            setMapError(false)
+            setGoogleMapsLoaded(true)
+          }}
+        >
         {mapError ? (
           <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
             <div className="text-center">
@@ -909,7 +1071,8 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
             </div>
           </GoogleMapsErrorBoundary>
         )}
-      </LoadScript>
+        </LoadScript>
+      )}
       
       {/* Studio Message Form */}
       <StudioMessageForm
