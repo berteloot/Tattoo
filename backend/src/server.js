@@ -123,7 +123,7 @@ app.use(cors({
 // Add security headers
 app.use(addSecurityHeaders);
 
-// Rate limiting with proper proxy handling for Render.com
+// Rate limiting with secure proxy handling for Render.com
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // limit each IP to 500 requests per windowMs (increased for geocoding)
@@ -133,17 +133,15 @@ const limiter = rateLimit({
   // Handle proxy headers properly for Render.com
   standardHeaders: true,
   legacyHeaders: false,
-  // Trust proxy and use X-Forwarded-For header
+  // Skip successful requests to reduce noise
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
-  // Simplified key generator to avoid trust proxy validation errors
-  keyGenerator: (req) => {
-    // Use X-Forwarded-For header if available, fallback to req.ip
-    return req.headers['x-forwarded-for'] || req.ip || 'unknown';
-  },
+  // SECURITY: Let express-rate-limit use req.ip (handled securely by trust proxy)
+  // No custom keyGenerator - Express.js automatically handles X-Forwarded-For securely
+  // when trust proxy is configured, populating req.ip with the correct client IP
   // Add handler for rate limit errors
   handler: (req, res) => {
-    console.log(`Rate limit exceeded for IP: ${req.ip}`);
+    console.log(`🚨 Rate limit exceeded for IP: ${req.ip}`);
     res.status(429).json({
       success: false,
       error: 'Too many requests from this IP, please try again later.'
