@@ -11,63 +11,10 @@ router.get('/', protect, async (req, res) => {
     const userId = req.user.id
     console.log('🔍 Fetching favorites for user:', userId)
 
-    // First check if the favorites table exists
-    try {
-      const tableExists = await prisma.$queryRaw`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = 'public' 
-          AND table_name = 'favorites'
-        );
-      `;
+    // The favorites table is defined in Prisma schema and managed by migrations
+    // No runtime DDL operations - this ensures stability and security
       
-      if (!tableExists[0].exists) {
-        console.log('❌ Favorites table does not exist, creating it...');
-        
-        // Create the favorites table
-        await prisma.$executeRawUnsafe(`
-          CREATE TABLE IF NOT EXISTS "favorites" (
-            "id" TEXT NOT NULL,
-            "userId" TEXT NOT NULL,
-            "artistId" TEXT NOT NULL,
-            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            CONSTRAINT "favorites_pkey" PRIMARY KEY ("id")
-          );
-        `);
-        
-        // Add foreign key constraints
-        await prisma.$executeRawUnsafe(`
-          ALTER TABLE "favorites" ADD CONSTRAINT IF NOT EXISTS "favorites_userId_fkey" 
-          FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE;
-        `);
-        
-        await prisma.$executeRawUnsafe(`
-          ALTER TABLE "favorites" ADD CONSTRAINT IF NOT EXISTS "favorites_artistId_fkey" 
-          FOREIGN KEY ("artistId") REFERENCES "artist_profiles"("id") ON DELETE CASCADE;
-        `);
-        
-        // Add unique constraint
-        await prisma.$executeRawUnsafe(`
-          ALTER TABLE "favorites" ADD CONSTRAINT IF NOT EXISTS "unique_user_artist_favorite" 
-          UNIQUE ("userId", "artistId");
-        `);
-        
-        // Add indexes
-        await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_favorites_user_id" ON "favorites"("userId");`);
-        await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_favorites_artist_id" ON "favorites"("artistId");`);
-        await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_favorites_created_at" ON "favorites"("createdAt");`);
-        
-        console.log('✅ Favorites table created successfully');
-      } else {
-        console.log('✅ Favorites table exists');
-      }
-    } catch (tableError) {
-      console.error('❌ Error checking/creating favorites table:', tableError);
-      return res.status(500).json({
-        success: false,
-        error: 'Database schema error - please contact support'
-      });
-    }
+
 
     // Now fetch favorites
     const favorites = await prisma.favorite.findMany({
