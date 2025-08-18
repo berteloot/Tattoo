@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
+import { GoogleMapsProvider } from './contexts/GoogleMapsContext'
 import { ErrorBoundary } from './components/UXComponents'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Layout } from './components/Layout'
@@ -47,7 +48,8 @@ function App() {
     <ErrorBoundary>
       <ToastProvider>
         <AuthProvider>
-          <Layout>
+          <GoogleMapsProvider>
+            <Layout>
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Home />} />
@@ -147,6 +149,7 @@ function App() {
               } />
             </Routes>
           </Layout>
+          </GoogleMapsProvider>
         </AuthProvider>
       </ToastProvider>
     </ErrorBoundary>

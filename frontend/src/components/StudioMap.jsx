@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import { GoogleMap, LoadScript, Marker, InfoWindow, DirectionsRenderer } from '@react-google-maps/api'
+import { GoogleMap, Marker, InfoWindow, DirectionsRenderer } from '@react-google-maps/api'
 import { MapPin, Star, Clock, Users, Map, Navigation, X, Search, ExternalLink, Phone, Mail, MessageSquare, List } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import { StudioMessageForm } from './StudioMessageForm'
 import { useToast } from '../contexts/ToastContext'
+import { useGoogleMaps } from '../contexts/GoogleMapsContext'
 import GoogleMapsErrorBoundary from './GoogleMapsErrorBoundary'
 
 const mapContainerStyle = {
@@ -39,6 +40,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const directionsService = useRef(null)
   const directionsRenderer = useRef(null)
   const { error: showError } = useToast()
+  const { isLoaded: isGoogleMapsLoaded, loadError: googleMapsLoadError, hasApiKey } = useGoogleMaps()
 
   // Memoize the search parameters to prevent unnecessary re-renders
   const searchParams = useMemo(() => ({
@@ -521,11 +523,6 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
   // Check if Google Maps API key is available
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
-  
-  // Debug: Log API key status (without exposing the actual key)
-  console.log('Google Maps API Key available:', !!googleMapsApiKey)
-  console.log('API Key length:', googleMapsApiKey?.length || 0)
-  console.log('Environment:', import.meta.env.MODE)
 
   // If no API key, show fallback
   if (!googleMapsApiKey) {
@@ -773,27 +770,13 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
       {/* Map View */}
       {viewMode === 'map' && (
-        <LoadScript 
-          googleMapsApiKey={googleMapsApiKey}
-          onError={(error) => {
-            console.error('Google Maps failed to load:', error)
-            // Show fallback when Google Maps fails
-            setMapError(true)
-          }}
-          onLoad={() => {
-            console.log('Google Maps loaded successfully')
-            setMapError(false)
-            setGoogleMapsLoaded(true)
-          }}
-        >
-        {mapError ? (
+        !hasApiKey ? (
           <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
             <div className="text-center">
               <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Unavailable</h3>
-              <p className="text-gray-500 mb-4">Google Maps failed to load</p>
-              <p className="text-sm text-gray-400">Domain may need to be authorized in Google Cloud Console</p>
-              <div className="mt-4 space-y-2">
+              <p className="text-gray-500 mb-4">Google Maps API key not configured</p>
+              <div className="space-y-2">
                 {(studios || []).map((studio) => (
                   <div key={studio.id} className="bg-white p-3 rounded border">
                     <h4 className="font-medium">{studio.title}</h4>
@@ -810,7 +793,16 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
               </div>
             </div>
           </div>
-        ) : !googleMapsLoaded ? (
+        ) : googleMapsLoadError ? (
+          <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Unavailable</h3>
+              <p className="text-gray-500 mb-4">Google Maps failed to load</p>
+              <p className="text-sm text-gray-400">Domain may need to be authorized in Google Cloud Console</p>
+            </div>
+          </div>
+        ) : !isGoogleMapsLoaded ? (
           <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
@@ -955,6 +947,197 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                       <p className="text-xs text-gray-500 mb-1">From: {directionsInfo.startAddress}</p>
                       <p className="text-xs text-gray-500">To: {directionsInfo.endAddress}</p>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Google Map */}
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={mapCenter}
+                zoom={mapZoom}
+                onLoad={(map) => {
+                  console.log('✅ Google Map loaded successfully')
+                  setGoogleMapsLoaded(true)
+                }}
+                onError={(error) => {
+                  console.error('❌ Google Map error:', error)
+                  setMapError(true)
+                }}
+                options={{
+                  zoomControl: true,
+                  streetViewControl: false,
+                  mapTypeControl: true,
+                  fullscreenControl: true,
+                  gestureHandling: 'cooperative'
+                }}
+              >
+                {/* Studio Markers */}
+                {studios.map((studio) => {
+                  if (!studio.latitude || !studio.longitude) return null
+                  
+                  return (
+                    <Marker
+                      key={studio.id}
+                      position={{
+                        lat: parseFloat(studio.latitude),
+                        lng: parseFloat(studio.longitude)
+                      }}
+                      onClick={() => setSelectedStudio(studio)}
+                      icon={{
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="16" fill="${studio.isFeatured ? '#F59E0B' : studio.isVerified ? '#10B981' : '#6B7280'}"/>
+                            <circle cx="16" cy="16" r="12" fill="white"/>
+                            <circle cx="16" cy="16" r="8" fill="${studio.isFeatured ? '#F59E0B' : studio.isVerified ? '#10B981' : '#6B7280'}"/>
+                          </svg>
+                        `),
+                        scaledSize: new window.google.maps.Size(32, 32),
+                        anchor: new window.google.maps.Point(16, 16)
+                      }}
+                    />
+                  )
+                })}
+
+                {/* User Location Marker */}
+                {userLocation && (
+                  <Marker
+                    position={userLocation}
+                    icon={{
+                      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="12" r="12" fill="#3B82F6"/>
+                          <circle cx="12" cy="12" r="8" fill="white"/>
+                          <circle cx="12" cy="12" r="4" fill="#3B82F6"/>
+                        </svg>
+                      `),
+                      scaledSize: new window.google.maps.Size(24, 24),
+                      anchor: new window.google.maps.Point(12, 12)
+                    }}
+                  />
+                )}
+
+                {/* Directions Renderer */}
+                {directions && (
+                  <DirectionsRenderer
+                    directions={directions}
+                    options={{
+                      suppressMarkers: true,
+                      polylineOptions: {
+                        strokeColor: '#3B82F6',
+                        strokeWeight: 4,
+                        strokeOpacity: 0.8
+                      }
+                    }}
+                  />
+                )}
+
+                {/* Selected Studio Info Window */}
+                {selectedStudio && (
+                  <InfoWindow
+                    position={{
+                      lat: parseFloat(selectedStudio.latitude),
+                      lng: parseFloat(selectedStudio.longitude)
+                    }}
+                    onCloseClick={() => setSelectedStudio(null)}
+                  >
+                    <div className="p-2 max-w-xs">
+                      <h3 className="font-semibold text-gray-900 text-sm mb-1">
+                        {selectedStudio.title}
+                      </h3>
+                      {selectedStudio.address && (
+                        <p className="text-xs text-gray-600 mb-1">
+                          {selectedStudio.address}
+                        </p>
+                      )}
+                      {selectedStudio.city && selectedStudio.state && (
+                        <p className="text-xs text-gray-500 mb-2">
+                          {selectedStudio.city}, {selectedStudio.state} {selectedStudio.zipCode}
+                        </p>
+                      )}
+                      
+                      {/* Contact Info */}
+                      <div className="space-y-1 mb-2">
+                        {selectedStudio.phoneNumber && (
+                          <div className="flex items-center space-x-1">
+                            <Phone className="w-3 h-3 text-gray-500" />
+                            <a 
+                              href={`tel:${selectedStudio.phoneNumber}`}
+                              className="text-xs text-blue-600 hover:text-blue-800"
+                            >
+                              {selectedStudio.phoneNumber}
+                            </a>
+                          </div>
+                        )}
+                        {selectedStudio.email && (
+                          <div className="flex items-center space-x-1">
+                            <MessageSquare className="w-3 h-3 text-gray-500" />
+                            <button
+                              onClick={() => setShowMessageForm(true)}
+                              className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                            >
+                              Send Message
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Status Badges */}
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {selectedStudio.isVerified && (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                            Verified
+                          </span>
+                        )}
+                        {selectedStudio.isFeatured && (
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                            Featured
+                          </span>
+                        )}
+                        <div className="flex items-center space-x-1">
+                          <Users className="w-3 h-3 text-gray-500" />
+                          <span className="text-xs text-gray-600">
+                            {selectedStudio._count?.studioArtists || 0} artists
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col space-y-2">
+                        <button
+                          onClick={() => {
+                            setShowDirectionsForm(true)
+                            setFromAddress('')
+                          }}
+                          className="w-full px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition-colors flex items-center justify-center space-x-1"
+                        >
+                          <Navigation className="w-3 h-3" />
+                          <span>Get Directions</span>
+                        </button>
+                        
+                        <Link
+                          to={`/studios/${selectedStudio.id}`}
+                          className="w-full px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200 transition-colors text-center"
+                          onClick={() => setSelectedStudio(null)}
+                        >
+                          View Details
+                        </Link>
+                        
+                        {selectedStudio.website && (
+                          <a
+                            href={selectedStudio.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded hover:bg-blue-200 transition-colors text-center flex items-center justify-center space-x-1"
+                          >
+                            <ExternalLink className="w-3 h-4" />
+                            <span>Visit Website</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </InfoWindow>
+                )}
+              </GoogleMap>
                   </div>
                 </div>
               )}
@@ -1108,7 +1291,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
             </div>
           </GoogleMapsErrorBoundary>
         )}
-        </LoadScript>
+
       )}
       
       {/* Studio Message Form */}
