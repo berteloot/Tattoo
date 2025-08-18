@@ -265,7 +265,7 @@ const StudioMapPostgres = ({
                     : isVerified
                     ? 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
                     : 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                  scaledSize: new window.google.maps.Size(32, 32)
+                  scaledSize: window.google?.maps ? new window.google.maps.Size(32, 32) : undefined
                 }}
               />
             );

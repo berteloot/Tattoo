@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import { StudioMessageForm } from './StudioMessageForm'
 import { useToast } from '../contexts/ToastContext'
+import GoogleMapsErrorBoundary from './GoogleMapsErrorBoundary'
 
 const mapContainerStyle = {
   width: '100%',
@@ -69,6 +70,16 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     setGoogleMapsLoaded(false)
   }, [searchParams])
 
+  // Retry function for error boundary
+  const handleMapRetry = () => {
+    setGoogleMapsLoaded(false)
+    setMapError(false)
+    // Force a re-render of the LoadScript component
+    setTimeout(() => {
+      setGoogleMapsLoaded(false)
+    }, 100)
+  }
+
   // Focus on specific studio when focusStudioId changes
   useEffect(() => {
     if (focusStudioId && studios.length > 0) {
@@ -99,6 +110,17 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     // Only initialize if Google Maps is fully loaded
     if (googleMapsLoaded && window.google && window.google.maps) {
       try {
+        // Additional safety check - ensure all required services are available
+        if (!window.google.maps.DirectionsService || !window.google.maps.DirectionsRenderer || !window.google.maps.Geocoder) {
+          console.warn('Google Maps services not fully loaded yet, retrying...')
+          setTimeout(() => {
+            if (googleMapsLoaded) {
+              onMapLoad(map)
+            }
+          }, 200)
+          return
+        }
+
         directionsService.current = new window.google.maps.DirectionsService()
         directionsRenderer.current = new window.google.maps.DirectionsRenderer({
           suppressMarkers: true, // We'll handle our own markers
@@ -113,8 +135,11 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         
         // Initialize geocoder for address lookup
         setGeocoder(new window.google.maps.Geocoder())
+        
+        console.log('✅ Google Maps services initialized successfully')
       } catch (error) {
         console.error('Error initializing Google Maps services:', error)
+        // Don't retry on error, just log it
       }
     } else {
       console.warn('Google Maps API not fully loaded yet, retrying...')
@@ -188,35 +213,37 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       return
     }
 
+    // Additional safety check for Google Maps API
+    if (!window.google || !window.google.maps) {
+      alert('Google Maps not ready. Please wait for the map to fully load.')
+      return
+    }
+
     setIsGettingDirections(true)
 
     try {
       let origin
       
       if (originAddress) {
-        // Use provided address
-        origin = await geocodeAddress(originAddress)
-        if (!origin) {
-          alert('Could not find the address you entered. Please check the spelling and try again.')
-          setIsGettingDirections(false)
-          return
+        // Geocode the address
+        const geocodedOrigin = await geocodeAddress(originAddress)
+        if (!geocodedOrigin) {
+          throw new Error('Could not find the starting address')
         }
-        setUserLocation(origin)
+        origin = geocodedOrigin
       } else if (userLocation) {
-        // Use current user location
         origin = userLocation
       } else {
-        // Try to get current location
-        origin = await getUserLocation()
-        if (!origin) {
-          alert('Please enter a starting address or allow location access.')
-          setIsGettingDirections(false)
-          return
+        // Get user's current location
+        const location = await getUserLocation()
+        if (!location) {
+          throw new Error('Could not get your current location')
         }
+        origin = location
       }
 
       const request = {
-        origin: origin,
+        origin,
         destination: {
           lat: parseFloat(studio.latitude),
           lng: parseFloat(studio.longitude)
@@ -246,17 +273,19 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         console.error('❌ DirectionsRenderer not available')
       }
 
-      // Fit map to show entire route
-      const bounds = new window.google.maps.LatLngBounds()
-      bounds.extend(origin)
-      bounds.extend({
-        lat: parseFloat(studio.latitude),
-        lng: parseFloat(studio.longitude)
-      })
-      
-      // Get map instance and fit to bounds
-      if (directionsRenderer.current && directionsRenderer.current.getMap()) {
-        directionsRenderer.current.getMap().fitBounds(bounds)
+      // Fit map to show entire route - with safety check
+      if (window.google && window.google.maps) {
+        const bounds = new window.google.maps.LatLngBounds()
+        bounds.extend(origin)
+        bounds.extend({
+          lat: parseFloat(studio.latitude),
+          lng: parseFloat(studio.longitude)
+        })
+        
+        // Get map instance and fit to bounds
+        if (directionsRenderer.current && directionsRenderer.current.getMap()) {
+          directionsRenderer.current.getMap().fitBounds(bounds)
+        }
       }
     } catch (error) {
       console.error('Error getting directions:', error)
@@ -532,7 +561,6 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       )}
 
       <LoadScript 
-        key={`maps-${searchParams.searchTerm}-${searchParams.filterVerified}-${searchParams.filterFeatured}`}
         googleMapsApiKey={googleMapsApiKey}
         onError={(error) => {
           console.error('Google Maps failed to load:', error)
@@ -578,268 +606,308 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
             </div>
           </div>
         ) : (
-          <div className="relative">
-            {/* Directions Form Modal */}
-            {showDirectionsForm && (
-              <div className="absolute top-4 left-4 z-20 bg-white rounded-lg shadow-xl p-6 max-w-sm border">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-semibold text-gray-900">Get Directions</h4>
-                  <button
-                    onClick={() => setShowDirectionsForm(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+          <GoogleMapsErrorBoundary 
+            onRetry={handleMapRetry}
+            fallback={
+              <div className="w-full h-96 bg-gray-100 rounded-lg p-4 overflow-y-auto">
+                <div className="text-center mb-4">
+                  <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Unavailable</h3>
+                  <p className="text-gray-500">Showing studio list instead</p>
                 </div>
-                
-                <form onSubmit={handleDirectionsSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      From Address
-                    </label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="text"
-                        value={fromAddress}
-                        onChange={(e) => setFromAddress(e.target.value)}
-                        placeholder="Enter your starting address..."
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        required
-                      />
+                <div className="space-y-2">
+                  {(studios || []).map((studio) => (
+                    <div key={studio.id} className="bg-white p-3 rounded border">
+                      <h4 className="font-medium">{studio.title}</h4>
+                      <p className="text-sm text-gray-600">
+                        {studio.address}, {studio.city}, {studio.state}
+                      </p>
+                      {studio.latitude && studio.longitude && (
+                        <p className="text-xs text-gray-500">
+                          📍 {studio.latitude}, {studio.longitude}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {studio.isVerified && (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                            Verified
+                          </span>
+                        )}
+                        {studio.isFeatured && (
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                            Featured
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            }
+          >
+            <div className="relative">
+              {/* Directions Form Modal */}
+              {showDirectionsForm && (
+                <div className="absolute top-4 left-4 z-20 bg-white rounded-lg shadow-xl p-6 max-w-sm border">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold text-gray-900">Get Directions</h4>
+                    <button
+                      onClick={() => setShowDirectionsForm(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <form onSubmit={handleDirectionsSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        From Address
+                      </label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          value={fromAddress}
+                          onChange={(e) => setFromAddress(e.target.value)}
+                          placeholder="Enter your starting address..."
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600">
+                      <p className="mb-2">To: <strong>{selectedStudio?.title}</strong></p>
+                      <p className="text-xs text-gray-500">
+                        {selectedStudio?.address}, {selectedStudio?.city}, {selectedStudio?.state}
+                      </p>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <button
+                        type="submit"
+                        disabled={isGettingDirections}
+                        className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                      >
+                        {isGettingDirections ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b border-white"></div>
+                            <span>Getting Directions...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Navigation className="w-4 h-4" />
+                            <span>Get Directions</span>
+                          </>
+                        )}
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => getDirections(selectedStudio)}
+                        disabled={isGettingDirections}
+                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        title="Use my current location"
+                      >
+                        📍
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Directions Info Panel */}
+              {directionsInfo && (
+                <div className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-lg p-4 max-w-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-gray-900">Route to Studio</h4>
+                    <button
+                      onClick={clearDirections}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <Navigation className="w-4 h-4 text-primary-600" />
+                      <span className="text-gray-600">{directionsInfo.distance}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Clock className="w-4 h-4 text-primary-600" />
+                      <span className="text-gray-600">{directionsInfo.duration}</span>
+                    </div>
+                    <div className="pt-2 border-t border-gray-200">
+                      <p className="text-xs text-gray-500 mb-1">From: {directionsInfo.startAddress}</p>
+                      <p className="text-xs text-gray-500">To: {directionsInfo.endAddress}</p>
                     </div>
                   </div>
-                  
-                  <div className="text-sm text-gray-600">
-                    <p className="mb-2">To: <strong>{selectedStudio?.title}</strong></p>
-                    <p className="text-xs text-gray-500">
-                      {selectedStudio?.address}, {selectedStudio?.city}, {selectedStudio?.state}
-                    </p>
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <button
-                      type="submit"
-                      disabled={isGettingDirections}
-                      className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                    >
-                      {isGettingDirections ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b border-white"></div>
-                          <span>Getting Directions...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Navigation className="w-4 h-4" />
-                          <span>Get Directions</span>
-                        </>
-                      )}
-                    </button>
-                    
-                    <button
-                      type="button"
-                      onClick={() => getDirections(selectedStudio)}
-                      disabled={isGettingDirections}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                      title="Use my current location"
-                    >
-                      📍
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Directions Info Panel */}
-            {directionsInfo && (
-              <div className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-lg p-4 max-w-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-gray-900">Route to Studio</h4>
-                  <button
-                    onClick={clearDirections}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Navigation className="w-4 h-4 text-primary-600" />
-                    <span className="text-gray-600">{directionsInfo.distance}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-primary-600" />
-                    <span className="text-gray-600">{directionsInfo.duration}</span>
-                  </div>
-                  <div className="pt-2 border-t border-gray-200">
-                    <p className="text-xs text-gray-500 mb-1">From: {directionsInfo.startAddress}</p>
-                    <p className="text-xs text-gray-500">To: {directionsInfo.endAddress}</p>
-                  </div>
-                </div>
-              </div>
-            )}
+              )}
 
-            <GoogleMap
-              mapContainerStyle={mapContainerStyle}
-              center={mapCenter}
-              zoom={mapZoom}
-              onLoad={onMapLoad}
-              options={{
-                styles: [
-                  {
-                    featureType: 'poi',
-                    elementType: 'labels',
-                    stylers: [{ visibility: 'off' }]
-                  }
-                ]
-              }}
-            >
-            {/* User Location Marker */}
-            {userLocation && (
-              <Marker
-                position={userLocation}
-                icon={{
-                  url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="12" cy="12" r="12" fill="#3B82F6"/>
-                      <circle cx="12" cy="12" r="8" fill="white"/>
-                      <circle cx="12" cy="12" r="4" fill="#3B82F6"/>
-                    </svg>
-                  `),
-                  scaledSize: window.google?.maps ? new window.google.maps.Size(24, 24) : undefined,
-                  anchor: window.google?.maps ? new window.google.maps.Point(12, 12) : undefined
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={mapCenter}
+                zoom={mapZoom}
+                onLoad={onMapLoad}
+                options={{
+                  styles: [
+                    {
+                      featureType: 'poi',
+                      elementType: 'labels',
+                      stylers: [{ visibility: 'off' }]
+                    }
+                  ]
                 }}
-              />
-            )}
-
-            {(studios || []).map((studio) => {
-              // Only show studios with coordinates
-              if (!studio.latitude || !studio.longitude) return null;
-              
-              return (
+              >
+              {/* User Location Marker */}
+              {userLocation && (
                 <Marker
-                  key={studio.id}
-                  position={{
-                    lat: parseFloat(studio.latitude),
-                    lng: parseFloat(studio.longitude)
-                  }}
-                  onClick={() => setSelectedStudio(studio)}
+                  position={userLocation}
                   icon={{
                     url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="16" cy="16" r="16" fill="#3B82F6"/>
-                        <circle cx="16" cy="16" r="12" fill="white"/>
-                        <circle cx="16" cy="16" r="8" fill="#3B82F6"/>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="12" fill="#3B82F6"/>
+                        <circle cx="12" cy="12" r="8" fill="white"/>
+                        <circle cx="12" cy="12" r="4" fill="#3B82F6"/>
                       </svg>
                     `),
-                    scaledSize: window.google?.maps ? new window.google.maps.Size(32, 32) : undefined,
-                    anchor: window.google?.maps ? new window.google.maps.Point(16, 16) : undefined
+                    scaledSize: window.google?.maps ? new window.google.maps.Size(24, 24) : undefined,
+                    anchor: window.google?.maps ? new window.google.maps.Point(12, 12) : undefined
                   }}
                 />
-              );
-            })}
+              )}
 
-            {selectedStudio && (
-              <InfoWindow
-                position={{
-                  lat: parseFloat(selectedStudio.latitude),
-                  lng: parseFloat(selectedStudio.longitude)
-                }}
-                onCloseClick={() => setSelectedStudio(null)}
-              >
-                <div className="p-2 max-w-xs">
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    {selectedStudio.title}
-                  </h3>
-                  
-                  <div className="text-sm text-gray-600 mb-2">
-                    <p>{selectedStudio.address}</p>
-                    <p>{selectedStudio.city}, {selectedStudio.state} {selectedStudio.zipCode}</p>
-                  </div>
-                  
-                  {/* Contact Info */}
-                  <div className="space-y-1 mb-2">
-                    {selectedStudio.phoneNumber && (
+              {(studios || []).map((studio) => {
+                // Only show studios with coordinates
+                if (!studio.latitude || !studio.longitude) return null;
+                
+                return (
+                  <Marker
+                    key={studio.id}
+                    position={{
+                      lat: parseFloat(studio.latitude),
+                      lng: parseFloat(studio.longitude)
+                    }}
+                    onClick={() => setSelectedStudio(studio)}
+                    icon={{
+                      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="16" cy="16" r="16" fill="#3B82F6"/>
+                          <circle cx="16" cy="16" r="12" fill="white"/>
+                          <circle cx="16" cy="16" r="8" fill="#3B82F6"/>
+                        </svg>
+                      `),
+                      scaledSize: window.google?.maps ? new window.google.maps.Size(32, 32) : undefined,
+                      anchor: window.google?.maps ? new window.google.maps.Point(16, 16) : undefined
+                    }}
+                  />
+                );
+              })}
+
+              {selectedStudio && (
+                <InfoWindow
+                  position={{
+                    lat: parseFloat(selectedStudio.latitude),
+                    lng: parseFloat(selectedStudio.longitude)
+                  }}
+                  onCloseClick={() => setSelectedStudio(null)}
+                >
+                  <div className="p-2 max-w-xs">
+                    <h3 className="font-semibold text-gray-900 mb-1">
+                      {selectedStudio.title}
+                    </h3>
+                    
+                    <div className="text-sm text-gray-600 mb-2">
+                      <p>{selectedStudio.address}</p>
+                      <p>{selectedStudio.city}, {selectedStudio.state} {selectedStudio.zipCode}</p>
+                    </div>
+                    
+                    {/* Contact Info */}
+                    <div className="space-y-1 mb-2">
+                      {selectedStudio.phoneNumber && (
+                        <div className="flex items-center space-x-1">
+                          <Phone className="w-3 h-3 text-gray-500" />
+                          <a 
+                            href={`tel:${selectedStudio.phoneNumber}`}
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            {selectedStudio.phoneNumber}
+                          </a>
+                        </div>
+                      )}
+                      {selectedStudio.email && (
+                        <div className="flex items-center space-x-1">
+                          <MessageSquare className="w-3 h-3 text-gray-500" />
+                          <button
+                            onClick={() => setShowMessageForm(true)}
+                            className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                          >
+                            Send Message
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Status Badges */}
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {selectedStudio.isVerified && (
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                          Verified
+                        </span>
+                      )}
+                      {selectedStudio.isFeatured && (
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                          Featured
+                        </span>
+                      )}
                       <div className="flex items-center space-x-1">
-                        <Phone className="w-3 h-3 text-gray-500" />
-                        <a 
-                          href={`tel:${selectedStudio.phoneNumber}`}
-                          className="text-xs text-blue-600 hover:text-blue-800"
+                        <Users className="w-3 h-3 text-gray-500" />
+                        <span className="text-xs text-gray-600">
+                          {selectedStudio._count?.artists || 0} artists
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col space-y-2">
+                      <button
+                        onClick={() => {
+                          setShowDirectionsForm(true)
+                          setFromAddress('')
+                        }}
+                        className="w-full px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition-colors flex items-center justify-center space-x-1"
+                      >
+                        <Navigation className="w-3 h-3" />
+                        <span>Get Directions</span>
+                      </button>
+                      
+                      <Link
+                        to={`/studios/${selectedStudio.id}`}
+                        className="w-full px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200 transition-colors text-center"
+                        onClick={() => setSelectedStudio(null)}
+                      >
+                        View Details
+                      </Link>
+                      
+                      {selectedStudio.website && (
+                        <a
+                          href={selectedStudio.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded hover:bg-blue-200 transition-colors text-center flex items-center justify-center space-x-1"
                         >
-                          {selectedStudio.phoneNumber}
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Visit Website</span>
                         </a>
-                      </div>
-                    )}
-                    {selectedStudio.email && (
-                      <div className="flex items-center space-x-1">
-                        <MessageSquare className="w-3 h-3 text-gray-500" />
-                        <button
-                          onClick={() => setShowMessageForm(true)}
-                          className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
-                        >
-                          Send Message
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Status Badges */}
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {selectedStudio.isVerified && (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                        Verified
-                      </span>
-                    )}
-                    {selectedStudio.isFeatured && (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-                        Featured
-                      </span>
-                    )}
-                    <div className="flex items-center space-x-1">
-                      <Users className="w-3 h-3 text-gray-500" />
-                      <span className="text-xs text-gray-600">
-                        {selectedStudio._count?.artists || 0} artists
-                      </span>
+                      )}
                     </div>
                   </div>
-
-                  <div className="flex flex-col space-y-2">
-                    <button
-                      onClick={() => {
-                        setShowDirectionsForm(true)
-                        setFromAddress('')
-                      }}
-                      className="w-full px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition-colors flex items-center justify-center space-x-1"
-                    >
-                      <Navigation className="w-3 h-3" />
-                      <span>Get Directions</span>
-                    </button>
-                    
-                    <Link
-                      to={`/studios/${selectedStudio.id}`}
-                      className="w-full px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200 transition-colors text-center"
-                      onClick={() => setSelectedStudio(null)}
-                    >
-                      View Details
-                    </Link>
-                    
-                    {selectedStudio.website && (
-                      <a
-                        href={selectedStudio.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded hover:bg-blue-200 transition-colors text-center flex items-center justify-center space-x-1"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        <span>Visit Website</span>
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </InfoWindow>
-            )}
-            </GoogleMap>
-          </div>
+                </InfoWindow>
+              )}
+              </GoogleMap>
+            </div>
+          </GoogleMapsErrorBoundary>
         )}
       </LoadScript>
       

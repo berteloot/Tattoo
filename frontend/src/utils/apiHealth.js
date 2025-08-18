@@ -76,3 +76,34 @@ export const apiCallWithFallback = async (apiCall, fallbackData) => {
     return { success: true, data: fallbackData, isFallback: true }
   }
 } 
+
+/**
+ * Safely check if Google Maps API is ready and available
+ * @returns {boolean} True if Google Maps is ready, false otherwise
+ */
+export const isGoogleMapsReady = () => {
+  try {
+    return !!(window.google && window.google.maps && window.google.maps.Map);
+  } catch (error) {
+    console.warn('Error checking Google Maps readiness:', error);
+    return false;
+  }
+}
+
+/**
+ * Safely access Google Maps objects with fallback
+ * @param {Function} accessor - Function that accesses Google Maps API
+ * @param {any} fallback - Fallback value if Google Maps is not ready
+ * @returns {any} Result of accessor function or fallback
+ */
+export const safeGoogleMapsAccess = (accessor, fallback = undefined) => {
+  try {
+    if (isGoogleMapsReady()) {
+      return accessor();
+    }
+    return fallback;
+  } catch (error) {
+    console.warn('Error accessing Google Maps API:', error);
+    return fallback;
+  }
+} 

@@ -41,21 +41,48 @@ export const ArtistMap = () => {
 
   // Initialize directions service and geocoder when map loads
   const onMapLoad = (map) => {
-    if (window.google) {
-      directionsService.current = new window.google.maps.DirectionsService()
-      directionsRenderer.current = new window.google.maps.DirectionsRenderer({
-        suppressMarkers: true, // We'll handle our own markers
-        polylineOptions: {
-          strokeColor: '#DC2626',
-          strokeWeight: 6,
-          strokeOpacity: 0.9
-        },
-        suppressInfoWindows: false
-      })
-      directionsRenderer.current.setMap(map)
-      
-      // Initialize geocoder for address lookup
-      setGeocoder(new window.google.maps.Geocoder())
+    // Add safety check for Google Maps API
+    if (window.google && window.google.maps) {
+      try {
+        // Additional safety check - ensure all required services are available
+        if (!window.google.maps.DirectionsService || !window.google.maps.DirectionsRenderer || !window.google.maps.Geocoder) {
+          console.warn('Google Maps services not fully loaded yet, retrying...')
+          setTimeout(() => {
+            if (window.google && window.google.maps) {
+              onMapLoad(map)
+            }
+          }, 200)
+          return
+        }
+
+        directionsService.current = new window.google.maps.DirectionsService()
+        directionsRenderer.current = new window.google.maps.DirectionsRenderer({
+          suppressMarkers: true, // We'll handle our own markers
+          polylineOptions: {
+            strokeColor: '#DC2626',
+            strokeWeight: 6,
+            strokeOpacity: 0.9
+          },
+          suppressInfoWindows: false
+        })
+        directionsRenderer.current.setMap(map)
+        
+        // Initialize geocoder for address lookup
+        setGeocoder(new window.google.maps.Geocoder())
+        
+        console.log('✅ Google Maps services initialized successfully')
+      } catch (error) {
+        console.error('Error initializing Google Maps services:', error)
+        // Don't retry on error, just log it
+      }
+    } else {
+      console.warn('Google Maps API not ready yet, retrying...')
+      // Retry after a short delay
+      setTimeout(() => {
+        if (window.google && window.google.maps) {
+          onMapLoad(map)
+        }
+      }, 100)
     }
   }
 
