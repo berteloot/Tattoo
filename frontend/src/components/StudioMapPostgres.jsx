@@ -471,7 +471,57 @@ export const StudioMapPostgres = ({ searchTerm = '', filterVerified = false, fil
                 }}
               >
                 {/* Studio Markers with Clustering */}
-                <MarkerClusterer>
+                <MarkerClusterer
+                  options={{
+                    styles: [
+                      {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="20" cy="20" r="20" fill="#F59E0B" stroke="#D97706" stroke-width="2"/>
+                            <circle cx="20" cy="20" r="16" fill="white"/>
+                            <text x="20" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1F2937">#</text>
+                          </svg>
+                        `),
+                        width: 40,
+                        height: 40,
+                        textColor: '#1F2937',
+                        textSize: 14,
+                        anchor: [20, 20]
+                      },
+                      {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                          <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="25" cy="25" r="25" fill="#F59E0B" stroke="#D97706" stroke-width="2"/>
+                            <circle cx="25" cy="25" r="20" fill="white"/>
+                            <text x="25" cy="32" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">#</text>
+                          </svg>
+                        `),
+                        width: 50,
+                        height: 50,
+                        textColor: '#1F2937',
+                        textSize: 16,
+                        anchor: [25, 25]
+                      },
+                      {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                          <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="30" r="30" fill="#F59E0B" stroke="#D97706" stroke-width="2"/>
+                            <circle cx="30" cy="30" r="24" fill="white"/>
+                            <text x="30" y="38" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1F2937">#</text>
+                          </svg>
+                        `),
+                        width: 60,
+                        height: 60,
+                        textColor: '#1F2937',
+                        textSize: 18,
+                        anchor: [30, 30]
+                      }
+                    ],
+                    minimumClusterSize: 2,
+                    gridSize: 50,
+                    maxZoom: 15
+                  }}
+                >
                   {(clusterer) =>
                     studios.map((studio) => {
                       if (!studio.latitude || !studio.longitude) return null
