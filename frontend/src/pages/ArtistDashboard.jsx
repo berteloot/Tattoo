@@ -298,31 +298,11 @@ export const ArtistDashboard = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Artist Dashboard</h1>
-              <p className="text-gray-600">
-                {profile.id ? 'Edit your artist profile' : 'Create your artist profile'}
-              </p>
-            </div>
-            
-            <div className="flex space-x-3">
-              <button
-                onClick={() => navigate('/dashboard/gallery')}
-                className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Manage Gallery
-              </button>
-              
-              <button
-                onClick={() => navigate('/profile')}
-                className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                <User className="h-4 w-4 mr-2" />
-                Profile Settings
-              </button>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Artist Dashboard</h1>
+            <p className="text-gray-600">
+              {profile.id ? 'Edit your artist profile' : 'Create your artist profile'}
+            </p>
           </div>
         </div>
 
@@ -331,41 +311,29 @@ export const ArtistDashboard = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Profile Form */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Artist Profile</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Bio
-                  </label>
-                  <textarea
-                    value={formData.bio}
-                    onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Tell clients about your style and experience..."
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Studio
-                  </label>
-                  <StudioSelect
-                    selectedStudio={selectedStudio}
-                    onStudioSelect={handleStudioSelect}
-                    onStudioClear={handleStudioClear}
-                    placeholder="Search for a studio to join or claim..."
-                    className="w-full"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Search for an existing studio to join, or claim a new one if you're the first artist there.
-                  </p>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Artist Profile</h2>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => navigate('/dashboard/gallery')}
+                    className="flex items-center px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Gallery
+                  </button>
+                  
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="flex items-center px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Settings
+                  </button>
                 </div>
               </div>
-
-              {/* Profile Picture */}
-              <div className="mb-4">
+              
+              {/* Profile Picture Section */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="text-lg font-medium text-gray-900 mb-3">Profile Picture</h3>
                 <ProfilePictureUpload
                   onImageUpload={handleProfilePictureUpload}
@@ -382,8 +350,191 @@ export const ArtistDashboard = () => {
                 />
               </div>
 
+              {/* Basic Information */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Bio
+                    </label>
+                    <textarea
+                      value={formData.bio}
+                      onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Tell clients about your style and experience..."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Studio
+                    </label>
+                    <StudioSelect
+                      selectedStudio={selectedStudio}
+                      onStudioSelect={handleStudioSelect}
+                      onStudioClear={handleStudioClear}
+                      placeholder="Search for a studio to join or claim..."
+                      className="w-full"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Search for an existing studio to join, or claim a new one if you're the first artist there.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Contact & Social Media</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Website
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.website}
+                      onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://yourwebsite.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Calendly URL
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.calendlyUrl}
+                      onChange={(e) => setFormData(prev => ({ ...prev, calendlyUrl: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://calendly.com/yourname"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Instagram
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.instagram}
+                      onChange={(e) => setFormData(prev => ({ ...prev, instagram: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="@username"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Facebook
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.facebook}
+                      onChange={(e) => setFormData(prev => ({ ...prev, facebook: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="facebook.com/username"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Location Information */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Location</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Address
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.address}
+                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Street address"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.city}
+                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="City"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      State/Province
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.state}
+                      onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="State"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing Information */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Pricing</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Hourly Rate ($)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.hourlyRate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="150"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Minimum Price ($)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.minPrice}
+                      onChange={(e) => setFormData(prev => ({ ...prev, minPrice: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Maximum Price ($)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.maxPrice}
+                      onChange={(e) => setFormData(prev => ({ ...prev, maxPrice: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="500"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Save Profile Button */}
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={async () => {
@@ -449,186 +600,32 @@ export const ArtistDashboard = () => {
                       showError(errorMessage);
                     }
                   }}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
                 >
                   {profile?.id ? 'Update Profile' : 'Create Profile'}
                 </button>
               </div>
-
-              {/* Social Media Links */}
-              <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">Social Media & Links</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Website
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.website}
-                      onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="https://yourwebsite.com"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Calendly URL
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.calendlyUrl}
-                      onChange={(e) => setFormData(prev => ({ ...prev, calendlyUrl: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="https://calendly.com/yourname"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Location */}
-              <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">Location</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.address}
-                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Street address"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.city}
-                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="City"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      State/Province
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.state}
-                      onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="State"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Pricing */}
-              <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">Pricing</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Hourly Rate ($)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.hourlyRate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="150"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Minimum Price ($)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.minPrice}
-                      onChange={(e) => setFormData(prev => ({ ...prev, minPrice: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="50"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Maximum Price ($)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.maxPrice}
-                      onChange={(e) => setFormData(prev => ({ ...prev, maxPrice: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <div className="flex justify-end">
-                <button
-                  onClick={() => {
-                    // TODO: Implement save functionality
-                    success('Profile updated successfully!')
-                  }}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Save Profile
-                </button>
-              </div>
             </div>
 
-            {/* Flash Items */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Flash Items</h2>
-                <button className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Flash
-                </button>
+            {/* Message Management */}
+            {profile.id ? (
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">Message Panel</h3>
+                  <p className="text-sm text-gray-600">
+                    Create and manage messages that appear on your artist profile and cards
+                  </p>
+                </div>
+                <MessageManagement />
               </div>
-              
-              {flash.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {flash.map((item) => (
-                    <div key={item.id} className="border border-gray-200 rounded-lg p-4">
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.title}
-                        className="w-full h-32 object-cover rounded-lg mb-3"
-                      />
-                      <h3 className="font-medium text-gray-900 mb-1">{item.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-green-600">${item.basePrice}</span>
-                        <button className="text-blue-600 hover:text-blue-800">
-                          <Edit3 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No flash items yet</p>
-                  <p className="text-sm text-gray-400">Add some flash designs to showcase your work</p>
-                </div>
-              )}
-            </div>
+            ) : (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <p className="mb-4">Create your artist profile first to manage messages.</p>
+                <p className="text-sm text-gray-500">
+                  You need ARTIST or ARTIST_ADMIN role to manage messages.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}

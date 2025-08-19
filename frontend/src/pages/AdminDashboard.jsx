@@ -158,67 +158,46 @@ const AdminDashboard = () => {
           <p className="text-gray-600">Welcome back, {user?.firstName}!</p>
         </div>
 
-        {/* Manual API Test Section */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <h3 className="text-lg font-semibold text-yellow-900 mb-2">Manual API Test</h3>
-          <div className="space-y-2">
-            <p className="text-sm text-yellow-700">
-              If the dashboard is missing data, click the button below to test the API manually.
-            </p>
-            <button
-              onClick={testAPI}
-              disabled={isLoading}
-              className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50 text-sm"
-            >
-              {isLoading ? 'Testing...' : 'Test API Manually'}
-            </button>
-            {manualStats && (
-              <p className="text-sm text-green-700">
-                ✅ Manual API test successful! Stats loaded: {Object.keys(manualStats).length} items
-              </p>
-            )}
-          </div>
+        {/* Critical Alerts - Show at top for immediate attention */}
+        <div className="space-y-4 mb-8">
+          {/* Pending Verifications Alert */}
+          {displayStats.pendingVerifications > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
+                <span className="text-yellow-800 font-medium">
+                  {displayStats.pendingVerifications} artist verification(s) pending review
+                </span>
+                <Link 
+                  to="/admin/artists/pending" 
+                  className="ml-auto text-yellow-800 hover:text-yellow-900 underline text-sm font-medium"
+                >
+                  Review Now →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Pending Geocoding Alert */}
+          {displayStats.pendingGeocoding > 0 && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <MapPin className="h-5 w-5 text-orange-600 mr-2" />
+                <span className="text-orange-800 font-medium">
+                  {displayStats.pendingGeocoding} studio(s) need geocoding
+                </span>
+                <Link 
+                  to="/admin/geocoding" 
+                  className="ml-auto text-orange-800 hover:text-orange-900 underline text-sm font-medium"
+                >
+                  Process Geocoding →
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* System Status Overview */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">System Status</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <div className={`w-3 h-3 rounded-full mr-3 ${displayStats.totalUsers > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">User System</p>
-                <p className="text-xs text-gray-500">{displayStats.totalUsers || 0} users</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <div className={`w-3 h-3 rounded-full mr-3 ${displayStats.totalStudios > 0 ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Studio System</p>
-                <p className="text-xs text-gray-500">{displayStats.totalStudios || 0} studios</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <div className={`w-3 h-3 rounded-full mr-3 ${displayStats.geocodedStudios > 0 ? 'bg-green-500' : 'bg-orange-500'}`}></div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Geocoding</p>
-                <p className="text-xs text-gray-500">{displayStats.geocodedStudios || 0} geocoded</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <div className={`w-3 h-3 rounded-full mr-3 ${displayStats.totalReviews > 0 ? 'bg-green-500' : 'bg-blue-500'}`}></div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Review System</p>
-                <p className="text-xs text-gray-500">{displayStats.totalReviews || 0} reviews</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Statistics Cards */}
+        {/* Main Statistics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
@@ -250,42 +229,11 @@ const AdminDashboard = () => {
 
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Star className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Featured Artists</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {displayStats.featuredArtists || 0}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
               <div className="p-2 bg-purple-100 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-purple-600" />
+                <Building className="h-6 w-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Reviews</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {displayStats.totalReviews || 0}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Statistics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <MapPin className="h-6 w-6 text-indigo-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Studios</p>
+                <p className="text-sm font-medium text-gray-600">Studios</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {displayStats.totalStudios || 0}
                 </p>
@@ -295,13 +243,33 @@ const AdminDashboard = () => {
 
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-teal-100 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-teal-600" />
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Star className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Reviews</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {displayStats.totalReviews || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary Statistics Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <MapPin className="h-6 w-6 text-indigo-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Geocoded Studios</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {displayStats.geocodedStudios || 0}
+                </p>
+                <p className="text-xs text-gray-500">
+                  of {displayStats.totalStudios || 0} total
                 </p>
               </div>
             </div>
@@ -309,20 +277,39 @@ const AdminDashboard = () => {
 
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <AlertCircle className="h-6 w-6 text-orange-600" />
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <UserCheck className="h-6 w-6 text-emerald-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pending Geocoding</p>
+                <p className="text-sm font-medium text-gray-600">Featured Artists</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {displayStats.pendingGeocoding || 0}
+                  {displayStats.featuredArtists || 0}
                 </p>
+                <p className="text-xs text-gray-500">
+                  of {displayStats.totalArtists || 0} total
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-teal-100 rounded-lg">
+                <TrendingUp className="h-6 w-6 text-teal-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">System Health</p>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm text-green-600 font-medium">Operational</span>
+                </div>
+                <p className="text-xs text-gray-500">All systems normal</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Recent Actions */}
           <div className="bg-white rounded-lg shadow p-6">
@@ -332,7 +319,7 @@ const AdminDashboard = () => {
                 to="/admin/actions" 
                 className="text-blue-600 hover:text-blue-800 text-sm font-medium"
               >
-                View All
+                View All →
               </Link>
             </div>
             
@@ -376,7 +363,7 @@ const AdminDashboard = () => {
             )}
           </div>
 
-          {/* Quick Links */}
+          {/* Quick Actions */}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 gap-3">
@@ -411,118 +398,100 @@ const AdminDashboard = () => {
                 <Activity className="h-5 w-5 text-purple-600 mr-3" />
                 <span className="text-purple-800 font-medium">Audit Log</span>
               </Link>
+            </div>
+          </div>
+        </div>
 
-              {/* Additional Admin Actions */}
-              <Link 
-                to="/admin/artists" 
-                className="flex items-center p-3 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
-              >
-                <UserCheck className="h-5 w-5 text-emerald-600 mr-3" />
-                <span className="text-emerald-800 font-medium">Artist Management</span>
-              </Link>
-              
-              <Link 
-                to="/admin/content" 
-                className="flex items-center p-3 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
-              >
-                <Image className="h-5 w-5 text-violet-600 mr-3" />
-                <span className="text-violet-800 font-medium">Content Management</span>
-              </Link>
-              
-              <Link 
-                to="/admin/settings" 
-                className="flex items-center p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <Settings className="h-5 w-5 text-slate-600 mr-3" />
-                <span className="text-slate-800 font-medium">System Settings</span>
-              </Link>
-
-              {/* Geolocalization and Studio Management */}
-              <Link 
-                to="/admin/geocoding" 
-                className="flex items-center p-3 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
-              >
-                <MapPin className="h-5 w-5 text-indigo-600 mr-3" />
+        {/* Studio Management Section */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Studio Management</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link 
+              to="/admin/geocoding" 
+              className="flex items-center p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+            >
+              <MapPin className="h-6 w-6 text-indigo-600 mr-3" />
+              <div>
                 <span className="text-indigo-800 font-medium">Studio Geocoding</span>
-              </Link>
-              
-              <Link 
-                to="/admin/studios/upload" 
-                className="flex items-center p-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
-              >
-                <Upload className="h-5 w-5 text-orange-600 mr-3" />
-                <span className="text-orange-800 font-medium">CSV Studio Import</span>
-              </Link>
-              
-              <Link 
-                to="/admin/studios" 
-                className="flex items-center p-3 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
-              >
-                <Building className="h-5 w-5 text-teal-600 mr-3" />
+                <p className="text-sm text-indigo-600">Process location data</p>
+              </div>
+            </Link>
+            
+            <Link 
+              to="/admin/studios/upload" 
+              className="flex items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+            >
+              <Upload className="h-6 w-6 text-orange-600 mr-3" />
+              <div>
+                <span className="text-orange-800 font-medium">CSV Import</span>
+                <p className="text-sm text-orange-600">Bulk studio upload</p>
+              </div>
+            </Link>
+            
+            <Link 
+              to="/admin/studios" 
+              className="flex items-center p-4 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
+            >
+              <Building className="h-6 w-6 text-teal-600 mr-3" />
+              <div>
                 <span className="text-teal-800 font-medium">Manage Studios</span>
-              </Link>
-            </div>
+                <p className="text-sm text-teal-600">View and edit studios</p>
+              </div>
+            </Link>
           </div>
         </div>
 
-        {/* Additional Stats */}
-        {displayStats.pendingVerifications > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center">
-              <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
-              <span className="text-yellow-800 font-medium">
-                {displayStats.pendingVerifications} artist verification(s) pending review
-              </span>
-              <Link 
-                to="/admin/artists/pending" 
-                className="ml-auto text-yellow-800 hover:text-yellow-900 underline text-sm"
-              >
-                Review Now
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Pending Geocoding Alert */}
-        {displayStats.pendingGeocoding > 0 && (
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center">
-              <MapPin className="h-5 w-5 text-orange-600 mr-2" />
-              <span className="text-orange-800 font-medium">
-                {displayStats.pendingGeocoding} studio(s) need geocoding
-              </span>
-              <Link 
-                to="/admin/geocoding" 
-                className="ml-auto text-orange-800 hover:text-orange-900 underline text-sm"
-              >
-                Process Geocoding
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* System Status */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">System Status</h2>
+        {/* Advanced Admin Tools */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Advanced Tools</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-              <span className="text-sm text-gray-700">Database connection: Active</span>
-            </div>
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-              <span className="text-sm text-gray-700">API endpoints: Operational</span>
-            </div>
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-              <span className="text-sm text-gray-700">Authentication: Secure</span>
-            </div>
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-              <span className="text-sm text-gray-700">File uploads: Available</span>
-            </div>
+            <Link 
+              to="/admin/artists" 
+              className="flex items-center p-4 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
+            >
+              <UserCheck className="h-6 w-6 text-emerald-600 mr-3" />
+              <div>
+                <span className="text-emerald-800 font-medium">Artist Management</span>
+                <p className="text-sm text-emerald-600">Comprehensive artist control</p>
+              </div>
+            </Link>
+            
+            <Link 
+              to="/admin/content" 
+              className="flex items-center p-4 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+            >
+              <Image className="h-6 w-6 text-violet-600 mr-3" />
+              <div>
+                <span className="text-violet-800 font-medium">Content Management</span>
+                <p className="text-sm text-violet-600">Moderate user content</p>
+              </div>
+            </Link>
           </div>
         </div>
+
+        {/* API Test Section - Only show if manual data is needed */}
+        {!displayStats.totalUsers && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-semibold text-yellow-900 mb-2">API Connection Issue</h3>
+            <div className="space-y-2">
+              <p className="text-sm text-yellow-700">
+                Dashboard data is not loading. Click the button below to test the API manually.
+              </p>
+              <button
+                onClick={testAPI}
+                disabled={isLoading}
+                className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50 text-sm"
+              >
+                {isLoading ? 'Testing...' : 'Test API Manually'}
+              </button>
+              {manualStats && (
+                <p className="text-sm text-green-700">
+                  ✅ Manual API test successful! Stats loaded: {Object.keys(manualStats).length} items
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Debug Info - Only show in development */}
         {process.env.NODE_ENV === 'development' && (
@@ -533,36 +502,6 @@ const AdminDashboard = () => {
             </pre>
           </div>
         )}
-
-        {/* API Test Section - Always show for debugging */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">API Connection Test</h3>
-          <div className="space-y-2">
-            <p className="text-sm text-blue-700">
-              Current API URL: {import.meta.env.VITE_API_URL || 'Using relative path'}
-            </p>
-            <p className="text-sm text-blue-700">
-              Environment: {import.meta.env.MODE}
-            </p>
-            <button
-              onClick={async () => {
-                try {
-                  console.log('🧪 Testing API connection...');
-                  const response = await fetch('/api/admin/dashboard');
-                  const data = await response.json();
-                  console.log('✅ API test successful:', data);
-                  alert(`API Test: ${response.status} - ${response.statusText}\nData: ${JSON.stringify(data, null, 2)}`);
-                } catch (error) {
-                  console.error('❌ API test failed:', error);
-                  alert(`API Test Failed: ${error.message}`);
-                }
-              }}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-            >
-              Test API Connection
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
