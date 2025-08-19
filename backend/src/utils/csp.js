@@ -2,6 +2,9 @@
  * Content Security Policy (CSP) Configuration
  * Minimal and verified CSP directives for production use
  * Only includes endpoints that are actually used by the application
+ * 
+ * UPDATED: 2025-08-19 - Fixed Google Maps CSP blocking issue
+ * DEPLOYMENT: This change triggers frontend rebuild to fix map loading
  */
 
 /**
