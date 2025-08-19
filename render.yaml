@@ -1,5 +1,6 @@
-# Render deployment configuration - Version 5.3
+# Render deployment configuration - Version 5.4
 # Single full-stack service - Frontend and Backend served from same URL
+# FORCE REDEPLOY: Admin dashboard missing elements fix - Added geolocalization and CSV import
 services:
   # Full-Stack Application (API + Frontend)
   - type: web
