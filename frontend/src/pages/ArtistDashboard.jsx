@@ -33,7 +33,8 @@ import {
   Camera,
   Settings,
   User,
-  Building
+  Building,
+  Trash2
 } from 'lucide-react'
 
 export const ArtistDashboard = () => {
@@ -319,15 +320,15 @@ export const ArtistDashboard = () => {
                     className="flex items-center px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
                   >
                     <Image className="h-4 w-4 mr-2" />
-                    Flash Gallery
+                    Tattoo Gallery
                   </button>
                   
                   <button
-                    onClick={() => navigate('/profile')}
-                    className="flex items-center px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
+                    onClick={() => navigate('/dashboard/flash')}
+                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
                   >
-                    <User className="h-4 w-4 mr-2" />
-                    Settings
+                    <Plus className="h-4 w-4 mr-2" />
+                    Flash Gallery
                   </button>
                 </div>
               </div>
@@ -632,7 +633,7 @@ export const ArtistDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Flash Gallery</h2>
                 <button 
-                  onClick={() => navigate('/dashboard/gallery')}
+                  onClick={() => navigate('/dashboard/flash')}
                   className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -653,9 +654,14 @@ export const ArtistDashboard = () => {
                       <p className="text-sm text-gray-600 mb-2">{item.description}</p>
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-green-600">${item.basePrice}</span>
-                        <button className="text-blue-600 hover:text-blue-800">
-                          <Edit3 className="h-4 w-4" />
-                        </button>
+                        <div className="flex space-x-2">
+                          <button className="text-blue-600 hover:text-blue-800">
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                          <button className="text-red-600 hover:text-red-800">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -667,6 +673,32 @@ export const ArtistDashboard = () => {
                   <p className="text-sm text-gray-400">Add some flash designs to showcase your work</p>
                 </div>
               )}
+            </div>
+
+            {/* Tattoo Gallery */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Tattoo Gallery</h2>
+                <button 
+                  onClick={() => navigate('/dashboard/gallery')}
+                  className="flex items-center px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
+                >
+                  <Image className="h-4 w-4 mr-2" />
+                  Add Tattoo
+                </button>
+              </div>
+              
+              <div className="text-center py-8">
+                <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Tattoo Gallery Management</p>
+                <p className="text-sm text-gray-400">Manage your tattoo portfolio and custom designs</p>
+                <button 
+                  onClick={() => navigate('/dashboard/gallery')}
+                  className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                >
+                  Go to Tattoo Gallery
+                </button>
+              </div>
             </div>
           </div>
 
@@ -760,15 +792,15 @@ export const ArtistDashboard = () => {
                   className="w-full flex items-center p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
                 >
                   <Image className="h-5 w-5 text-purple-600 mr-3" />
-                  <span className="text-purple-800 font-medium">Manage Flash Gallery</span>
+                  <span className="text-purple-800 font-medium">Manage Tattoo Gallery</span>
                 </button>
                 
                 <button
-                  onClick={() => navigate('/profile')}
-                  className="w-full flex items-center p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                  onClick={() => navigate('/dashboard/flash')}
+                  className="w-full flex items-center p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
                 >
-                  <Settings className="h-5 w-5 text-blue-600 mr-3" />
-                  <span className="text-blue-800 font-medium">Profile Settings</span>
+                  <Plus className="h-5 w-5 text-green-600 mr-3" />
+                  <span className="text-green-800 font-medium">Manage Flash Gallery</span>
                 </button>
                 
                 <button
