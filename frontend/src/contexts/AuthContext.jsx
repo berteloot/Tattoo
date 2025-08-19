@@ -17,7 +17,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [accessToken, setAccessToken] = useState(null) // Store access token in memory only
+  const [localAccessToken, setLocalAccessToken] = useState(null) // Renamed to avoid conflict
   const [isRefreshing, setIsRefreshing] = useState(false) // Prevent multiple refresh attempts
   const [refreshAttempts, setRefreshAttempts] = useState(0) // Track refresh attempts
   const [lastRefreshTime, setLastRefreshTime] = useState(0) // Track last refresh time
@@ -29,6 +29,15 @@ export const AuthProvider = ({ children }) => {
     // Try to refresh token on app start
     refreshAccessToken()
   }, [])
+
+  // Sync tokenManager state with local state
+  useEffect(() => {
+    const token = getAccessToken()
+    if (token && token !== localAccessToken) {
+      console.log('🔄 Syncing tokenManager state with local state')
+      setLocalAccessToken(token)
+    }
+  }, [localAccessToken])
 
   // Function to refresh access token using refresh token cookie
   const refreshAccessToken = async () => {
@@ -61,8 +70,16 @@ export const AuthProvider = ({ children }) => {
       
       if (response.data && response.data.success) {
         const { accessToken: newAccessToken } = response.data.data
+        
+        console.log('🔄 Token refresh successful, new token:', newAccessToken ? 'Present' : 'Missing')
+        
         // Store token securely in memory using token manager
         setAccessToken(newAccessToken)
+        console.log('✅ Token stored in tokenManager')
+        
+        // Also update local state for consistency
+        setLocalAccessToken(newAccessToken)
+        console.log('✅ Token synced to local state')
         
         // Reset refresh attempts on success
         setRefreshAttempts(0)
@@ -129,16 +146,26 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
+      console.log('🔍 Fetching user profile...')
+      console.log('🔑 Current token in tokenManager:', getAccessToken() ? 'Present' : 'Missing')
+      console.log('🔑 Current token in local state:', localAccessToken ? 'Present' : 'Missing')
+      
       const response = await authAPI.getProfile()
       
       // Check if response has the expected structure
       if (response.data && response.data.success && response.data.data) {
+        console.log('✅ User profile fetched successfully')
         setUser(response.data.data.user)
       } else {
         throw new Error('Invalid response format from server')
       }
     } catch (error) {
-      console.error('Error fetching user:', error)
+      console.error('❌ Error fetching user:', error)
+      console.error('🔍 Error details:', {
+        status: error.response?.status,
+        message: error.response?.data?.error || error.message,
+        url: error.config?.url
+      })
       
       // Handle rate limiting (429) - don't retry immediately
       if (error.response?.status === 429) {
@@ -150,19 +177,22 @@ export const AuthProvider = ({ children }) => {
       
       // Handle 401 errors (token expired or invalid)
       if (error.response?.status === 401) {
-        console.log('Access token expired, attempting to refresh...')
+        console.log('🚨 401 Unauthorized - token may be invalid or expired')
+        console.log('🔑 Token in tokenManager:', getAccessToken() ? 'Present' : 'Missing')
+        console.log('🔑 Token in local state:', localAccessToken ? 'Present' : 'Missing')
         
         // Only attempt refresh if we're not already refreshing and haven't exceeded attempts
         if (!isRefreshing && refreshAttempts < 3) {
+          console.log('🔄 Attempting token refresh...')
           try {
             // Try to refresh the access token
             await refreshAccessToken()
           } catch (refreshError) {
-            console.log('Token refresh failed, user needs to login')
+            console.log('❌ Token refresh failed, user needs to login')
             handleAuthFailure()
           }
         } else {
-          console.log('Skipping refresh attempt - already refreshing or max attempts reached')
+          console.log('⚠️ Skipping refresh attempt - already refreshing or max attempts reached')
           handleAuthFailure()
         }
         return
@@ -194,6 +224,10 @@ export const AuthProvider = ({ children }) => {
           
           // Store access token securely in memory using token manager
           setAccessToken(accessToken)
+          
+          // Also update local state for consistency
+          setLocalAccessToken(accessToken)
+          
           setUser(user)
           
           console.log('Login successful, navigating to home')
@@ -316,6 +350,7 @@ export const AuthProvider = ({ children }) => {
       
       // Always perform local cleanup using secure token manager
       clearAccessToken()
+      setLocalAccessToken(null)
       setUser(null)
       
       console.log('Logout completed, navigating to home')
@@ -351,6 +386,26 @@ export const AuthProvider = ({ children }) => {
   }
 
   // Note: loginWithToken removed - tokens are now managed securely via refresh flow
+
+  // Helper function to handle authentication failure
+  const handleAuthFailure = () => {
+    console.log('Authentication failed, clearing state and redirecting to login')
+    
+    // Clear token from tokenManager
+    clearAccessToken()
+    
+    // Clear local state
+    setLocalAccessToken(null)
+    setUser(null)
+    setRefreshAttempts(0)
+    setLoading(false)
+    
+    // Clear API headers
+    delete api.defaults.headers.common['Authorization']
+    
+    // Redirect to login page
+    navigate('/login')
+  }
 
   const value = {
     user,

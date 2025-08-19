@@ -50,40 +50,14 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor to handle errors and automatic token refresh
+// Response interceptor to handle errors (no automatic token refresh to prevent conflicts)
 api.interceptors.response.use(
   (response) => {
     return response
   },
   async (error) => {
-    // Handle 401 errors (token expired)
-    if (error.response?.status === 401 && 
-        !error.config.url.includes('/auth/') && 
-        !error.config.url.includes('/login') && 
-        !error.config.url.includes('/register') &&
-        !error.config.url.includes('/refresh')) {
-      
-      console.log('Access token expired, attempting automatic refresh...')
-      
-      try {
-        // Try to refresh the token
-        const refreshResponse = await authAPI.refreshToken()
-        
-        if (refreshResponse.data && refreshResponse.data.success) {
-          const { accessToken } = refreshResponse.data.data
-          
-          // Update the failed request with new token
-          error.config.headers.Authorization = `Bearer ${accessToken}`
-          
-          // Retry the original request
-          return api.request(error.config)
-        }
-      } catch (refreshError) {
-        console.log('Token refresh failed, user needs to login')
-        // Let the component handle the auth failure
-      }
-    }
-    
+    // Don't handle 401 errors automatically - let AuthContext handle them
+    // This prevents conflicts between automatic refresh and manual refresh logic
     return Promise.reject(error)
   }
 )
