@@ -132,7 +132,6 @@ export const ArtistDashboard = () => {
         ...prev,
         bio: profile.bio || '',
         studioName: profile.studioName || '',
-        studioId: profile.studioId || null,
         website: profile.website || '',
         instagram: profile.instagram || '',
         facebook: profile.facebook || '',
@@ -172,9 +171,9 @@ export const ArtistDashboard = () => {
       }
 
       // Set selected studio if profile has studio info
-      if (profile.studioId && profile.studioName) {
+      if (profile.studioName) {
         setSelectedStudio({
-          id: profile.studioId,
+          id: null, // We don't store studioId in the profile
           title: profile.studioName,
           address: profile.address,
           city: profile.city,
@@ -239,7 +238,6 @@ export const ArtistDashboard = () => {
     setSelectedStudio(studio)
     setFormData(prev => ({
       ...prev,
-      studioId: studio.id,
       studioName: studio.title,
       // Pre-fill address information from studio
       address: studio.address || prev.address,
@@ -254,7 +252,6 @@ export const ArtistDashboard = () => {
     setSelectedStudio(null)
     setFormData(prev => ({
       ...prev,
-      studioId: null,
       studioName: ''
     }))
   }
@@ -391,12 +388,29 @@ export const ArtistDashboard = () => {
                   type="button"
                   onClick={async () => {
                     try {
+                      // If studio is selected, ensure studio data is included in profile
+                      let profileDataToSave = { ...formData };
+                      
+                      if (selectedStudio) {
+                        // Include studio information in the profile data
+                        profileDataToSave = {
+                          ...profileDataToSave,
+                          studioName: selectedStudio.title,
+                          // Use studio address if available, otherwise keep user's input
+                          address: selectedStudio.address || profileDataToSave.address,
+                          city: selectedStudio.city || profileDataToSave.city,
+                          state: selectedStudio.state || profileDataToSave.state,
+                          zipCode: selectedStudio.zipCode || profileDataToSave.zipCode,
+                          country: selectedStudio.country || profileDataToSave.country
+                        };
+                      }
+                      
                       // Save profile first
                       let response;
                       if (profile?.id) {
-                        response = await artistsAPI.updateProfile(profile.id, formData);
+                        response = await artistsAPI.updateProfile(profile.id, profileDataToSave);
                       } else {
-                        response = await artistsAPI.createProfile(formData);
+                        response = await artistsAPI.createProfile(profileDataToSave);
                       }
                       
                       if (response.data.success) {
@@ -405,10 +419,12 @@ export const ArtistDashboard = () => {
                         // If studio is selected, try to claim/join it
                         if (selectedStudio) {
                           try {
+                            const artistProfileId = response.data.data.artistProfile?.id || response.data.data.artist?.id;
+                            
                             if (selectedStudio.claimedBy) {
                               // Studio is already claimed, try to join
                               await api.post(`/studios/${selectedStudio.id}/artists`, {
-                                artistId: response.data.data.artistProfile?.id || response.data.data.artist?.id
+                                artistId: artistProfileId
                               });
                               success(`Successfully joined ${selectedStudio.title}!`);
                             } else {
@@ -416,6 +432,8 @@ export const ArtistDashboard = () => {
                               await api.post(`/studios/${selectedStudio.id}/claim`);
                               success(`Successfully claimed ${selectedStudio.title}!`);
                             }
+                            
+                            console.log('✅ Studio linked successfully:', selectedStudio.title);
                           } catch (studioError) {
                             console.error('Studio linking error:', studioError);
                             // Continue anyway, the profile was saved successfully
