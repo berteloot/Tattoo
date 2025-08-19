@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { error: showErrorToast } = useToast();
   const [manualStats, setManualStats] = useState(null);
   const [manualActions, setManualActions] = useState([]);
@@ -40,8 +40,8 @@ const AdminDashboard = () => {
     );
   }
 
-  // Check if user has admin role
-  if (user.role !== 'ADMIN') {
+  // Check if user has admin role (ADMIN or ARTIST_ADMIN)
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

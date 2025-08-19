@@ -5,14 +5,14 @@ import { MapPin, Play, Pause, Trash2, RefreshCw, AlertCircle, CheckCircle, Clock
 import { getAuthorizationHeader } from '../utils/tokenManager';
 
 const AdminGeocodingManagement = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { showToast } = useToast();
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Check if user is admin
-  if (!user || user.role !== 'ADMIN') {
+  // Check if user is admin (ADMIN or ARTIST_ADMIN)
+  if (!user || !isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
