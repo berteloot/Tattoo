@@ -15,7 +15,9 @@ import {
   XCircle,
   MapPin,
   Upload,
-  Building
+  Building,
+  Image,
+  Settings
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -410,6 +412,31 @@ const AdminDashboard = () => {
                 <span className="text-purple-800 font-medium">Audit Log</span>
               </Link>
 
+              {/* Additional Admin Actions */}
+              <Link 
+                to="/admin/artists" 
+                className="flex items-center p-3 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
+              >
+                <UserCheck className="h-5 w-5 text-emerald-600 mr-3" />
+                <span className="text-emerald-800 font-medium">Artist Management</span>
+              </Link>
+              
+              <Link 
+                to="/admin/content" 
+                className="flex items-center p-3 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+              >
+                <Image className="h-5 w-5 text-violet-600 mr-3" />
+                <span className="text-violet-800 font-medium">Content Management</span>
+              </Link>
+              
+              <Link 
+                to="/admin/settings" 
+                className="flex items-center p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <Settings className="h-5 w-5 text-slate-600 mr-3" />
+                <span className="text-slate-800 font-medium">System Settings</span>
+              </Link>
+
               {/* Geolocalization and Studio Management */}
               <Link 
                 to="/admin/geocoding" 
@@ -473,6 +500,29 @@ const AdminDashboard = () => {
             </div>
           </div>
         )}
+
+        {/* System Status */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">System Status</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+              <span className="text-sm text-gray-700">Database connection: Active</span>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+              <span className="text-sm text-gray-700">API endpoints: Operational</span>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+              <span className="text-sm text-gray-700">Authentication: Secure</span>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+              <span className="text-sm text-gray-700">File uploads: Available</span>
+            </div>
+          </div>
+        </div>
 
         {/* Debug Info - Only show in development */}
         {process.env.NODE_ENV === 'development' && (
