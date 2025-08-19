@@ -10,6 +10,8 @@ import {
   useServices 
 } from '../hooks/useDashboardQueries'
 import { api, artistsAPI } from '../services/api'
+import ProfilePictureUpload from '../components/ProfilePictureUpload'
+import { MessageManagement } from '../components/MessageManagement'
 import { 
   MapPin, 
   Phone, 
@@ -61,6 +63,9 @@ export const ArtistDashboard = () => {
     selectedSpecialties: [],
     selectedServices: []
   })
+
+  // Profile picture state
+  const [profilePictureData, setProfilePictureData] = useState(null)
 
   // Use React Query hooks for data fetching
   const artistId = user?.artistProfile?.id
@@ -139,8 +144,27 @@ export const ArtistDashboard = () => {
         minPrice: profile.minPrice || '',
         maxPrice: profile.maxPrice || '',
         selectedSpecialties: profile.specialties?.map(s => s.id) || [],
-        selectedServices: profile.services?.map(s => s.id) || []
+        selectedServices: profile.services?.map(s => s.id) || [],
+        // Profile picture fields
+        profilePictureUrl: profile.profilePictureUrl || null,
+        profilePicturePublicId: profile.profilePicturePublicId || null,
+        profilePictureWidth: profile.profilePictureWidth || null,
+        profilePictureHeight: profile.profilePictureHeight || null,
+        profilePictureFormat: profile.profilePictureFormat || null,
+        profilePictureBytes: profile.profilePictureBytes || null
       }))
+
+      // Set profile picture data if exists
+      if (profile.profilePictureUrl) {
+        setProfilePictureData({
+          url: profile.profilePictureUrl,
+          publicId: profile.profilePicturePublicId,
+          width: profile.profilePictureWidth,
+          height: profile.profilePictureHeight,
+          format: profile.profilePictureFormat,
+          bytes: profile.profilePictureBytes
+        })
+      }
     }
   }, [profile])
 
@@ -164,6 +188,33 @@ export const ArtistDashboard = () => {
       window.history.replaceState({}, document.title)
     }
   }, [location.state, success, user?.artistProfile?.id])
+
+  // Profile picture handlers
+  const handleProfilePictureUpload = (imageData) => {
+    setProfilePictureData(imageData)
+    setFormData(prev => ({
+      ...prev,
+      profilePictureUrl: imageData.url,
+      profilePicturePublicId: imageData.publicId,
+      profilePictureWidth: imageData.width,
+      profilePictureHeight: imageData.height,
+      profilePictureFormat: imageData.format,
+      profilePictureBytes: imageData.bytes
+    }))
+  }
+
+  const handleProfilePictureRemove = () => {
+    setProfilePictureData(null)
+    setFormData(prev => ({
+      ...prev,
+      profilePictureUrl: null,
+      profilePicturePublicId: null,
+      profilePictureWidth: null,
+      profilePictureHeight: null,
+      profilePictureFormat: null,
+      profilePictureBytes: null
+    }))
+  }
 
   // Loading state
   const isLoading = profileLoading || flashLoading || reviewsLoading || specialtiesLoading || servicesLoading
@@ -268,6 +319,24 @@ export const ArtistDashboard = () => {
                     placeholder="Your studio name"
                   />
                 </div>
+              </div>
+
+              {/* Profile Picture */}
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Profile Picture</h3>
+                <ProfilePictureUpload
+                  onImageUpload={handleProfilePictureUpload}
+                  onImageRemove={handleProfilePictureRemove}
+                  currentImageUrl={profile?.profilePictureUrl || formData.profilePictureUrl}
+                  currentImageData={profilePictureData || {
+                    url: profile?.profilePictureUrl,
+                    publicId: profile?.profilePicturePublicId,
+                    width: profile?.profilePictureWidth,
+                    height: profile?.profilePictureHeight,
+                    format: profile?.profilePictureFormat,
+                    bytes: profile?.profilePictureBytes
+                  }}
+                />
               </div>
 
               {/* Social Media Links */}
@@ -453,6 +522,25 @@ export const ArtistDashboard = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-4">Overview</h3>
               
               <div className="space-y-4">
+                {/* Profile Picture Display */}
+                {profile?.profilePictureUrl && (
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Picture</h3>
+                    <div className="inline-block">
+                      <img
+                        src={profile.profilePictureUrl}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2 space-y-1">
+                      <div>Size: {profile.profilePictureWidth} × {profile.profilePictureHeight}</div>
+                      <div>Format: {profile.profilePictureFormat?.toUpperCase()}</div>
+                      <div>File size: {Math.round(profile.profilePictureBytes / 1024)} KB</div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Profile Views</span>
                   <span className="font-semibold text-gray-900">{profile.profileViews || 0}</span>
@@ -491,15 +579,22 @@ export const ArtistDashboard = () => {
                 <div className="space-y-3">
                   {reviews.slice(0, 3).map((review) => (
                     <div key={review.id} className="border-l-4 border-blue-500 pl-3">
-                      <div className="flex items-center mb-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            className={`h-3 w-3 ${
-                              i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                            }`}
-                          />
-                        ))}
+                      <div className="flex items-center mb-2">
+                        <img
+                          src={review.author?.avatar || `https://ui-avatars.com/api/?name=${review.author?.firstName || 'User'}+${review.author?.lastName || ''}`}
+                          alt={`${review.author?.firstName || 'User'} ${review.author?.lastName || ''}`}
+                          className="w-8 h-8 rounded-full mr-3"
+                        />
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`h-3 w-3 ${
+                                i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
                       </div>
                       <p className="text-sm text-gray-700 line-clamp-2">{review.comment}</p>
                       <p className="text-xs text-gray-500 mt-1">
@@ -543,6 +638,26 @@ export const ArtistDashboard = () => {
                 </button>
               </div>
             </div>
+
+            {/* Message Management Section */}
+            {profile.id ? (
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">Message Panel</h3>
+                  <p className="text-sm text-gray-600">
+                    Create and manage messages that appear on your artist profile and cards
+                  </p>
+                </div>
+                <MessageManagement />
+              </div>
+            ) : (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <p className="mb-4">Create your artist profile first to manage messages.</p>
+                <p className="text-sm text-gray-500">
+                  You need ARTIST or ARTIST_ADMIN role to manage messages.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
