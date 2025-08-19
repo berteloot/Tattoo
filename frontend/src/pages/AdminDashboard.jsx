@@ -27,6 +27,32 @@ const AdminDashboard = () => {
   const [manualActions, setManualActions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   
+  // Check if user is properly loaded
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Loading User...</h1>
+          <p className="text-gray-600">Please wait while we load your profile.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has admin role
+  if (user.role !== 'ADMIN') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+          <p className="text-gray-600">You need admin privileges to access this page.</p>
+          <p className="text-sm text-gray-500 mt-2">Current role: {user.role}</p>
+        </div>
+      </div>
+    );
+  }
+
   // Use React Query hooks for data fetching
   const { 
     data: stats = {}, 
@@ -111,8 +137,21 @@ const AdminDashboard = () => {
   }
 
   // Use manual data if React Query fails
-  const displayStats = manualStats || stats;
-  const displayActions = manualActions.length > 0 ? manualActions : recentActions;
+  const displayStats = manualStats || stats || {};
+  const displayActions = manualActions.length > 0 ? manualActions : (recentActions || []);
+
+  // Ensure displayStats has all required properties with safe defaults
+  const safeStats = {
+    totalUsers: displayStats.totalUsers || 0,
+    totalArtists: displayStats.totalArtists || 0,
+    pendingVerifications: displayStats.pendingVerifications || 0,
+    totalReviews: displayStats.totalReviews || 0,
+    totalFlash: displayStats.totalFlash || 0,
+    featuredArtists: displayStats.featuredArtists || 0,
+    totalStudios: displayStats.totalStudios || 0,
+    geocodedStudios: displayStats.geocodedStudios || 0,
+    pendingGeocoding: displayStats.pendingGeocoding || 0
+  };
 
   // Loading state
   if ((statsLoading || actionsLoading) && !manualStats) {
@@ -161,12 +200,12 @@ const AdminDashboard = () => {
         {/* Critical Alerts - Show at top for immediate attention */}
         <div className="space-y-4 mb-8">
           {/* Pending Verifications Alert */}
-          {displayStats.pendingVerifications > 0 && (
+          {safeStats.pendingVerifications > 0 && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div className="flex items-center">
                 <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
                 <span className="text-yellow-800 font-medium">
-                  {displayStats.pendingVerifications} artist verification(s) pending review
+                  {safeStats.pendingVerifications} artist verification(s) pending review
                 </span>
                 <Link 
                   to="/admin/artists/pending" 
@@ -179,12 +218,12 @@ const AdminDashboard = () => {
           )}
 
           {/* Pending Geocoding Alert */}
-          {displayStats.pendingGeocoding > 0 && (
+          {safeStats.pendingGeocoding > 0 && (
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
               <div className="flex items-center">
                 <MapPin className="h-5 w-5 text-orange-600 mr-2" />
                 <span className="text-orange-800 font-medium">
-                  {displayStats.pendingGeocoding} studio(s) need geocoding
+                  {safeStats.pendingGeocoding} studio(s) need geocoding
                 </span>
                 <Link 
                   to="/admin/geocoding" 
@@ -207,7 +246,7 @@ const AdminDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {displayStats.totalUsers || 0}
+                  {safeStats.totalUsers}
                 </p>
               </div>
             </div>
@@ -221,7 +260,7 @@ const AdminDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Artists</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {displayStats.totalArtists || 0}
+                  {safeStats.totalArtists}
                 </p>
               </div>
             </div>
@@ -235,7 +274,7 @@ const AdminDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Studios</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {displayStats.totalStudios || 0}
+                  {safeStats.totalStudios}
                 </p>
               </div>
             </div>
@@ -249,7 +288,7 @@ const AdminDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Reviews</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {displayStats.totalReviews || 0}
+                  {safeStats.totalReviews}
                 </p>
               </div>
             </div>
@@ -266,10 +305,10 @@ const AdminDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Geocoded Studios</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {displayStats.geocodedStudios || 0}
+                  {safeStats.geocodedStudios}
                 </p>
                 <p className="text-xs text-gray-500">
-                  of {displayStats.totalStudios || 0} total
+                  of {safeStats.totalStudios} total
                 </p>
               </div>
             </div>
@@ -283,10 +322,10 @@ const AdminDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Featured Artists</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {displayStats.featuredArtists || 0}
+                  {safeStats.featuredArtists}
                 </p>
                 <p className="text-xs text-gray-500">
-                  of {displayStats.totalArtists || 0} total
+                  of {safeStats.totalArtists} total
                 </p>
               </div>
             </div>
@@ -470,7 +509,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* API Test Section - Only show if manual data is needed */}
-        {!displayStats.totalUsers && (
+        {!safeStats.totalUsers && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <h3 className="text-lg font-semibold text-yellow-900 mb-2">API Connection Issue</h3>
             <div className="space-y-2">
