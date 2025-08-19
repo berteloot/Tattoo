@@ -1,6 +1,6 @@
-# Render deployment configuration - Version 5.4
+# Render deployment configuration - Version 5.5
 # Single full-stack service - Frontend and Backend served from same URL
-# FORCE REDEPLOY: Admin dashboard missing elements fix - Added geolocalization and CSV import
+# FORCE REDEPLOY: Admin panel access fixed for ARTIST_ADMIN users
 services:
   # Full-Stack Application (API + Frontend)
   - type: web
