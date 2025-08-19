@@ -34,7 +34,8 @@ import {
   Settings,
   User,
   Building,
-  Trash2
+  Trash2,
+  XCircle
 } from 'lucide-react'
 
 export const ArtistDashboard = () => {
@@ -71,6 +72,31 @@ export const ArtistDashboard = () => {
 
   // Studio selection state
   const [selectedStudio, setSelectedStudio] = useState(null)
+
+  // Flash creation state
+  const [showFlashForm, setShowFlashForm] = useState(false)
+  const [flashFormData, setFlashFormData] = useState({
+    title: '',
+    description: '',
+    imageUrl: '',
+    imagePublicId: '',
+    imageWidth: null,
+    imageHeight: null,
+    imageFormat: '',
+    imageBytes: null,
+    basePrice: '',
+    complexity: 'MEDIUM',
+    timeEstimate: 120,
+    isRepeatable: true,
+    sizePricing: {
+      small: { price: 100, time: 60, size: '1-2 inches' },
+      medium: { price: 150, time: 90, size: '3-4 inches' },
+      large: { price: 200, time: 120, size: '5-6 inches' },
+      xlarge: { price: 250, time: 150, size: '7+ inches' }
+    },
+    tags: [],
+    isAvailable: true
+  })
 
   // Use React Query hooks for data fetching
   const artistId = user?.artistProfile?.id
@@ -255,6 +281,67 @@ export const ArtistDashboard = () => {
     setFormData(prev => ({
       ...prev,
       studioName: ''
+    }))
+  }
+
+  // Flash creation handlers
+  const handleFlashSubmit = async (e) => {
+    e.preventDefault()
+    
+    // Check if user has artist profile
+    if (!user?.artistProfile?.id) {
+      showError('You need to create your artist profile first before adding flash items.')
+      return
+    }
+    
+    try {
+      console.log('📋 Submitting flash data:', flashFormData)
+      
+      const response = await flashAPI.create(flashFormData)
+      console.log('✅ Flash created:', response.data)
+      
+      // Reset form
+      setFlashFormData({
+        title: '',
+        description: '',
+        imageUrl: '',
+        imagePublicId: '',
+        imageWidth: null,
+        imageHeight: null,
+        imageFormat: '',
+        imageBytes: null,
+        basePrice: '',
+        complexity: 'MEDIUM',
+        timeEstimate: 120,
+        isRepeatable: true,
+        sizePricing: {
+          small: { price: 100, time: 60, size: '1-2 inches' },
+          medium: { price: 150, time: 90, size: '3-4 inches' },
+          large: { price: 200, time: 120, size: '5-6 inches' },
+          xlarge: { price: 250, time: 150, size: '7+ inches' }
+        },
+        tags: [],
+        isAvailable: true
+      })
+      
+      setShowFlashForm(false)
+      success('Flash item created successfully!')
+      
+      // Refresh flash list
+      refetchFlash()
+      
+    } catch (error) {
+      console.error('❌ Error creating flash item:', error)
+      const errorMessage = error.response?.data?.error || 'Error creating flash item'
+      showError(errorMessage)
+    }
+  }
+
+  const handleFlashInputChange = (e) => {
+    const { name, value } = e.target
+    setFlashFormData(prev => ({
+      ...prev,
+      [name]: value
     }))
   }
 
@@ -654,7 +741,7 @@ export const ArtistDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Flash Gallery</h2>
                 <button 
-                  onClick={() => navigate('/flash')}
+                  onClick={() => setShowFlashForm(true)}
                   className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -701,6 +788,165 @@ export const ArtistDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Flash Creation Form Modal */}
+            {showFlashForm && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Add New Flash Design</h3>
+                    <button
+                      onClick={() => setShowFlashForm(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <XCircle className="h-6 w-6" />
+                    </button>
+                  </div>
+                  
+                  <form onSubmit={handleFlashSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Title *
+                      </label>
+                      <input
+                        type="text"
+                        name="title"
+                        value={flashFormData.title}
+                        onChange={handleFlashInputChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter flash design title"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        name="description"
+                        value={flashFormData.description}
+                        onChange={handleFlashInputChange}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Describe your flash design"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Image URL *
+                      </label>
+                      <input
+                        type="url"
+                        name="imageUrl"
+                        value={flashFormData.imageUrl}
+                        onChange={handleFlashInputChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Base Price ($)
+                      </label>
+                      <input
+                        type="number"
+                        name="basePrice"
+                        value={flashFormData.basePrice}
+                        onChange={handleFlashInputChange}
+                        min="0"
+                        step="0.01"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="150"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Complexity
+                      </label>
+                      <select
+                        name="complexity"
+                        value={flashFormData.complexity}
+                        onChange={handleFlashInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="SIMPLE">Simple</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="COMPLEX">Complex</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Time Estimate (minutes)
+                      </label>
+                      <input
+                        type="number"
+                        name="timeEstimate"
+                        value={flashFormData.timeEstimate}
+                        onChange={handleFlashInputChange}
+                        min="30"
+                        step="30"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="120"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="isRepeatable"
+                        checked={flashFormData.isRepeatable}
+                        onChange={(e) => setFlashFormData(prev => ({
+                          ...prev,
+                          isRepeatable: e.target.checked
+                        }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label className="ml-2 block text-sm text-gray-900">
+                        This design can be repeated for multiple clients
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="isAvailable"
+                        checked={flashFormData.isAvailable}
+                        onChange={(e) => setFlashFormData(prev => ({
+                          ...prev,
+                          isAvailable: e.target.checked
+                        }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label className="ml-2 block text-sm text-gray-900">
+                        Available for booking
+                      </label>
+                    </div>
+                    
+                    <div className="flex justify-end space-x-3 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowFlashForm(false)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      >
+                        Create Flash Design
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
 
             {/* Tattoo Gallery */}
             <div className="bg-white rounded-lg shadow p-6">
@@ -823,7 +1069,7 @@ export const ArtistDashboard = () => {
                 </button>
                 
                 <button
-                  onClick={() => navigate('/flash')}
+                  onClick={() => setShowFlashForm(true)}
                   className="w-full flex items-center p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
                 >
                   <Plus className="h-5 w-5 text-green-600 mr-3" />
