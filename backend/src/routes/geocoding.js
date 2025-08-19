@@ -49,10 +49,10 @@ router.get('/studios', async (req, res) => {
       ];
     }
     
-    // Add verified filter
-    if (verified === 'true') {
-      whereClause.isVerified = true;
-    }
+    // Add verified filter (removed to allow all studios)
+    // if (verified === 'true') {
+    //   whereClause.isVerified = true;
+    // }
     
     // Add featured filter
     if (featured === 'true') {

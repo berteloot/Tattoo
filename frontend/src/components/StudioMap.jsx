@@ -512,12 +512,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-lg font-semibold text-gray-900">{studio.title}</h3>
-                    {studio.isVerified && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                        <Star className="w-3 h-3" />
-                        Verified
-                      </span>
-                    )}
+
                     {studio.isFeatured && (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
                         <Star className="w-3 h-3" />
@@ -663,11 +658,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                         </p>
                       )}
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {studio.isVerified && (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                            Verified
-                          </span>
-                        )}
+
                         {studio.isFeatured && (
                           <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
                             Featured
@@ -878,9 +869,9 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                           icon={{
                             url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
                               <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="16" cy="16" r="16" fill="${studio.isFeatured ? '#F59E0B' : studio.isVerified ? '#10B981' : '#6B7280'}"/>
+                                <circle cx="16" cy="16" r="16" fill="${studio.isFeatured ? '#F59E0B' : '#6B7280'}"/>
                                 <circle cx="16" cy="16" r="12" fill="white"/>
-                                <circle cx="16" cy="16" r="8" fill="${studio.isFeatured ? '#F59E0B' : studio.isVerified ? '#10B981' : '#6B7280'}"/>
+                                <circle cx="16" cy="16" r="8" fill="${studio.isFeatured ? '#F59E0B' : '#6B7280'}"/>
                               </svg>
                             `),
                             scaledSize: new window.google.maps.Size(32, 32),
@@ -977,11 +968,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
                       {/* Status Badges */}
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {selectedStudio.isVerified && (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                            Verified
-                          </span>
-                        )}
+
                         {selectedStudio.isFeatured && (
                           <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
                             Featured

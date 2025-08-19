@@ -84,7 +84,7 @@ router.get('/test', async (req, res) => {
         phoneNumber: true,
         email: true,
         website: true,
-        isVerified: true,
+
         isFeatured: true
       }
     });
@@ -270,7 +270,7 @@ router.get('/debug-studios', async (req, res) => {
         latitude: true,
         longitude: true,
         isActive: true,
-        isVerified: true
+
       }
     });
 
@@ -367,7 +367,7 @@ router.get('/studios', async (req, res) => {
         phoneNumber: true,
         email: true,
         website: true,
-        isVerified: true,
+
         isFeatured: true
       }
     });

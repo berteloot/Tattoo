@@ -53,7 +53,6 @@ export const HomeEditorial = () => {
       averageRating: 4.9,
       reviewCount: 127,
       specialties: [{ name: 'Traditional' }, { name: 'Japanese' }],
-      isVerified: true,
       featured: true
     },
     {
@@ -66,7 +65,6 @@ export const HomeEditorial = () => {
       averageRating: 4.8,
       reviewCount: 89,
       specialties: [{ name: 'Black & Grey' }],
-      isVerified: true,
       featured: true
     },
     {
@@ -79,7 +77,6 @@ export const HomeEditorial = () => {
       averageRating: 4.7,
       reviewCount: 156,
       specialties: [{ name: 'Minimalist' }, { name: 'Neo-Traditional' }],
-      isVerified: true,
       featured: true
     }
   ]

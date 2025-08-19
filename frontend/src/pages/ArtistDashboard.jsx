@@ -710,19 +710,6 @@ export const ArtistDashboard = () => {
                   <span className="text-sm text-gray-600">Flash Items</span>
                   <span className="font-semibold text-gray-900">{flash.length}</span>
                 </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Verification Status</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    profile.verificationStatus === 'APPROVED' 
-                      ? 'bg-green-100 text-green-800'
-                      : profile.verificationStatus === 'PENDING'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {profile.verificationStatus || 'PENDING'}
-                  </span>
-                </div>
               </div>
             </div>
 
