@@ -11,6 +11,7 @@ import {
 } from '../hooks/useDashboardQueries'
 import { api, artistsAPI, flashAPI } from '../services/api'
 import ProfilePictureUpload from '../components/ProfilePictureUpload'
+import ImageUpload from '../components/ImageUpload'
 import { MessageManagement } from '../components/MessageManagement'
 import StudioSelect from '../components/StudioSelect'
 import { 
@@ -294,6 +295,12 @@ export const ArtistDashboard = () => {
       return
     }
     
+    // Validate that an image is uploaded
+    if (!flashFormData.imageUrl) {
+      showError('Please upload a flash design image before submitting.')
+      return
+    }
+    
     try {
       console.log('📋 Submitting flash data:', flashFormData)
       
@@ -342,6 +349,32 @@ export const ArtistDashboard = () => {
     setFlashFormData(prev => ({
       ...prev,
       [name]: value
+    }))
+  }
+
+  // Flash image upload handlers
+  const handleFlashImageUpload = (imageData) => {
+    console.log('📋 Flash image upload successful:', imageData)
+    setFlashFormData(prev => ({
+      ...prev,
+      imageUrl: imageData.imageUrl,
+      imagePublicId: imageData.imagePublicId,
+      imageWidth: imageData.imageWidth,
+      imageHeight: imageData.imageHeight,
+      imageFormat: imageData.imageFormat,
+      imageBytes: imageData.imageBytes
+    }))
+  }
+
+  const handleFlashImageRemove = () => {
+    setFlashFormData(prev => ({
+      ...prev,
+      imageUrl: '',
+      imagePublicId: '',
+      imageWidth: null,
+      imageHeight: null,
+      imageFormat: '',
+      imageBytes: null
     }))
   }
 
@@ -835,17 +868,53 @@ export const ArtistDashboard = () => {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Image URL *
+                        Flash Design Image *
                       </label>
-                      <input
-                        type="url"
-                        name="imageUrl"
-                        value={flashFormData.imageUrl}
-                        onChange={handleFlashInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="https://example.com/image.jpg"
+                      <ImageUpload
+                        onImageUpload={handleFlashImageUpload}
+                        onImageRemove={handleFlashImageRemove}
+                        currentImageUrl={flashFormData.imageUrl}
+                        currentImageData={{
+                          imageUrl: flashFormData.imageUrl,
+                          imagePublicId: flashFormData.imagePublicId,
+                          imageWidth: flashFormData.imageWidth,
+                          imageHeight: flashFormData.imageHeight,
+                          imageFormat: flashFormData.imageFormat,
+                          imageBytes: flashFormData.imageBytes
+                        }}
+                        uploadEndpoint="/api/flash/upload"
+                        maxSize={5 * 1024 * 1024} // 5MB
+                        className="mb-4"
                       />
+                      
+                      {/* Image Preview */}
+                      {flashFormData.imageUrl && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">Preview:</span>
+                            <button
+                              type="button"
+                              onClick={handleFlashImageRemove}
+                              className="text-red-600 hover:text-red-800 text-sm"
+                            >
+                              Remove Image
+                            </button>
+                          </div>
+                          <img 
+                            src={flashFormData.imageUrl} 
+                            alt="Flash design preview"
+                            className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                          />
+                          <div className="mt-2 text-xs text-gray-500">
+                            {flashFormData.imageWidth && flashFormData.imageHeight && (
+                              <span>Dimensions: {flashFormData.imageWidth} × {flashFormData.imageHeight}px</span>
+                            )}
+                            {flashFormData.imageFormat && (
+                              <span className="ml-2">Format: {flashFormData.imageFormat.toUpperCase()}</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     <div>
