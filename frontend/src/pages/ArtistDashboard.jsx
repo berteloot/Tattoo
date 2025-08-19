@@ -747,30 +747,10 @@ export const ArtistDashboard = () => {
                   className="w-full flex items-center p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
                 >
                   <Building className="h-5 w-5 text-green-600 mr-3" />
-                  <span className="text-green-800 font-medium">Browse Artists</span>
+                  <span className="text-blue-800 font-medium">Browse Artists</span>
                 </button>
               </div>
             </div>
-
-            {/* Message Management Section */}
-            {profile.id ? (
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Message Panel</h3>
-                  <p className="text-sm text-gray-600">
-                    Create and manage messages that appear on your artist profile and cards
-                  </p>
-                </div>
-                <MessageManagement />
-              </div>
-            ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <p className="mb-4">Create your artist profile first to manage messages.</p>
-                <p className="text-sm text-gray-500">
-                  You need ARTIST or ARTIST_ADMIN role to manage messages.
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>

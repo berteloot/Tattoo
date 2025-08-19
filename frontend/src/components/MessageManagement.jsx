@@ -319,7 +319,6 @@ export const MessageManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Message Panel</h3>
           <p className="text-sm text-gray-600">
             Manage messages that appear on your profile and artist cards. 
             Active: {activeMessages.length}/5
