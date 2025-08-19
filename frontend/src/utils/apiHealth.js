@@ -7,24 +7,54 @@ let apiHealthStatus = {
   errorCount: 0
 }
 
-// Check if API is healthy
+// API Health Check Utility
 export const checkApiHealth = async () => {
   try {
-    const response = await api.get('/artists?limit=1')
-    apiHealthStatus = {
-      isHealthy: true,
-      lastCheck: Date.now(),
-      errorCount: 0
-    }
-    return true
+    const response = await fetch('/api/health')
+    return response.ok
   } catch (error) {
-    console.warn('API health check failed:', error.message)
-    apiHealthStatus = {
-      isHealthy: false,
-      lastCheck: Date.now(),
-      errorCount: apiHealthStatus.errorCount + 1
-    }
+    console.error('API health check failed:', error)
     return false
+  }
+}
+
+// Retry mechanism with exponential backoff
+export const retryWithBackoff = async (apiCall, maxRetries = 3, baseDelay = 1000) => {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await apiCall()
+    } catch (error) {
+      // Don't retry on rate limiting (429) or authentication errors (401, 403)
+      if (error.response?.status === 429 || 
+          error.response?.status === 401 || 
+          error.response?.status === 403) {
+        throw error
+      }
+      
+      // Don't retry on the last attempt
+      if (attempt === maxRetries) {
+        throw error
+      }
+      
+      // Calculate delay with exponential backoff
+      const delay = baseDelay * Math.pow(2, attempt)
+      console.log(`API call failed, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`)
+      
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+}
+
+// Rate limit aware API call wrapper
+export const rateLimitAwareCall = async (apiCall, fallbackValue = null) => {
+  try {
+    return await apiCall()
+  } catch (error) {
+    if (error.response?.status === 429) {
+      console.log('Rate limit exceeded, using fallback value')
+      return fallbackValue
+    }
+    throw error
   }
 }
 

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
-import { useLocation } from 'react-router-dom'
-import { api, artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
+import { rateLimitAwareCall } from '../utils/apiHealth'
+import { artistsAPI, flashAPI, reviewsAPI, specialtiesAPI, servicesAPI } from '../services/api'
 import ImageUpload from '../components/ImageUpload'
 import ProfilePictureUpload from '../components/ProfilePictureUpload'
 import { CheckCircle, Image as ImageIcon, Eye } from 'lucide-react'
@@ -17,6 +18,7 @@ export const ArtistDashboard = () => {
   const { user } = useAuth()
   const { success, error: showError } = useToast()
   const location = useLocation()
+  const navigate = useNavigate()
   
   // State management
   const [profile, setProfile] = useState(null)
@@ -97,6 +99,11 @@ export const ArtistDashboard = () => {
   })
 
   useEffect(() => {
+    // Only proceed if user is properly authenticated
+    if (!user || !user.id) {
+      return
+    }
+    
     console.log('🔍 ArtistDashboard mounted')
     console.log('User state:', user)
     console.log('User artist profile:', user?.artistProfile)
@@ -127,22 +134,40 @@ export const ArtistDashboard = () => {
       window.history.replaceState({}, document.title)
     }
     
+    // Load dashboard data
     loadDashboardData()
-  }, [location.state, success])
+  }, [user, location.state, success])
 
   const loadDashboardData = async () => {
     console.log('🔍 Loading dashboard data...')
+    
+    // Check if user is properly authenticated before making API calls
+    if (!user || !user.id) {
+      console.log('User not properly authenticated, skipping dashboard data fetch');
+      setProfile({})
+      setFlash([])
+      setReviews([])
+      setSpecialties([])
+      setServices([])
+      setGallery([])
+      setLoading(false)
+      return
+    }
+    
     try {
       setLoading(true)
       
       let reviewsData = []
       let flashData = []
       
-      // Load artist profile
+      // Load artist profile first (required for other data)
       if (user?.artistProfile?.id) {
         console.log('✅ User has artist profile, loading details...')
         try {
-          const profileResponse = await artistsAPI.getById(user.artistProfile.id)
+          const profileResponse = await rateLimitAwareCall(
+            () => artistsAPI.getById(user.artistProfile.id),
+            null
+          )
           console.log('✅ Profile response:', profileResponse)
           console.log('🔍 Full profile response structure:', JSON.stringify(profileResponse, null, 2))
           if (profileResponse?.data?.data?.artist) {
@@ -209,41 +234,68 @@ export const ArtistDashboard = () => {
         console.log('⚠️  User does not have artist profile')
       }
 
-      // Load flash items (only if artist profile exists)
+      // Batch load remaining data with delay to avoid rate limiting
       if (user?.artistProfile?.id) {
+        console.log('🔄 Batch loading remaining dashboard data...')
+        
+        // Add small delay between requests to avoid overwhelming the API
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        // Load flash items
         try {
-          const flashResponse = await flashAPI.getAll({ artistId: user.artistProfile.id })
+          const flashResponse = await rateLimitAwareCall(
+            () => flashAPI.getAll({ artistId: user.artistProfile.id }),
+            { data: { data: { flash: [] } } }
+          )
           flashData = flashResponse?.data?.data?.flash || []
           setFlash(flashData)
+          console.log('✅ Flash items loaded:', flashData.length)
         } catch (flashError) {
           console.error('Error loading flash items:', flashError)
           setFlash([])
         }
+        
+        // Small delay
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        // Load reviews
+        try {
+          const reviewsResponse = await rateLimitAwareCall(
+            () => reviewsAPI.getAll({ recipientId: user?.id }),
+            { data: { data: { reviews: [] } } }
+          )
+          reviewsData = reviewsResponse?.data?.data?.reviews || []
+          setReviews(reviewsData)
+          console.log('✅ Reviews loaded:', reviewsData.length)
+        } catch (reviewsError) {
+          console.error('Error loading reviews:', reviewsError)
+          setReviews([])
+        }
+        
+        // Small delay
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        // Load specialties and services in parallel
+        try {
+          const [specialtiesResponse, servicesResponse] = await Promise.all([
+            rateLimitAwareCall(() => specialtiesAPI.getAll(), { data: { data: { specialties: [] } } }),
+            rateLimitAwareCall(() => servicesAPI.getAll(), { data: { data: { services: [] } } })
+          ])
+          
+          const specialties = specialtiesResponse?.data?.data?.specialties || []
+          const services = servicesResponse?.data?.data?.services || []
+          
+          setSpecialties(specialties)
+          setServices(services)
+          console.log('✅ Specialties and services loaded:', specialties.length, services.length)
+        } catch (error) {
+          console.error('Error loading specialties/services:', error)
+          setSpecialties([])
+          setServices([])
+        }
       } else {
         setFlash([])
-      }
-
-      // Load reviews
-      try {
-        const reviewsResponse = await reviewsAPI.getAll({ recipientId: user?.id })
-        reviewsData = reviewsResponse?.data?.data?.reviews || []
-        setReviews(reviewsData)
-      } catch (reviewsError) {
-        console.error('Error loading reviews:', reviewsError)
         setReviews([])
-      }
-
-      // Load specialties and services with error handling
-      try {
-        const [specialtiesResponse, servicesResponse] = await Promise.all([
-          specialtiesAPI.getAll(),
-          servicesAPI.getAll()
-        ])
-        
-        setSpecialties(specialtiesResponse?.data?.data?.specialties || [])
-        setServices(servicesResponse?.data?.data?.services || [])
-      } catch (apiError) {
-        console.error('Error loading specialties/services:', apiError)
         setSpecialties([])
         setServices([])
       }
@@ -472,9 +524,12 @@ export const ArtistDashboard = () => {
         // Refresh user data to get the new profile ID
         try {
           console.log('🔄 Refreshing user data...')
-          const userResponse = await api.get('/auth/me')
+          const userResponse = await rateLimitAwareCall(
+            () => artistsAPI.getById(user.artistProfile.id),
+            null
+          )
           console.log('✅ User refresh response:', userResponse)
-          if (userResponse.data.success) {
+          if (userResponse?.data?.success) {
             // Update the user context with the new profile
             window.location.reload() // Simple refresh to get updated user data
           }

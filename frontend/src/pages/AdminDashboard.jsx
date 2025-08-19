@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { rateLimitAwareCall } from '../utils/apiHealth';
 import { api } from '../services/api';
 import { 
   Users, 
@@ -29,23 +30,53 @@ const AdminDashboard = () => {
   const [recentActions, setRecentActions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch dashboard data
+  // Fetch dashboard data with rate limiting protection
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [statsResponse, actionsResponse] = await Promise.all([
-        api.get('/admin/dashboard'),
-        api.get('/admin/actions?limit=5')
-      ]);
+      
+      // Check if user is properly authenticated before making API calls
+      if (!user || !user.id) {
+        console.log('User not properly authenticated, skipping dashboard data fetch');
+        setStats({});
+        setRecentActions([]);
+        setLoading(false);
+        return;
+      }
+      
+      // Load stats first
+      const statsResponse = await rateLimitAwareCall(
+        () => api.get('/admin/dashboard'),
+        { data: { data: { statistics: {} } } }
+      );
       
       console.log('Dashboard stats response:', statsResponse.data);
-      console.log('Actions response:', actionsResponse.data);
-      
       setStats(statsResponse.data?.data?.statistics || statsResponse.data?.statistics || {});
+      
+      // Small delay to avoid overwhelming the API
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Load actions with delay
+      const actionsResponse = await rateLimitAwareCall(
+        () => api.get('/admin/actions?limit=5'),
+        { data: { data: { actions: [] } } }
+      );
+      
+      console.log('Actions response:', actionsResponse.data);
       setRecentActions(actionsResponse.data?.data?.actions || actionsResponse.data?.actions || []);
+      
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-              showErrorToast('Dashboard Error', 'Error fetching dashboard data');
+      
+      // Handle authentication errors specifically
+      if (error.response?.status === 401) {
+        console.log('Authentication error, user may need to login again');
+        showErrorToast('Authentication Error', 'Please log in again to access the dashboard');
+        // Don't show generic dashboard error for auth issues
+      } else {
+        showErrorToast('Dashboard Error', 'Error fetching dashboard data');
+      }
+      
       // Set default values on error
       setStats({});
       setRecentActions([]);
@@ -55,8 +86,14 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    // Only fetch data if user is properly authenticated
+    if (user && user.id) {
+      fetchDashboardData();
+    } else if (!loading) {
+      // If not loading and no user, set loading to false
+      setLoading(false);
+    }
+  }, [user, loading]);
 
   // Check if current user is admin
   const { isAdmin } = useAuth();

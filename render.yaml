@@ -57,6 +57,8 @@ services:
         value: 900000
       - key: RATE_LIMIT_MAX_REQUESTS
         value: 500
+      - key: DASHBOARD_RATE_LIMIT_MAX_REQUESTS
+        value: 1000
       - key: MAX_FILE_SIZE
         value: 5242880
       - key: ALLOWED_FILE_TYPES

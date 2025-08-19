@@ -135,11 +135,50 @@ const limiter = rateLimit({
   }
 });
 
+// Higher rate limit for authenticated users (dashboard operations)
+const dashboardLimiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.DASHBOARD_RATE_LIMIT_MAX_REQUESTS) || 1000, // Higher limit for dashboard operations
+  message: {
+    error: 'Too many dashboard requests, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: false,
+  skipFailedRequests: false,
+  handler: (req, res) => {
+    console.log(`🚨 Dashboard rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      success: false,
+      error: 'Too many dashboard requests, please try again later.'
+    });
+  }
+});
+
 // Apply rate limiting to all /api/ routes EXCEPT geocoding (admin tool)
 app.use('/api/', (req, res, next) => {
   if (req.path.startsWith('/geocoding')) {
     return next(); // Skip rate limiting for geocoding routes
   }
+  
+  // Check if this is a dashboard-related request from an authenticated user
+  const isDashboardRequest = req.path.includes('/admin/') || 
+                           req.path.includes('/artists/') || 
+                           req.path.includes('/flash') ||
+                           req.path.includes('/reviews') ||
+                           req.path.includes('/services') ||
+                           req.path.includes('/specialties') ||
+                           req.path.includes('/messages') ||
+                           req.path.includes('/favorites');
+  
+  const hasValidAuth = req.headers.authorization && req.headers.authorization.startsWith('Bearer ');
+  
+  // Use dashboard limiter for authenticated dashboard requests
+  if (isDashboardRequest && hasValidAuth) {
+    return dashboardLimiter(req, res, next);
+  }
+  
+  // Use main limiter for all other requests
   limiter(req, res, next);
 });
 

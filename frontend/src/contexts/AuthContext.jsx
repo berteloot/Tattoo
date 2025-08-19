@@ -18,6 +18,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [accessToken, setAccessToken] = useState(null) // Store access token in memory only
+  const [isRefreshing, setIsRefreshing] = useState(false) // Prevent multiple refresh attempts
+  const [refreshAttempts, setRefreshAttempts] = useState(0) // Track refresh attempts
+  const [lastRefreshTime, setLastRefreshTime] = useState(0) // Track last refresh time
   const navigate = useNavigate()
   const { success: showSuccessToast, error: showErrorToast } = useToast()
 
@@ -29,7 +32,31 @@ export const AuthProvider = ({ children }) => {
 
   // Function to refresh access token using refresh token cookie
   const refreshAccessToken = async () => {
+    // Prevent multiple simultaneous refresh attempts
+    if (isRefreshing) {
+      console.log('Refresh already in progress, skipping...')
+      return
+    }
+
+    // Check if we've tried too many times recently
+    const now = Date.now()
+    const timeSinceLastRefresh = now - lastRefreshTime
+    const maxRefreshAttempts = 3
+    const minTimeBetweenRefreshes = 5000 // 5 seconds
+
+    if (refreshAttempts >= maxRefreshAttempts && timeSinceLastRefresh < minTimeBetweenRefreshes) {
+      console.log('Too many refresh attempts, waiting before retry...')
+      setLoading(false)
+      return
+    }
+
     try {
+      setIsRefreshing(true)
+      setRefreshAttempts(prev => prev + 1)
+      setLastRefreshTime(now)
+
+      console.log(`🔄 Attempting token refresh (attempt ${refreshAttempts + 1}/${maxRefreshAttempts})`)
+      
       const response = await authAPI.refreshToken()
       
       if (response.data && response.data.success) {
@@ -37,15 +64,66 @@ export const AuthProvider = ({ children }) => {
         // Store token securely in memory using token manager
         setAccessToken(newAccessToken)
         
+        // Reset refresh attempts on success
+        setRefreshAttempts(0)
+        
         // Fetch user profile with new token
         await fetchUser()
       } else {
         // No valid refresh token, user needs to login
-        setLoading(false)
+        console.log('No valid refresh token in response')
+        handleAuthFailure()
       }
     } catch (error) {
-      console.log('No valid refresh token, user needs to login')
-      setLoading(false)
+      console.log('Token refresh failed:', error.message)
+      
+      // Handle rate limiting - don't retry immediately
+      if (error.response?.status === 429) {
+        console.log('Rate limit exceeded during token refresh, will retry later')
+        setLoading(false)
+        return
+      }
+      
+      // Handle 401 errors during refresh (refresh token expired)
+      if (error.response?.status === 401) {
+        const errorMessage = error.response.data?.error || 'Authentication failed'
+        console.log('Refresh token error:', errorMessage)
+        
+        // Handle specific refresh token errors
+        if (errorMessage === 'Refresh token expired') {
+          console.log('Refresh token expired, user needs to login')
+          showErrorToast('Session Expired', 'Your session has expired. Please log in again.')
+        } else if (errorMessage === 'Refresh token not found') {
+          console.log('No refresh token found, user needs to login')
+          showErrorToast('Session Error', 'No session found. Please log in again.')
+        } else if (errorMessage === 'Invalid refresh token') {
+          console.log('Invalid refresh token, user needs to login')
+          showErrorToast('Session Error', 'Invalid session. Please log in again.')
+        } else if (errorMessage === 'User not found or inactive') {
+          console.log('User not found or inactive, user needs to login')
+          showErrorToast('Account Error', 'Account not found or inactive. Please log in again.')
+        } else {
+          console.log('Unknown refresh token error, user needs to login')
+          showErrorToast('Authentication Error', 'Please log in again.')
+        }
+        
+        handleAuthFailure()
+        return
+      }
+      
+      // For other errors, check if we should retry
+      if (refreshAttempts < maxRefreshAttempts) {
+        console.log(`Refresh failed, will retry in 5 seconds (attempt ${refreshAttempts}/${maxRefreshAttempts})`)
+        setTimeout(() => {
+          setIsRefreshing(false)
+        }, 5000)
+        return
+      } else {
+        console.log('Max refresh attempts reached, user needs to login')
+        handleAuthFailure()
+      }
+    } finally {
+      setIsRefreshing(false)
     }
   }
 
@@ -62,20 +140,32 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Error fetching user:', error)
       
+      // Handle rate limiting (429) - don't retry immediately
+      if (error.response?.status === 429) {
+        console.log('Rate limit exceeded, will retry later')
+        setUser(null)
+        setLoading(false)
+        return
+      }
+      
       // Handle 401 errors (token expired or invalid)
       if (error.response?.status === 401) {
         console.log('Access token expired, attempting to refresh...')
         
-        try {
-          // Try to refresh the access token
-          await refreshAccessToken()
-        } catch (refreshError) {
-          console.log('Token refresh failed, user needs to login')
-          // Clear all auth state
-          setAccessToken(null)
-          setUser(null)
-          delete api.defaults.headers.common['Authorization']
+        // Only attempt refresh if we're not already refreshing and haven't exceeded attempts
+        if (!isRefreshing && refreshAttempts < 3) {
+          try {
+            // Try to refresh the access token
+            await refreshAccessToken()
+          } catch (refreshError) {
+            console.log('Token refresh failed, user needs to login')
+            handleAuthFailure()
+          }
+        } else {
+          console.log('Skipping refresh attempt - already refreshing or max attempts reached')
+          handleAuthFailure()
         }
+        return
       } else {
         // For other errors (like 500), keep the token but set user to null temporarily
         console.log('Server error, keeping token but clearing user data temporarily')
@@ -97,6 +187,11 @@ export const AuthProvider = ({ children }) => {
         const { accessToken, user } = response.data.data || {}
         
         if (accessToken && user) {
+          // Reset refresh state on successful login
+          setRefreshAttempts(0)
+          setIsRefreshing(false)
+          setLastRefreshTime(0)
+          
           // Store access token securely in memory using token manager
           setAccessToken(accessToken)
           setUser(user)
@@ -214,6 +309,11 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.warn('Logout API call failed, but proceeding with local logout:', error)
     } finally {
+      // Reset all authentication and refresh state
+      setRefreshAttempts(0)
+      setIsRefreshing(false)
+      setLastRefreshTime(0)
+      
       // Always perform local cleanup using secure token manager
       clearAccessToken()
       setUser(null)
