@@ -38,6 +38,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const [showMessageForm, setShowMessageForm] = useState(false)
   const [googleMapsServices, setGoogleMapsServices] = useState(null)
   const [viewMode, setViewMode] = useState('map') // 'map' or 'list'
+  const [isMapReady, setIsMapReady] = useState(false)
   const directionsService = useRef(null)
   const directionsRenderer = useRef(null)
   const mapRef = useRef(null)
@@ -111,31 +112,35 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
   // Fit bounds when studios change
   useEffect(() => {
-    if (mapRef.current && studios.length > 0 && isGoogleMapsLoaded) {
+    if (isMapReady && studios.length > 0) {
       fitBoundsToStudios()
     }
-  }, [studios, isGoogleMapsLoaded])
+  }, [studios, isMapReady])
 
   const fitBoundsToStudios = () => {
-    if (!mapRef.current || !studios.length) return
+    if (!mapRef.current || !studios.length || !isMapReady) return
     
-    const bounds = new window.google.maps.LatLngBounds()
-    studios.forEach(studio => {
-      if (studio.latitude && studio.longitude) {
-        bounds.extend({ 
-          lat: parseFloat(studio.latitude), 
-          lng: parseFloat(studio.longitude) 
+    try {
+      const bounds = new window.google.maps.LatLngBounds()
+      studios.forEach(studio => {
+        if (studio.latitude && studio.longitude) {
+          bounds.extend({ 
+            lat: parseFloat(studio.latitude), 
+            lng: parseFloat(studio.longitude) 
+          })
+        }
+      })
+      
+      if (!bounds.isEmpty()) {
+        mapRef.current.fitBounds(bounds, { 
+          top: 40, 
+          right: 40, 
+          bottom: 40, 
+          left: 40 
         })
       }
-    })
-    
-    if (!bounds.isEmpty()) {
-      mapRef.current.fitBounds(bounds, { 
-        top: 40, 
-        right: 40, 
-        bottom: 40, 
-        left: 40 
-      })
+    } catch (error) {
+      console.warn('Error fitting bounds to studios:', error)
     }
   }
 
@@ -784,12 +789,16 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                 zoom={mapZoom}
                 onLoad={(map) => {
                   mapRef.current = map
+                  setIsMapReady(true)
                   if (!import.meta.env.PROD) {
                     console.log('✅ Google Map loaded successfully')
                   }
                   // Fit bounds if we already have studios data
                   if (studios.length > 0) {
-                    fitBoundsToStudios()
+                    // Use setTimeout to ensure map is fully ready
+                    setTimeout(() => {
+                      fitBoundsToStudios()
+                    }, 100)
                   }
                 }}
                 onError={(error) => {
