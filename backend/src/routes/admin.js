@@ -17,19 +17,39 @@ router.use(adminOnly);
  */
 router.get('/dashboard', async (req, res) => {
   try {
+    console.log('🔍 Admin dashboard request received');
+    
     const [
       totalUsers,
       totalArtists,
       pendingVerifications,
       totalReviews,
       totalFlash,
+      featuredArtists,
+      totalStudios,
+      geocodedStudios,
+      pendingGeocoding,
       recentAdminActions
     ] = await Promise.all([
       prisma.user.count(),
-              prisma.user.count({ where: { role: { in: ['ARTIST', 'ARTIST_ADMIN'] } } }),
+      prisma.user.count({ where: { role: { in: ['ARTIST', 'ARTIST_ADMIN'] } } }),
       prisma.artistProfile.count({ where: { verificationStatus: 'PENDING' } }),
       prisma.review.count(),
       prisma.flash.count(),
+      prisma.artistProfile.count({ where: { isFeatured: true } }),
+      prisma.studio.count(),
+      prisma.studio.count({ where: { 
+        AND: [
+          { latitude: { not: null } },
+          { longitude: { not: null } }
+        ]
+      }}),
+      prisma.studio.count({ where: { 
+        OR: [
+          { latitude: null },
+          { longitude: null }
+        ]
+      }}),
       prisma.adminAction.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' },
@@ -37,7 +57,7 @@ router.get('/dashboard', async (req, res) => {
       })
     ]);
 
-    res.json({
+    const response = {
       success: true,
       data: {
         statistics: {
@@ -45,13 +65,20 @@ router.get('/dashboard', async (req, res) => {
           totalArtists,
           pendingVerifications,
           totalReviews,
-          totalFlash
+          totalFlash,
+          featuredArtists,
+          totalStudios,
+          geocodedStudios,
+          pendingGeocoding
         },
         recentActions: recentAdminActions
       }
-    });
+    };
+
+    console.log('✅ Admin dashboard response:', JSON.stringify(response, null, 2));
+    res.json(response);
   } catch (error) {
-    console.error('Dashboard error:', error);
+    console.error('❌ Dashboard error:', error);
     res.status(500).json({
       success: false,
       error: 'Error fetching dashboard data'
@@ -1374,6 +1401,8 @@ router.get('/content/export', async (req, res) => {
  */
 router.get('/actions', async (req, res) => {
   try {
+    console.log('🔍 Admin actions request received:', { page: req.query.page, limit: req.query.limit });
+    
     const { page = 1, limit = 50, action, targetType } = req.query;
     const skip = (page - 1) * limit;
 
@@ -1401,7 +1430,7 @@ router.get('/actions', async (req, res) => {
       prisma.adminAction.count({ where })
     ]);
 
-    res.json({
+    const response = {
       success: true,
       data: {
         actions,
@@ -1412,9 +1441,15 @@ router.get('/actions', async (req, res) => {
           pages: Math.ceil(total / limit)
         }
       }
+    };
+
+    console.log('✅ Admin actions response:', { 
+      total: response.data.pagination.total, 
+      actionsCount: response.data.actions.length 
     });
+    res.json(response);
   } catch (error) {
-    console.error('Get admin actions error:', error);
+    console.error('❌ Get admin actions error:', error);
     res.status(500).json({
       success: false,
       error: 'Error fetching admin actions'

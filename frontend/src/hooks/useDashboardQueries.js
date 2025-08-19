@@ -6,8 +6,19 @@ export const useAdminStats = () => {
   return useQuery({
     queryKey: ['admin', 'stats'],
     queryFn: async () => {
-      const response = await api.get('/admin/dashboard')
-      return response.data?.data?.statistics || response.data?.statistics || {}
+      console.log('🔍 Fetching admin stats...');
+      try {
+        const response = await api.get('/admin/dashboard')
+        console.log('✅ Admin stats response:', response.data);
+        
+        // Handle different response formats
+        const stats = response.data?.data?.statistics || response.data?.statistics || {};
+        console.log('📊 Extracted stats:', stats);
+        return stats;
+      } catch (error) {
+        console.error('❌ Error fetching admin stats:', error);
+        throw error;
+      }
     },
     // Only fetch if user is authenticated
     enabled: true,
@@ -15,6 +26,9 @@ export const useAdminStats = () => {
     staleTime: 30 * 1000,
     // Cache for 5 minutes
     gcTime: 5 * 60 * 1000,
+    // Retry failed requests
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 }
 
@@ -23,12 +37,25 @@ export const useAdminActions = (limit = 5) => {
   return useQuery({
     queryKey: ['admin', 'actions', limit],
     queryFn: async () => {
-      const response = await api.get(`/admin/actions?limit=${limit}`)
-      return response.data?.data?.actions || response.data?.actions || []
+      console.log('🔍 Fetching admin actions...', { limit });
+      try {
+        const response = await api.get(`/admin/actions?limit=${limit}`)
+        console.log('✅ Admin actions response:', response.data);
+        
+        // Handle different response formats
+        const actions = response.data?.data?.actions || response.data?.actions || [];
+        console.log('📋 Extracted actions:', actions);
+        return actions;
+      } catch (error) {
+        console.error('❌ Error fetching admin actions:', error);
+        throw error;
+      }
     },
     enabled: true,
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 }
 
