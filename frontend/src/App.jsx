@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { GoogleMapsProvider } from './contexts/GoogleMapsContext'
+import { QueryProvider } from './providers/QueryProvider'
 import { ErrorBoundary } from './components/UXComponents'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Layout } from './components/Layout'
@@ -46,112 +47,114 @@ function App() {
   
   return (
     <ErrorBoundary>
-      <ToastProvider>
-        <AuthProvider>
-          <GoogleMapsProvider>
-            <Layout>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/editorial" element={<HomeEditorial />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/verify-email" element={<EmailVerification />} />
-              <Route path="/artists" element={<Artists />} />
-              <Route path="/artists/:id" element={<ArtistProfile />} />
-              <Route path="/flash" element={<FlashGallery />} />
-              <Route path="/flash/:id" element={<FlashDetail />} />
-              <Route path="/studios" element={<Studios />} />
-              <Route path="/studios/:id" element={<StudioDetail />} />
-              <Route path="/create-studio" element={<CreateStudio />} />
-              <Route path="/map" element={<Map />} />
-              <Route path="/gallery" element={<TattooGallery />} />
-              <Route path="/gallery/:id" element={<GalleryDetail />} />
-              
-              {/* Legal pages */}
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
-              <Route path="/cookie-policy" element={<CookiePolicy />} />
-              <Route path="/contact-us" element={<ContactUs />} />
-              
-              {/* Protected routes */}
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <UserProfile />
-                </ProtectedRoute>
-              } />
-              <Route path="/favorites" element={
-                <ProtectedRoute requiredRole="CLIENT">
-                  <Favorites />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard" element={
-                <ProtectedRoute requiredRole="ARTIST">
-                  <ArtistDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/gallery" element={
-                <ProtectedRoute requiredRole="ARTIST">
-                  <ArtistGalleryManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/users" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminUserManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/artists" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminArtistManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/artists/pending" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminArtistVerification />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/reviews" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminReviewModeration />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/actions" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminAuditLog />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/studios/upload" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminStudioUpload />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/studios" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminStudioManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/geocoding" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminGeocoding />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/content" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminContent />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
-            </Routes>
-          </Layout>
-          </GoogleMapsProvider>
-        </AuthProvider>
-      </ToastProvider>
+      <QueryProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <GoogleMapsProvider>
+              <Layout>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/editorial" element={<HomeEditorial />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/verify-email" element={<EmailVerification />} />
+                <Route path="/artists" element={<Artists />} />
+                <Route path="/artists/:id" element={<ArtistProfile />} />
+                <Route path="/flash" element={<FlashGallery />} />
+                <Route path="/flash/:id" element={<FlashDetail />} />
+                <Route path="/studios" element={<Studios />} />
+                <Route path="/studios/:id" element={<StudioDetail />} />
+                <Route path="/create-studio" element={<CreateStudio />} />
+                <Route path="/map" element={<Map />} />
+                <Route path="/gallery" element={<TattooGallery />} />
+                <Route path="/gallery/:id" element={<GalleryDetail />} />
+                
+                {/* Legal pages */}
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
+                <Route path="/cookie-policy" element={<CookiePolicy />} />
+                <Route path="/contact-us" element={<ContactUs />} />
+                
+                {/* Protected routes */}
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/favorites" element={
+                  <ProtectedRoute requiredRole="CLIENT">
+                    <Favorites />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute requiredRole="ARTIST">
+                    <ArtistDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/gallery" element={
+                  <ProtectedRoute requiredRole="ARTIST">
+                    <ArtistGalleryManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/users" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminUserManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/artists" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminArtistManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/artists/pending" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminArtistVerification />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/reviews" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminReviewModeration />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/actions" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminAuditLog />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/studios/upload" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminStudioUpload />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/studios" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminStudioManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/geocoding" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminGeocoding />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/content" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminContent />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </Layout>
+            </GoogleMapsProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </QueryProvider>
     </ErrorBoundary>
   )
 }

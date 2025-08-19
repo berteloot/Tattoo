@@ -1,8 +1,5 @@
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
 const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
@@ -11,8 +8,13 @@ require('dotenv').config();
 
 // Import database client
 const { prisma, testConnection } = require('./utils/prisma');
-const { getCSPForEnvironment, validateCSP, logCSPConfig } = require('./utils/csp');
 const logger = require('./utils/logger');
+
+// Import security configuration
+const { applySecurityMiddleware } = require('./config/security');
+
+// Import port management
+const { startServerSafely } = require('./utils/portManager');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -28,6 +30,7 @@ const studioRoutes = require('./routes/studios');
 const geocodingRoutes = require('./routes/geocoding-simple');
 const galleryRoutes = require('./routes/gallery');
 const messagesRoutes = require('./routes/messages');
+const healthRoutes = require('./routes/health');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorHandler');
@@ -36,11 +39,6 @@ const { addSecurityHeaders } = require('./middleware/antiScraping');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
-// Trust proxy for rate limiting behind load balancers (Render, Heroku, etc.)
-// This is crucial for proper IP detection behind proxies
-// Render sits behind Cloudflare and its own proxy, so use 2 hops
-app.set('trust proxy', 2);
 
 // Check required environment variables
 const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
@@ -57,130 +55,10 @@ console.log('✅ All required environment variables are configured');
 // Force server restart to pick up new Prisma client with profile picture fields
 console.log('🔄 Server restarting to load updated Prisma client...');
 
-// Security middleware - Minimal and verified CSP configuration
-const cspConfig = getCSPForEnvironment();
+// Apply centralized security middleware
+applySecurityMiddleware(app);
 
-// Validate CSP configuration before applying
-try {
-  validateCSP(cspConfig);
-  logCSPConfig(cspConfig);
-} catch (error) {
-  console.error('❌ CSP validation failed:', error.message);
-  process.exit(1);
-}
-
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: cspConfig
-  }
-}));
-
-logger.info('Helmet CSP enabled with minimal, verified configuration');
-
-// CORS configuration - Strict allow-list for security
-const allowedOrigins = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || 'http://localhost:5173,https://tattooed-world-backend.onrender.com').split(',').filter(Boolean);
-
-// Validate CORS configuration
-if (allowedOrigins.length === 0) {
-  console.error('❌ CORS_ORIGINS environment variable is required for security');
-  console.error('Please set CORS_ORIGINS to a comma-separated list of allowed origins');
-  process.exit(1);
-}
-
-console.log('🔒 CORS allowed origins:', allowedOrigins);
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn(`🚨 CORS blocked request from unauthorized origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
-
-// Add security headers
-app.use(addSecurityHeaders);
-
-// Rate limiting with secure proxy handling for Render.com
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // limit each IP to 500 requests per windowMs (increased for geocoding)
-  message: {
-    error: 'Too many requests from this IP, please try again later.'
-  },
-  // Handle proxy headers properly for Render.com
-  standardHeaders: true,
-  legacyHeaders: false,
-  // Skip successful requests to reduce noise
-  skipSuccessfulRequests: false,
-  skipFailedRequests: false,
-  // SECURITY: Let express-rate-limit use req.ip (handled securely by trust proxy)
-  // No custom keyGenerator - Express.js automatically handles X-Forwarded-For securely
-  // when trust proxy is configured, populating req.ip with the correct client IP
-  // Add handler for rate limit errors
-  handler: (req, res) => {
-    console.log(`🚨 Rate limit exceeded for IP: ${req.ip}`);
-    res.status(429).json({
-      success: false,
-      error: 'Too many requests from this IP, please try again later.'
-    });
-  }
-});
-
-// Higher rate limit for authenticated users (dashboard operations)
-const dashboardLimiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.DASHBOARD_RATE_LIMIT_MAX_REQUESTS) || 1000, // Higher limit for dashboard operations
-  message: {
-    error: 'Too many dashboard requests, please try again later.'
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-  skipSuccessfulRequests: false,
-  skipFailedRequests: false,
-  handler: (req, res) => {
-    console.log(`🚨 Dashboard rate limit exceeded for IP: ${req.ip}`);
-    res.status(429).json({
-      success: false,
-      error: 'Too many dashboard requests, please try again later.'
-    });
-  }
-});
-
-// Apply rate limiting to all /api/ routes EXCEPT geocoding (admin tool)
-app.use('/api/', (req, res, next) => {
-  if (req.path.startsWith('/geocoding')) {
-    return next(); // Skip rate limiting for geocoding routes
-  }
-  
-  // Check if this is a dashboard-related request from an authenticated user
-  const isDashboardRequest = req.path.includes('/admin/') || 
-                           req.path.includes('/artists/') || 
-                           req.path.includes('/flash') ||
-                           req.path.includes('/reviews') ||
-                           req.path.includes('/services') ||
-                           req.path.includes('/specialties') ||
-                           req.path.includes('/messages') ||
-                           req.path.includes('/favorites');
-  
-  const hasValidAuth = req.headers.authorization && req.headers.authorization.startsWith('Bearer ');
-  
-  // Use dashboard limiter for authenticated dashboard requests
-  if (isDashboardRequest && hasValidAuth) {
-    return dashboardLimiter(req, res, next);
-  }
-  
-  // Use main limiter for all other requests
-  limiter(req, res, next);
-});
+logger.info('✅ Security middleware applied successfully');
 
 // Logging middleware
 if (process.env.NODE_ENV === 'development') {
@@ -265,6 +143,7 @@ app.get('/debug-paths', (req, res) => {
 });
 
 // API routes
+app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/artists', artistRoutes);
 app.use('/api/flash', flashRoutes);
@@ -435,9 +314,7 @@ async function startServer() {
   try {
     console.log('🔄 Starting server initialization...');
     console.log(`📊 Environment: ${process.env.NODE_ENV}`);
-    console.log(`🌐 Trust Proxy: ${app.get('trust proxy')}`);
     console.log(`📁 Frontend build path: ${frontendBuildPath}`);
-    console.log(`🔒 CORS Origins: ${allowedOrigins.join(', ')}`);
     
     // Test database connection
     console.log('🔄 Testing database connection...');
@@ -475,15 +352,33 @@ async function startServer() {
       }
     }
     
-    // Start server
-    app.listen(PORT, () => {
-      console.log(`🚀 Full-stack server running on port ${PORT}`);
-      console.log(`📊 Environment: ${process.env.NODE_ENV}`);
-      console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-      console.log(`🌐 API base: http://localhost:${PORT}/api`);
-      console.log(`🎨 Frontend: http://localhost:${PORT}`);
-      console.log(`🛡️ Rate limiting: ${process.env.RATE_LIMIT_MAX_REQUESTS || 100} requests per ${process.env.RATE_LIMIT_WINDOW_MS || 900000}ms`);
+    // Start server safely with port management
+    const { server, port } = await startServerSafely(app, PORT);
+    
+    console.log(`🚀 Full-stack server running on port ${port}`);
+    console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+    console.log(`🔗 Health check: http://localhost:${port}/api/health`);
+    console.log(`🌐 API base: http://localhost:${port}/api`);
+    console.log(`🎨 Frontend: http://localhost:${port}`);
+    console.log(`🛡️ Security: Helmet, CORS, Rate Limiting enabled`);
+    
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+      console.log('🔄 SIGTERM received, shutting down gracefully...');
+      server.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+      });
     });
+    
+    process.on('SIGINT', () => {
+      console.log('🔄 SIGINT received, shutting down gracefully...');
+      server.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+      });
+    });
+    
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);

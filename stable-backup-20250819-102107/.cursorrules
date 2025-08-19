@@ -1,0 +1,413 @@
+# Cursor Rules for Tattoo Artist Locator App
+
+## Project Context
+- **App Type**: Tattoo Artist Locator - Connect clients with tattoo artists based on location, style, and specialty
+- **User**: Non-developer who needs complete coding assistance
+- **Hosting**: Render.com for deployment (single domain architecture)
+- **Environment**: Uses .env files for configuration (not accessible to Cursor)
+- **Status**: Production-ready with comprehensive role-based access control and admin system
+
+## Tech Stack
+### Frontend
+- React + Vite for fast development
+- @react-google-maps/api for Google Maps integration (with fallback for missing API keys)
+- Axios for API communication
+- React Router for navigation
+- Tailwind CSS for styling
+- React Hook Form for form handling
+- React Hot Toast for notifications
+- Lucide React for icons
+
+### Backend
+- Node.js + Express for RESTful API
+- Prisma ORM for database interactions
+- JWT authentication with role-based access control
+- File uploads via Cloudinary/S3 (configured but optional)
+- PostgreSQL database with PostGIS support
+- Express Validator for input validation
+- Rate limiting and security middleware
+- Express Rate Limit with proxy support for Render.com
+
+### Database
+- PostgreSQL for data storage
+- Prisma migrations for schema management
+- Role-based access control with audit trails
+
+## Role-Based Access Control (RBAC) System
+
+### 🔵 CLIENT Role (Default)
+- **Permissions**: View artists, create reviews, edit own profile
+- **API Access**: `/api/artists`, `/api/flash`, `/api/reviews` (own), `/api/auth/*`
+- **Restrictions**: Cannot create artist profiles or upload content
+
+### 🎨 ARTIST Role
+- **Permissions**: All client permissions + create artist profile, upload flash, manage services
+- **Verification Process**: Requires admin approval before full access
+- **API Access**: All client endpoints + `/api/artists` (own), `/api/flash` (own)
+- **Status**: PENDING → APPROVED → Full access
+- **Dashboard**: Complete artist dashboard with analytics, portfolio management, location setting
+
+### 🔴 ADMIN Role
+- **Permissions**: Full system control, user management, content moderation
+- **API Access**: All endpoints + `/api/admin/*` (dashboard, users, verification, moderation)
+- **Features**: Verify artists, feature artists, moderate reviews, audit trail
+- **Audit**: All admin actions are logged in AdminAction table
+- **Dashboard**: Comprehensive admin dashboard with statistics and user management
+
+## Core Features Implemented
+
+### Client Features ✅
+- Browse artists on interactive map (with fallback for missing API keys)
+- Filter by specialty, rating, style
+- View artist profiles (bio, services, specialties, flash, reviews)
+- Leave comments and ratings (login required)
+- Edit own profile and reviews
+
+### Artist Features ✅
+- Sign up and create public profile
+- Add specialties, services, pricing, location
+- Upload flash with tags (when verified)
+- Edit profile and respond to reviews
+- **Complete Artist Dashboard** with:
+  - Analytics (profile views, ratings, reviews, earnings)
+  - Interactive Google Maps location management
+  - Specialty tags management
+  - Pricing management
+  - Portfolio management
+  - Review management
+- Verification status tracking
+
+### Admin Features ✅
+- **Comprehensive Admin Dashboard** with real-time statistics
+- **Complete User Management System**:
+  - View all users with advanced filtering
+  - Edit user information (name, email, role, status)
+  - Deactivate/restore users with reason tracking
+  - Search by name, email, or phone
+  - Pagination (20 users per page)
+- **Artist Verification System**:
+  - Review pending artist applications
+  - Approve/reject/suspend artists
+  - Feature/unfeature artists
+  - Add verification notes
+- **Review Moderation**:
+  - Moderate reviews and ratings
+  - Approve/hide reviews
+  - Manage content quality
+- **Audit Trail System**:
+  - Complete admin action logging
+  - Action types: UPDATE_USER, DELETE_USER, RESTORE_USER, VERIFY_ARTIST, FEATURE_ARTIST, MODERATE_REVIEW
+  - Timestamp and admin user tracking
+  - Export capabilities for compliance
+
+## Environment Configuration
+⚠️ **IMPORTANT**: Environment variables are stored in `.env` files which are NOT accessible to Cursor. Always:
+- Create `.env.example` files with placeholder values
+- Document required environment variables in README
+- Use process.env.VARIABLE_NAME in code
+- Never commit actual API keys or secrets
+
+### Required Environment Variables
+
+#### Backend (.env in backend/ directory)
+```bash
+# Database Configuration
+DATABASE_URL="postgresql://username:password@localhost:5432/tattoo_app"
+
+# JWT Authentication
+JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+JWT_EXPIRES_IN="7d"
+
+# Server Configuration
+PORT=3001
+NODE_ENV=development
+
+# CORS Configuration
+CORS_ORIGIN="http://localhost:5173"
+
+# Rate Limiting (Fixed for Render.com deployment)
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Email Configuration (Optional)
+SENDGRID_API_KEY="your-sendgrid-api-key"
+FROM_EMAIL="your-verified-sender@yourdomain.com"
+FRONTEND_URL="http://localhost:5173"
+
+# File Upload Configuration (Optional)
+MAX_FILE_SIZE=5242880
+ALLOWED_FILE_TYPES="image/jpeg,image/png,image/webp"
+
+# Cloudinary Configuration (Optional)
+CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
+```
+
+#### Frontend (.env in frontend/ directory)
+```bash
+# API Configuration
+VITE_API_URL="http://localhost:3001"
+
+# Google Maps API (Optional)
+VITE_GOOGLE_MAPS_API_KEY="your-google-maps-api-key"
+
+# Environment
+VITE_NODE_ENV="development"
+```
+
+## Database Schema
+
+### Core Models
+- **User**: Authentication, roles (CLIENT/ARTIST/ADMIN), profile info
+- **ArtistProfile**: Extended artist information, verification status
+- **Specialty**: Tattoo styles (Traditional, Japanese, Black & Grey, etc.)
+- **Service**: Artist services (Custom Design, Cover-up, Touch-up, etc.)
+- **Flash**: Portfolio items with tags and pricing
+- **Review**: Client reviews with ratings and moderation
+- **AdminAction**: Audit trail for admin actions
+
+### Key Relationships
+- User → ArtistProfile (one-to-one)
+- ArtistProfile → Specialties (many-to-many)
+- ArtistProfile → Services (many-to-many)
+- ArtistProfile → Flash (one-to-many)
+- User → Reviews (as author and recipient)
+
+## API Structure
+
+### Authentication Routes (`/api/auth/*`)
+- `POST /register` - User registration with role selection
+- `POST /login` - User authentication
+- `GET /me` - Get current user profile
+- `PUT /profile` - Update user profile
+- `POST /logout` - Logout (client-side token removal)
+
+### Artist Routes (`/api/artists/*`)
+- `GET /` - Get all artists with filtering
+- `GET /:id` - Get specific artist profile
+- `POST /` - Create artist profile (ARTIST role only)
+- `PUT /:id` - Update artist profile (owner or admin only)
+
+### Flash Routes (`/api/flash/*`)
+- `GET /` - Get flash items with filtering
+- `GET /:id` - Get specific flash item
+- `POST /` - Create flash item (verified ARTIST only)
+- `PUT /:id` - Update flash item (owner or admin only)
+- `DELETE /:id` - Delete flash item (owner or admin only)
+
+### Review Routes (`/api/reviews/*`)
+- `GET /` - Get reviews with filtering
+- `POST /` - Create review (authenticated users)
+- `PUT /:id` - Update review (author or admin only)
+- `DELETE /:id` - Delete review (author or admin only)
+
+### Admin Routes (`/api/admin/*`)
+- `GET /dashboard` - Admin dashboard statistics
+- `GET /users` - Manage all users with filtering
+- `GET /users/:id` - Get detailed user information
+- `PUT /users/:id` - Update user status/role
+- `DELETE /users/:id` - Deactivate user
+- `POST /users/:id/restore` - Restore deactivated user
+- `GET /artists/pending` - View pending verifications
+- `PUT /artists/:id/verify` - Verify/reject artists
+- `PUT /artists/:id/feature` - Feature/unfeature artists
+- `GET /reviews` - Moderate reviews
+- `PUT /reviews/:id/moderate` - Approve/hide reviews
+- `GET /actions` - View admin action log
+
+## Security Features
+
+### Authentication & Authorization
+- JWT token-based authentication
+- Role-based access control (CLIENT/ARTIST/ADMIN)
+- Resource ownership validation
+- Admin audit trail for all actions
+- Rate limiting on API endpoints (fixed for Render.com)
+
+### Data Protection
+- Input validation with Express Validator
+- SQL injection prevention via Prisma ORM
+- XSS protection with input sanitization
+- CORS configuration for cross-origin requests
+- Helmet.js for security headers
+
+### Content Moderation
+- Review approval/hiding system
+- Flash item moderation
+- Artist verification process
+- User account suspension
+- Admin action logging
+
+## Deployment Architecture
+
+### Single Domain Deployment ✅
+- **Production URL**: `https://tattooed-world-backend.onrender.com`
+- **Architecture**: Single full-stack service (frontend + backend)
+- **Benefits**: No CORS issues, simplified deployment, better performance
+- **Configuration**: `render.yaml` with unified build process
+
+### Render.com Configuration
+- **Service Type**: Web service with PostgreSQL database
+- **Build Command**: Installs dependencies and builds both frontend and backend
+- **Start Command**: Starts backend server (serves frontend static files)
+- **Environment Variables**: All configured in render.yaml
+- **Rate Limiting**: Fixed for proxy headers (X-Forwarded-For)
+
+## Recent Fixes & Improvements
+
+### Authentication System ✅
+- Fixed profile access bug (500 error resolved)
+- Complete authentication testing (100% success rate)
+- JWT token validation working correctly
+- Role-based access control fully functional
+
+### Admin System ✅
+- Complete user management with CRUD operations
+- Artist verification system with status tracking
+- Review moderation capabilities
+- Comprehensive audit trail logging
+- Admin dashboard with real-time statistics
+
+### Artist Dashboard ✅
+- Analytics and performance metrics
+- Interactive Google Maps location management
+- Specialty tags management
+- Pricing management
+- Portfolio and review management
+- Real-time updates and form validation
+
+### Google Maps Integration ✅
+- Interactive map for studio location selection
+- Click-to-set and drag-and-drop functionality
+- Fallback support for missing API keys
+- Address form integration
+- Coordinate display and management
+
+### Rate Limiter Fix ✅
+- Fixed `ERR_ERL_UNEXPECTED_X_FORWARDED_FOR` error for Render.com
+- Proper proxy header handling (X-Forwarded-For)
+- Trust proxy configuration
+- Enhanced error handling and logging
+
+### Frontend Crash Fix ✅
+- Fixed missing User component import
+- Added defensive programming for user properties
+- Resolved JavaScript reference errors
+- Improved error boundaries
+
+## Development Guidelines
+
+### Code Organization
+- Separate frontend and backend into distinct directories
+- Use clear, descriptive file and folder names
+- Implement proper error handling with meaningful messages
+- Add comprehensive comments for non-developer understanding
+- Follow RESTful API conventions
+
+### Database Design
+- Use Prisma migrations for schema changes
+- Implement proper relationships and constraints
+- Use enums for status fields (UserRole, VerificationStatus)
+- Include audit trails for admin actions
+- Optimize queries with proper indexing
+
+### API Structure
+- RESTful endpoints with proper HTTP status codes
+- Consistent response format: `{ success: boolean, data?: any, error?: string }`
+- Input validation on all endpoints
+- Proper error responses with meaningful messages
+- Pagination for list endpoints
+
+### Frontend Development
+- Component-based architecture with React
+- Responsive design with Tailwind CSS
+- Form validation with React Hook Form
+- Toast notifications for user feedback
+- Protected routes based on user roles
+- Fallback UI for missing API keys
+
+## Deployment Considerations
+- Render.com hosting configuration with `render.yaml`
+- Single domain architecture (frontend + backend)
+- Environment variable setup on Render
+- Database connection strings and migrations
+- Static file serving for frontend
+- Build and start scripts for production
+- Health check endpoints for monitoring
+- Rate limiting configured for proxy environments
+
+## File Structure
+```
+tattoo-app/
+├── frontend/          # React + Vite app
+│   ├── src/
+│   │   ├── components/    # Reusable UI components
+│   │   ├── pages/         # Page components (including AdminDashboard, ArtistDashboard)
+│   │   ├── contexts/      # React contexts (Auth, Toast)
+│   │   ├── services/      # API service functions
+│   │   └── utils/         # Utility functions
+│   ├── .env.example       # Frontend environment template
+│   └── package.json
+├── backend/           # Node.js + Express API
+│   ├── src/
+│   │   ├── routes/        # API route handlers (including admin.js)
+│   │   ├── middleware/    # Auth and validation middleware
+│   │   ├── utils/         # Utility functions
+│   │   └── server.js      # Main server file (serves frontend + API)
+│   ├── prisma/            # Database schema and migrations
+│   ├── scripts/           # Database and admin setup scripts
+│   ├── .env.example       # Backend environment template
+│   └── package.json
+├── docs/             # Documentation
+│   ├── ADMIN_SYSTEM.md  # Admin system documentation
+│   └── ROLE_PERMISSIONS.md  # RBAC documentation
+├── package.json      # Root package.json with scripts
+├── .env.example      # Environment template
+├── render.yaml       # Render deployment config (single service)
+├── quick-start.sh    # Automated setup script
+└── README.md         # Setup instructions
+```
+
+## Development Workflow
+1. Always create environment templates
+2. Document all API endpoints and permissions
+3. Include setup instructions for non-developers
+4. Test all features before deployment
+5. Provide clear error messages and user feedback
+6. Use TypeScript for better code quality (optional)
+7. Follow role-based access control guidelines
+8. Maintain admin audit trails
+9. Test rate limiting with proxy headers
+10. Verify single domain deployment
+
+## Test Accounts (for development)
+```
+Admin: berteloot@gmail.com / admin123
+Client: client@example.com / client123
+Artist: artist@example.com / artist123
+Pending Artist: pending@example.com / pending123
+```
+
+## Production Status
+- ✅ **Live URL**: https://tattooed-world-backend.onrender.com
+- ✅ **Single Domain Architecture**: Frontend + Backend served from same URL
+- ✅ **Admin System**: Fully functional with complete user management
+- ✅ **Artist Dashboard**: Complete with analytics and location management
+- ✅ **Authentication**: 100% working with role-based access
+- ✅ **Google Maps**: Integrated with fallback support
+- ✅ **Rate Limiting**: Fixed for Render.com deployment
+- ✅ **Database**: PostgreSQL with Prisma ORM
+- ✅ **Security**: JWT authentication, input validation, audit trails
+
+## Notes for Non-Developer
+- All code is written with detailed comments
+- Setup instructions are step-by-step with troubleshooting
+- Environment configuration is clearly documented
+- Error handling is user-friendly with helpful messages
+- Deployment process is automated with single domain architecture
+- Role-based permissions are clearly defined and enforced
+- Admin features include comprehensive audit trails
+- The app gracefully handles missing API keys with fallbacks
+- Recent fixes ensure stable production deployment
+- Complete admin system provides full user and content management 
