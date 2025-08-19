@@ -9,7 +9,7 @@ import {
   useSpecialties, 
   useServices 
 } from '../hooks/useDashboardQueries'
-import { api, artistsAPI } from '../services/api'
+import { api, artistsAPI, flashAPI } from '../services/api'
 import ProfilePictureUpload from '../components/ProfilePictureUpload'
 import { MessageManagement } from '../components/MessageManagement'
 import StudioSelect from '../components/StudioSelect'
@@ -84,7 +84,8 @@ export const ArtistDashboard = () => {
   const { 
     data: flash = [], 
     isLoading: flashLoading, 
-    error: flashError 
+    error: flashError,
+    refetch: refetchFlash
   } = useArtistFlash(artistId)
   
   const { 
@@ -257,6 +258,26 @@ export const ArtistDashboard = () => {
     }))
   }
 
+  // Flash Gallery handlers
+  const handleEditFlash = (item) => {
+    navigate('/flash/edit', { state: { flashItem: item } });
+  };
+
+  const handleDeleteFlash = async (id) => {
+    if (window.confirm('Are you sure you want to delete this flash item?')) {
+      try {
+        await flashAPI.delete(id);
+        success('Flash item deleted successfully!');
+        // Refresh the flash list
+        refetchFlash();
+      } catch (error) {
+        console.error('Error deleting flash item:', error);
+        const errorMessage = error.response?.data?.error || 'Error deleting flash item';
+        showError(errorMessage);
+      }
+    }
+  };
+
   // Loading state
   const isLoading = profileLoading || flashLoading || reviewsLoading || specialtiesLoading || servicesLoading
 
@@ -324,7 +345,7 @@ export const ArtistDashboard = () => {
                   </button>
                   
                   <button
-                    onClick={() => navigate('/dashboard/flash')}
+                    onClick={() => navigate('/flash')}
                     className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -633,7 +654,7 @@ export const ArtistDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Flash Gallery</h2>
                 <button 
-                  onClick={() => navigate('/dashboard/flash')}
+                  onClick={() => navigate('/flash')}
                   className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -655,10 +676,16 @@ export const ArtistDashboard = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-green-600">${item.basePrice}</span>
                         <div className="flex space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800">
+                          <button 
+                            onClick={() => handleEditFlash(item)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
                             <Edit3 className="h-4 w-4" />
                           </button>
-                          <button className="text-red-600 hover:text-red-800">
+                          <button 
+                            onClick={() => handleDeleteFlash(item.id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
@@ -796,7 +823,7 @@ export const ArtistDashboard = () => {
                 </button>
                 
                 <button
-                  onClick={() => navigate('/dashboard/flash')}
+                  onClick={() => navigate('/flash')}
                   className="w-full flex items-center p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
                 >
                   <Plus className="h-5 w-5 text-green-600 mr-3" />
