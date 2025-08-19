@@ -12,6 +12,7 @@ import {
 import { api, artistsAPI } from '../services/api'
 import ProfilePictureUpload from '../components/ProfilePictureUpload'
 import { MessageManagement } from '../components/MessageManagement'
+import StudioSelect from '../components/StudioSelect'
 import { 
   MapPin, 
   Phone, 
@@ -66,6 +67,9 @@ export const ArtistDashboard = () => {
 
   // Profile picture state
   const [profilePictureData, setProfilePictureData] = useState(null)
+
+  // Studio selection state
+  const [selectedStudio, setSelectedStudio] = useState(null)
 
   // Use React Query hooks for data fetching
   const artistId = user?.artistProfile?.id
@@ -128,6 +132,7 @@ export const ArtistDashboard = () => {
         ...prev,
         bio: profile.bio || '',
         studioName: profile.studioName || '',
+        studioId: profile.studioId || null,
         website: profile.website || '',
         instagram: profile.instagram || '',
         facebook: profile.facebook || '',
@@ -163,6 +168,19 @@ export const ArtistDashboard = () => {
           height: profile.profilePictureHeight,
           format: profile.profilePictureFormat,
           bytes: profile.profilePictureBytes
+        })
+      }
+
+      // Set selected studio if profile has studio info
+      if (profile.studioId && profile.studioName) {
+        setSelectedStudio({
+          id: profile.studioId,
+          title: profile.studioName,
+          address: profile.address,
+          city: profile.city,
+          state: profile.state,
+          zipCode: profile.zipCode,
+          country: profile.country
         })
       }
     }
@@ -213,6 +231,31 @@ export const ArtistDashboard = () => {
       profilePictureHeight: null,
       profilePictureFormat: null,
       profilePictureBytes: null
+    }))
+  }
+
+  // Studio selection handlers
+  const handleStudioSelect = (studio) => {
+    setSelectedStudio(studio)
+    setFormData(prev => ({
+      ...prev,
+      studioId: studio.id,
+      studioName: studio.title,
+      // Pre-fill address information from studio
+      address: studio.address || prev.address,
+      city: studio.city || prev.city,
+      state: studio.state || prev.state,
+      zipCode: studio.zipCode || prev.zipCode,
+      country: studio.country || prev.country
+    }))
+  }
+
+  const handleStudioClear = () => {
+    setSelectedStudio(null)
+    setFormData(prev => ({
+      ...prev,
+      studioId: null,
+      studioName: ''
     }))
   }
 
@@ -309,15 +352,18 @@ export const ArtistDashboard = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Studio Name
+                    Studio
                   </label>
-                  <input
-                    type="text"
-                    value={formData.studioName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, studioName: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Your studio name"
+                  <StudioSelect
+                    selectedStudio={selectedStudio}
+                    onStudioSelect={handleStudioSelect}
+                    onStudioClear={handleStudioClear}
+                    placeholder="Search for a studio to join or claim..."
+                    className="w-full"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Search for an existing studio to join, or claim a new one if you're the first artist there.
+                  </p>
                 </div>
               </div>
 
@@ -337,6 +383,58 @@ export const ArtistDashboard = () => {
                     bytes: profile?.profilePictureBytes
                   }}
                 />
+              </div>
+
+              {/* Save Profile Button */}
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      // Save profile first
+                      let response;
+                      if (profile?.id) {
+                        response = await artistsAPI.updateProfile(profile.id, formData);
+                      } else {
+                        response = await artistsAPI.createProfile(formData);
+                      }
+                      
+                      if (response.data.success) {
+                        success('Profile saved successfully!');
+                        
+                        // If studio is selected, try to claim/join it
+                        if (selectedStudio) {
+                          try {
+                            if (selectedStudio.claimedBy) {
+                              // Studio is already claimed, try to join
+                              await api.post(`/studios/${selectedStudio.id}/artists`, {
+                                artistId: response.data.data.artistProfile?.id || response.data.data.artist?.id
+                              });
+                              success(`Successfully joined ${selectedStudio.title}!`);
+                            } else {
+                              // Studio is not claimed, try to claim it
+                              await api.post(`/studios/${selectedStudio.id}/claim`);
+                              success(`Successfully claimed ${selectedStudio.title}!`);
+                            }
+                          } catch (studioError) {
+                            console.error('Studio linking error:', studioError);
+                            // Continue anyway, the profile was saved successfully
+                          }
+                        }
+                        
+                        // Refresh the page to get updated data
+                        window.location.reload();
+                      }
+                    } catch (error) {
+                      console.error('Profile save error:', error);
+                      const errorMessage = error.response?.data?.error || 'Error saving profile';
+                      showError(errorMessage);
+                    }
+                  }}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  {profile?.id ? 'Update Profile' : 'Create Profile'}
+                </button>
               </div>
 
               {/* Social Media Links */}
