@@ -8,6 +8,7 @@ import { StudioMessageForm } from './StudioMessageForm'
 import { useToast } from '../contexts/ToastContext'
 import { useGoogleMaps } from '../contexts/GoogleMapsContext'
 import GoogleMapsErrorBoundary from './GoogleMapsErrorBoundary'
+import { api } from '../services/api'
 
 const mapContainerStyle = {
   width: '100%',
@@ -111,26 +112,32 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   // Fit bounds when studios change
   useEffect(() => {
     if (mapRef.current && studios.length > 0 && isGoogleMapsLoaded) {
-      const bounds = new window.google.maps.LatLngBounds()
-      studios.forEach(studio => {
-        if (studio.latitude && studio.longitude) {
-          bounds.extend({ 
-            lat: parseFloat(studio.latitude), 
-            lng: parseFloat(studio.longitude) 
-          })
-        }
-      })
-      
-      if (!bounds.isEmpty()) {
-        mapRef.current.fitBounds(bounds, { 
-          top: 40, 
-          right: 40, 
-          bottom: 40, 
-          left: 40 
-        })
-      }
+      fitBoundsToStudios()
     }
   }, [studios, isGoogleMapsLoaded])
+
+  const fitBoundsToStudios = () => {
+    if (!mapRef.current || !studios.length) return
+    
+    const bounds = new window.google.maps.LatLngBounds()
+    studios.forEach(studio => {
+      if (studio.latitude && studio.longitude) {
+        bounds.extend({ 
+          lat: parseFloat(studio.latitude), 
+          lng: parseFloat(studio.longitude) 
+        })
+      }
+    })
+    
+    if (!bounds.isEmpty()) {
+      mapRef.current.fitBounds(bounds, { 
+        top: 40, 
+        right: 40, 
+        bottom: 40, 
+        left: 40 
+      })
+    }
+  }
 
   useEffect(() => {
     fetchStudios()
@@ -185,11 +192,14 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       console.log('Fetching studios for map...')
       console.log('Search params:', Object.fromEntries(params))
 
-      const response = await fetch(`/api/studios?${params.toString()}`)
-      const result = await response.json()
+      const response = await api.get(`/studios?${params.toString()}`)
+      const result = response.data
 
       if (result.success) {
         const studiosData = result.data.studios || []
+        
+        console.log('🔍 Raw studios data:', studiosData)
+        console.log('🔍 Result structure:', result)
         
         // Process studios data
         const processedStudiosData = studiosData.map(studio => ({
@@ -773,8 +783,13 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                 center={mapCenter}
                 zoom={mapZoom}
                 onLoad={(map) => {
+                  mapRef.current = map
                   if (!import.meta.env.PROD) {
                     console.log('✅ Google Map loaded successfully')
+                  }
+                  // Fit bounds if we already have studios data
+                  if (studios.length > 0) {
+                    fitBoundsToStudios()
                   }
                 }}
                 onError={(error) => {
