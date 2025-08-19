@@ -1,10 +1,7 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
-const { prisma } = require('../utils/prisma');
-const { protect, adminOnly, requireOwnership } = require('../middleware/auth');
-const studioGeocodingTrigger = require('../utils/studioGeocodingTrigger');
-
 const router = express.Router();
+const { protect, adminOnly } = require('../middleware/auth');
+const prisma = require('../utils/prisma');
 
 // All admin routes require authentication and admin role
 router.use(protect);
@@ -1636,6 +1633,8 @@ router.post('/upload-studios-csv', protect, adminOnly, async (req, res) => {
           studioData[header] = values[index]?.trim() || null;
         });
 
+
+
         // Debug logging for Instagram field
         console.log(`🔍 CSV Line ${i + 1} Instagram field:`, {
           header: headers.find(h => h.includes('instagram')),
@@ -1677,7 +1676,7 @@ router.post('/upload-studios-csv', protect, adminOnly, async (req, res) => {
             phoneNumber: studioData.phone || studioData.phonenumber || null,
             email: studioData.email || null,
             facebookUrl: studioData.facebook || studioData.facebookurl || null,
-            instagramUrl: studioData.instagram || studioData.instagramurl || studioData.instagram_url || studioData.instagramurl || null,
+            instagramUrl: studioData.instagram || studioData.instagramurl || null,
             twitterUrl: studioData.twitter || studioData.twitterurl || null,
             linkedinUrl: studioData.linkedin || studioData.linkedinurl || null,
             youtubeUrl: studioData.youtube || studioData.youtubeurl || null,
@@ -3001,5 +3000,7 @@ router.post('/test-csv-mapping', protect, adminOnly, async (req, res) => {
     });
   }
 });
+
+
 
 module.exports = router; 
