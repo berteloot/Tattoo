@@ -1,54 +1,14 @@
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
+const { getCSPForEnvironment, validateCSP, logCSPConfig } = require('../utils/csp');
 
 // Security configuration with best practices
 const securityConfig = {
   // Helmet configuration for security headers
   helmet: {
     contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'", // Required for Tailwind CSS
-          "https://fonts.googleapis.com"
-        ],
-        fontSrc: [
-          "'self'",
-          "https://fonts.gstatic.com",
-          "data:"
-        ],
-        imgSrc: [
-          "'self'",
-          "data:",
-          "blob:",
-          "https://res.cloudinary.com", // Allow Cloudinary images
-          "https://ui-avatars.com" // Allow avatar service
-        ],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-inline'", // Required for React development
-          "'unsafe-eval'" // Required for React development
-        ],
-        scriptSrcElem: [
-          "'self'",
-          "'unsafe-inline'",
-          "'unsafe-eval'"
-        ],
-        connectSrc: [
-          "'self'",
-          "wss:",
-          "ws:",
-          "http://localhost:*", // Allow local development
-          "https://tattooed-world-backend.onrender.com" // Allow production API
-        ],
-        objectSrc: ["'none'"],
-        baseUri: ["'self'"],
-        formAction: ["'self'"],
-        frameAncestors: ["'none'"],
-        upgradeInsecureRequests: []
-      }
+      directives: getCSPForEnvironment()
     },
     crossOriginEmbedderPolicy: false, // Disable for development
     crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin resources

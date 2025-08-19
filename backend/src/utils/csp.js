@@ -40,6 +40,10 @@ const getCSPConfig = () => {
 
   // Add Google Maps support only if API key is configured
   if (process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY) {
+    console.log('🔒 Google Maps API key detected, configuring CSP for Maps...');
+    console.log('🔑 GOOGLE_MAPS_API_KEY:', process.env.GOOGLE_MAPS_API_KEY ? 'Set' : 'Not set');
+    console.log('🔑 VITE_GOOGLE_MAPS_API_KEY:', process.env.VITE_GOOGLE_MAPS_API_KEY ? 'Set' : 'Not set');
+    
     // Only include the specific Google Maps endpoints actually used
     baseCSP.scriptSrc = [
       ...baseCSP.scriptSrc,
@@ -57,7 +61,13 @@ const getCSPConfig = () => {
       "https://maps.googleapis.com", // Maps API
       "https://maps.gstatic.com",   // Maps static resources
       "https://*.googleapis.com",   // Google APIs (minimal)
-      "https://*.gstatic.com"       // Google static resources (minimal)
+      "https://*.gstatic.com",      // Google static resources (minimal)
+      "https://mt0.google.com",     // Google Maps tiles
+      "https://mt1.google.com",     // Google Maps tiles
+      "https://mt2.google.com",     // Google Maps tiles
+      "https://mt3.google.com",     // Google Maps tiles
+      "https://khms0.googleapis.com", // Google Maps tiles
+      "https://khms1.googleapis.com"  // Google Maps tiles
     ];
 
     // Add only the specific connect sources needed
@@ -66,6 +76,10 @@ const getCSPConfig = () => {
       "https://maps.googleapis.com",
       "https://maps.gstatic.com"
     ];
+    
+    console.log('✅ Google Maps CSP configuration added');
+  } else {
+    console.log('⚠️ No Google Maps API key detected, Maps functionality will be limited');
   }
 
   return baseCSP;
