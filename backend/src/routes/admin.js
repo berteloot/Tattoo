@@ -1636,6 +1636,14 @@ router.post('/upload-studios-csv', protect, adminOnly, async (req, res) => {
           studioData[header] = values[index]?.trim() || null;
         });
 
+        // Debug logging for Instagram field
+        console.log(`🔍 CSV Line ${i + 1} Instagram field:`, {
+          header: headers.find(h => h.includes('instagram')),
+          value: studioData.instagram,
+          allHeaders: headers,
+          allValues: values
+        });
+
         // Generate slug from title
         const slug = studioData.title
           .toLowerCase()
@@ -1669,7 +1677,7 @@ router.post('/upload-studios-csv', protect, adminOnly, async (req, res) => {
             phoneNumber: studioData.phone || studioData.phonenumber || null,
             email: studioData.email || null,
             facebookUrl: studioData.facebook || studioData.facebookurl || null,
-            instagramUrl: studioData.instagram || studioData.instagramurl || null,
+            instagramUrl: studioData.instagram || studioData.instagramurl || studioData.instagram_url || studioData.instagramurl || null,
             twitterUrl: studioData.twitter || studioData.twitterurl || null,
             linkedinUrl: studioData.linkedin || studioData.linkedinurl || null,
             youtubeUrl: studioData.youtube || studioData.youtubeurl || null,
@@ -1685,6 +1693,14 @@ router.post('/upload-studios-csv', protect, adminOnly, async (req, res) => {
             isFeatured: false,
             verificationStatus: 'PENDING'
           }
+        });
+
+        // Debug logging for created studio
+        console.log(`✅ Studio created with Instagram:`, {
+          studioId: studio.id,
+          title: studio.title,
+          instagramUrl: studio.instagramUrl,
+          rawInstagramData: studioData.instagram
         });
 
         results.successful++;
@@ -2920,6 +2936,67 @@ router.get('/debug/artists', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Error debugging artists',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/test-csv-mapping
+ * @desc    Test CSV field mapping for debugging
+ * @access  Admin only
+ */
+router.post('/test-csv-mapping', protect, adminOnly, async (req, res) => {
+  try {
+    const { csvData } = req.body;
+    
+    if (!csvData) {
+      return res.status(400).json({
+        success: false,
+        error: 'CSV data is required'
+      });
+    }
+
+    // Parse CSV data
+    const lines = csvData.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    
+    // Test first data line
+    if (lines.length > 1) {
+      const testLine = lines[1].trim();
+      const values = parseCSVLine(testLine);
+      
+      const testData = {};
+      headers.forEach((header, index) => {
+        testData[header] = values[index]?.trim() || null;
+      });
+
+      res.json({
+        success: true,
+        data: {
+          headers,
+          testData,
+          instagramField: testData.instagram,
+          instagramUrlField: testData.instagramurl,
+          instagram_urlField: testData.instagram_url,
+          allFields: testData
+        }
+      });
+    } else {
+      res.json({
+        success: true,
+        data: {
+          headers,
+          message: 'No data lines found'
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error('CSV mapping test error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to test CSV mapping',
       details: error.message
     });
   }
