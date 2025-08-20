@@ -1,6 +1,6 @@
-# Render deployment configuration - Version 5.5
+# Render deployment configuration - Version 5.6
 # Single full-stack service - Frontend and Backend served from same URL
-# FORCE REDEPLOY: Admin panel access fixed for ARTIST_ADMIN users
+# FORCE REDEPLOY: Fix admin panel 500 errors and ensure database migrations
 services:
   # Full-Stack Application (API + Frontend)
   - type: web
