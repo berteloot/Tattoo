@@ -87,6 +87,20 @@ export const useArtistFlash = (artistId) => {
   })
 }
 
+// Custom hook for artist tattoo gallery items
+export const useArtistTattoos = (artistId) => {
+  return useQuery({
+    queryKey: ['artist', 'tattoos', artistId],
+    queryFn: async () => {
+      const response = await api.get(`/gallery?artistId=${artistId}`)
+      return response.data?.data?.items || response.data?.items || []
+    },
+    enabled: !!artistId,
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  })
+}
+
 // Custom hook for artist reviews
 export const useArtistReviews = (artistId) => {
   return useQuery({

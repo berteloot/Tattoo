@@ -5,6 +5,7 @@ import { useToast } from '../contexts/ToastContext'
 import { 
   useArtistProfile, 
   useArtistFlash, 
+  useArtistTattoos,
   useArtistReviews, 
   useSpecialties, 
   useServices 
@@ -36,7 +37,8 @@ import {
   User,
   Building,
   Trash2,
-  XCircle
+  XCircle,
+  Eye
 } from 'lucide-react'
 
 export const ArtistDashboard = () => {
@@ -116,6 +118,13 @@ export const ArtistDashboard = () => {
   } = useArtistFlash(artistId)
   
   const { 
+    data: tattoos = [], 
+    isLoading: tattoosLoading, 
+    error: tattoosError,
+    refetch: refetchTattoos
+  } = useArtistTattoos(artistId)
+  
+  const { 
     data: reviews = [], 
     isLoading: reviewsLoading, 
     error: reviewsError 
@@ -140,6 +149,10 @@ export const ArtistDashboard = () => {
   
   if (flashError) {
     console.error('Error loading flash items:', flashError)
+  }
+  
+  if (tattoosError) {
+    console.error('Error loading tattoo gallery:', tattoosError)
   }
   
   if (reviewsError) {
@@ -399,7 +412,7 @@ export const ArtistDashboard = () => {
   };
 
   // Loading state
-  const isLoading = profileLoading || flashLoading || reviewsLoading || specialtiesLoading || servicesLoading
+  const isLoading = profileLoading || flashLoading || tattoosLoading || reviewsLoading || specialtiesLoading || servicesLoading
 
   if (isLoading) {
     return (
@@ -1030,17 +1043,63 @@ export const ArtistDashboard = () => {
                 </button>
               </div>
               
-              <div className="text-center py-8">
-                <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Tattoo Gallery Management</p>
-                <p className="text-sm text-gray-400">Manage your tattoo portfolio and custom designs</p>
-                <button 
-                  onClick={() => navigate('/dashboard/gallery')}
-                  className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-                >
-                  Go to Tattoo Gallery
-                </button>
-              </div>
+              {tattoos.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {tattoos.map((tattoo) => (
+                    <div key={tattoo.id} className="border border-gray-200 rounded-lg p-4">
+                      <img 
+                        src={tattoo.imageUrl} 
+                        alt={tattoo.title}
+                        className="w-full h-32 object-cover rounded-lg mb-3"
+                      />
+                      <h3 className="font-medium text-gray-900 mb-1">{tattoo.title}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{tattoo.description}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2 text-sm text-gray-500">
+                          {tattoo.tattooStyle && (
+                            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                              {tattoo.tattooStyle}
+                            </span>
+                          )}
+                          {tattoo.bodyLocation && (
+                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                              {tattoo.bodyLocation}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => navigate(`/dashboard/gallery/edit/${tattoo.id}`)}
+                            className="text-blue-600 hover:text-blue-800"
+                            title="Edit Tattoo"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => navigate(`/gallery/${tattoo.id}`)}
+                            className="text-green-600 hover:text-green-800"
+                            title="View Tattoo"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No tattoos yet</p>
+                  <p className="text-sm text-gray-400 mb-4">Start building your portfolio by adding your first tattoo design</p>
+                  <button 
+                    onClick={() => navigate('/dashboard/gallery')}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                  >
+                    Add Your First Tattoo
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
