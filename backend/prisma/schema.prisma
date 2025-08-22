@@ -105,33 +105,33 @@ model Specialty {
 }
 
 model Service {
-  id          String          @id @default(cuid())
-  name        String          @unique
-  description String?
-  price       Float?
-  duration    Int?
-  isActive    Boolean         @default(true)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  artists     ArtistProfile[] @relation("ArtistProfileToService")
+  id             String          @id @default(cuid())
+  name           String          @unique
+  description    String?
+  price          Float?
+  duration       Int?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  artists        ArtistProfile[] @relation("ArtistProfileToService")
   artistServices ArtistService[] @relation("ServiceToArtistService")
 
   @@map("services")
 }
 
 model ArtistService {
-  id          String          @id @default(cuid())
-  artistId    String
-  serviceId   String
-  customPrice Float?
+  id             String   @id @default(cuid())
+  artistId       String
+  serviceId      String
+  customPrice    Float?
   customDuration Int?
-  isActive    Boolean         @default(true)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  
-  artist      ArtistProfile   @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  service     Service         @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  artist  ArtistProfile @relation("ArtistProfileToArtistService", fields: [artistId], references: [id], onDelete: Cascade)
+  service Service       @relation("ServiceToArtistService", fields: [serviceId], references: [id], onDelete: Cascade)
+
   @@unique([artistId, serviceId])
   @@map("artist_services")
 }
