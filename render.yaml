@@ -22,12 +22,12 @@ services:
       ls -la
       npm ci
       echo "Setting VITE_API_URL for build..."
-      export VITE_API_URL="https://api.tattooedworld.org"
+      export VITE_API_URL="https://tattooedworld.org/api"
       echo "VITE_API_URL set to: $VITE_API_URL"
       echo "Verifying environment variable is available..."
       echo "VITE_API_URL from env: $VITE_API_URL"
       echo "Running npm run build with explicit env..."
-      VITE_API_URL="https://api.tattooedworld.org" npm run build
+      VITE_API_URL="https://tattooedworld.org/api" npm run build
       echo "Build command completed. Checking results..."
       ls -la
       if [ -d "dist" ]; then
@@ -88,7 +88,7 @@ services:
         value: stan@berteloot.org
       # Frontend build environment variables
       - key: VITE_API_URL
-        value: https://api.tattooedworld.org
+        value: https://tattooedworld.org/api
       - key: VITE_GOOGLE_MAPS_API_KEY
         fromService:
           type: env
