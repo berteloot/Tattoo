@@ -26,8 +26,15 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is logged in on app start using refresh token
   useEffect(() => {
-    // Try to refresh token on app start
-    refreshAccessToken()
+    // Only try to refresh token if there's actually a refresh token cookie
+    const hasRefreshToken = document.cookie.includes('refreshToken=')
+    if (hasRefreshToken) {
+      console.log('🔄 Refresh token found, attempting token refresh...')
+      refreshAccessToken()
+    } else {
+      console.log('ℹ️ No refresh token found, user needs to login')
+      setLoading(false)
+    }
   }, [])
 
   // Sync tokenManager state with local state
@@ -106,22 +113,23 @@ export const AuthProvider = ({ children }) => {
         const errorMessage = error.response.data?.error || 'Authentication failed'
         console.log('Refresh token error:', errorMessage)
         
-        // Handle specific refresh token errors
+        // Don't show error toasts for expected "no token" scenarios
+        // Only show errors for actual authentication failures
         if (errorMessage === 'Refresh token expired') {
           console.log('Refresh token expired, user needs to login')
           showErrorToast('Session Expired', 'Your session has expired. Please log in again.')
         } else if (errorMessage === 'Refresh token not found') {
           console.log('No refresh token found, user needs to login')
-          showErrorToast('Session Error', 'No session found. Please log in again.')
+          // Don't show error toast - this is expected for new users
         } else if (errorMessage === 'Invalid refresh token') {
           console.log('Invalid refresh token, user needs to login')
-          showErrorToast('Session Error', 'Invalid session. Please log in again.')
+          // Don't show error toast - this is expected for new users
         } else if (errorMessage === 'User not found or inactive') {
           console.log('User not found or inactive, user needs to login')
           showErrorToast('Account Error', 'Account not found or inactive. Please log in again.')
         } else {
           console.log('Unknown refresh token error, user needs to login')
-          showErrorToast('Authentication Error', 'Please log in again.')
+          // Don't show error toast for unknown token errors
         }
         
         handleAuthFailure()
