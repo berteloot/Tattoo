@@ -1,6 +1,6 @@
 # Render deployment configuration - Version 5.7
 # Single full-stack service - Frontend and Backend served from same URL
-# FORCE REDEPLOY: Fix missing AdminAction table causing admin panel 500 errors
+# FORCE REDEPLOY: Fix API URL mismatch - frontend still calling old Render URL
 services:
   # Full-Stack Application (API + Frontend)
   - type: web
@@ -24,8 +24,10 @@ services:
       echo "Setting VITE_API_URL for build..."
       export VITE_API_URL="https://api.tattooedworld.org"
       echo "VITE_API_URL set to: $VITE_API_URL"
-      echo "Running npm run build..."
-      npm run build
+      echo "Verifying environment variable is available..."
+      echo "VITE_API_URL from env: $VITE_API_URL"
+      echo "Running npm run build with explicit env..."
+      VITE_API_URL="https://api.tattooedworld.org" npm run build
       echo "Build command completed. Checking results..."
       ls -la
       if [ -d "dist" ]; then
