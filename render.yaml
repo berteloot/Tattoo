@@ -55,7 +55,7 @@ services:
       - key: PORT
         value: 10000
       - key: CORS_ORIGIN
-        value: https://tattooed-world-backend.onrender.com
+        value: https://tattooedworld.org
       - key: RATE_LIMIT_WINDOW_MS
         value: 900000
       - key: RATE_LIMIT_MAX_REQUESTS
@@ -67,7 +67,7 @@ services:
       - key: ALLOWED_FILE_TYPES
         value: image/jpeg,image/png,image/webp
       - key: FRONTEND_URL
-        value: https://tattooed-world-backend.onrender.com
+        value: https://tattooedworld.org
       # Google Maps API for geocoding (set in Render dashboard)
       - key: GOOGLE_MAPS_API_KEY
         sync: false
@@ -83,7 +83,7 @@ services:
         value: stan@berteloot.org
       # Frontend build environment variables
       - key: VITE_API_URL
-        value: https://tattooed-world-backend.onrender.com/api
+        value: https://tattooedworld.org/api
       - key: VITE_GOOGLE_MAPS_API_KEY
         fromService:
           type: env
