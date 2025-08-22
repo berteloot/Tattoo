@@ -1,5 +1,5 @@
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import cors from "cors";
 
 const allowedOrigins = [
@@ -148,7 +148,7 @@ const applySecurityMiddleware = (app) => {
   console.log('✅ Security middleware applied successfully');
 };
 
-module.exports = {
+export {
   securityConfig,
   applySecurityMiddleware,
   corsMiddleware

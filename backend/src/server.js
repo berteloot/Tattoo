@@ -11,7 +11,7 @@ const { prisma, testConnection } = require('./utils/prisma');
 const logger = require('./utils/logger');
 
 // Import security configuration
-const { applySecurityMiddleware } = require('./config/security');
+const { applySecurityMiddleware } = require('./config/security.js');
 
 // Import port management
 const { startServerSafely } = require('./utils/portManager');
