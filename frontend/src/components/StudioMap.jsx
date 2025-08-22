@@ -39,6 +39,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const [googleMapsServices, setGoogleMapsServices] = useState(null)
   const [viewMode, setViewMode] = useState('map') // 'map' or 'list'
   const [isMapReady, setIsMapReady] = useState(false)
+  const [componentError, setComponentError] = useState(false)
   const directionsService = useRef(null)
   const directionsRenderer = useRef(null)
   const mapRef = useRef(null)
@@ -52,6 +53,25 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
     filterFeatured,
     focusStudioId
   }), [searchTerm, filterVerified, filterFeatured, focusStudioId])
+
+  // Error boundary for component crashes
+  if (componentError) {
+    return (
+      <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="text-center">
+          <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Component Error</h3>
+          <p className="text-gray-500 mb-4">Something went wrong with the map component</p>
+          <button 
+            onClick={() => setComponentError(false)}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   // Initialize Google Maps services only once
   const initializeGoogleMapsServices = useCallback(() => {
@@ -93,8 +113,13 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
   // Initialize Google Maps services when loaded
   useEffect(() => {
-    if (isGoogleMapsLoaded && !googleMapsServices) {
-      initializeGoogleMapsServices()
+    try {
+      if (isGoogleMapsLoaded && !googleMapsServices) {
+        initializeGoogleMapsServices()
+      }
+    } catch (error) {
+      console.error('Error initializing Google Maps services:', error)
+      setComponentError(true)
     }
   }, [isGoogleMapsLoaded, googleMapsServices, initializeGoogleMapsServices])
 
@@ -644,6 +669,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                   <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                   <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Unavailable</h3>
                   <p className="text-gray-500">Showing studio list instead</p>
+                  <p className="text-xs text-gray-400 mt-2">Google Maps API key may need domain authorization</p>
                 </div>
                 <div className="space-y-2">
                   {(studios || []).map((studio) => (
