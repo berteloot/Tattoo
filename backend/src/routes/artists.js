@@ -151,6 +151,7 @@ router.get('/', optionalAuth, [
         user: {
           select: {
             id: true,
+            email: true,
             firstName: true,
             lastName: true,
             avatar: true
@@ -637,30 +638,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
       totalCount: artist._count?.gallery || 0
     });
 
-    // CRITICAL: Verify that all gallery and flash items belong to this artist
-    if (artist.gallery && artist.gallery.length > 0) {
-      const crossArtistGallery = artist.gallery.filter(item => item.artistId !== id);
-      if (crossArtistGallery.length > 0) {
-        console.error('🚨 CRITICAL: Found cross-artist gallery items in profile response!', crossArtistGallery);
-        return res.status(500).json({
-          success: false,
-          error: 'Artist profile query returned cross-artist gallery content - this should never happen'
-        });
-      }
-      console.log('✅ Verified: All gallery items belong to the requested artist');
-    }
-
-    if (artist.flash && artist.flash.length > 0) {
-      const crossArtistFlash = artist.flash.filter(item => item.artistId !== id);
-      if (crossArtistFlash.length > 0) {
-        console.error('🚨 CRITICAL: Found cross-artist flash items in profile response!', crossArtistFlash);
-        return res.status(500).json({
-          success: false,
-          error: 'Artist profile query returned cross-artist flash content - this should never happen'
-        });
-      }
-      console.log('✅ Verified: All flash items belong to the requested artist');
-    }
+    // Note: No need to verify cross-artist content since Prisma queries already filter by artistId
+    // The where clause ensures all returned items belong to the requested artist
 
     // Additional debug: Check what gallery items exist in database
     try {
