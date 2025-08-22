@@ -1016,12 +1016,7 @@ export const ArtistDashboard = () => {
                 <div className="mb-6">
                   <ArtistServicesManager 
                     artistId={profile.id} 
-                    onServicesUpdated={() => {
-                      // Refresh artist services data without full page reload
-                      if (profile?.id) {
-                        fetchArtistServices();
-                      }
-                    }}
+                    onServicesUpdated={fetchArtistServices}
                   />
                 </div>
               )}

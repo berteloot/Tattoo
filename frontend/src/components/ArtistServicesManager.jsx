@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Edit3, Save, X, DollarSign, Clock, Trash2 } from 'lucide-react';
-import { artistServicesAPI } from '../services/api';
+import { artistServicesAPI, servicesAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 
 export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
@@ -25,27 +25,24 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
       try {
         setLoading(true);
         const [servicesRes, artistServicesRes] = await Promise.all([
-          fetch('/api/services'),
-          fetch(`/api/artist-services/artist/${artistId}`)
+          servicesAPI.getAll(),
+          artistServicesAPI.getByArtist(artistId)
         ]);
 
-        const servicesData = await servicesRes.json();
-        const artistServicesData = await artistServicesRes.json();
-
-        if (servicesData?.success && servicesData?.data?.services) {
-          setServices(servicesData.data.services);
+        if (servicesRes?.data?.success && servicesRes?.data?.data?.services) {
+          setServices(servicesRes.data.data.services);
         } else {
-          console.error('Invalid services response:', servicesData);
+          console.error('Invalid services response:', servicesRes);
           showError('Failed to load services');
         }
 
-        if (artistServicesData?.success && artistServicesData?.data?.artistServices) {
-          setArtistServices(artistServicesData.data.artistServices);
-        } else if (artistServicesData?.success) {
+        if (artistServicesRes?.data?.success && artistServicesRes?.data?.data?.artistServices) {
+          setArtistServices(artistServicesRes.data.data.artistServices);
+        } else if (artistServicesRes?.data?.success) {
           // No custom services yet, that's fine
           setArtistServices([]);
         } else {
-          console.error('Invalid artist services response:', artistServicesData);
+          console.error('Invalid artist services response:', artistServicesRes);
           // Don't show error for this as it might be normal for new artists
         }
       } catch (err) {
