@@ -45,11 +45,14 @@ export const ArtistProfile = () => {
   const [error, setError] = useState(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
+  const [allServices, setAllServices] = useState([])
+  const [artistServices, setArtistServices] = useState([])
 
   useEffect(() => {
     // Check API health first
     checkApiHealth().then(() => {
       fetchArtistProfile()
+      fetchServicesData()
       // Track page view when profile is loaded
       trackProfileView()
     })
@@ -95,6 +98,44 @@ export const ArtistProfile = () => {
       }
     }
   }
+
+  // Function to get custom pricing for a service
+  const getServicePrice = (serviceId) => {
+    if (!serviceId || !Array.isArray(artistServices)) return null;
+    const artistService = artistServices.find(as => as?.serviceId === serviceId);
+    return artistService?.customPrice ?? null;
+  };
+
+  const getServiceDuration = (serviceId) => {
+    if (!serviceId || !Array.isArray(artistServices)) return null;
+    const artistService = artistServices.find(as => as?.serviceId === serviceId);
+    return artistService?.customDuration ?? null;
+  };
+
+  // Fetch all services and artist services
+  const fetchServicesData = async () => {
+    if (!id) return;
+    
+    try {
+      const [servicesRes, artistServicesRes] = await Promise.all([
+        fetch('/api/services'),
+        fetch(`/api/artist-services/artist/${id}`)
+      ]);
+
+      const servicesData = await servicesRes.json();
+      const artistServicesData = await artistServicesRes.json();
+
+      if (servicesData?.success && servicesData?.data?.services) {
+        setAllServices(servicesData.data.services);
+      }
+
+      if (artistServicesData?.success && artistServicesData?.data?.artistServices) {
+        setArtistServices(artistServicesData.data.artistServices);
+      }
+    } catch (error) {
+      console.error('Error fetching services data:', error);
+    }
+  };
 
 
 
@@ -414,23 +455,72 @@ export const ArtistProfile = () => {
             )}
 
             {/* Services */}
-            {artist.services && artist.services.length > 0 && (
+            {Array.isArray(allServices) && allServices.length > 0 && (
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Services</h2>
+                <div className="mb-3 text-xs text-gray-500">
+                  <span className="inline-flex items-center gap-1 mr-3">
+                    <span className="w-3 h-3 bg-blue-50 border-l-4 border-blue-400 rounded"></span>
+                    Custom Pricing
+                  </span>
+                  <span className="inline-flex items-center gap-1 mr-3">
+                    <span className="w-3 h-3 bg-green-50 border-l-4 border-green-400 rounded"></span>
+                    Selected for Profile
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-3 h-3 bg-gray-50 rounded"></span>
+                    Available
+                  </span>
+                </div>
                 <div className="space-y-3">
-                  {artist.services.map((service) => (
-                    <div key={service.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                      <div>
-                        <h3 className="font-medium text-gray-900">{service.name}</h3>
-                        {service.description && (
-                          <p className="text-sm text-gray-600">{service.description}</p>
-                        )}
+                  {allServices.map((service) => {
+                    if (!service?.id) return null;
+                    
+                    const customPrice = getServicePrice(service.id);
+                    const customDuration = getServiceDuration(service.id);
+                    const hasCustomPricing = customPrice !== null || customDuration !== null;
+                    const isSelected = artist?.services?.some(s => s?.id === service.id);
+                    
+                    return (
+                      <div key={service.id} className={`flex justify-between items-center py-3 px-3 rounded ${
+                        hasCustomPricing ? 'bg-blue-50 border-l-4 border-blue-400' : 
+                        isSelected ? 'bg-green-50 border-l-4 border-green-400' : 'bg-gray-50'
+                      }`}>
+                        <div className="flex-1">
+                          <h3 className={`font-medium ${hasCustomPricing ? 'text-blue-800' : isSelected ? 'text-green-800' : 'text-gray-900'}`}>
+                            {service.name}
+                          </h3>
+                          {service.description && (
+                            <p className="text-sm text-gray-600 mt-1">{service.description}</p>
+                          )}
+                          {hasCustomPricing && (
+                            <span className="inline-block mt-1 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                              Custom Pricing
+                            </span>
+                          )}
+                          {isSelected && !hasCustomPricing && (
+                            <span className="inline-block mt-1 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                              Selected
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-right">
+                          <div>
+                            <span className="text-gray-500 text-xs">Price:</span>
+                            <div className={`font-semibold ${customPrice !== null ? 'text-blue-600' : 'text-primary-600'}`}>
+                              {customPrice !== null ? (customPrice === 0 ? 'Free' : `$${customPrice}`) : `$${service.price || 'N/A'}`}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 text-xs">Duration:</span>
+                            <div className={`font-semibold ${customDuration !== null ? 'text-blue-600' : 'text-gray-800'}`}>
+                              {customDuration !== null ? (customDuration === 0 ? 'No time estimate' : `${customDuration} min`) : `${service.duration || 'N/A'} min`}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      {service.price && (
-                        <span className="text-primary-600 font-semibold">${service.price}</span>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
