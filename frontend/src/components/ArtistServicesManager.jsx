@@ -90,9 +90,14 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
       
       const data = {
         serviceId: editingService.id,
-        customPrice: editForm.customPrice ? parseFloat(editForm.customPrice) : null,
-        customDuration: editForm.customDuration ? parseInt(editForm.customDuration) : null
+        customPrice: editForm.customPrice !== '' ? parseFloat(editForm.customPrice) : null,
+        customDuration: editForm.customDuration !== '' ? parseInt(editForm.customDuration) : null
       };
+
+      // Allow empty duration (null) to remove time estimate
+      if (editForm.customDuration === '') {
+        data.customDuration = null;
+      }
 
       const response = await artistServicesAPI.createOrUpdate(data);
       
@@ -200,7 +205,7 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
                         <span className={`ml-1 font-medium ${
                           customPrice !== null ? 'text-blue-600' : 'text-gray-900'
                         }`}>
-                          ${customPrice !== null ? customPrice : service.price || 'N/A'}
+                          {customPrice !== null ? (customPrice === 0 ? 'Free' : `$${customPrice}`) : `$${service.price || 'N/A'}`}
                         </span>
                       </span>
                     </div>
@@ -212,8 +217,11 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
                         <span className={`ml-1 font-medium ${
                           customDuration !== null ? 'text-blue-600' : 'text-gray-900'
                         }`}>
-                          {customDuration !== null ? customDuration : service.duration || 'N/A'} min
+                          {customDuration !== null ? (customDuration === 0 ? 'No time estimate' : `${customDuration} min`) : `${service.duration || 'N/A'} min`}
                         </span>
+                        {customDuration === 0 && (
+                          <span className="ml-1 text-xs text-gray-500">(No time estimate)</span>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -281,7 +289,7 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
                         placeholder={service.price?.toString() || "Default price"}
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        Leave empty to use default price (${service.price || 'N/A'})
+                        Leave empty to use default price (${service.price || 'N/A'}) or enter 0 for free
                       </p>
                     </div>
                     
@@ -294,12 +302,12 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
                         name="customDuration"
                         value={editForm.customDuration}
                         onChange={handleInputChange}
-                        min="1"
+                        min="0"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder={service.duration?.toString() || "Default duration"}
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        Leave empty to use default duration ({service.duration || 'N/A'} min)
+                        Leave empty to use default duration ({service.duration || 'N/A'} min) or enter 0 for no time estimate
                       </p>
                     </div>
                   </div>

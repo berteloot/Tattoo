@@ -13,10 +13,8 @@ import {
 import { api, artistsAPI, flashAPI } from '../services/api'
 import ProfilePictureUpload from '../components/ProfilePictureUpload'
 import ImageUpload from '../components/ImageUpload'
-import BatchFlashUpload from '../components/BatchFlashUpload'
 import { MessageManagement } from '../components/MessageManagement'
 import StudioSelect from '../components/StudioSelect'
-import { ArtistServicesManager } from '../components/ArtistServicesManager'
 import { 
   MapPin, 
   Phone, 
@@ -40,8 +38,7 @@ import {
   Building,
   Trash2,
   XCircle,
-  Eye,
-  Upload
+  Eye
 } from 'lucide-react'
 
 export const ArtistDashboard = () => {
@@ -82,7 +79,6 @@ export const ArtistDashboard = () => {
 
   // Flash creation state
   const [showFlashForm, setShowFlashForm] = useState(false)
-  const [flashUploadMode, setFlashUploadMode] = useState('single') // 'single' or 'batch'
   const [flashFormData, setFlashFormData] = useState({
     title: '',
     description: '',
@@ -171,39 +167,6 @@ export const ArtistDashboard = () => {
     isLoading: servicesLoading, 
     error: servicesError 
   } = useServices()
-
-  // State for artist services (custom pricing)
-  const [artistServices, setArtistServices] = useState([])
-
-  // Function to get custom pricing for a service
-  const getServicePrice = (serviceId) => {
-    const artistService = artistServices.find(as => as.serviceId === serviceId);
-    return artistService?.customPrice || null;
-  };
-
-  const getServiceDuration = (serviceId) => {
-    const artistService = artistServices.find(as => as.serviceId === serviceId);
-    return artistService?.customDuration || null;
-  };
-
-  // Fetch artist services when profile is available
-  useEffect(() => {
-    if (profile?.id) {
-      const fetchArtistServices = async () => {
-        try {
-          const response = await fetch(`/api/artist-services/artist/${profile.id}`);
-          const data = await response.json();
-          if (data.success) {
-            setArtistServices(data.data.artistServices);
-          }
-        } catch (error) {
-          console.error('Error fetching artist services:', error);
-        }
-      };
-      
-      fetchArtistServices();
-    }
-  }, [profile?.id]);
 
   // Handle errors gracefully
   if (profileError) {
@@ -418,22 +381,6 @@ export const ArtistDashboard = () => {
       console.error('❌ Error creating flash item:', error)
       const errorMessage = error.response?.data?.error || 'Error creating flash item'
       showError(errorMessage)
-    }
-  }
-
-  const handleBatchFlashCreated = async (flashItems) => {
-    try {
-      console.log('📋 Batch flash created:', flashItems)
-      
-      setShowFlashForm(false)
-      success(`Successfully created ${flashItems.length} flash items!`)
-      
-      // Refresh flash list
-      refetchFlash()
-      
-    } catch (error) {
-      console.error('❌ Error in batch flash creation:', error)
-      showError('Some flash items may not have been created. Please check and try again.')
     }
   }
 
@@ -1004,19 +951,6 @@ export const ArtistDashboard = () => {
                 </div>
               </div>
 
-              {/* Service Pricing Management */}
-              {profile?.id && (
-                <div className="mb-6">
-                  <ArtistServicesManager 
-                    artistId={profile.id} 
-                    onServicesUpdated={() => {
-                      // Refresh profile data when services are updated
-                      window.location.reload();
-                    }}
-                  />
-                </div>
-              )}
-
               {/* Save Profile Button */}
               <div className="flex justify-end pt-4 border-t border-gray-200">
                 <button
@@ -1120,43 +1054,13 @@ export const ArtistDashboard = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Flash Gallery</h2>
-                <div className="flex items-center space-x-3">
-                  {/* Upload Mode Toggle */}
-                  <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
-                    <button
-                      onClick={() => setFlashUploadMode('single')}
-                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                        flashUploadMode === 'single'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      Single
-                    </button>
-                    <button
-                      onClick={() => setFlashUploadMode('batch')}
-                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                        flashUploadMode === 'batch'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      Batch
-                    </button>
-                  </div>
-                  
-                  <button 
-                    onClick={() => setShowFlashForm(true)}
-                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
-                  >
-                    {flashUploadMode === 'batch' ? (
-                      <Upload className="h-4 w-4 mr-2" />
-                    ) : (
-                      <Plus className="h-4 w-4 mr-2" />
-                    )}
-                    {flashUploadMode === 'batch' ? 'Batch Upload' : 'Add Flash'}
-                  </button>
-                </div>
+                <button 
+                  onClick={() => setShowFlashForm(true)}
+                  className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Flash
+                </button>
               </div>
               
               {flash.length > 0 ? (
@@ -1202,13 +1106,9 @@ export const ArtistDashboard = () => {
             {/* Flash Creation Form Modal */}
             {showFlashForm && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className={`bg-white rounded-lg p-6 w-full max-h-[90vh] overflow-y-auto ${
-                  flashUploadMode === 'batch' ? 'max-w-6xl' : 'max-w-2xl'
-                }`}>
+                <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {flashUploadMode === 'batch' ? 'Batch Upload Flash Designs' : 'Add New Flash Design'}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Add New Flash Design</h3>
                     <button
                       onClick={() => setShowFlashForm(false)}
                       className="text-gray-400 hover:text-gray-600"
@@ -1217,17 +1117,7 @@ export const ArtistDashboard = () => {
                     </button>
                   </div>
                   
-                  {flashUploadMode === 'batch' ? (
-                    <BatchFlashUpload
-                      onFlashCreated={handleBatchFlashCreated}
-                      onCancel={() => setShowFlashForm(false)}
-                      maxFiles={10}
-                      className="mb-4"
-                      specialties={specialties}
-                      services={services}
-                    />
-                  ) : (
-                    <form onSubmit={handleFlashSubmit} className="space-y-4">
+                  <form onSubmit={handleFlashSubmit} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Title *
@@ -1404,7 +1294,6 @@ export const ArtistDashboard = () => {
                       </button>
                     </div>
                   </form>
-                  )}
                 </div>
               </div>
             )}
@@ -1813,45 +1702,14 @@ export const ArtistDashboard = () => {
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Services</h4>
                       <div className="space-y-2">
-                        {profile.services.map((service) => {
-                          const customPrice = getServicePrice(service.id);
-                          const customDuration = getServiceDuration(service.id);
-                          const hasCustomPricing = customPrice !== null || customDuration !== null;
-                          
-                          return (
-                            <div key={service.id} className={`flex justify-between items-center text-sm p-2 rounded ${
-                              hasCustomPricing ? 'bg-blue-50 border-l-4 border-blue-400' : ''
-                            }`}>
-                              <div className="flex-1">
-                                <span className={`font-medium ${hasCustomPricing ? 'text-blue-800' : 'text-gray-600'}`}>
-                                  {service.name}
-                                </span>
-                                {hasCustomPricing && (
-                                  <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-                                    Custom Pricing
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                  <span className="text-gray-500 text-xs">Price:</span>
-                                  <div className={`font-medium ${customPrice !== null ? 'text-blue-600' : 'text-gray-800'}`}>
-                                    {customPrice !== null ? (customPrice === 0 ? 'Free' : `$${customPrice}`) : `$${service.price || 'N/A'}`}
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <span className="text-gray-500 text-xs">Duration:</span>
-                                  <div className={`font-medium ${customDuration !== null ? 'text-blue-600' : 'text-gray-800'}`}>
-                                    {customDuration !== null ? (customDuration === 0 ? 'No time estimate' : `${customDuration} min`) : `${service.duration || 'N/A'} min`}
-                                    {customDuration === 0 && (
-                                      <span className="ml-1 text-xs text-gray-500">(No time estimate)</span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
+                        {profile.services.map((service) => (
+                          <div key={service.id} className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">{service.name}</span>
+                            {service.price && (
+                              <span className="text-gray-800 font-medium">${service.price}</span>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}

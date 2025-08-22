@@ -16,7 +16,6 @@ import ImageUpload from '../components/ImageUpload'
 import BatchFlashUpload from '../components/BatchFlashUpload'
 import { MessageManagement } from '../components/MessageManagement'
 import StudioSelect from '../components/StudioSelect'
-import { ArtistServicesManager } from '../components/ArtistServicesManager'
 import { 
   MapPin, 
   Phone, 
@@ -171,39 +170,6 @@ export const ArtistDashboard = () => {
     isLoading: servicesLoading, 
     error: servicesError 
   } = useServices()
-
-  // State for artist services (custom pricing)
-  const [artistServices, setArtistServices] = useState([])
-
-  // Function to get custom pricing for a service
-  const getServicePrice = (serviceId) => {
-    const artistService = artistServices.find(as => as.serviceId === serviceId);
-    return artistService?.customPrice || null;
-  };
-
-  const getServiceDuration = (serviceId) => {
-    const artistService = artistServices.find(as => as.serviceId === serviceId);
-    return artistService?.customDuration || null;
-  };
-
-  // Fetch artist services when profile is available
-  useEffect(() => {
-    if (profile?.id) {
-      const fetchArtistServices = async () => {
-        try {
-          const response = await fetch(`/api/artist-services/artist/${profile.id}`);
-          const data = await response.json();
-          if (data.success) {
-            setArtistServices(data.data.artistServices);
-          }
-        } catch (error) {
-          console.error('Error fetching artist services:', error);
-        }
-      };
-      
-      fetchArtistServices();
-    }
-  }, [profile?.id]);
 
   // Handle errors gracefully
   if (profileError) {
@@ -1004,19 +970,6 @@ export const ArtistDashboard = () => {
                 </div>
               </div>
 
-              {/* Service Pricing Management */}
-              {profile?.id && (
-                <div className="mb-6">
-                  <ArtistServicesManager 
-                    artistId={profile.id} 
-                    onServicesUpdated={() => {
-                      // Refresh profile data when services are updated
-                      window.location.reload();
-                    }}
-                  />
-                </div>
-              )}
-
               {/* Save Profile Button */}
               <div className="flex justify-end pt-4 border-t border-gray-200">
                 <button
@@ -1813,45 +1766,14 @@ export const ArtistDashboard = () => {
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Services</h4>
                       <div className="space-y-2">
-                        {profile.services.map((service) => {
-                          const customPrice = getServicePrice(service.id);
-                          const customDuration = getServiceDuration(service.id);
-                          const hasCustomPricing = customPrice !== null || customDuration !== null;
-                          
-                          return (
-                            <div key={service.id} className={`flex justify-between items-center text-sm p-2 rounded ${
-                              hasCustomPricing ? 'bg-blue-50 border-l-4 border-blue-400' : ''
-                            }`}>
-                              <div className="flex-1">
-                                <span className={`font-medium ${hasCustomPricing ? 'text-blue-800' : 'text-gray-600'}`}>
-                                  {service.name}
-                                </span>
-                                {hasCustomPricing && (
-                                  <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-                                    Custom Pricing
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                  <span className="text-gray-500 text-xs">Price:</span>
-                                  <div className={`font-medium ${customPrice !== null ? 'text-blue-600' : 'text-gray-800'}`}>
-                                    {customPrice !== null ? (customPrice === 0 ? 'Free' : `$${customPrice}`) : `$${service.price || 'N/A'}`}
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <span className="text-gray-500 text-xs">Duration:</span>
-                                  <div className={`font-medium ${customDuration !== null ? 'text-blue-600' : 'text-gray-800'}`}>
-                                    {customDuration !== null ? (customDuration === 0 ? 'No time estimate' : `${customDuration} min`) : `${service.duration || 'N/A'} min`}
-                                    {customDuration === 0 && (
-                                      <span className="ml-1 text-xs text-gray-500">(No time estimate)</span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
+                        {profile.services.map((service) => (
+                          <div key={service.id} className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">{service.name}</span>
+                            {service.price && (
+                              <span className="text-gray-800 font-medium">${service.price}</span>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}

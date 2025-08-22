@@ -272,12 +272,12 @@ const validateArtistService = [
   body('customPrice')
     .optional()
     .isFloat({ min: 0 })
-    .withMessage('Custom price must be a positive number'),
+    .withMessage('Custom price must be 0 or a positive number'),
 
   body('customDuration')
     .optional()
-    .isInt({ min: 1 })
-    .withMessage('Custom duration must be a positive integer in minutes'),
+    .isInt({ min: 0 })
+    .withMessage('Custom duration must be 0 or a positive integer in minutes'),
 
   (req, res, next) => {
     const errors = validationResult(req);
