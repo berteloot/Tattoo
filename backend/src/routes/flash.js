@@ -68,8 +68,12 @@ router.get('/', optionalAuth, [
     // Build where clause
     const where = {};
 
+    // CRITICAL: Always filter by artistId if provided to prevent cross-artist content
     if (artistId) {
       where.artistId = artistId;
+      console.log('🎨 Flash: Filtering by artistId:', artistId);
+    } else {
+      console.log('🎨 Flash: No artistId provided - showing all flash items');
     }
 
     if (tags) {
@@ -96,6 +100,8 @@ router.get('/', optionalAuth, [
       where.isAvailable = available === 'true';
     }
 
+    console.log('🎨 Flash: Final where clause:', JSON.stringify(where, null, 2));
+
     // Get flash items
     const flash = await prisma.flash.findMany({
       where,
@@ -117,6 +123,21 @@ router.get('/', optionalAuth, [
       take: parseInt(limit),
       orderBy: { createdAt: 'desc' }
     });
+
+    console.log(`🎨 Flash: Found ${flash.length} items`);
+
+    // CRITICAL: Double-check that all items belong to the requested artist
+    if (artistId) {
+      const crossArtistItems = flash.filter(item => item.artistId !== artistId);
+      if (crossArtistItems.length > 0) {
+        console.error('🚨 CRITICAL: Found cross-artist items in flash response!', crossArtistItems);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Flash query returned cross-artist content - this should never happen' 
+        });
+      }
+      console.log('✅ Flash: Verified: All items belong to the requested artist');
+    }
 
     // Get total count for pagination
     const total = await prisma.flash.count({ where });

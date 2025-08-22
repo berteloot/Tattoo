@@ -1,9 +1,9 @@
 const bcrypt = require('bcryptjs');
 const { prisma } = require('../src/utils/prisma');
 
-async function createAdminUser(email, password, firstName, lastName, role = 'ADMIN') {
+async function createArtistAdminUser(email, password, firstName, lastName) {
   try {
-    console.log(`🔧 Creating ${role} user...`);
+    console.log('🔧 Creating ARTIST_ADMIN user...');
     
     const hashedPassword = await bcrypt.hash(password, 12);
     
@@ -13,18 +13,18 @@ async function createAdminUser(email, password, firstName, lastName, role = 'ADM
     });
     
     if (existingUser) {
-      // Update existing user to specified role
+      // Update existing user to ARTIST_ADMIN
       const updatedUser = await prisma.user.update({
         where: { email },
         data: {
-          role,
+          role: 'ARTIST_ADMIN',
           isActive: true,
           isVerified: true,
           password: hashedPassword
         }
       });
       
-      console.log(`✅ Updated existing user to ${role}:`, {
+      console.log('✅ Updated existing user to ARTIST_ADMIN:', {
         id: updatedUser.id,
         email: updatedUser.email,
         role: updatedUser.role,
@@ -32,21 +32,21 @@ async function createAdminUser(email, password, firstName, lastName, role = 'ADM
         lastName: updatedUser.lastName
       });
     } else {
-      // Create new user with specified role
+      // Create new ARTIST_ADMIN user
       const newUser = await prisma.user.create({
         data: {
           email,
           password: hashedPassword,
           firstName,
           lastName,
-          role,
+          role: 'ARTIST_ADMIN',
           isActive: true,
           isVerified: true,
           phone: '+1234567890'
         }
       });
       
-      console.log(`✅ Created new ${role} user:`, {
+      console.log('✅ Created new ARTIST_ADMIN user:', {
         id: newUser.id,
         email: newUser.email,
         role: newUser.role,
@@ -55,44 +55,23 @@ async function createAdminUser(email, password, firstName, lastName, role = 'ADM
       });
     }
     
-    console.log(`\n🎉 ${role} user setup complete!`);
+    console.log('\n🎉 ARTIST_ADMIN user setup complete!');
     console.log('📧 Email:', email);
     console.log('🔑 Password:', password);
+    console.log('🎨 Role: ARTIST_ADMIN (Artist + Admin permissions)');
     
   } catch (error) {
-    console.error(`❌ Error creating ${role} user:`, error);
-    throw error;
-  }
-}
-
-async function main() {
-  try {
-    // Create main admin user
-    await createAdminUser(
-      'berteloot@gmail.com', 
-      '@222888?', 
-      'Admin', 
-      'User', 
-      'ADMIN'
-    );
-    
-    // Create an ARTIST_ADMIN user for testing
-    await createAdminUser(
-      'artistadmin@example.com', 
-      'artistadmin123', 
-      'Artist', 
-      'Admin', 
-      'ARTIST_ADMIN'
-    );
-    
-    console.log('\n🎉 All admin users setup complete!');
-    
-  } catch (error) {
-    console.error('❌ Error in main function:', error);
+    console.error('❌ Error creating ARTIST_ADMIN user:', error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();
   }
 }
 
-main(); 
+// Example usage - modify these values as needed
+const email = 'artistadmin@example.com';
+const password = 'artistadmin123';
+const firstName = 'Artist';
+const lastName = 'Admin';
+
+createArtistAdminUser(email, password, firstName, lastName);

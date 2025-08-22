@@ -298,7 +298,7 @@ const AdminUserManagement = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
+                            user.role === 'ADMIN' || user.role === 'ARTIST_ADMIN' ? 'bg-red-100 text-red-800' :
                             user.role === 'ARTIST' ? 'bg-blue-100 text-blue-800' :
                             'bg-green-100 text-green-800'
                           }`}>
@@ -338,7 +338,7 @@ const AdminUserManagement = () => {
                             >
                               View
                             </button>
-                            {user.role !== 'ADMIN' && (
+                            {(user.role !== 'ADMIN' && user.role !== 'ARTIST_ADMIN') && (
                               <button
                                 onClick={() => {
                                   // Quick promote to admin

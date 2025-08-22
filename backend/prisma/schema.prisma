@@ -8,41 +8,39 @@ datasource db {
 }
 
 model User {
-  id                      String                 @id @default(cuid())
-  email                   String                 @unique
-  password                String
-  role                    UserRole               @default(CLIENT)
-  firstName               String
-  lastName                String
-  phone                   String?
-  avatar                  String?
-  isActive                Boolean                @default(true)
-  isVerified              Boolean                @default(false)
-  emailVerified           Boolean                @default(false)
-  emailVerificationToken  String?
-  emailVerificationExpiry DateTime?
-  resetToken              String?
-  resetTokenExpiry        DateTime?
-  refreshTokenHash        String?
-  refreshTokenExpiry      DateTime?
-  lastLoginAt             DateTime?
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
-  adminActions            AdminAction[]          @relation("AdminPerformer")
-  artistProfile           ArtistProfile?
-  favorites               Favorite[]             @relation("FavoriteUser")
-  reviewsGiven            Review[]               @relation("ReviewAuthor")
-  reviewsReceived         Review[]               @relation("ReviewRecipient")
-  galleryComments         TattooGalleryComment[]
-  galleryLikes            TattooGalleryLike[]
-  studioJoinRequestsResponded StudioJoinRequest[] @relation("StudioJoinRequestResponder")
+  id                          String                 @id @default(cuid())
+  email                       String                 @unique
+  password                    String
+  role                        UserRole               @default(CLIENT)
+  firstName                   String
+  lastName                    String
+  phone                       String?
+  avatar                      String?
+  isActive                    Boolean                @default(true)
+  isVerified                  Boolean                @default(false)
+  emailVerified               Boolean                @default(false)
+  emailVerificationToken      String?
+  emailVerificationExpiry     DateTime?
+  resetToken                  String?
+  resetTokenExpiry            DateTime?
+  lastLoginAt                 DateTime?
+  createdAt                   DateTime               @default(now())
+  updatedAt                   DateTime               @updatedAt
+  adminActions                AdminAction[]          @relation("AdminPerformer")
+  artistProfile               ArtistProfile?
+  favorites                   Favorite[]             @relation("FavoriteUser")
+  reviewsGiven                Review[]               @relation("ReviewAuthor")
+  reviewsReceived             Review[]               @relation("ReviewRecipient")
+  studioJoinRequestsResponded StudioJoinRequest[]    @relation("StudioJoinRequestResponder")
+  galleryComments             TattooGalleryComment[]
+  galleryLikes                TattooGalleryLike[]
 
   @@map("users")
 }
 
 model ArtistProfile {
-  id                     String             @id @default(cuid())
-  userId                 String             @unique
+  id                     String              @id @default(cuid())
+  userId                 String              @unique
   bio                    String?
   studioName             String?
   website                String?
@@ -62,17 +60,17 @@ model ArtistProfile {
   hourlyRate             Float?
   minPrice               Float?
   maxPrice               Float?
-  isVerified             Boolean            @default(false)
-  isFeatured             Boolean            @default(false)
-  verificationStatus     VerificationStatus @default(PENDING)
+  isVerified             Boolean             @default(false)
+  isFeatured             Boolean             @default(false)
+  verificationStatus     VerificationStatus  @default(PENDING)
   verificationNotes      String?
   verifiedAt             DateTime?
   verifiedBy             String?
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
   lastViewedAt           DateTime?
-  profileViews           Int                @default(0)
-  pinterest              String?            @db.VarChar(255)
+  profileViews           Int                 @default(0)
+  pinterest              String?             @db.VarChar(255)
   profilePictureUrl      String?
   profilePicturePublicId String?
   profilePictureWidth    Int?
@@ -80,14 +78,14 @@ model ArtistProfile {
   profilePictureFormat   String?
   profilePictureBytes    Int?
   messages               ArtistMessage[]
-  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  favorites              Favorite[]         @relation("FavoriteArtist")
+  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites              Favorite[]          @relation("FavoriteArtist")
   flash                  Flash[]
-  gallery                TattooGallery[]
-  services               Service[]          @relation("ArtistProfileToService")
-  specialties            Specialty[]        @relation("ArtistProfileToSpecialty")
   studioArtists          StudioArtist[]
   studioJoinRequests     StudioJoinRequest[]
+  gallery                TattooGallery[]
+  services               Service[]           @relation("ArtistProfileToService")
+  specialties            Specialty[]         @relation("ArtistProfileToSpecialty")
 
   @@map("artist_profiles")
 }
@@ -180,36 +178,34 @@ model AdminAction {
 }
 
 model Studio {
-  id                 String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  id                 String              @id @default(dbgenerated("(gen_random_uuid())::text"))
   title              String
-  slug               String    @unique
+  slug               String              @unique
   website            String?
-  phoneNumber        String?   @map("phone_number")
+  phoneNumber        String?             @map("phone_number")
   email              String?
-  facebookUrl        String?   @map("facebook_url")
-  instagramUrl       String?   @map("instagram_url")
-  twitterUrl         String?   @map("twitter_url")
-  linkedinUrl        String?   @map("linkedin_url")
-  youtubeUrl         String?   @map("youtube_url")
+  facebookUrl        String?             @map("facebook_url")
+  instagramUrl       String?             @map("instagram_url")
+  twitterUrl         String?             @map("twitter_url")
+  linkedinUrl        String?             @map("linkedin_url")
+  youtubeUrl         String?             @map("youtube_url")
   latitude           Float?
   longitude          Float?
   address            String?
   city               String?
   state              String?
-  zipCode            String?   @map("zip_code")
+  zipCode            String?             @map("zip_code")
   country            String?
-  isActive           Boolean?  @default(true) @map("is_active")
-  isVerified         Boolean?  @default(false) @map("is_verified")
-  isFeatured         Boolean?  @default(false) @map("is_featured")
-  verificationStatus String?   @default("PENDING") @map("verification_status")
-  claimedBy          String?   @map("claimed_by")
-  claimedAt          DateTime? @map("claimed_at") @db.Timestamp(6)
-  verifiedBy         String?   @map("verified_by")
-  verifiedAt         DateTime? @map("verified_at") @db.Timestamp(6)
-  createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt          DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
-
-  // Relationships
+  isActive           Boolean?            @default(true) @map("is_active")
+  isVerified         Boolean?            @default(false) @map("is_verified")
+  isFeatured         Boolean?            @default(false) @map("is_featured")
+  verificationStatus String?             @default("PENDING") @map("verification_status")
+  claimedBy          String?             @map("claimed_by")
+  claimedAt          DateTime?           @map("claimed_at") @db.Timestamp(6)
+  verifiedBy         String?             @map("verified_by")
+  verifiedAt         DateTime?           @map("verified_at") @db.Timestamp(6)
+  createdAt          DateTime?           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt          DateTime?           @default(now()) @map("updated_at") @db.Timestamp(6)
   studioArtists      StudioArtist[]
   joinRequests       StudioJoinRequest[]
 
@@ -218,17 +214,15 @@ model Studio {
 }
 
 model StudioArtist {
-  id       String       @id @default(dbgenerated("(gen_random_uuid())::text"))
-  studioId String       @map("studio_id")
-  artistId String       @map("artist_id")
-  role     studio_role? @default(ARTIST)
-  isActive Boolean?     @default(true) @map("is_active")
-  joinedAt DateTime?    @default(now()) @map("joined_at") @db.Timestamp(6)
-  leftAt   DateTime?    @map("left_at") @db.Timestamp(6)
-
-  // Relationships
-  studio   Studio       @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  id       String        @id @default(dbgenerated("(gen_random_uuid())::text"))
+  studioId String        @map("studio_id")
+  artistId String        @map("artist_id")
+  role     studio_role?  @default(ARTIST)
+  isActive Boolean?      @default(true) @map("is_active")
+  joinedAt DateTime?     @default(now()) @map("joined_at") @db.Timestamp(6)
+  leftAt   DateTime?     @map("left_at") @db.Timestamp(6)
   artist   ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  studio   Studio        @relation(fields: [studioId], references: [id], onDelete: Cascade)
 
   @@unique([studioId, artistId], map: "unique_studio_artist")
   @@map("studio_artists")
@@ -381,20 +375,18 @@ model ArtistMessage {
 }
 
 model StudioJoinRequest {
-  id              String    @id @default(cuid())
-  studioId        String    @map("studio_id")
-  artistId        String    @map("artist_id")
+  id              String        @id @default(cuid())
+  studioId        String        @map("studio_id")
+  artistId        String        @map("artist_id")
   message         String?
-  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
-  requestedAt     DateTime  @default(now()) @map("requested_at")
-  respondedAt     DateTime? @map("responded_at")
-  responseMessage String?   @map("response_message")
-  respondedBy     String?   @map("responded_by")
-  
-  // Relationships
-  studio          Studio    @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  status          String        @default("PENDING")
+  requestedAt     DateTime      @default(now()) @map("requested_at")
+  respondedAt     DateTime?     @map("responded_at")
+  responseMessage String?       @map("response_message")
+  respondedBy     String?       @map("responded_by")
   artist          ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  responder       User?     @relation("StudioJoinRequestResponder", fields: [respondedBy], references: [id])
+  responder       User?         @relation("StudioJoinRequestResponder", fields: [respondedBy], references: [id])
+  studio          Studio        @relation(fields: [studioId], references: [id], onDelete: Cascade)
 
   @@index([studioId])
   @@index([artistId])

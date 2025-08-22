@@ -2,7 +2,19 @@
 
 ## Overview
 
-The Tattoo Artist Locator implements a comprehensive role-based access control system with three main user roles: **CLIENT**, **ARTIST**, and **ADMIN**. Each role has specific permissions and restrictions to ensure security and proper functionality.
+The Tattoo Artist Locator implements a comprehensive role-based access control system with four main user roles: **CLIENT**, **ARTIST**, **ARTIST_ADMIN**, and **ADMIN**. Each role has specific permissions and restrictions to ensure security and proper functionality.
+
+## Role Hierarchy
+
+```
+CLIENT (Basic user)
+    ↓
+ARTIST (Artist with full artist permissions)
+    ↓
+ARTIST_ADMIN (Artist + Admin permissions)
+    ↓
+ADMIN (Full system control)
+```
 
 ## User Roles
 
@@ -77,6 +89,58 @@ GET /api/reviews?recipientId=:id - View own reviews
 
 ---
 
+### 🎨🔴 ARTIST_ADMIN Role
+**For tattoo artists who also have administrative privileges**
+
+#### Permissions:
+- ✅ **All CLIENT permissions** (inherited)
+- ✅ **All ARTIST permissions** (inherited)
+- ✅ **All ADMIN permissions** (inherited)
+- ✅ **Create Artist Profile**: Set up professional artist profile
+- ✅ **Edit Own Artist Profile**: Update profile information
+- ✅ **Upload Flash/Portfolio**: Add portfolio items (when verified)
+- ✅ **Edit Own Flash**: Modify their own portfolio items
+- ✅ **View Own Reviews**: See reviews received from clients
+- ✅ **Manage Services**: Add/remove offered services
+- ✅ **Manage Specialties**: Update artistic specialties
+- ✅ **Manage Users**: View, edit, and deactivate user accounts
+- ✅ **Verify Artists**: Approve/reject artist verification requests
+- ✅ **Feature Artists**: Promote artists to featured status
+- ✅ **Moderate Content**: Approve/hide reviews and flash items
+- ✅ **Manage System**: Control specialties, services, and system settings
+- ✅ **View Analytics**: Access dashboard statistics and reports
+- ✅ **Audit Trail**: View admin action logs
+- ✅ **Emergency Actions**: Suspend users, remove content
+
+#### Restrictions:
+- ❌ Cannot modify their own role (prevents self-demotion)
+- ❌ Cannot delete the last admin account
+- ❌ Actions are logged for audit purposes
+- ❌ Flash uploads require verification approval (same as regular artists)
+
+#### Verification Process:
+1. **Registration**: Artist registers with ARTIST_ADMIN role
+2. **Profile Creation**: Artist creates detailed profile
+3. **Pending Status**: Profile marked as `PENDING` verification
+4. **Admin Review**: Admin reviews and verifies profile
+5. **Approved**: Artist can upload flash and receive full permissions
+
+#### API Endpoints Access:
+```
+# Inherits all CLIENT, ARTIST, and ADMIN endpoints
+GET /api/admin/dashboard - View admin dashboard
+GET /api/admin/users - Manage all users
+PUT /api/admin/users/:id - Update user status/role
+GET /api/admin/artists/pending - View pending verifications
+PUT /api/admin/artists/:id/verify - Verify/reject artists
+PUT /api/admin/artists/:id/feature - Feature/unfeature artists
+GET /api/admin/reviews - Moderate reviews
+PUT /api/admin/reviews/:id/moderate - Approve/hide reviews
+GET /api/admin/actions - View admin action log
+```
+
+---
+
 ### 🔴 ADMIN Role
 **System administrators with full control**
 
@@ -112,18 +176,18 @@ GET /api/admin/actions - View admin action log
 
 ## Permission Matrix
 
-| Action | CLIENT | ARTIST | ADMIN |
-|--------|--------|--------|-------|
-| View Artists | ✅ | ✅ | ✅ |
-| Create Reviews | ✅ | ✅ | ✅ |
-| Edit Own Reviews | ✅ | ✅ | ✅ |
-| Create Artist Profile | ❌ | ✅ | ✅ |
-| Upload Flash | ❌ | ✅* | ✅ |
-| Verify Artists | ❌ | ❌ | ✅ |
-| Feature Artists | ❌ | ❌ | ✅ |
-| Moderate Reviews | ❌ | ❌ | ✅ |
-| Manage Users | ❌ | ❌ | ✅ |
-| View Admin Dashboard | ❌ | ❌ | ✅ |
+| Action | CLIENT | ARTIST | ARTIST_ADMIN | ADMIN |
+|--------|--------|--------|--------------|-------|
+| View Artists | ✅ | ✅ | ✅ | ✅ |
+| Create Reviews | ✅ | ✅ | ✅ | ✅ |
+| Edit Own Reviews | ✅ | ✅ | ✅ | ✅ |
+| Create Artist Profile | ❌ | ✅ | ✅ | ✅ |
+| Upload Flash | ❌ | ✅* | ✅* | ✅ |
+| Verify Artists | ❌ | ❌ | ✅ | ✅ |
+| Feature Artists | ❌ | ❌ | ✅ | ✅ |
+| Moderate Reviews | ❌ | ❌ | ✅ | ✅ |
+| Manage Users | ❌ | ❌ | ✅ | ✅ |
+| View Admin Dashboard | ❌ | ❌ | ✅ | ✅ |
 
 *Requires verification approval
 
@@ -153,16 +217,17 @@ GET /api/admin/actions - View admin action log
 ```javascript
 // Role-based middleware
 const clientOnly = authorize('CLIENT');
-const artistOnly = authorize('ARTIST');
-const adminOnly = authorize('ADMIN');
+const artistOnly = authorize('ARTIST', 'ARTIST_ADMIN');
+const adminOnly = authorize('ADMIN', 'ARTIST_ADMIN');
 
 // Permission-based middleware
 const requireArtistVerification = async (req, res, next) => { /* ... */ };
 const requireOwnership = (resourceType) => { /* ... */ };
 
 // Combined permissions
-const clientOrArtist = authorize('CLIENT', 'ARTIST');
-const artistOrAdmin = authorize('ARTIST', 'ADMIN');
+const clientOrArtist = authorize('CLIENT', 'ARTIST', 'ARTIST_ADMIN');
+const clientOrAdmin = authorize('CLIENT', 'ADMIN', 'ARTIST_ADMIN');
+const artistOrAdmin = authorize('ARTIST', 'ADMIN', 'ARTIST_ADMIN');
 ```
 
 ### Database Schema

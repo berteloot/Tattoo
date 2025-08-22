@@ -22,22 +22,25 @@ router.get('/', async (req, res) => {
       offset = 0
     } = req.query;
 
+    console.log('🎨 Gallery query parameters:', { artistId, style, location, featured, limit, offset });
+
     const where = {
       isHidden: false
     };
 
-    // If artistId is provided (artist viewing their own gallery), show all their items
-    // Otherwise, show all public items (no approval required)
+    // CRITICAL: Always filter by artistId if provided to prevent cross-artist content
     if (artistId) {
       where.artistId = artistId;
-      // Don't filter by isApproved for artist's own gallery
+      console.log('🎨 Filtering gallery by artistId:', artistId);
     } else {
-      // Show all items to public (no approval required)
-      // Only filter out hidden items
+      console.log('🎨 No artistId provided - showing all public items');
     }
+
     if (style) where.tattooStyle = style;
     if (location) where.bodyLocation = location;
     if (featured === 'true') where.isFeatured = true;
+
+    console.log('🎨 Final where clause:', JSON.stringify(where, null, 2));
 
     console.log('🎨 Gallery query starting...');
     const galleryItems = await prisma.tattooGallery.findMany({
@@ -47,6 +50,7 @@ router.get('/', async (req, res) => {
           include: {
             user: {
               select: {
+                id: true,
                 firstName: true,
                 lastName: true,
                 avatar: true
@@ -68,6 +72,19 @@ router.get('/', async (req, res) => {
     });
 
     console.log(`🎨 Gallery query successful: ${galleryItems.length} items found`);
+
+    // CRITICAL: Double-check that all items belong to the requested artist
+    if (artistId) {
+      const crossArtistItems = galleryItems.filter(item => item.artistId !== artistId);
+      if (crossArtistItems.length > 0) {
+        console.error('🚨 CRITICAL: Found cross-artist items in gallery response!', crossArtistItems);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Gallery query returned cross-artist content - this should never happen' 
+        });
+      }
+      console.log('✅ Verified: All gallery items belong to the requested artist');
+    }
 
     // If user is authenticated, check which items they've liked
     let userLikes = new Set();
