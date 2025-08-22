@@ -150,6 +150,5 @@ const applySecurityMiddleware = (app) => {
 
 export {
   securityConfig,
-  applySecurityMiddleware,
-  corsMiddleware
+  applySecurityMiddleware
 };
