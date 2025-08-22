@@ -17,7 +17,7 @@ const getCSPConfig = () => {
     defaultSrc: ["'self'"],
     styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-    connectSrc: ["'self'", "wss:", "ws:"],
+    connectSrc: ["'self'", "wss:", "ws:", "https://tattooedworld.org", "https://www.tattooedworld.org"],
     scriptSrc: ["'self'", "'unsafe-inline'"], // Always define scriptSrc
     scriptSrcElem: ["'self'", "'unsafe-inline'"], // Always define scriptSrcElem
     objectSrc: ["'none'"],
