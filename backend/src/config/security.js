@@ -41,7 +41,8 @@ const securityConfig = {
         'http://localhost:3000',
         'https://tattooed-world-backend.onrender.com',
         'https://tattooedworld.org',
-        'https://www.tattooedworld.org'
+        'https://www.tattooedworld.org',
+        'https://api.tattooedworld.org'
       ];
       
       if (allowedOrigins.indexOf(origin) !== -1) {
