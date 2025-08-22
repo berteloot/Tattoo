@@ -17,7 +17,12 @@ import {
   Upload,
   Building,
   Image,
-  Settings
+  Settings,
+  BarChart3,
+  Calendar,
+  DollarSign,
+  Eye,
+  Plus
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -103,444 +108,313 @@ const AdminDashboard = () => {
       } else {
         console.error('Actions failed:', actionsResponse.statusText);
       }
-      
     } catch (error) {
-      console.error('❌ Manual API test failed:', error);
-      showErrorToast('API Test Failed', error.message);
+      console.error('Manual API test error:', error);
+      showErrorToast('Manual API test failed: ' + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Debug logging
-  console.log('🔍 AdminDashboard Debug:', {
-    user,
-    stats,
-    statsLoading,
-    statsError,
-    recentActions,
-    actionsLoading,
-    actionsError,
-    manualStats,
-    manualActions
-  });
+  // Use manual stats if available, otherwise use React Query data
+  const currentStats = manualStats || stats;
+  const currentActions = manualActions.length > 0 ? manualActions : recentActions;
 
-  // Handle errors gracefully
-  if (statsError) {
-    console.error('Error fetching admin stats:', statsError);
-    showErrorToast('Dashboard Error', 'Failed to load dashboard statistics');
-  }
-  
-  if (actionsError) {
-    console.error('Error fetching admin actions:', actionsError);
-    showErrorToast('Dashboard Error', 'Failed to load recent actions');
-  }
-
-  // Use manual data if React Query fails
-  const displayStats = manualStats || stats || {};
-  const displayActions = manualActions.length > 0 ? manualActions : (recentActions || []);
-
-  // Ensure displayStats has all required properties with safe defaults
-  const safeStats = {
-    totalUsers: displayStats.totalUsers || 0,
-    totalArtists: displayStats.totalArtists || 0,
-    pendingVerifications: displayStats.pendingVerifications || 0,
-    totalReviews: displayStats.totalReviews || 0,
-    totalFlash: displayStats.totalFlash || 0,
-    featuredArtists: displayStats.featuredArtists || 0,
-    totalStudios: displayStats.totalStudios || 0,
-    geocodedStudios: displayStats.geocodedStudios || 0,
-    pendingGeocoding: displayStats.pendingGeocoding || 0
-  };
-
-  // Loading state
-  if ((statsLoading || actionsLoading) && !manualStats) {
-    console.log('🔄 AdminDashboard Loading State');
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600">Welcome back, {user?.firstName}!</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-4 sm:mb-0">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p className="mt-2 text-sm text-gray-600">
+                  Welcome back, {user.firstName || user.name}. Manage your platform from here.
+                </p>
               </div>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-lg shadow p-6 animate-pulse">
-              <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-              ))}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={testAPI}
+                  disabled={isLoading}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  ) : (
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                  )}
+                  Test API
+                </button>
+                <Link
+                  to="/admin/users"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Manage Users
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    );
-  }
 
-  console.log('✅ AdminDashboard Rendered with data:', { displayStats, displayActions });
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {user?.firstName}!</p>
-        </div>
-
-        {/* Critical Alerts - Show at top for immediate attention */}
-        <div className="space-y-4 mb-8">
-          {/* Pending Verifications Alert */}
-          {safeStats.pendingVerifications > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
               <div className="flex items-center">
-                <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
-                <span className="text-yellow-800 font-medium">
-                  {safeStats.pendingVerifications} artist verification(s) pending review
-                </span>
-                <Link 
-                  to="/admin/artists/pending" 
-                  className="ml-auto text-yellow-800 hover:text-yellow-900 underline text-sm font-medium"
-                >
-                  Review Now →
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Pending Geocoding Alert */}
-          {safeStats.pendingGeocoding > 0 && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <div className="flex items-center">
-                <MapPin className="h-5 w-5 text-orange-600 mr-2" />
-                <span className="text-orange-800 font-medium">
-                  {safeStats.pendingGeocoding} studio(s) need geocoding
-                </span>
-                <Link 
-                  to="/admin/geocoding" 
-                  className="ml-auto text-orange-800 hover:text-orange-900 underline text-sm font-medium"
-                >
-                  Process Geocoding →
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Main Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {safeStats.totalUsers}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <UserCheck className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Artists</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {safeStats.totalArtists}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Building className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Studios</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {safeStats.totalStudios}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Star className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Reviews</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {safeStats.totalReviews}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Secondary Statistics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <MapPin className="h-6 w-6 text-indigo-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Geocoded Studios</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {safeStats.geocodedStudios}
-                </p>
-                <p className="text-xs text-gray-500">
-                  of {safeStats.totalStudios} total
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-emerald-100 rounded-lg">
-                <UserCheck className="h-6 w-6 text-emerald-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Featured Artists</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {safeStats.featuredArtists}
-                </p>
-                <p className="text-xs text-gray-500">
-                  of {safeStats.totalArtists} total
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-teal-100 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-teal-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">System Health</p>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-green-600 font-medium">Operational</span>
+                <div className="flex-shrink-0">
+                  <Users className="h-6 w-6 text-gray-400" />
                 </div>
-                <p className="text-xs text-gray-500">All systems normal</p>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {statsLoading ? '...' : (currentStats.totalUsers || 0).toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <UserCheck className="h-6 w-6 text-green-400" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Verified Artists</dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {statsLoading ? '...' : (currentStats.verifiedArtists || 0).toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Star className="h-6 w-6 text-yellow-400" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Total Reviews</dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {statsLoading ? '...' : (currentStats.totalReviews || 0).toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <TrendingUp className="h-6 w-6 text-blue-400" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Active Sessions</dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {statsLoading ? '...' : (currentStats.activeSessions || 0).toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Recent Actions */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Actions</h2>
-              <Link 
-                to="/admin/actions" 
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link
+              to="/admin/users"
+              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div>
+                <span className="rounded-lg inline-flex p-3 bg-blue-50 text-blue-700 ring-4 ring-white">
+                  <Users className="h-6 w-6" />
+                </span>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-lg font-medium">
+                  <span className="absolute inset-0" aria-hidden="true" />
+                  User Management
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Manage user accounts, roles, and permissions
+                </p>
+              </div>
+              <span
+                className="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400"
+                aria-hidden="true"
               >
-                View All →
-              </Link>
-            </div>
-            
-            {displayActions && displayActions.length > 0 ? (
-              <div className="space-y-3">
-                {displayActions.map((action) => (
-                  <div key={action.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="flex-shrink-0">
-                      {action.actionType === 'VERIFY_ARTIST' && (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                      )}
-                      {action.actionType === 'UPDATE_USER' && (
-                        <Activity className="h-5 w-5 text-blue-600" />
-                      )}
-                      {action.actionType === 'DELETE_USER' && (
-                        <XCircle className="h-5 w-5 text-red-600" />
-                      )}
-                      {action.actionType === 'MODERATE_REVIEW' && (
-                        <AlertCircle className="h-5 w-5 text-yellow-600" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {action.description}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        by {action.adminUser?.firstName} {action.adminUser?.lastName}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      <span className="text-xs text-gray-500 ml-1">
-                        {new Date(action.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
+                <Plus className="h-6 w-6" />
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/artists/pending"
+              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div>
+                <span className="rounded-lg inline-flex p-3 bg-yellow-50 text-yellow-700 ring-4 ring-white">
+                  <UserCheck className="h-6 w-6" />
+                </span>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-lg font-medium">
+                  <span className="absolute inset-0" aria-hidden="true" />
+                  Artist Verification
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Review and approve pending artist applications
+                </p>
+              </div>
+              <span
+                className="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400"
+                aria-hidden="true"
+              >
+                <Plus className="h-6 w-6" />
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/reviews"
+              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div>
+                <span className="rounded-lg inline-flex p-3 bg-green-50 text-green-700 ring-4 ring-white">
+                  <Star className="h-6 w-6" />
+                </span>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-lg font-medium">
+                  <span className="absolute inset-0" aria-hidden="true" />
+                  Review Moderation
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Moderate reviews and maintain content quality
+                </p>
+              </div>
+              <span
+                className="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400"
+                aria-hidden="true"
+              >
+                <Plus className="h-6 w-6" />
+              </span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Admin Actions</h3>
+            {actionsLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                   </div>
                 ))}
               </div>
+            ) : currentActions.length > 0 ? (
+              <div className="flow-root">
+                <ul className="-mb-8">
+                  {currentActions.map((action, actionIdx) => (
+                    <li key={action.id}>
+                      <div className="relative pb-8">
+                        {actionIdx !== currentActions.length - 1 ? (
+                          <span
+                            className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                            aria-hidden="true"
+                          />
+                        ) : null}
+                        <div className="relative flex space-x-3">
+                          <div>
+                            <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                              <Activity className="h-4 w-4 text-white" />
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                            <div>
+                              <p className="text-sm text-gray-500">
+                                {action.actionType} by{' '}
+                                <span className="font-medium text-gray-900">
+                                  {action.adminUser?.firstName || 'Admin'}
+                                </span>
+                              </p>
+                              {action.description && (
+                                <p className="text-sm text-gray-700 mt-1">{action.description}</p>
+                              )}
+                            </div>
+                            <div className="text-right text-sm whitespace-nowrap text-gray-500">
+                              <time dateTime={action.createdAt}>
+                                {new Date(action.createdAt).toLocaleDateString()}
+                              </time>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : (
-              <p className="text-gray-500 text-center py-4">No recent actions</p>
+              <div className="text-center py-6">
+                <Activity className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No recent actions</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Get started by managing users or verifying artists.
+                </p>
+              </div>
             )}
           </div>
+        </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 gap-3">
-              <Link 
-                to="/admin/users" 
-                className="flex items-center p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-              >
-                <Users className="h-5 w-5 text-blue-600 mr-3" />
-                <span className="text-blue-800 font-medium">Manage Users</span>
-              </Link>
-              
-              <Link 
-                to="/admin/artists/pending" 
-                className="flex items-center p-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors"
-              >
-                <UserCheck className="h-5 w-5 text-yellow-600 mr-3" />
-                <span className="text-yellow-800 font-medium">Artist Verifications</span>
-              </Link>
-              
-              <Link 
-                to="/admin/reviews" 
-                className="flex items-center p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-              >
-                <Star className="h-5 w-5 text-green-600 mr-3" />
-                <span className="text-green-800 font-medium">Review Moderation</span>
-              </Link>
-              
-              <Link 
-                to="/admin/actions" 
-                className="flex items-center p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
-              >
-                <Activity className="h-5 w-5 text-purple-600 mr-3" />
-                <span className="text-purple-800 font-medium">Audit Log</span>
-              </Link>
+        {/* System Status */}
+        <div className="mt-8 bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">System Status</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="flex items-center p-4 bg-green-50 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                <div>
+                  <p className="text-sm font-medium text-green-800">Database</p>
+                  <p className="text-xs text-green-600">Connected</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 bg-green-50 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                <div>
+                  <p className="text-sm font-medium text-green-800">API</p>
+                  <p className="text-xs text-green-600">Operational</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 bg-green-50 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                <div>
+                  <p className="text-sm font-medium text-green-800">Authentication</p>
+                  <p className="text-xs text-green-600">Active</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Studio Management Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Studio Management</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link 
-              to="/admin/geocoding" 
-              className="flex items-center p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
-            >
-              <MapPin className="h-6 w-6 text-indigo-600 mr-3" />
-              <div>
-                <span className="text-indigo-800 font-medium">Studio Geocoding</span>
-                <p className="text-sm text-indigo-600">Process location data</p>
-              </div>
-            </Link>
-            
-            <Link 
-              to="/admin/studios/upload" 
-              className="flex items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
-            >
-              <Upload className="h-6 w-6 text-orange-600 mr-3" />
-              <div>
-                <span className="text-orange-800 font-medium">CSV Import</span>
-                <p className="text-sm text-orange-600">Bulk studio upload</p>
-              </div>
-            </Link>
-            
-            <Link 
-              to="/admin/studios" 
-              className="flex items-center p-4 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
-            >
-              <Building className="h-6 w-6 text-teal-600 mr-3" />
-              <div>
-                <span className="text-teal-800 font-medium">Manage Studios</span>
-                <p className="text-sm text-teal-600">View and edit studios</p>
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* Advanced Admin Tools */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Advanced Tools</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link 
-              to="/admin/artists" 
-              className="flex items-center p-4 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
-            >
-              <UserCheck className="h-6 w-6 text-emerald-600 mr-3" />
-              <div>
-                <span className="text-emerald-800 font-medium">Artist Management</span>
-                <p className="text-sm text-emerald-600">Comprehensive artist control</p>
-              </div>
-            </Link>
-            
-            <Link 
-              to="/admin/content" 
-              className="flex items-center p-4 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
-            >
-              <Image className="h-6 w-6 text-violet-600 mr-3" />
-              <div>
-                <span className="text-violet-800 font-medium">Content Management</span>
-                <p className="text-sm text-violet-600">Moderate user content</p>
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* API Test Section - Only show if manual data is needed */}
-        {!safeStats.totalUsers && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <h3 className="text-lg font-semibold text-yellow-900 mb-2">API Connection Issue</h3>
-            <div className="space-y-2">
-              <p className="text-sm text-yellow-700">
-                Dashboard data is not loading. Click the button below to test the API manually.
-              </p>
-              <button
-                onClick={testAPI}
-                disabled={isLoading}
-                className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50 text-sm"
-              >
-                {isLoading ? 'Testing...' : 'Test API Manually'}
-              </button>
-              {manualStats && (
-                <p className="text-sm text-green-700">
-                  ✅ Manual API test successful! Stats loaded: {Object.keys(manualStats).length} items
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Debug Info - Only show in development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Debug Info</h3>
-            <pre className="text-xs text-gray-700 overflow-auto">
-              {JSON.stringify({ displayStats, displayActions, user, manualStats, manualActions }, null, 2)}
-            </pre>
-          </div>
-        )}
       </div>
     </div>
   );

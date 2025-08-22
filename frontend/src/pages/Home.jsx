@@ -94,12 +94,12 @@ export const Home = () => {
             Connect with exceptional tattoo artists worldwide. Discover portfolios, read authentic reviews, 
             and find your perfect artist anywhere in the world.
           </p>
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <Link to="/map" className="cta">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+            <Link to="/map" className="cta text-center">
               <MapPin style={{ width: '16px', height: '16px', marginRight: '8px' }} />
               EXPLORE WORLDWIDE
             </Link>
-            <Link to="/register" className="cta">
+            <Link to="/register" className="cta text-center">
               <Plus style={{ width: '16px', height: '16px', marginRight: '8px' }} />
               JOIN AS ARTIST
             </Link>
@@ -110,7 +110,7 @@ export const Home = () => {
       {/* Map Section */}
       <section className="section">
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div className="text-center mb-8 md:mb-12">
             <span className="tag tag--yellow">GLOBAL DISCOVERY</span>
             <h2>FIND STUDIOS ANYWHERE IN THE WORLD</h2>
             <p className="deck">
@@ -119,28 +119,28 @@ export const Home = () => {
             </p>
           </div>
           
-          <div style={{ border: '1px solid var(--border)' }}>
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
             <StudioMap />
           </div>
         </div>
       </section>
 
       {/* CTA Bar */}
-      <section style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '32px 0' }}>
+      <section className="border-t border-b border-gray-200 py-8 md:py-12">
         <div className="container">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
-            <div>
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-8">
+            <div className="flex-1">
               <h3>EXPAND YOUR REACH GLOBALLY</h3>
               <p className="small">
                 Join thousands of artists worldwide and connect with clients across the globe
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <Link to="/register" className="cta">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full lg:w-auto">
+              <Link to="/register" className="cta text-center">
                 <Building2 style={{ width: '16px', height: '16px', marginRight: '8px' }} />
                 JOIN GLOBAL NETWORK
               </Link>
-              <Link to="/artists" className="cta">
+              <Link to="/artists" className="cta text-center">
                 <Search style={{ width: '16px', height: '16px', marginRight: '8px' }} />
                 BROWSE WORLDWIDE
               </Link>
@@ -152,172 +152,156 @@ export const Home = () => {
       {/* Features Section */}
       <section className="section">
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div className="text-center mb-8 md:mb-12">
             <span className="tag tag--yellow">TRUSTED WORLDWIDE</span>
             <h2>THE GLOBAL STANDARD FOR TATTOO DISCOVERY</h2>
             <p className="deck">
               Over 10,000+ artists in 50+ countries trust Tattooed World to connect them with clients
             </p>
           </div>
-          <div className="grid grid-cols-3">
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                width: '64px', 
-                height: '64px', 
-                backgroundColor: 'var(--accent-yellow)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                margin: '0 auto 16px' 
-              }}>
-                <MapPin style={{ width: '32px', height: '32px', color: '#000' }} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+            <div className="text-center">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-yellow-400 flex items-center justify-center mx-auto mb-4 md:mb-6 rounded-lg">
+                <MapPin className="w-8 h-8 md:w-10 md:h-10 text-black" />
               </div>
               <h3>GLOBAL REACH</h3>
               <p className="small">
                 Discover exceptional artists worldwide with our advanced location search and global network.
               </p>
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                width: '64px', 
-                height: '64px', 
-                backgroundColor: 'var(--accent-yellow)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                margin: '0 auto 16px' 
-              }}>
-                <Star style={{ width: '32px', height: '32px', color: '#000' }} />
+            <div className="text-center">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-yellow-400 flex items-center justify-center mx-auto mb-4 md:mb-6 rounded-lg">
+                <Star className="w-8 h-8 md:w-10 md:h-10 text-black" />
               </div>
               <h3>VERIFIED EXCELLENCE</h3>
               <p className="small">
                 Every artist is verified. Read 50,000+ authentic reviews from real clients worldwide.
               </p>
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                width: '64px', 
-                height: '64px', 
-                backgroundColor: 'var(--accent-yellow)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                margin: '0 auto 16px' 
-              }}>
-                <Palette style={{ width: '32px', height: '32px', color: '#000' }} />
+            <div className="text-center md:col-span-2 lg:col-span-1">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-yellow-400 flex items-center justify-center mx-auto mb-4 md:mb-6 rounded-lg">
+                <Palette className="w-8 h-8 md:w-10 md:h-10 text-black" />
               </div>
-              <h3>CURATED PORTFOLIOS</h3>
+              <h3>DIVERSE STYLES</h3>
               <p className="small">
-                Browse professionally curated portfolios from award-winning artists across every style.
+                From traditional to modern, minimalist to complex - find artists specializing in every style.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Artist Showcase */}
-      <section className="section">
+      {/* Featured Artists Section */}
+      <section className="section" style={{ backgroundColor: 'var(--bg)' }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <span className="tag tag--yellow">WORLD-CLASS TALENT</span>
-            <h2>FEATURED GLOBAL ARTISTS</h2>
-            <p className="deck">
-              Meet award-winning artists from around the world who have chosen Tattooed World as their platform
-            </p>
+          <div className="section-header">
+            <h2 className="section-title">FEATURED ARTISTS</h2>
+            <Link to="/artists" className="section-link">
+              VIEW ALL ARTISTS →
+            </Link>
           </div>
           
           {loading ? (
-            <div className="grid grid-cols-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="card" style={{ animation: 'pulse 2s infinite' }}>
-                  <div style={{ height: '192px', backgroundColor: 'var(--border)' }}></div>
-                  <div style={{ padding: '24px' }}>
-                    <div style={{ height: '24px', backgroundColor: 'var(--border)', marginBottom: '8px' }}></div>
-                    <div style={{ height: '16px', backgroundColor: 'var(--border)', marginBottom: '12px' }}></div>
-                    <div style={{ height: '16px', backgroundColor: 'var(--border)', marginBottom: '16px' }}></div>
-                    <div style={{ height: '16px', backgroundColor: 'var(--border)', marginBottom: '16px' }}></div>
-                    <div style={{ height: '16px', backgroundColor: 'var(--border)' }}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (featuredArtists || []).length > 0 ? (
-            <div className="grid grid-cols-3">
-              {(featuredArtists || []).map((artist) => (
-                <div key={artist.id} className="card">
-                  <div className="card__media" style={{ backgroundColor: 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    {artist.profilePictureUrl ? (
-                      <img 
-                        src={artist.profilePictureUrl} 
-                        alt={`${artist.user.firstName} ${artist.user.lastName}`}
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'cover',
-                          transition: 'transform 0.3s ease-in-out'
-                        }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: '48px' }}>🎨</span>
-                    )}
-                  </div>
-                  <div style={{ padding: '24px' }}>
-                    <div className="card__category">
-                      <span className="tag tag--yellow">{artist.specialties?.[0]?.name || 'ARTIST'}</span>
-                    </div>
-                    <h3 className="card__title">
-                      {artist.user.firstName} {artist.user.lastName}
-                    </h3>
-                    <p className="card__meta">{artist.studioName}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                      <Star style={{ width: '16px', height: '16px', color: 'var(--accent-red)', fill: 'var(--accent-red)' }} />
-                      <span className="small">
-                        {artist.averageRating ? `${artist.averageRating.toFixed(1)}` : 'New'} 
-                        ({artist.reviewCount || 0} reviews)
-                      </span>
-                    </div>
-                    <p className="small" style={{ marginBottom: '16px' }}>
-                      {artist.bio?.substring(0, 120)}...
-                    </p>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ color: 'var(--accent-red)', fontWeight: 'bold' }}>${artist.hourlyRate}/hr</span>
-                      <Link to={`/artists/${artist.id}`} className="small">
-                        VIEW PROFILE →
-                      </Link>
-                    </div>
+                <div key={i} className="card animate-pulse">
+                  <div className="card__media bg-gray-200"></div>
+                  <div className="space-y-3">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                    <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '48px 0' }}>
-              <p className="small" style={{ marginBottom: '16px' }}>No featured artists available at the moment.</p>
-              <Link to="/artists" className="cta">
-                BROWSE ALL ARTISTS
-              </Link>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {featuredArtists.map((artist) => (
+                <div key={artist.id} className="card group">
+                  <div className="card__media bg-gray-100 flex items-center justify-center">
+                    <Users className="w-16 h-16 text-gray-400" />
+                  </div>
+                  <div className="card__category">
+                    <span className="tag tag--blue">FEATURED</span>
+                    {artist.isVerified && (
+                      <span className="tag tag--yellow ml-2">VERIFIED</span>
+                    )}
+                  </div>
+                  <div className="card__title">
+                    {artist.user.firstName} {artist.user.lastName}
+                  </div>
+                  <div className="card__meta">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      <span>{artist.averageRating} ({artist.reviewCount} reviews)</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      {artist.city}, {artist.state}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 line-clamp-3">{artist.bio}</p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {artist.specialties.slice(0, 3).map((specialty, index) => (
+                      <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                        {specialty.name}
+                      </span>
+                    ))}
+                  </div>
+                  <Link 
+                    to={`/artists/${artist.id}`} 
+                    className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-800"
+                  >
+                    VIEW PROFILE →
+                  </Link>
+                </div>
+              ))}
             </div>
           )}
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section style={{ backgroundColor: '#000', color: '#fff', padding: '64px 0' }}>
+      {/* Stats Section */}
+      <section className="section" style={{ backgroundColor: 'var(--bg)' }}>
         <div className="container">
-          <div style={{ textAlign: 'center' }}>
-            <h2 style={{ color: '#fff', marginBottom: '16px' }}>
-              JOIN THE WORLD'S LARGEST TATTOO COMMUNITY
-            </h2>
-            <p style={{ fontSize: '20px', marginBottom: '32px', opacity: 0.9 }}>
-              Over 1 million clients worldwide trust Tattooed World to connect them with exceptional artists.
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">10,000+</div>
+              <div className="text-sm text-gray-600">ARTISTS WORLDWIDE</div>
+            </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">50+</div>
+              <div className="text-sm text-gray-600">COUNTRIES</div>
+            </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">50,000+</div>
+              <div className="text-sm text-gray-600">REVIEWS</div>
+            </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">100,000+</div>
+              <div className="text-sm text-gray-600">HAPPY CLIENTS</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="section" style={{ backgroundColor: 'var(--bg)' }}>
+        <div className="container">
+          <div className="text-center max-w-4xl mx-auto">
+            <h2>READY TO FIND YOUR PERFECT ARTIST?</h2>
+            <p className="deck mb-8">
+              Join thousands of satisfied clients who found their perfect tattoo artist through Tattooed World. 
+              Start your journey today and discover exceptional talent worldwide.
             </p>
-            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link to="/map" className="cta" style={{ backgroundColor: 'var(--accent-yellow)', color: '#000', borderColor: 'var(--accent-yellow)' }}>
-                <MapPin style={{ width: '20px', height: '20px', marginRight: '8px' }} />
-                EXPLORE GLOBAL MAP
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/artists" className="cta text-lg px-8 py-4">
+                <Search style={{ width: '20px', height: '20px', marginRight: '12px' }} />
+                FIND ARTISTS
               </Link>
-              <Link to="/register" className="cta" style={{ borderColor: 'var(--accent-yellow)', color: 'var(--accent-yellow)' }}>
-                <Plus style={{ width: '20px', height: '20px', marginRight: '8px' }} />
-                JOIN THE NETWORK
+              <Link to="/register" className="cta text-lg px-8 py-4">
+                <Plus style={{ width: '20px', height: '20px', marginRight: '12px' }} />
+                JOIN AS ARTIST
               </Link>
             </div>
           </div>

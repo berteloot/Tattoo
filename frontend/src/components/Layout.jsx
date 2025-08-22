@@ -61,7 +61,8 @@ export const Layout = ({ children }) => {
                   style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
                   <User style={{ width: '16px', height: '16px' }} />
-                  <span>{user?.firstName || user?.name || 'PROFILE'}</span>
+                  <span className="hidden lg:inline">{user?.firstName || user?.name || 'PROFILE'}</span>
+                  <span className="lg:hidden">PROFILE</span>
                 </Link>
                 {user?.role === 'CLIENT' && (
                   <Link
@@ -74,12 +75,14 @@ export const Layout = ({ children }) => {
                 )}
                 {isArtist && (
                   <Link to="/dashboard" className="cta">
-                    DASHBOARD
+                    <span className="hidden lg:inline">DASHBOARD</span>
+                    <span className="lg:hidden">DASH</span>
                   </Link>
                 )}
                 {isAdmin && (
                   <Link to="/admin" className="cta" style={{ backgroundColor: 'var(--accent-red)', color: '#fff', borderColor: 'var(--accent-red)' }}>
-                    ADMIN PANEL
+                    <span className="hidden lg:inline">ADMIN PANEL</span>
+                    <span className="lg:hidden">ADMIN</span>
                   </Link>
                 )}
                 <button
@@ -94,7 +97,8 @@ export const Layout = ({ children }) => {
                   style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer' }}
                 >
                   <LogOut style={{ width: '16px', height: '16px' }} />
-                  <span>LOGOUT</span>
+                  <span className="hidden lg:inline">LOGOUT</span>
+                  <span className="lg:hidden">OUT</span>
                 </button>
               </>
             ) : (
@@ -103,7 +107,8 @@ export const Layout = ({ children }) => {
                   LOGIN
                 </Link>
                 <Link to="/register" className="cta">
-                  SIGN UP
+                  <span className="hidden lg:inline">SIGN UP</span>
+                  <span className="lg:hidden">SIGN UP</span>
                 </Link>
               </div>
             )}
@@ -114,6 +119,7 @@ export const Layout = ({ children }) => {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer' }}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileMenuOpen ? (
                 <X style={{ width: '24px', height: '24px' }} />
@@ -134,7 +140,7 @@ export const Layout = ({ children }) => {
                     <Link
                       to={item.href}
                       className="small"
-                      style={{ display: 'block', padding: '8px 0' }}
+                      style={{ display: 'block', padding: '12px 0', fontSize: '16px' }}
                       onClick={() => {
                         console.log(`Mobile navigating to: ${item.href}`)
                         setMobileMenuOpen(false)
@@ -151,7 +157,7 @@ export const Layout = ({ children }) => {
                       <Link
                         to="/profile"
                         className="small"
-                        style={{ display: 'block', padding: '8px 0' }}
+                        style={{ display: 'block', padding: '12px 0', fontSize: '16px' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         PROFILE
@@ -162,7 +168,7 @@ export const Layout = ({ children }) => {
                         <Link
                           to="/favorites"
                           className="small"
-                          style={{ display: 'block', padding: '8px 0' }}
+                          style={{ display: 'block', padding: '12px 0', fontSize: '16px' }}
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           <FavoritesCount />
@@ -174,7 +180,7 @@ export const Layout = ({ children }) => {
                         <Link
                           to="/dashboard"
                           className="cta"
-                          style={{ display: 'block', textAlign: 'center' }}
+                          style={{ display: 'block', textAlign: 'center', margin: '16px 0' }}
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           DASHBOARD
@@ -186,7 +192,7 @@ export const Layout = ({ children }) => {
                         <Link
                           to="/admin"
                           className="cta"
-                          style={{ display: 'block', textAlign: 'center', backgroundColor: 'var(--accent-red)', color: '#fff', borderColor: 'var(--accent-red)' }}
+                          style={{ display: 'block', textAlign: 'center', margin: '16px 0', backgroundColor: 'var(--accent-red)', color: '#fff', borderColor: 'var(--accent-red)' }}
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           ADMIN PANEL
@@ -204,7 +210,7 @@ export const Layout = ({ children }) => {
                           setMobileMenuOpen(false)
                         }}
                         className="small"
-                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer' }}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}
                       >
                         LOGOUT
                       </button>
@@ -216,7 +222,7 @@ export const Layout = ({ children }) => {
                       <Link
                         to="/login"
                         className="small"
-                        style={{ display: 'block', padding: '8px 0' }}
+                        style={{ display: 'block', padding: '12px 0', fontSize: '16px' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         LOGIN
@@ -226,7 +232,7 @@ export const Layout = ({ children }) => {
                       <Link
                         to="/register"
                         className="cta"
-                        style={{ display: 'block', textAlign: 'center' }}
+                        style={{ display: 'block', textAlign: 'center', margin: '16px 0' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         SIGN UP
@@ -241,7 +247,7 @@ export const Layout = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main id="main-content" className="container" style={{ padding: '48px 0' }}>
+      <main id="main-content" className="container" style={{ padding: '32px 0' }}>
         {children}
       </main>
 
@@ -250,7 +256,7 @@ export const Layout = ({ children }) => {
         <div className="container">
           <div className="cols">
             {/* Company Info */}
-            <div style={{ gridColumn: 'span 2' }}>
+            <div style={{ gridColumn: 'span 1' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                 <MapPin style={{ width: '24px', height: '24px', color: 'var(--accent-blue)' }} />
                 <span className="brand">TATTOOED WORLD</span>
