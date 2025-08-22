@@ -21,6 +21,9 @@ services:
       pwd
       ls -la
       npm ci
+      echo "Setting VITE_API_URL for build..."
+      export VITE_API_URL="https://tattooedworld.org/api"
+      echo "VITE_API_URL set to: $VITE_API_URL"
       echo "Running npm run build..."
       npm run build
       echo "Build command completed. Checking results..."
