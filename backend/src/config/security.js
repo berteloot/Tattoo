@@ -1,7 +1,41 @@
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const cors = require('cors');
+import cors from "cors";
 const { getCSPForEnvironment, validateCSP, logCSPConfig } = require('../utils/csp');
+
+const allowedOrigins = [
+  "https://tattooedworld.org",
+  "https://www.tattooedworld.org",
+  // keep these two during migration/testing; you can remove later
+  "https://api.tattooedworld.org",
+  "https://tattooed-world-backend.onrender.com"
+];
+
+export const corsMiddleware = cors({
+  origin: (origin, cb) => {
+    // Allow non-browser requests (no Origin) like curl/health checks
+    if (!origin) return cb(null, true);
+
+    // Strict match
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+
+    // Optional: allow localhost for local dev
+    if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return cb(null, true);
+
+    // Log rejected origins for debugging
+    console.log(`🚫 CORS blocked origin: ${origin}`);
+    console.log(`   Allowed origins: ${allowedOrigins.join(', ')}`);
+    return cb(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With"
+  ],
+  credentials: true, // only if you use cookies or auth headers and need credentials
+  maxAge: 86400
+});
 
 // Security configuration with best practices
 const securityConfig = {
@@ -25,45 +59,6 @@ const securityConfig = {
     permittedCrossDomainPolicies: { permittedPolicies: "none" },
     referrerPolicy: { policy: "strict-origin-when-cross-origin" },
     xssFilter: true
-  },
-
-  // CORS configuration
-  cors: {
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      const allowedOrigins = [
-        'http://localhost:5173',
-        'http://localhost:5174', 
-        'http://localhost:5175',
-        'http://localhost:5176',
-        'http://localhost:3000',
-        'https://tattooed-world-backend.onrender.com',
-        'https://tattooedworld.org',
-        'https://www.tattooedworld.org',
-        'https://api.tattooedworld.org'
-      ];
-      
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        console.log('🚫 CORS blocked origin:', origin);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Origin', 
-      'X-Requested-With', 
-      'Content-Type', 
-      'Accept', 
-      'Authorization',
-      'X-Forwarded-For'
-    ],
-    exposedHeaders: ['Set-Cookie'],
-    maxAge: 86400 // 24 hours
   },
 
   // Rate limiting configuration
@@ -116,7 +111,10 @@ const applySecurityMiddleware = (app) => {
   app.use(helmet(securityConfig.helmet));
   
   // Apply CORS
-  app.use(cors(securityConfig.cors));
+  app.use(corsMiddleware);
+  
+  // Handle preflight explicitly (helps with some proxies)
+  app.options("*", corsMiddleware);
   
   // Apply rate limiting
   const limiter = rateLimit(securityConfig.rateLimit);
@@ -155,5 +153,6 @@ const applySecurityMiddleware = (app) => {
 
 module.exports = {
   securityConfig,
-  applySecurityMiddleware
+  applySecurityMiddleware,
+  corsMiddleware
 };
