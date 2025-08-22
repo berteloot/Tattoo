@@ -110,6 +110,14 @@ export const servicesAPI = {
   getAll: () => api.get('/services'),
 }
 
+export const artistServicesAPI = {
+  getAll: () => api.get('/artist-services'),
+  createOrUpdate: (data) => api.post('/artist-services', data),
+  update: (id, data) => api.put(`/artist-services/${id}`, data),
+  delete: (id) => api.delete(`/artist-services/${id}`),
+  getByArtist: (artistId) => api.get(`/artist-services/artist/${artistId}`),
+}
+
 export const favoritesAPI = {
   getAll: () => api.get('/favorites'),
   add: (artistId) => api.post('/favorites', { artistId }),
