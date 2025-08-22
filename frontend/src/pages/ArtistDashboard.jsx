@@ -16,6 +16,7 @@ import ImageUpload from '../components/ImageUpload'
 import BatchFlashUpload from '../components/BatchFlashUpload'
 import { MessageManagement } from '../components/MessageManagement'
 import StudioSelect from '../components/StudioSelect'
+import { ArtistServicesManager } from '../components/ArtistServicesManager'
 import { 
   MapPin, 
   Phone, 
@@ -969,6 +970,19 @@ export const ArtistDashboard = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Service Pricing Management */}
+              {profile?.id && (
+                <div className="mb-6">
+                  <ArtistServicesManager 
+                    artistId={profile.id} 
+                    onServicesUpdated={() => {
+                      // Refresh profile data when services are updated
+                      window.location.reload();
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Save Profile Button */}
               <div className="flex justify-end pt-4 border-t border-gray-200">
