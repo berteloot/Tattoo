@@ -228,16 +228,9 @@ router.post('/login', [
       { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
     );
 
-    // Store refresh token hash in database for security
-    const refreshTokenHash = require('crypto').createHash('sha256').update(refreshToken).digest('hex');
-    
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        refreshTokenHash,
-        refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-      }
-    });
+    // Note: refreshTokenHash and refreshTokenExpiry fields don't exist in current schema
+    // TODO: Add these fields to User model if refresh token storage is needed
+    // For now, we'll just generate the tokens without storing them in the database
 
     // Set refresh token as httpOnly, secure cookie
     res.cookie('refreshToken', refreshToken, {
