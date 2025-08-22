@@ -22,8 +22,27 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       sourcemap: true,
+      // Ensure proper asset handling
+      assetsDir: 'assets',
       rollupOptions: {
         output: {
+          // Ensure proper file extensions
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: (assetInfo) => {
+            const info = assetInfo.name.split('.')
+            const ext = info[info.length - 1]
+            if (/\.(css)$/.test(assetInfo.name)) {
+              return `assets/[name]-[hash].css`
+            }
+            if (/\.(png|jpe?g|gif|svg|ico|webp)$/.test(assetInfo.name)) {
+              return `assets/[name]-[hash].[ext]`
+            }
+            if (/\.(woff2?|eot|ttf|otf)$/.test(assetInfo.name)) {
+              return `assets/[name]-[hash].[ext]`
+            }
+            return `assets/[name]-[hash].[ext]`
+          },
           manualChunks: {
             vendor: ['react', 'react-dom'],
             router: ['react-router-dom'],
@@ -31,6 +50,10 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
+      // Ensure CSS is extracted
+      cssCodeSplit: true,
+      // Ensure proper chunking
+      chunkSizeWarningLimit: 1000,
     },
     // Environment variable prefix
     envPrefix: 'VITE_',

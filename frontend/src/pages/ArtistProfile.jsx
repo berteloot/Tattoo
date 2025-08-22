@@ -699,12 +699,9 @@ export const ArtistProfile = () => {
             </div>
 
             {/* Studio Information */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Studio Information</h2>
-            </div>
-            
             {studios && studios.length > 0 ? (
               <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Studio Information</h2>
                 <div className="space-y-4">
                   {studios.map((studioArtist) => {
                     const studio = studioArtist.studio;

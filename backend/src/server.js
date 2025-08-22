@@ -270,30 +270,315 @@ if (!frontendExists) {
 } else {
   console.log('✅ Frontend build found at:', frontendBuildPath);
   
-  // Enhanced static file serving with proper MIME types
+  // Enhanced static file serving with proper MIME types and priority
+  // This MUST come before the catch-all route to ensure assets are served correctly
   app.use(express.static(frontendBuildPath, {
     maxAge: '1y', // Cache static assets for 1 year
     etag: true,
     lastModified: true,
-    setHeaders: (res, path) => {
+    setHeaders: (res, filePath) => {
       // Ensure proper MIME types for critical assets
-      if (path.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript');
-      } else if (path.endsWith('.css')) {
-        res.setHeader('Content-Type', 'text/css');
-      } else if (path.endsWith('.html')) {
-        res.setHeader('Content-Type', 'text/html');
+      const ext = path.extname(filePath).toLowerCase();
+      switch (ext) {
+        case '.js':
+          res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          break;
+        case '.css':
+          res.setHeader('Content-Type', 'text/css; charset=utf-8');
+          break;
+        case '.html':
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          break;
+        case '.json':
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          break;
+        case '.png':
+          res.setHeader('Content-Type', 'image/png');
+          break;
+        case '.jpg':
+        case '.jpeg':
+          res.setHeader('Content-Type', 'image/jpeg');
+          break;
+        case '.svg':
+          res.setHeader('Content-Type', 'image/svg+xml');
+          break;
+        case '.ico':
+          res.setHeader('Content-Type', 'image/x-icon');
+          break;
+        case '.woff':
+          res.setHeader('Content-Type', 'font/woff');
+          break;
+        case '.woff2':
+          res.setHeader('Content-Type', 'font/woff2');
+          break;
+        case '.ttf':
+          res.setHeader('Content-Type', 'font/ttf');
+          break;
+        case '.eot':
+          res.setHeader('Content-Type', 'application/vnd.ms-fontobject');
+          break;
       }
     }
   }));
 
-}
+  // Debug endpoint to check asset availability
+  app.get('/debug-assets', (req, res) => {
+    const assetsDir = path.join(frontendBuildPath, 'assets');
+    try {
+      if (fs.existsSync(assetsDir)) {
+        const assets = fs.readdirSync(assetsDir);
+        const assetDetails = assets.map(asset => {
+          const fullPath = path.join(assetsDir, asset);
+          const stats = fs.statSync(fullPath);
+          return {
+            name: asset,
+            size: stats.size,
+            path: fullPath,
+            exists: true
+          };
+        });
+        
+        res.json({
+          success: true,
+          assetsDir,
+          assets: assetDetails,
+          totalAssets: assets.length
+        });
+      } else {
+        res.json({
+          success: false,
+          error: 'Assets directory not found',
+          assetsDir,
+          frontendBuildPath,
+          currentDir: __dirname
+        });
+      }
+    } catch (error) {
+      res.json({
+        success: false,
+        error: error.message,
+        assetsDir,
+        frontendBuildPath,
+        currentDir: __dirname
+      });
+    }
+  });
 
-// Error handling middleware - MUST come before React catch-all to avoid masking 404s
-app.use(errorHandler);
+  // Comprehensive asset debugging endpoint
+  app.get('/debug-build', (req, res) => {
+    try {
+      const buildInfo = {
+        frontendBuildPath,
+        currentDir: __dirname,
+        buildExists: fs.existsSync(frontendBuildPath),
+        timestamp: new Date().toISOString()
+      };
+      
+      if (buildInfo.buildExists) {
+        const buildContents = fs.readdirSync(frontendBuildPath);
+        buildInfo.buildContents = buildContents;
+        
+        const assetsDir = path.join(frontendBuildPath, 'assets');
+        buildInfo.assetsDir = assetsDir;
+        buildInfo.assetsExists = fs.existsSync(assetsDir);
+        
+        if (buildInfo.assetsExists) {
+          const assets = fs.readdirSync(assetsDir);
+          buildInfo.assets = assets;
+          buildInfo.totalAssets = assets.length;
+          
+          // Check for specific file types
+          buildInfo.cssFiles = assets.filter(f => f.endsWith('.css'));
+          buildInfo.jsFiles = assets.filter(f => f.endsWith('.js'));
+          buildInfo.imageFiles = assets.filter(f => /\.(png|jpg|jpeg|gif|svg|ico)$/i.test(f));
+          buildInfo.fontFiles = assets.filter(f => /\.(woff|woff2|ttf|eot)$/i.test(f));
+          
+          // Get file sizes and paths
+          buildInfo.assetDetails = assets.map(asset => {
+            const fullPath = path.join(assetsDir, asset);
+            const stats = fs.statSync(fullPath);
+            return {
+              name: asset,
+              size: stats.size,
+              sizeKB: (stats.size / 1024).toFixed(2),
+              path: fullPath,
+              relativePath: `/assets/${asset}`,
+              exists: true
+            };
+          });
+        }
+        
+        // Check index.html
+        const indexHtmlPath = path.join(frontendBuildPath, 'index.html');
+        if (fs.existsSync(indexHtmlPath)) {
+          const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
+          buildInfo.indexHtml = {
+            exists: true,
+            size: indexHtml.length,
+            cssReferences: indexHtml.match(/href="[^"]*\.css[^"]*"/g) || [],
+            jsReferences: indexHtml.match(/src="[^"]*\.js[^"]*"/g) || []
+          };
+        } else {
+          buildInfo.indexHtml = { exists: false };
+        }
+      }
+      
+      res.json(buildInfo);
+    } catch (error) {
+      res.json({
+        success: false,
+        error: error.message,
+        stack: error.stack,
+        frontendBuildPath,
+        currentDir: __dirname
+      });
+    }
+  });
 
-// React catch-all route - MUST be last to handle SPA routing without masking API 404s
-if (frontendExists) {
+  // Test CSS serving endpoint
+  app.get('/test-css', (req, res) => {
+    res.setHeader('Content-Type', 'text/css; charset=utf-8');
+    res.send(`
+      /* Test CSS */
+      body { 
+        background-color: #f0f0f0; 
+        font-family: Arial, sans-serif; 
+      }
+      .test { 
+        color: #333; 
+        padding: 20px; 
+      }
+    `);
+  });
+
+  // Explicit asset route handling to ensure proper MIME types
+  app.get('/assets/*', (req, res, next) => {
+    const assetPath = req.path.replace('/assets/', '');
+    const fullPath = path.join(frontendBuildPath, 'assets', assetPath);
+    
+    console.log(`🔍 Asset request: ${req.path} -> ${fullPath}`);
+    
+    // Check if asset exists
+    if (!fs.existsSync(fullPath)) {
+      console.log(`❌ Asset not found: ${req.path} -> ${fullPath}`);
+      return res.status(404).json({ error: 'Asset not found', path: req.path });
+    }
+    
+    // Determine MIME type based on file extension
+    const ext = path.extname(assetPath).toLowerCase();
+    let contentType = 'application/octet-stream';
+    
+    switch (ext) {
+      case '.js':
+        contentType = 'application/javascript; charset=utf-8';
+        break;
+      case '.css':
+        contentType = 'text/css; charset=utf-8';
+        break;
+      case '.png':
+        contentType = 'image/png';
+        break;
+      case '.jpg':
+      case '.jpeg':
+        contentType = 'image/jpeg';
+        break;
+      case '.svg':
+        contentType = 'image/svg+xml';
+        break;
+      case '.ico':
+        contentType = 'image/x-icon';
+        break;
+      case '.woff':
+        contentType = 'font/woff';
+        break;
+      case '.woff2':
+        contentType = 'font/woff2';
+        break;
+      case '.ttf':
+        contentType = 'font/ttf';
+        break;
+      case '.eot':
+        contentType = 'application/vnd.ms-fontobject';
+        break;
+    }
+    
+    console.log(`✅ Serving asset: ${req.path} -> ${fullPath} (${contentType})`);
+    
+    // Set proper headers
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+    
+    // Stream the file
+    const stream = fs.createReadStream(fullPath);
+    
+    // Handle stream errors
+    stream.on('error', (error) => {
+      console.error(`❌ Error streaming asset ${req.path}:`, error.message);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Error serving asset', path: req.path });
+      }
+    });
+    
+    // Handle client disconnect
+    req.on('close', () => {
+      stream.destroy();
+    });
+    
+    stream.pipe(res);
+  });
+
+  // Fallback asset route for any assets not caught by the explicit route
+  app.get('*.css', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
+    const fullPath = path.join(frontendBuildPath, req.path.substring(1));
+    console.log(`🔍 CSS fallback request: ${req.path} -> ${fullPath}`);
+    
+    if (fs.existsSync(fullPath)) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      res.sendFile(fullPath);
+    } else {
+      next();
+    }
+  });
+
+  app.get('*.js', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
+    const fullPath = path.join(frontendBuildPath, req.path.substring(1));
+    console.log(`🔍 JS fallback request: ${req.path} -> ${fullPath}`);
+    
+    if (fs.existsSync(fullPath)) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      res.sendFile(fullPath);
+    } else {
+      next();
+    }
+  });
+
+
+  // Error handling middleware - MUST come before React catch-all to avoid masking 404s
+  app.use(errorHandler);
+
+  // Asset error handling middleware
+  app.use('/assets/*', (err, req, res, next) => {
+    console.error(`❌ Asset error for ${req.path}:`, err.message);
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Asset serving error', 
+        path: req.path,
+        message: err.message 
+      });
+    }
+  });
+
+  // React catch-all route - MUST be last to handle SPA routing without masking API 404s
   app.get('*', (req, res) => {
     // Skip API routes
     if (req.path.startsWith('/api/')) {
@@ -337,6 +622,40 @@ async function startServer() {
         console.error('🚨 Schema mismatch detected - failing fast to trigger redeploy');
       }
       process.exit(1);
+    }
+    
+    // Check frontend build status in production
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🔍 Checking frontend build status...');
+      try {
+        if (fs.existsSync(frontendBuildPath)) {
+          const buildContents = fs.readdirSync(frontendBuildPath);
+          console.log('  📁 Build contents:', buildContents);
+          
+          const assetsPath = path.join(frontendBuildPath, 'assets');
+          if (fs.existsSync(assetsPath)) {
+            const assets = fs.readdirSync(assetsPath);
+            const cssFiles = assets.filter(f => f.endsWith('.css'));
+            const jsFiles = assets.filter(f => f.endsWith('.js'));
+            
+            console.log(`  🎨 CSS files: ${cssFiles.length}`);
+            console.log(`  ⚡ JS files: ${jsFiles.length}`);
+            
+            if (cssFiles.length === 0) {
+              console.warn('⚠️  No CSS files found in build!');
+            }
+            if (jsFiles.length === 0) {
+              console.warn('⚠️  No JS files found in build!');
+            }
+          } else {
+            console.warn('⚠️  Assets directory not found in build!');
+          }
+        } else {
+          console.warn('⚠️  Frontend build directory not found!');
+        }
+      } catch (error) {
+        console.error('❌ Error checking frontend build:', error.message);
+      }
     }
     
     // Run production migrations if needed
