@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://tattooedworld.org/api/$1"
+      "destination": "https://api.tattooedworld.org/$1"
     },
     {
       "source": "/((?!api).*)",
