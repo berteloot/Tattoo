@@ -453,6 +453,7 @@ if (!frontendExists) {
 
   // Explicit asset route handling to ensure proper MIME types
   app.get('/assets/*', (req, res, next) => {
+    // Extract the asset filename from the path
     const assetPath = req.path.replace('/assets/', '');
     const fullPath = path.join(frontendBuildPath, 'assets', assetPath);
     
@@ -508,60 +509,16 @@ if (!frontendExists) {
     res.setHeader('Content-Type', contentType);
     res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
     
-    // Stream the file
-    const stream = fs.createReadStream(fullPath);
-    
-    // Handle stream errors
-    stream.on('error', (error) => {
-      console.error(`❌ Error streaming asset ${req.path}:`, error.message);
-      if (!res.headersSent) {
-        res.status(500).json({ error: 'Error serving asset', path: req.path });
+    // Use sendFile instead of streaming to avoid potential issues
+    res.sendFile(fullPath, (err) => {
+      if (err) {
+        console.error(`❌ Error serving asset ${req.path}:`, err.message);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Error serving asset', path: req.path });
+        }
       }
     });
-    
-    // Handle client disconnect
-    req.on('close', () => {
-      stream.destroy();
-    });
-    
-    stream.pipe(res);
   });
-
-  // Fallback asset route for any assets not caught by the explicit route
-  app.get('*.css', (req, res, next) => {
-    if (req.path.startsWith('/api/')) {
-      return next();
-    }
-    
-    const fullPath = path.join(frontendBuildPath, req.path.substring(1));
-    console.log(`🔍 CSS fallback request: ${req.path} -> ${fullPath}`);
-    
-    if (fs.existsSync(fullPath)) {
-      res.setHeader('Content-Type', 'text/css; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
-      res.sendFile(fullPath);
-    } else {
-      next();
-    }
-  });
-
-  app.get('*.js', (req, res, next) => {
-    if (req.path.startsWith('/api/')) {
-      return next();
-    }
-    
-    const fullPath = path.join(frontendBuildPath, req.path.substring(1));
-    console.log(`🔍 JS fallback request: ${req.path} -> ${fullPath}`);
-    
-    if (fs.existsSync(fullPath)) {
-      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
-      res.sendFile(fullPath);
-    } else {
-      next();
-    }
-  });
-
 
   // Error handling middleware - MUST come before React catch-all to avoid masking 404s
   app.use(errorHandler);
