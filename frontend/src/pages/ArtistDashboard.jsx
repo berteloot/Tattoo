@@ -1827,28 +1827,54 @@ export const ArtistDashboard = () => {
                   )}
                   
                   {/* Services */}
-                  {profile?.services && Array.isArray(profile.services) && profile.services.length > 0 && (
+                  {Array.isArray(services) && services.length > 0 && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Services</h4>
+                      <div className="mb-3 text-xs text-gray-500">
+                        <span className="inline-flex items-center gap-1 mr-3">
+                          <span className="w-3 h-3 bg-blue-50 border-l-4 border-blue-400 rounded"></span>
+                          Custom Pricing
+                        </span>
+                        <span className="inline-flex items-center gap-1 mr-3">
+                          <span className="w-3 h-3 bg-green-50 border-l-4 border-green-400 rounded"></span>
+                          Selected for Profile
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <span className="w-3 h-3 bg-gray-50 rounded"></span>
+                          Available
+                        </span>
+                      </div>
                       <div className="space-y-2">
-                        {profile.services.map((service) => {
+                        {services.map((service) => {
                           if (!service?.id) return null; // Skip invalid services
                           
                           const customPrice = getServicePrice(service.id);
                           const customDuration = getServiceDuration(service.id);
                           const hasCustomPricing = customPrice !== null || customDuration !== null;
+                          const isSelected = profile?.services?.some(s => s?.id === service.id);
                           
                           return (
                             <div key={service.id} className={`flex justify-between items-center text-sm p-2 rounded ${
-                              hasCustomPricing ? 'bg-blue-50 border-l-4 border-blue-400' : ''
+                              hasCustomPricing ? 'bg-blue-50 border-l-4 border-blue-400' : 
+                              isSelected ? 'bg-green-50 border-l-4 border-green-400' : 'bg-gray-50'
                             }`}>
                               <div className="flex-1">
-                                <span className={`font-medium ${hasCustomPricing ? 'text-blue-800' : 'text-gray-600'}`}>
+                                <span className={`font-medium ${hasCustomPricing ? 'text-blue-800' : isSelected ? 'text-green-800' : 'text-gray-600'}`}>
                                   {service.name || 'Unnamed Service'}
                                 </span>
                                 {hasCustomPricing && (
                                   <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
                                     Custom Pricing
+                                  </span>
+                                )}
+                                {isSelected && !hasCustomPricing && (
+                                  <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                                    Selected
+                                  </span>
+                                )}
+                                {!isSelected && !hasCustomPricing && (
+                                  <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                    Available
                                   </span>
                                 )}
                               </div>
