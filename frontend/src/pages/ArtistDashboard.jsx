@@ -177,13 +177,15 @@ export const ArtistDashboard = () => {
 
   // Function to get custom pricing for a service
   const getServicePrice = (serviceId) => {
-    const artistService = artistServices.find(as => as.serviceId === serviceId);
-    return artistService?.customPrice || null;
+    if (!serviceId || !Array.isArray(artistServices)) return null;
+    const artistService = artistServices.find(as => as?.serviceId === serviceId);
+    return artistService?.customPrice ?? null;
   };
 
   const getServiceDuration = (serviceId) => {
-    const artistService = artistServices.find(as => as.serviceId === serviceId);
-    return artistService?.customDuration || null;
+    if (!serviceId || !Array.isArray(artistServices)) return null;
+    const artistService = artistServices.find(as => as?.serviceId === serviceId);
+    return artistService?.customDuration ?? null;
   };
 
   // Fetch artist services when profile is available
@@ -193,11 +195,16 @@ export const ArtistDashboard = () => {
         try {
           const response = await fetch(`/api/artist-services/artist/${profile.id}`);
           const data = await response.json();
-          if (data.success) {
+          if (data?.success && data?.data?.artistServices) {
             setArtistServices(data.data.artistServices);
+          } else {
+            // No custom services yet, that's fine
+            setArtistServices([]);
           }
         } catch (error) {
           console.error('Error fetching artist services:', error);
+          // Set empty array on error to prevent crashes
+          setArtistServices([]);
         }
       };
       
@@ -1161,36 +1168,40 @@ export const ArtistDashboard = () => {
                 </div>
               </div>
               
-              {flash.length > 0 ? (
+              {Array.isArray(flash) && flash.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {flash.map((item) => (
-                    <div key={item.id} className="border border-gray-200 rounded-lg p-4">
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.title}
-                        className="w-full h-32 object-cover rounded-lg mb-3"
-                      />
-                      <h3 className="font-medium text-gray-900 mb-1">{item.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-green-600">${item.basePrice}</span>
-                        <div className="flex space-x-2">
-                          <button 
-                            onClick={() => handleEditFlash(item)}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteFlash(item.id)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                  {flash.map((item) => {
+                    if (!item?.id) return null; // Skip invalid items
+                    
+                    return (
+                      <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                        <img 
+                          src={item.imageUrl} 
+                          alt={item.title || 'Flash Design'}
+                          className="w-full h-32 object-cover rounded-lg mb-3"
+                        />
+                        <h3 className="font-medium text-gray-900 mb-1">{item.title || 'Untitled'}</h3>
+                        <p className="text-sm text-gray-600 mb-2">{item.description || 'No description'}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-bold text-green-600">${item.basePrice || 'N/A'}</span>
+                          <div className="flex space-x-2">
+                            <button 
+                              onClick={() => handleEditFlash(item)}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteFlash(item.id)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -1643,49 +1654,53 @@ export const ArtistDashboard = () => {
                 </button>
               </div>
               
-              {tattoos.length > 0 ? (
+              {Array.isArray(tattoos) && tattoos.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {tattoos.map((tattoo) => (
-                    <div key={tattoo.id} className="border border-gray-200 rounded-lg p-4">
-                      <img 
-                        src={tattoo.imageUrl} 
-                        alt={tattoo.title}
-                        className="w-full h-32 object-cover rounded-lg mb-3"
-                      />
-                      <h3 className="font-medium text-gray-900 mb-1">{tattoo.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{tattoo.description}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2 text-sm text-gray-500">
-                          {tattoo.tattooStyle && (
-                            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
-                              {tattoo.tattooStyle}
-                            </span>
-                          )}
-                          {tattoo.bodyLocation && (
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                              {tattoo.bodyLocation}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => navigate(`/dashboard/gallery/edit/${tattoo.id}`)}
-                            className="text-blue-600 hover:text-blue-800"
-                            title="Edit Tattoo"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => navigate(`/gallery/${tattoo.id}`)}
-                            className="text-green-600 hover:text-green-800"
-                            title="View Tattoo"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
+                  {tattoos.map((tattoo) => {
+                    if (!tattoo?.id) return null; // Skip invalid items
+                    
+                    return (
+                      <div key={tattoo.id} className="border border-gray-200 rounded-lg p-4">
+                        <img 
+                          src={tattoo.imageUrl} 
+                          alt={tattoo.title || 'Tattoo Design'}
+                          className="w-full h-32 object-cover rounded-lg mb-3"
+                        />
+                        <h3 className="font-medium text-gray-900 mb-1">{tattoo.title || 'Untitled'}</h3>
+                        <p className="text-sm text-gray-600 mb-2">{tattoo.description || 'No description'}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            {tattoo.tattooStyle && (
+                              <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                                {tattoo.tattooStyle}
+                              </span>
+                            )}
+                            {tattoo.bodyLocation && (
+                              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                {tattoo.bodyLocation}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => navigate(`/dashboard/gallery/edit/${tattoo.id}`)}
+                              className="text-blue-600 hover:text-blue-800"
+                              title="Edit Tattoo"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => navigate(`/gallery/${tattoo.id}`)}
+                              className="text-green-600 hover:text-green-800"
+                              title="View Tattoo"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -1794,28 +1809,34 @@ export const ArtistDashboard = () => {
                   )}
                   
                   {/* Specialties */}
-                  {profile?.specialties && profile.specialties.length > 0 && (
+                  {profile?.specialties && Array.isArray(profile.specialties) && profile.specialties.length > 0 && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Specialties</h4>
                       <div className="flex flex-wrap gap-2">
-                        {profile.specialties.map((specialty) => (
-                          <span
-                            key={specialty.id}
-                            className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                          >
-                            {specialty.name}
-                          </span>
-                        ))}
+                        {profile.specialties.map((specialty) => {
+                          if (!specialty?.id) return null; // Skip invalid specialties
+                          
+                          return (
+                            <span
+                              key={specialty.id}
+                              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                            >
+                              {specialty.name || 'Unnamed Specialty'}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
                   
                   {/* Services */}
-                  {profile?.services && profile.services.length > 0 && (
+                  {profile?.services && Array.isArray(profile.services) && profile.services.length > 0 && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Services</h4>
                       <div className="space-y-2">
                         {profile.services.map((service) => {
+                          if (!service?.id) return null; // Skip invalid services
+                          
                           const customPrice = getServicePrice(service.id);
                           const customDuration = getServiceDuration(service.id);
                           const hasCustomPricing = customPrice !== null || customDuration !== null;
@@ -1826,7 +1847,7 @@ export const ArtistDashboard = () => {
                             }`}>
                               <div className="flex-1">
                                 <span className={`font-medium ${hasCustomPricing ? 'text-blue-800' : 'text-gray-600'}`}>
-                                  {service.name}
+                                  {service.name || 'Unnamed Service'}
                                 </span>
                                 {hasCustomPricing && (
                                   <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
@@ -1923,33 +1944,37 @@ export const ArtistDashboard = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Reviews</h3>
               
-              {reviews.length > 0 ? (
+              {Array.isArray(reviews) && reviews.length > 0 ? (
                 <div className="space-y-3">
-                  {reviews.slice(0, 3).map((review) => (
-                    <div key={review.id} className="border-l-4 border-blue-500 pl-3">
-                      <div className="flex items-center mb-2">
-                        <img
-                          src={review.author?.avatar || `https://ui-avatars.com/api/?name=${review.author?.firstName || 'User'}+${review.author?.lastName || ''}`}
-                          alt={`${review.author?.firstName || 'User'} ${review.author?.lastName || ''}`}
-                          className="w-8 h-8 rounded-full mr-3"
-                        />
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i} 
-                              className={`h-3 w-3 ${
-                                i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
+                  {reviews.slice(0, 3).map((review) => {
+                    if (!review?.id) return null; // Skip invalid reviews
+                    
+                    return (
+                      <div key={review.id} className="border-l-4 border-blue-500 pl-3">
+                        <div className="flex items-center mb-2">
+                          <img
+                            src={review.author?.avatar || `https://ui-avatars.com/api/?name=${review.author?.firstName || 'User'}+${review.author?.lastName || ''}`}
+                            alt={`${review.author?.firstName || 'User'} ${review.author?.lastName || ''}`}
+                            className="w-8 h-8 rounded-full mr-3"
+                          />
+                          <div className="flex items-center">
+                            {[...Array(5)].map((_, i) => (
+                              <Star 
+                                key={i} 
+                                className={`h-3 w-3 ${
+                                  i < (review.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
                         </div>
+                        <p className="text-sm text-gray-700 line-clamp-2">{review.comment || 'No comment'}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Unknown date'}
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-700 line-clamp-2">{review.comment}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(review.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-gray-500 text-center py-4">No reviews yet</p>

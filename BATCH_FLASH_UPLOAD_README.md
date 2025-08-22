@@ -208,3 +208,4 @@ Flash gallery updated → Modal closes
 ---
 
 This feature represents a significant improvement in the artist workflow, making it much easier and faster to populate flash galleries with multiple designs while maintaining quality and consistency in the information provided.
+
