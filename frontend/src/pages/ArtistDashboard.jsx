@@ -57,6 +57,7 @@ export const ArtistDashboard = () => {
     twitter: '',
     youtube: '',
     linkedin: '',
+    pinterest: '',
     calendlyUrl: '',
     address: '',
     city: '',
@@ -180,6 +181,7 @@ export const ArtistDashboard = () => {
         twitter: profile.twitter || '',
         youtube: profile.youtube || '',
         linkedin: profile.linkedin || '',
+        pinterest: profile.pinterest || '',
         calendlyUrl: profile.calendlyUrl || '',
         address: profile.address || '',
         city: profile.city || '',
@@ -365,6 +367,33 @@ export const ArtistDashboard = () => {
     }))
   }
 
+  // Profile form handlers
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSpecialtyChange = (specialtyId) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedSpecialties: prev.selectedSpecialties.includes(specialtyId)
+        ? prev.selectedSpecialties.filter(id => id !== specialtyId)
+        : [...prev.selectedSpecialties, specialtyId]
+    }))
+  }
+
+  const handleServiceChange = (serviceId) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedServices: prev.selectedServices.includes(serviceId)
+        ? prev.selectedServices.filter(id => id !== serviceId)
+        : [...prev.selectedServices, serviceId]
+    }))
+  }
+
   // Flash image upload handlers
   const handleFlashImageUpload = (imageData) => {
     console.log('📋 Flash image upload successful:', imageData)
@@ -515,7 +544,8 @@ export const ArtistDashboard = () => {
                     </label>
                     <textarea
                       value={formData.bio}
-                      onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                      name="bio"
+                      onChange={handleInputChange}
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Tell clients about your style and experience..."
@@ -551,7 +581,8 @@ export const ArtistDashboard = () => {
                     <input
                       type="url"
                       value={formData.website}
-                      onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                      name="website"
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="https://yourwebsite.com"
                     />
@@ -564,7 +595,8 @@ export const ArtistDashboard = () => {
                     <input
                       type="url"
                       value={formData.calendlyUrl}
-                      onChange={(e) => setFormData(prev => ({ ...prev, calendlyUrl: e.target.value }))}
+                      name="calendlyUrl"
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="https://calendly.com/yourname"
                     />
@@ -577,7 +609,8 @@ export const ArtistDashboard = () => {
                     <input
                       type="text"
                       value={formData.instagram}
-                      onChange={(e) => setFormData(prev => ({ ...prev, instagram: e.target.value }))}
+                      name="instagram"
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="@username"
                     />
@@ -590,10 +623,67 @@ export const ArtistDashboard = () => {
                     <input
                       type="text"
                       value={formData.facebook}
-                      onChange={(e) => setFormData(prev => ({ ...prev, facebook: e.target.value }))}
+                      name="facebook"
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="facebook.com/username"
                     />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Twitter
+                    </label>
+                    <input
+                      type="text"
+                      name="twitter"
+                      value={formData.twitter}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="@username"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      YouTube
+                    </label>
+                    <input
+                      type="text"
+                      name="youtube"
+                      value={formData.youtube}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500"
+                      placeholder="youtube.com/yourchannel"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      LinkedIn
+                    </label>
+                    <input
+                      type="text"
+                      name="linkedin"
+                      value={formData.linkedin}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="linkedin.com/in/yourprofile"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Pinterest
+                    </label>
+                                          <input
+                        type="text"
+                        name="pinterest"
+                        value={formData.pinterest}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="pinterest.com/yourprofile"
+                      />
                   </div>
                 </div>
               </div>
@@ -609,7 +699,8 @@ export const ArtistDashboard = () => {
                     <input
                       type="text"
                       value={formData.address}
-                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                      name="address"
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Street address"
                     />
@@ -622,7 +713,8 @@ export const ArtistDashboard = () => {
                     <input
                       type="text"
                       value={formData.city}
-                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                      name="city"
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="City"
                     />
@@ -635,9 +727,38 @@ export const ArtistDashboard = () => {
                     <input
                       type="text"
                       value={formData.state}
-                      onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                      name="state"
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="State"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      ZIP/Postal Code
+                    </label>
+                    <input
+                      type="text"
+                      name="zipCode"
+                      value={formData.zipCode}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="12345"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      name="country"
+                      value={formData.country}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="United States"
                     />
                   </div>
                 </div>
@@ -654,7 +775,8 @@ export const ArtistDashboard = () => {
                     <input
                       type="number"
                       value={formData.hourlyRate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
+                      name="hourlyRate"
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="150"
                     />
@@ -667,7 +789,8 @@ export const ArtistDashboard = () => {
                     <input
                       type="number"
                       value={formData.minPrice}
-                      onChange={(e) => setFormData(prev => ({ ...prev, minPrice: e.target.value }))}
+                      name="minPrice"
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="50"
                     />
@@ -680,11 +803,74 @@ export const ArtistDashboard = () => {
                     <input
                       type="number"
                       value={formData.maxPrice}
-                      onChange={(e) => setFormData(prev => ({ ...prev, maxPrice: e.target.value }))}
+                      name="maxPrice"
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="500"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Specialties */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Specialties</h3>
+                <div className="space-y-6">
+                  {(() => {
+                    // Group specialties by category
+                    const groupedSpecialties = (specialties || []).reduce((acc, specialty) => {
+                      const category = specialty.category || 'Other';
+                      if (!acc[category]) {
+                        acc[category] = [];
+                      }
+                      acc[category].push(specialty);
+                      return acc;
+                    }, {});
+
+                    return Object.entries(groupedSpecialties).map(([category, categorySpecialties]) => (
+                      <div key={category} className="border border-gray-200 rounded-lg p-4">
+                        <h4 className="text-md font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">
+                          {category}
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {categorySpecialties.map((specialty) => (
+                            <label key={specialty.id} className="flex items-center p-2 hover:bg-gray-50 rounded">
+                              <input
+                                type="checkbox"
+                                checked={formData.selectedSpecialties.includes(specialty.id)}
+                                onChange={() => handleSpecialtyChange(specialty.id)}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                              <div className="ml-2">
+                                <span className="text-sm font-medium text-gray-700">{specialty.name}</span>
+                                {specialty.description && (
+                                  <p className="text-xs text-gray-500 mt-1">{specialty.description}</p>
+                                )}
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              {/* Services */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Services</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {(services || []).map((service) => (
+                    <label key={service.id} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.selectedServices.includes(service.id)}
+                        onChange={() => handleServiceChange(service.id)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">{service.name}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
@@ -695,7 +881,12 @@ export const ArtistDashboard = () => {
                   onClick={async () => {
                     try {
                       // If studio is selected, ensure studio data is included in profile
-                      let profileDataToSave = { ...formData };
+                      let profileDataToSave = { 
+                        ...formData,
+                        // Map frontend field names to backend expected names
+                        specialtyIds: formData.selectedSpecialties,
+                        serviceIds: formData.selectedServices
+                      };
                       
                       if (selectedStudio) {
                         // Include studio information in the profile data
@@ -1145,6 +1336,148 @@ export const ArtistDashboard = () => {
                 </div>
               </div>
             </div>
+
+            {/* Current Profile Information */}
+            {profile?.id && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Current Profile</h3>
+                
+                <div className="space-y-4">
+                  {/* Bio */}
+                  {profile?.bio && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Bio</h4>
+                      <p className="text-gray-600 text-sm">{profile.bio}</p>
+                    </div>
+                  )}
+                  
+                  {/* Studio */}
+                  {profile?.studioName && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Studio</h4>
+                      <p className="text-gray-600 text-sm">{profile.studioName}</p>
+                    </div>
+                  )}
+                  
+                  {/* Location */}
+                  {(profile?.address || profile?.city || profile?.state) && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Location</h4>
+                      <p className="text-gray-600 text-sm">
+                        {[profile.address, profile.city, profile.state, profile.zipCode, profile.country]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Pricing */}
+                  {(profile?.hourlyRate || profile?.minPrice || profile?.maxPrice) && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Pricing</h4>
+                      <div className="text-gray-600 text-sm space-y-1">
+                        {profile.hourlyRate && <div>Hourly Rate: ${profile.hourlyRate}/hr</div>}
+                        {profile.minPrice && profile.maxPrice && (
+                          <div>Price Range: ${profile.minPrice} - ${profile.maxPrice}</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Specialties */}
+                  {profile?.specialties && profile.specialties.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Specialties</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.specialties.map((specialty) => (
+                          <span
+                            key={specialty.id}
+                            className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                          >
+                            {specialty.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Services */}
+                  {profile?.services && profile.services.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Services</h4>
+                      <div className="space-y-2">
+                        {profile.services.map((service) => (
+                          <div key={service.id} className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">{service.name}</span>
+                            {service.price && (
+                              <span className="text-gray-800 font-medium">${service.price}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Social Media */}
+                  {(profile?.website || profile?.instagram || profile?.facebook || profile?.twitter || profile?.youtube || profile?.linkedin || profile?.pinterest) && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Social Media & Links</h4>
+                      <div className="space-y-1 text-sm">
+                        {profile.website && (
+                          <div className="text-blue-600 hover:underline">
+                            <a href={profile.website} target="_blank" rel="noopener noreferrer">
+                              🌐 Website
+                            </a>
+                          </div>
+                        )}
+                        {profile.instagram && (
+                          <div className="text-pink-600 hover:underline">
+                            <a href={`https://instagram.com/${profile.instagram}`} target="_blank" rel="noopener noreferrer">
+                              📷 Instagram
+                            </a>
+                          </div>
+                        )}
+                        {profile.facebook && (
+                          <div className="text-blue-600 hover:underline">
+                            <a href={`https://facebook.com/${profile.facebook}`} target="_blank" rel="noopener noreferrer">
+                              📘 Facebook
+                            </a>
+                          </div>
+                        )}
+                        {profile.twitter && (
+                          <div className="text-blue-400 hover:underline">
+                            <a href={`https://twitter.com/${profile.twitter}`} target="_blank" rel="noopener noreferrer">
+                              🐦 Twitter
+                            </a>
+                          </div>
+                        )}
+                        {profile.youtube && (
+                          <div className="text-red-600 hover:underline">
+                            <a href={`https://youtube.com/${profile.youtube}`} target="_blank" rel="noopener noreferrer">
+                              📺 YouTube
+                            </a>
+                          </div>
+                        )}
+                        {profile.linkedin && (
+                          <div className="text-blue-700 hover:underline">
+                            <a href={`https://linkedin.com/in/${profile.linkedin}`} target="_blank" rel="noopener noreferrer">
+                              💼 LinkedIn
+                            </a>
+                          </div>
+                        )}
+                        {profile.pinterest && (
+                          <div className="text-red-500 hover:underline">
+                            <a href={`https://pinterest.com/${profile.pinterest}`} target="_blank" rel="noopener noreferrer">
+                              📌 Pinterest
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Recent Reviews */}
             <div className="bg-white rounded-lg shadow p-6">
