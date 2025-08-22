@@ -1,7 +1,6 @@
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 import cors from "cors";
-const { getCSPForEnvironment, validateCSP, logCSPConfig } = require('../utils/csp');
 
 const allowedOrigins = [
   "https://tattooedworld.org",
@@ -39,11 +38,9 @@ export const corsMiddleware = cors({
 
 // Security configuration with best practices
 const securityConfig = {
-  // Helmet configuration for security headers
+  // Helmet configuration (security headers)
   helmet: {
-    contentSecurityPolicy: {
-      directives: getCSPForEnvironment()
-    },
+    contentSecurityPolicy: false, // CSP should be set by frontend, not API
     crossOriginEmbedderPolicy: false, // Disable for development
     crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin resources
     dnsPrefetchControl: { allow: false },
