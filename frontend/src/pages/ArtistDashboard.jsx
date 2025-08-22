@@ -13,6 +13,7 @@ import {
 import { api, artistsAPI, flashAPI } from '../services/api'
 import ProfilePictureUpload from '../components/ProfilePictureUpload'
 import ImageUpload from '../components/ImageUpload'
+import BatchFlashUpload from '../components/BatchFlashUpload'
 import { MessageManagement } from '../components/MessageManagement'
 import StudioSelect from '../components/StudioSelect'
 import { 
@@ -38,7 +39,8 @@ import {
   Building,
   Trash2,
   XCircle,
-  Eye
+  Eye,
+  Upload
 } from 'lucide-react'
 
 export const ArtistDashboard = () => {
@@ -79,6 +81,7 @@ export const ArtistDashboard = () => {
 
   // Flash creation state
   const [showFlashForm, setShowFlashForm] = useState(false)
+  const [flashUploadMode, setFlashUploadMode] = useState('single') // 'single' or 'batch'
   const [flashFormData, setFlashFormData] = useState({
     title: '',
     description: '',
@@ -381,6 +384,22 @@ export const ArtistDashboard = () => {
       console.error('❌ Error creating flash item:', error)
       const errorMessage = error.response?.data?.error || 'Error creating flash item'
       showError(errorMessage)
+    }
+  }
+
+  const handleBatchFlashCreated = async (flashItems) => {
+    try {
+      console.log('📋 Batch flash created:', flashItems)
+      
+      setShowFlashForm(false)
+      success(`Successfully created ${flashItems.length} flash items!`)
+      
+      // Refresh flash list
+      refetchFlash()
+      
+    } catch (error) {
+      console.error('❌ Error in batch flash creation:', error)
+      showError('Some flash items may not have been created. Please check and try again.')
     }
   }
 
@@ -1054,13 +1073,43 @@ export const ArtistDashboard = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Flash Gallery</h2>
-                <button 
-                  onClick={() => setShowFlashForm(true)}
-                  className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Flash
-                </button>
+                <div className="flex items-center space-x-3">
+                  {/* Upload Mode Toggle */}
+                  <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setFlashUploadMode('single')}
+                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                        flashUploadMode === 'single'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Single
+                    </button>
+                    <button
+                      onClick={() => setFlashUploadMode('batch')}
+                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                        flashUploadMode === 'batch'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Batch
+                    </button>
+                  </div>
+                  
+                  <button 
+                    onClick={() => setShowFlashForm(true)}
+                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                  >
+                    {flashUploadMode === 'batch' ? (
+                      <Upload className="h-4 w-4 mr-2" />
+                    ) : (
+                      <Plus className="h-4 w-4 mr-2" />
+                    )}
+                    {flashUploadMode === 'batch' ? 'Batch Upload' : 'Add Flash'}
+                  </button>
+                </div>
               </div>
               
               {flash.length > 0 ? (
@@ -1106,9 +1155,13 @@ export const ArtistDashboard = () => {
             {/* Flash Creation Form Modal */}
             {showFlashForm && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className={`bg-white rounded-lg p-6 w-full max-h-[90vh] overflow-y-auto ${
+                  flashUploadMode === 'batch' ? 'max-w-6xl' : 'max-w-2xl'
+                }`}>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Add New Flash Design</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {flashUploadMode === 'batch' ? 'Batch Upload Flash Designs' : 'Add New Flash Design'}
+                    </h3>
                     <button
                       onClick={() => setShowFlashForm(false)}
                       className="text-gray-400 hover:text-gray-600"
@@ -1117,7 +1170,17 @@ export const ArtistDashboard = () => {
                     </button>
                   </div>
                   
-                  <form onSubmit={handleFlashSubmit} className="space-y-4">
+                  {flashUploadMode === 'batch' ? (
+                    <BatchFlashUpload
+                      onFlashCreated={handleBatchFlashCreated}
+                      onCancel={() => setShowFlashForm(false)}
+                      maxFiles={10}
+                      className="mb-4"
+                      specialties={specialties}
+                      services={services}
+                    />
+                  ) : (
+                    <form onSubmit={handleFlashSubmit} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Title *
@@ -1294,6 +1357,7 @@ export const ArtistDashboard = () => {
                       </button>
                     </div>
                   </form>
+                  )}
                 </div>
               </div>
             )}

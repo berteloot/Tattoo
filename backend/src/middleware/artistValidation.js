@@ -258,6 +258,41 @@ const validateArtistProfile = (isUpdate = false) => {
   ];
 };
 
+/**
+ * Validate artist service data
+ */
+const validateArtistService = [
+  body('serviceId')
+    .trim()
+    .notEmpty()
+    .withMessage('Service ID is required')
+    .isString()
+    .withMessage('Service ID must be a string'),
+
+  body('customPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Custom price must be a positive number'),
+
+  body('customDuration')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Custom duration must be a positive integer in minutes'),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+    next();
+  }
+];
+
 module.exports = {
-  validateArtistProfile
+  validateArtistProfile,
+  validateArtistService
 }; 
