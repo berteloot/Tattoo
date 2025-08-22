@@ -14,6 +14,11 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
     customDuration: ''
   });
 
+  // Safety check - don't render if no artistId
+  if (!artistId) {
+    return null;
+  }
+
   // Fetch all available services and artist's custom pricing
   useEffect(() => {
     const fetchData = async () => {
@@ -27,12 +32,21 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
         const servicesData = await servicesRes.json();
         const artistServicesData = await artistServicesRes.json();
 
-        if (servicesData.success) {
+        if (servicesData?.success && servicesData?.data?.services) {
           setServices(servicesData.data.services);
+        } else {
+          console.error('Invalid services response:', servicesData);
+          showError('Failed to load services');
         }
 
-        if (artistServicesData.success) {
+        if (artistServicesData?.success && artistServicesData?.data?.artistServices) {
           setArtistServices(artistServicesData.data.artistServices);
+        } else if (artistServicesData?.success) {
+          // No custom services yet, that's fine
+          setArtistServices([]);
+        } else {
+          console.error('Invalid artist services response:', artistServicesData);
+          // Don't show error for this as it might be normal for new artists
         }
       } catch (err) {
         console.error('Error fetching services:', err);
@@ -42,19 +56,23 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
       }
     };
 
-    fetchData();
+    if (artistId) {
+      fetchData();
+    }
   }, [artistId, showError]);
 
   // Get artist's custom price for a service, or fall back to default
   const getServicePrice = (serviceId) => {
-    const artistService = artistServices.find(as => as.serviceId === serviceId);
-    return artistService?.customPrice || null;
+    if (!serviceId || !Array.isArray(artistServices)) return null;
+    const artistService = artistServices.find(as => as?.serviceId === serviceId);
+    return artistService?.customPrice ?? null;
   };
 
   // Get artist's custom duration for a service, or fall back to default
   const getServiceDuration = (serviceId) => {
-    const artistService = artistServices.find(as => as.serviceId === serviceId);
-    return artistService?.customDuration || null;
+    if (!serviceId || !Array.isArray(artistServices)) return null;
+    const artistService = artistServices.find(as => as?.serviceId === serviceId);
+    return artistService?.customDuration ?? null;
   };
 
   // Handle edit button click
@@ -101,30 +119,34 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
 
       const response = await artistServicesAPI.createOrUpdate(data);
       
-      if (response.data.success) {
+      if (response?.data?.success) {
         success('Service pricing updated successfully');
         
-        // Update local state
-        const updatedArtistService = response.data.data.artistService;
-        setArtistServices(prev => {
-          const existing = prev.find(as => as.serviceId === editingService.id);
-          if (existing) {
-            return prev.map(as => 
-              as.serviceId === editingService.id ? updatedArtistService : as
-            );
-          } else {
-            return [...prev, updatedArtistService];
-          }
-        });
+        // Update local state safely
+        const updatedArtistService = response.data.data?.artistService;
+        if (updatedArtistService) {
+          setArtistServices(prev => {
+            const existing = prev.find(as => as.serviceId === editingService.id);
+            if (existing) {
+              return prev.map(as => 
+                as.serviceId === editingService.id ? updatedArtistService : as
+              );
+            } else {
+              return [...prev, updatedArtistService];
+            }
+          });
+        }
 
         // Notify parent component
         if (onServicesUpdated) {
           onServicesUpdated();
         }
+      } else {
+        throw new Error(response?.data?.error || 'Failed to update service pricing');
       }
     } catch (err) {
       console.error('Error updating service pricing:', err);
-      showError('Failed to update service pricing');
+      showError(err.message || 'Failed to update service pricing');
     } finally {
       setLoading(false);
       setEditingService(null);
@@ -140,26 +162,30 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
       const artistService = artistServices.find(as => as.serviceId === serviceId);
       if (!artistService) return;
 
-      await artistServicesAPI.delete(artistService.id);
+      const response = await artistServicesAPI.delete(artistService.id);
       
-      // Remove from local state
-      setArtistServices(prev => prev.filter(as => as.serviceId !== serviceId));
-      
-      success('Custom pricing removed successfully');
-      
-      // Notify parent component
-      if (onServicesUpdated) {
-        onServicesUpdated();
+      if (response?.data?.success) {
+        // Remove from local state
+        setArtistServices(prev => prev.filter(as => as.serviceId !== serviceId));
+        
+        success('Custom pricing removed successfully');
+        
+        // Notify parent component
+        if (onServicesUpdated) {
+          onServicesUpdated();
+        }
+      } else {
+        throw new Error(response?.data?.error || 'Failed to remove custom pricing');
       }
     } catch (err) {
       console.error('Error removing custom pricing:', err);
-      showError('Failed to remove custom pricing');
+      showError(err.message || 'Failed to remove custom pricing');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading && services.length === 0) {
+  if (loading && (!Array.isArray(services) || services.length === 0)) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -177,7 +203,9 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
       </div>
 
       <div className="grid gap-4">
-        {services.map((service) => {
+        {Array.isArray(services) && services.map((service) => {
+          if (!service?.id) return null; // Skip invalid services
+          
           const isEditing = editingService?.id === service.id;
           const customPrice = getServicePrice(service.id);
           const customDuration = getServiceDuration(service.id);
@@ -318,7 +346,7 @@ export const ArtistServicesManager = ({ artistId, onServicesUpdated }) => {
         })}
       </div>
 
-      {services.length === 0 && (
+      {(!Array.isArray(services) || services.length === 0) && (
         <div className="text-center py-8 text-gray-500">
           No services available
         </div>
