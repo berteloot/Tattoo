@@ -189,25 +189,27 @@ export const ArtistDashboard = () => {
   };
 
   // Fetch artist services when profile is available
+  const fetchArtistServices = async () => {
+    if (!profile?.id) return;
+    
+    try {
+      const response = await fetch(`/api/artist-services/artist/${profile.id}`);
+      const data = await response.json();
+      if (data?.success && data?.data?.artistServices) {
+        setArtistServices(data.data.artistServices);
+      } else {
+        // No custom services yet, that's fine
+        setArtistServices([]);
+      }
+    } catch (error) {
+      console.error('Error fetching artist services:', error);
+      // Set empty array on error to prevent crashes
+      setArtistServices([]);
+    }
+  };
+
   useEffect(() => {
     if (profile?.id) {
-      const fetchArtistServices = async () => {
-        try {
-          const response = await fetch(`/api/artist-services/artist/${profile.id}`);
-          const data = await response.json();
-          if (data?.success && data?.data?.artistServices) {
-            setArtistServices(data.data.artistServices);
-          } else {
-            // No custom services yet, that's fine
-            setArtistServices([]);
-          }
-        } catch (error) {
-          console.error('Error fetching artist services:', error);
-          // Set empty array on error to prevent crashes
-          setArtistServices([]);
-        }
-      };
-      
       fetchArtistServices();
     }
   }, [profile?.id]);
