@@ -920,7 +920,7 @@ export const ArtistProfile = () => {
               </div>
 
               {/* Individual Services */}
-              {Array.isArray(allServices) && allServices.length > 0 && (
+              {artist?.services && Array.isArray(artist.services) && artist.services.length > 0 && (
                 <div>
                   <h3 className="text-md font-medium text-gray-900 mb-3">Available Services</h3>
                   {/* Debug info */}
@@ -932,15 +932,11 @@ export const ArtistProfile = () => {
                     <p>Artist Services Data: {JSON.stringify(artistServices.map(s => ({ serviceId: s.serviceId, customPrice: s.customPrice, customDuration: s.customDuration })) || [])}</p>
                   </div>
                   <div className="space-y-3">
-                    {allServices.map((service) => {
+                    {artist.services.map((service) => {
                       if (!service?.id) return null;
                       
                       const customPrice = getServicePrice(service.id);
                       const customDuration = getServiceDuration(service.id);
-                      const isSelected = artist?.services?.some(s => s?.id === service.id);
-                      
-                      // Only show services that the artist offers
-                      if (!isSelected) return null;
                       
                       return (
                         <div key={service.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
@@ -998,7 +994,7 @@ export const ArtistProfile = () => {
               )}
 
               {/* No Services Message */}
-              {(!Array.isArray(allServices) || allServices.length === 0) && (
+              {(!artist?.services || !Array.isArray(artist.services) || artist.services.length === 0) && (
                 <div className="text-center py-4 text-gray-500">
                   <p>No services available at the moment.</p>
                 </div>
