@@ -62,12 +62,23 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
     console.log('ReviewForm: Artist info:', { id: artist.user.id, name: `${artist.user.firstName} ${artist.user.lastName}` })
     
     if (!formData.rating) {
-      showError('Please select a rating')
+      showError('Rating is required. Please select 1-5 stars to continue.')
       return
     }
 
     if (!formData.title.trim() && !formData.comment.trim()) {
-      showError('Please provide either a title or comment')
+      showError('You must provide either a title OR a comment. Please fill in at least one of these fields to continue.')
+      return
+    }
+
+    // Additional validation for individual fields
+    if (formData.title.trim() && formData.title.trim().length < 3) {
+      showError('Title must be at least 3 characters long. Please add more text or remove the title.')
+      return
+    }
+
+    if (formData.comment.trim() && formData.comment.trim().length < 10) {
+      showError('Comment must be at least 10 characters long. Please add more text or remove the comment.')
       return
     }
 
@@ -167,7 +178,7 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
           {/* Rating */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Rating *
+              Rating <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center space-x-1">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -192,12 +203,15 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
                 {formData.rating > 0 && `${formData.rating} star${formData.rating !== 1 ? 's' : ''}`}
               </span>
             </div>
+            {!formData.rating && (
+              <p className="text-sm text-red-600 mt-1">Please select a rating to continue</p>
+            )}
           </div>
 
           {/* Title */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-              Review Title
+              Review Title <span className="text-gray-500">(Optional)</span>
             </label>
             <input
               type="text"
@@ -206,18 +220,21 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
               value={formData.title}
               onChange={handleInputChange}
               maxLength={100}
-              placeholder="Brief summary of your experience"
+              placeholder="Brief summary of your experience (3-100 characters)"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
             <p className="text-xs text-gray-500 mt-1">
               {formData.title.length}/100 characters
+              {formData.title.length > 0 && formData.title.length < 3 && (
+                <span className="text-red-600 ml-2">Minimum 3 characters required</span>
+              )}
             </p>
           </div>
 
           {/* Comment */}
           <div>
             <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
-              Review Comment
+              Review Comment <span className="text-gray-500">(Optional)</span>
             </label>
             <textarea
               id="comment"
@@ -226,12 +243,27 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
               onChange={handleInputChange}
               maxLength={1000}
               rows={4}
-              placeholder="Share your experience with this artist..."
+              placeholder="Share your experience with this artist (10-1000 characters)"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-vertical"
             />
             <p className="text-xs text-gray-500 mt-1">
               {formData.comment.length}/1000 characters
+              {formData.comment.length > 0 && formData.comment.length < 10 && (
+                <span className="text-red-600 ml-2">Minimum 10 characters required</span>
+              )}
             </p>
+          </div>
+
+          {/* Requirements Summary */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-blue-900 mb-2">Review Requirements:</h4>
+            <ul className="text-xs text-blue-800 space-y-1">
+              <li>• <span className="font-medium">Rating is required</span> - Please select 1-5 stars</li>
+              <li>• <span className="font-medium">Title OR Comment is required</span> - You must provide at least one</li>
+              <li>• Title: 3-100 characters (if provided)</li>
+              <li>• Comment: 10-1000 characters (if provided)</li>
+              <li>• Photos are optional</li>
+            </ul>
           </div>
 
           {/* Images */}
@@ -303,11 +335,17 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !formData.rating}
+              disabled={isSubmitting || !formData.rating || (!formData.title.trim() && !formData.comment.trim())}
               className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Review'}
             </button>
+            {!formData.rating && (
+              <p className="text-xs text-red-600 mt-1">Please select a rating to enable submission</p>
+            )}
+            {formData.rating && (!formData.title.trim() && !formData.comment.trim()) && (
+              <p className="text-xs text-red-600 mt-1">Please provide either a title or comment to enable submission</p>
+            )}
           </div>
         </form>
       </div>
