@@ -156,7 +156,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
         }
       })
       
-      if (!bounds.isEmpty()) {
+      if (!bounds.isEmpty() && mapRef.current && typeof mapRef.current.fitBounds === 'function') {
         mapRef.current.fitBounds(bounds, { 
           top: 40, 
           right: 40, 
