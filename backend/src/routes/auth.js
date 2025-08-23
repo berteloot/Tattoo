@@ -9,6 +9,33 @@ const emailService = require('../utils/emailService');
 const router = express.Router();
 
 /**
+ * @route   GET /api/auth/test-cookies
+ * @desc    Test endpoint to check cookie functionality
+ * @access  Public
+ */
+router.get('/test-cookies', (req, res) => {
+  console.log('🍪 Test cookies endpoint called');
+  console.log('🍪 Request cookies:', req.cookies);
+  console.log('🍪 Request headers:', req.headers);
+  
+  // Set a test cookie
+  res.cookie('testCookie', 'testValue', {
+    httpOnly: false, // Make it visible for testing
+    secure: false, // Allow HTTP in development
+    sameSite: 'lax',
+    maxAge: 60 * 1000, // 1 minute
+    path: '/'
+  });
+  
+  res.json({
+    success: true,
+    message: 'Test cookie set',
+    cookies: req.cookies,
+    headers: req.headers
+  });
+});
+
+/**
  * @route   POST /api/auth/register
  * @desc    Register a new user
  * @access  Public
@@ -235,10 +262,20 @@ router.post('/login', [
     // Set refresh token as httpOnly, secure cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production', // Only HTTPS in production
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Lax in development
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: '/' // Accessible from all paths
+      path: '/', // Accessible from all paths
+      domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Use default domain in development
+    });
+
+    console.log('🍪 Setting refresh token cookie:', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+      tokenLength: refreshToken.length
     });
 
     // Remove password from response
@@ -268,6 +305,9 @@ router.post('/login', [
  */
 router.post('/refresh', async (req, res) => {
   try {
+    console.log('🍪 Received cookies:', req.cookies);
+    console.log('🍪 All headers:', req.headers);
+    
     const { refreshToken } = req.cookies;
 
     if (!refreshToken) {
@@ -333,10 +373,11 @@ router.post('/refresh', async (req, res) => {
     // Set new refresh token as httpOnly, secure cookie
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production', // Only HTTPS in production
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Lax in development
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: '/' // Accessible from all paths
+      path: '/', // Accessible from all paths
+      domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Use default domain in development
     });
 
     res.json({
@@ -825,8 +866,9 @@ router.post('/logout', protect, async (req, res) => {
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/' // Match the path used when setting the cookie
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      path: '/', // Match the path used when setting the cookie
+      domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Use default domain in development
     });
 
     res.json({

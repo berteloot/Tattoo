@@ -252,6 +252,14 @@ export const AuthProvider = ({ children }) => {
           
           setUser(user)
           
+          // Debug: Check if refresh token cookie was set
+          console.log('🍪 After login - All cookies:', document.cookie)
+          console.log('🍪 After login - Cookies object:', document.cookie.split(';').reduce((acc, cookie) => {
+            const [key, value] = cookie.trim().split('=')
+            acc[key] = value
+            return acc
+          }, {}))
+          
           console.log('Login successful, navigating to home')
           console.log('Access token stored securely in memory, refresh token in httpOnly cookie')
           navigate('/')
