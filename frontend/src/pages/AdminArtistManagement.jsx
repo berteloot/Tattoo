@@ -37,6 +37,17 @@ const AdminArtistManagement = () => {
     isFeatured: '',
     isVerified: ''
   });
+
+  // Debounced filters for API calls
+  const [debouncedFilters, setDebouncedFilters] = useState({
+    page: 1,
+    limit: 20,
+    search: '',
+    verificationStatus: '',
+    isFeatured: '',
+    isVerified: ''
+  });
+
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -49,7 +60,7 @@ const AdminArtistManagement = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
+      Object.entries(debouncedFilters).forEach(([key, value]) => {
         if (value) params.append(key, value);
       });
       
@@ -109,9 +120,19 @@ const AdminArtistManagement = () => {
     setShowFeatureModal(true);
   };
 
+  // Debounce effect for search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFilters(filters);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [filters]);
+
+  // Fetch artists when debounced filters change
   useEffect(() => {
     fetchArtists();
-  }, [filters]);
+  }, [debouncedFilters]);
 
   // Check if current user is admin
   const { isAdmin } = useAuth();
@@ -222,7 +243,18 @@ const AdminArtistManagement = () => {
         {/* Filters */}
         <div className="bg-white rounded-lg shadow mb-6">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Filters</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-medium text-gray-900">Filters</h2>
+              {filters.search && (
+                <div className="flex items-center text-sm text-gray-600">
+                  <Search className="w-4 h-4 mr-2" />
+                  Searching for: "{filters.search}"
+                  {filters.search !== debouncedFilters.search && (
+                    <div className="ml-2 animate-pulse text-blue-600">(typing...)</div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           <div className="px-6 py-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -237,6 +269,11 @@ const AdminArtistManagement = () => {
                     onChange={(e) => handleFilterChange('search', e.target.value)}
                     className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  {filters.search !== debouncedFilters.search && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
