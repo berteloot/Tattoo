@@ -412,10 +412,11 @@ export const ArtistProfile = () => {
                     const customDuration = getServiceDuration(service.id);
                     const isSelected = artist?.services?.some(s => s?.id === service.id);
                     
-                    if (!isSelected) return null; // Only show selected services
-                    
+                    // Show all services, but highlight selected ones
                     return (
-                      <div key={service.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div key={service.id} className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                        isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-white'
+                      }`}>
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <h3 className="font-semibold text-gray-900 text-lg mb-1">
@@ -427,11 +428,18 @@ export const ArtistProfile = () => {
                               </p>
                             )}
                           </div>
-                          {customPrice !== null && (
-                            <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-200 ml-2">
-                              Custom
-                            </span>
-                          )}
+                          <div className="flex flex-col items-end gap-2 ml-2">
+                            {customPrice !== null && (
+                              <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full border border-blue-200">
+                                Custom
+                              </span>
+                            )}
+                            {isSelected && (
+                              <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full border border-green-200">
+                                Available
+                              </span>
+                            )}
+                          </div>
                         </div>
                         
                         <div className="flex items-center justify-between text-sm">
@@ -463,6 +471,10 @@ export const ArtistProfile = () => {
                     <span className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
                       Service offered
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
+                      Standard service
                     </span>
                   </div>
                 </div>
@@ -704,11 +716,11 @@ export const ArtistProfile = () => {
                         <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                           <Phone className="w-5 h-5 text-blue-600" />
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 overflow-hidden">
                           <p className="text-sm font-medium text-gray-500">Phone</p>
                           <a 
                             href={`tel:${artist.user.phone}`}
-                            className="text-gray-900 font-medium hover:text-blue-600 transition-colors"
+                            className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all"
                           >
                             {artist.user.phone}
                           </a>
@@ -716,18 +728,18 @@ export const ArtistProfile = () => {
                       </div>
                     ) : (
                       <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex items-center">
+                        <div className="flex items-center flex-1 min-w-0 overflow-hidden">
                           <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                             <Phone className="w-5 h-5 text-blue-600" />
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 overflow-hidden">
                             <p className="text-sm font-medium text-blue-900">Phone number available</p>
-                            <p className="text-xs text-blue-700">Call {artist.user.firstName} directly</p>
+                            <p className="text-xs text-blue-700 break-words">Call {artist.user.firstName} directly</p>
                           </div>
                         </div>
                         <Link 
                           to="/login" 
-                          className="text-blue-600 hover:text-blue-800 font-medium text-sm px-3 py-1 rounded-md border border-blue-300 hover:bg-blue-100 transition-colors"
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm px-3 py-1 rounded-md border border-blue-300 hover:bg-blue-100 transition-colors flex-shrink-0 ml-2"
                         >
                           Login to view
                         </Link>
@@ -742,12 +754,12 @@ export const ArtistProfile = () => {
                     <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                       <Mail className="w-5 h-5 text-blue-600" />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="text-sm font-medium text-gray-500">Email</p>
                       <ProtectedEmail 
                         email={artist.user.email} 
                         showIcon={false}
-                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors"
+                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all"
                         recipient={artist}
                         recipientType="artist"
                       />
@@ -761,15 +773,15 @@ export const ArtistProfile = () => {
                     <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                       <Globe className="w-5 h-5 text-blue-600" />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="text-sm font-medium text-gray-500">Website</p>
                       <a
                         href={artist.website.startsWith('http') ? artist.website : `https://${artist.website}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors truncate block flex items-center"
+                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
                       >
-                        {artist.website.replace(/^https?:\/\//, '')}
+                        <span className="truncate">{artist.website.replace(/^https?:\/\//, '')}</span>
                         <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
                       </a>
                     </div>
@@ -782,15 +794,15 @@ export const ArtistProfile = () => {
                     <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center mr-3">
                       <Instagram className="w-5 h-5 text-white" />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="text-sm font-medium text-gray-500">Instagram</p>
                       <a
                         href={`https://instagram.com/${artist.instagram.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors truncate block flex items-center"
+                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
                       >
-                        {artist.instagram}
+                        <span className="truncate">{artist.instagram}</span>
                         <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
                       </a>
                     </div>
@@ -803,15 +815,15 @@ export const ArtistProfile = () => {
                     <div className="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-3">
                       <Facebook className="w-5 h-5 text-white" />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="text-sm font-medium text-gray-500">Facebook</p>
                       <a
                         href={artist.facebook.startsWith('http') ? artist.facebook : `https://facebook.com/${artist.facebook}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors truncate block flex items-center"
+                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
                       >
-                        {artist.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}
+                        <span className="truncate">{artist.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}</span>
                         <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
                       </a>
                     </div>
@@ -826,33 +838,33 @@ export const ArtistProfile = () => {
                         <div className="flex-shrink-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-3">
                           <Calendar className="w-5 h-5 text-white" />
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 overflow-hidden">
                           <p className="text-sm font-medium text-gray-500">Book Appointment</p>
                           <a
                             href={artist.calendlyUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-gray-900 font-medium hover:text-blue-600 transition-colors truncate block flex items-center"
+                            className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
                           >
-                            Schedule Consultation
+                            <span className="truncate">Schedule Consultation</span>
                             <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
                           </a>
                         </div>
                       </div>
                     ) : (
                       <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center">
+                        <div className="flex items-center flex-1 min-w-0 overflow-hidden">
                           <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
                             <Calendar className="w-5 h-5 text-green-600" />
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 overflow-hidden">
                             <p className="text-sm font-medium text-green-900">Online booking available</p>
-                            <p className="text-xs text-green-700">Schedule directly with {artist.user.firstName}</p>
+                            <p className="text-xs text-green-700 break-words">Schedule directly with {artist.user.firstName}</p>
                           </div>
                         </div>
                         <Link 
                           to="/register" 
-                          className="text-green-600 hover:text-green-800 font-medium text-sm px-3 py-1 rounded-md border border-green-300 hover:bg-green-100 transition-colors"
+                          className="text-green-600 hover:text-green-800 font-medium text-sm px-3 py-1 rounded-md border border-green-300 hover:bg-green-100 transition-colors flex-shrink-0 ml-2"
                         >
                           Sign up to book
                         </Link>
