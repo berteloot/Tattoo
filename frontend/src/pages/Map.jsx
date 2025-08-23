@@ -16,6 +16,8 @@ const Map = () => {
     const studioId = searchParams.get('studio')
     const lat = searchParams.get('lat')
     const lng = searchParams.get('lng')
+    const city = searchParams.get('city')
+    const state = searchParams.get('state')
     
     if (studioId) {
       setFocusStudioId(studioId)
@@ -26,6 +28,13 @@ const Map = () => {
         lat: parseFloat(lat),
         lng: parseFloat(lng)
       })
+    }
+    
+    // If city is provided but no coordinates, set search term to focus on city
+    if (city && !lat && !lng) {
+      const citySearch = state ? `${city}, ${state}` : city
+      setSearchTerm(citySearch)
+      console.log('Focusing on city:', citySearch)
     }
   }, [searchParams])
 

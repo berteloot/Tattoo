@@ -269,15 +269,6 @@ const Studios = () => {
                     </div>
                   )}
                   
-                  {/* Always show clickable map pin for now */}
-                  <Link
-                    to="/map"
-                    className="mr-2 text-blue-600 hover:text-blue-800 transition-colors"
-                    title="View on map"
-                  >
-                    <MapPin className="w-4 h-4" />
-                  </Link>
-                  
                   <span className="flex-1">
                     {studio.address && studio.address}
                     {studio.city && studio.address && ', '}
@@ -287,6 +278,25 @@ const Studios = () => {
                     {studio.zipCode && ' '}
                     {studio.zipCode && studio.zipCode}
                   </span>
+                  
+                  {/* Map pin on the right side - restore working functionality */}
+                  {studio.latitude && studio.longitude ? (
+                    <Link
+                      to={`/map?studio=${studio.id}&lat=${studio.latitude}&lng=${studio.longitude}&city=${encodeURIComponent(studio.city || '')}`}
+                      className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                      title="View studio on map"
+                    >
+                      <MapPin className="w-4 h-4" />
+                    </Link>
+                  ) : (
+                    <Link
+                      to={`/map?city=${encodeURIComponent(studio.city || '')}&state=${encodeURIComponent(studio.state || '')}`}
+                      className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                      title="View city on map"
+                    >
+                      <MapPin className="w-4 h-4" />
+                    </Link>
+                  )}
                 </div>
               )}
               
