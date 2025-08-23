@@ -19,6 +19,8 @@ export const Layout = ({ children }) => {
     { name: 'FLASH GALLERY', href: '/flash' },
     { name: 'TATTOO GALLERY', href: '/gallery' },
   ]
+  
+
 
   const isActive = (path) => location.pathname === path
 
@@ -27,7 +29,7 @@ export const Layout = ({ children }) => {
       <SkipToMainContent />
       
       {/* Header */}
-      <header className="nav relative z-50">
+      <header className="nav relative z-50" style={{ position: 'relative' }}>
         <div className="container">
           {/* Logo */}
           <Link to="/" className="brand">
@@ -132,7 +134,10 @@ export const Layout = ({ children }) => {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-6 bg-white absolute top-full left-0 right-0 shadow-lg z-40">
+          <div 
+            className="md:hidden border-t border-gray-200 py-6 bg-white absolute top-full left-0 right-0 shadow-lg z-40 mobile-menu"
+            data-testid="mobile-menu"
+          >
             <div className="container">
               <ul className="space-y-3">
                 {navigation.map((item) => (
@@ -150,7 +155,7 @@ export const Layout = ({ children }) => {
                   </li>
                 ))}
                 
-                                {isAuthenticated ? (
+                {isAuthenticated ? (
                   <>
                     <li>
                       <Link

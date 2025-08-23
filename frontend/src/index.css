@@ -139,6 +139,29 @@ a:hover { color: var(--accent-red); text-decoration: underline; text-underline-o
   }
 }
 
+/* Mobile menu specific styles */
+.mobile-menu ul {
+  display: block !important;
+}
+
+/* Override nav ul display none for mobile menu */
+.nav .mobile-menu ul {
+  display: block !important;
+}
+
+/* Ensure mobile menu is visible and properly positioned */
+.mobile-menu {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.mobile-menu ul {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 .nav a { 
   text-transform: uppercase; 
   font-size: clamp(11px, 2vw, 13px); 
