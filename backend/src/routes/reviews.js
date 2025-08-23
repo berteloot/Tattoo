@@ -253,14 +253,14 @@ router.post('/', protect, authorize('CLIENT', 'ARTIST'), [
     .trim()
     .isLength({ min: 3, max: 100 })
     .withMessage('Title must be between 3 and 100 characters')
-    .matches(/^[a-zA-Z0-9\s\-_.,!?()]+$/)
+    .matches(/^[a-zA-Z0-9\s\-_.,!?()'":;@#$%&*+=<>[\]{}|\\/~`]+$/)
     .withMessage('Title contains invalid characters'),
   body('comment')
     .optional()
     .trim()
     .isLength({ min: 10, max: 1000 })
     .withMessage('Comment must be between 10 and 1000 characters')
-    .matches(/^[a-zA-Z0-9\s\-_.,!?()@#$%&*+=<>[\]{}|\\/:;"'`~]+$/)
+    .matches(/^[a-zA-Z0-9\s\-_.,!?()'":;@#$%&*+=<>[\]{}|\\/~`]+$/)
     .withMessage('Comment contains invalid characters'),
   body('images')
     .optional()
@@ -268,8 +268,30 @@ router.post('/', protect, authorize('CLIENT', 'ARTIST'), [
     .withMessage('Maximum 5 images allowed'),
   body('images.*')
     .optional()
-    .isURL()
-    .withMessage('Invalid image URL')
+    .custom((value) => {
+      // Allow URLs, base64 data, or file paths
+      if (typeof value === 'string') {
+        // Check if it's a valid URL
+        if (value.startsWith('http://') || value.startsWith('https://')) {
+          try {
+            new URL(value);
+            return true;
+          } catch {
+            return false;
+          }
+        }
+        // Check if it's base64 data
+        if (value.startsWith('data:image/')) {
+          return true;
+        }
+        // Check if it's a file path
+        if (value.startsWith('/') || value.includes('.')) {
+          return true;
+        }
+      }
+      return false;
+    })
+    .withMessage('Invalid image format. Must be a valid URL, base64 data, or file path'),
 ], async (req, res) => {
   try {
     // Check for validation errors

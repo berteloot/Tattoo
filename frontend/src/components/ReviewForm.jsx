@@ -57,9 +57,9 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    console.log('ReviewForm: Starting submission with data:', formData)
-    console.log('ReviewForm: User info:', { id: user.id, email: user.email, role: user.role })
-    console.log('ReviewForm: Artist info:', { id: artist.user.id, name: `${artist.user.firstName} ${artist.user.lastName}` })
+    console.log('ReviewForm: Starting submission with data:', JSON.stringify(formData, null, 2))
+    console.log('ReviewForm: User info:', JSON.stringify({ id: user.id, email: user.email, role: user.role }, null, 2))
+    console.log('ReviewForm: Artist info:', JSON.stringify({ id: artist.user.id, name: `${artist.user.firstName} ${artist.user.lastName}` }, null, 2))
     
     if (!formData.rating) {
       showError('Rating is required. Please select 1-5 stars to continue.')
@@ -93,34 +93,37 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
         images: formData.images
       }
 
-      console.log('ReviewForm: Submitting review data:', reviewData)
+      console.log('ReviewForm: Submitting review data:', JSON.stringify(reviewData, null, 2))
       
       const response = await reviewsAPI.create(reviewData)
       
-      console.log('ReviewForm: API response:', response)
+      console.log('ReviewForm: API response:', JSON.stringify(response, null, 2))
       
       if (response.data.success) {
-        // Check if review was flagged for moderation
-        if (response.data.data.moderationFlags) {
-          success('Review submitted and pending moderation. It will be visible once approved.')
-        } else {
-          success('Review submitted successfully!')
-        }
+        showSuccess('Review submitted successfully!')
         onReviewSubmitted(response.data.data.review)
         onClose()
+        setFormData({
+          rating: 0,
+          title: '',
+          comment: '',
+          images: []
+        })
       } else {
         showError(response.data.error || 'Failed to submit review')
       }
     } catch (err) {
       console.error('ReviewForm: Review submission error:', err)
-      console.error('ReviewForm: Error response:', err.response)
+      console.error('ReviewForm: Error response:', JSON.stringify(err.response, null, 2))
       console.error('ReviewForm: Error status:', err.response?.status)
-      console.error('ReviewForm: Error data:', err.response?.data)
+      console.error('ReviewForm: Error data:', JSON.stringify(err.response?.data, null, 2))
       
-      if (err.response?.status === 429) {
-        showError('Rate limit exceeded. You can only submit 3 reviews per 24 hours.')
+      if (err.response?.data?.error) {
+        showError(err.response.data.error)
+      } else if (err.response?.status === 400) {
+        showError('Validation failed. Please check your input and try again.')
       } else {
-        showError(err.response?.data?.error || 'Failed to submit review')
+        showError('Failed to submit review. Please try again.')
       }
     } finally {
       setIsSubmitting(false)
