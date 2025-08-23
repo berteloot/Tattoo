@@ -25,6 +25,7 @@ import { CalendlyWidget } from '../components/CalendlyWidget'
 import { ReviewForm } from '../components/ReviewForm'
 import { FavoriteButton } from '../components/FavoriteButton'
 import { ContactEmailModal } from '../components/ContactEmailModal'
+import { ImageModal } from '../components/ImageModal'
 import { artistsAPI, api } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import ProtectedEmail from '../components/ProtectedEmail'
@@ -47,6 +48,8 @@ export const ArtistProfile = () => {
   const [signupPromptType, setSignupPromptType] = useState('contact')
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
 
   // Helper function for fallback data - moved to top to fix hoisting issue
   const getDummyArtist = (id) => ({
@@ -560,34 +563,80 @@ export const ArtistProfile = () => {
               {(reviews || []).length > 0 ? (
                 <div className="space-y-4">
                   {(reviews || []).map((review) => (
-                    <div key={review.id} className="border-b border-gray-100 pb-4 last:border-b-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-600">
+                    <div key={review.id} className="border-b border-gray-100 pb-6 last:border-b-0">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm font-semibold text-blue-700">
                               {review.author.firstName[0]}{review.author.lastName[0]}
                             </span>
                           </div>
-                          <span className="font-medium text-gray-900">
-                            {review.author.firstName} {review.author.lastName}
-                          </span>
+                          <div>
+                            <span className="font-semibold text-gray-900">
+                              {review.author.firstName} {review.author.lastName}
+                            </span>
+                            <div className="flex items-center mt-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-sm text-gray-500 ml-2">
+                                {review.rating}.0
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < review.rating ? 'text-red-500 fill-current' : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
+                        <div className="text-sm text-gray-500">
+                          {new Date(review.createdAt).toLocaleDateString()}
                         </div>
                       </div>
+                      
                       {review.title && (
-                        <h3 className="font-medium text-gray-900 mb-1">{review.title}</h3>
+                        <h3 className="font-semibold text-gray-900 mb-2 text-lg">{review.title}</h3>
                       )}
+                      
                       {review.comment && (
-                        <p className="text-gray-700">{review.comment}</p>
+                        <p className="text-gray-700 mb-3 leading-relaxed">{review.comment}</p>
+                      )}
+                      
+                      {/* Review Images */}
+                      {review.images && review.images.length > 0 && (
+                        <div className="mt-4">
+                          <div className="flex flex-wrap gap-3">
+                            {review.images.map((image, imageIndex) => (
+                              <div
+                                key={imageIndex}
+                                className="relative group cursor-pointer transform hover:scale-105 transition-all duration-200"
+                                onClick={() => {
+                                  setSelectedImage(image)
+                                  setIsImageModalOpen(true)
+                                }}
+                              >
+                                <img
+                                  src={image}
+                                  alt={`Review image ${imageIndex + 1}`}
+                                  className="w-20 h-20 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-colors shadow-sm"
+                                />
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+                                      <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            Click on any image to view full size
+                          </p>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -964,6 +1013,16 @@ export const ArtistProfile = () => {
         isOpen={showSignupPrompt}
         onClose={() => setShowSignupPrompt(false)}
         featureType={signupPromptType}
+      />
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={isImageModalOpen}
+        imageUrl={selectedImage}
+        onClose={() => {
+          setIsImageModalOpen(false)
+          setSelectedImage(null)
+        }}
       />
     </div>
   )
