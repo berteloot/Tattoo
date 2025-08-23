@@ -284,186 +284,180 @@ export const FlashGallery = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-900 via-purple-800 to-purple-700 text-white">
-        <div className="container py-16">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold mb-6">Global Flash Gallery</h1>
-            <p className="text-xl text-purple-100 mb-8 max-w-3xl mx-auto">
-              Discover exceptional flash designs from world-class artists across the globe. Premium ready-to-ink artwork from the industry's finest talent.
-            </p>
-            <div className="flex justify-center space-x-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-2xl font-bold">50,000+</div>
-                <div className="text-purple-200">Global Designs</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-2xl font-bold">10,000+</div>
-                <div className="text-purple-200">Worldwide Artists</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-2xl font-bold">50+</div>
-                <div className="text-purple-200">Countries</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="container py-8">
-        {/* Filters and Controls */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
-            {/* Search */}
-            <div className="lg:col-span-2">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search designs, artists, countries, or styles..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
-                />
-              </div>
-            </div>
-
-            {/* Artist Filter */}
-            <div>
-              <select
-                value={selectedArtist}
-                onChange={(e) => setSelectedArtist(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
-              >
-                <option value="">All Artists</option>
-                {(artists || []).map((artist) => (
-                  <option key={artist.id} value={artist.id}>
-                    {artist.user?.firstName} {artist.user?.lastName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Style Filter */}
-            <div>
-              <select
-                value={selectedStyle}
-                onChange={(e) => setSelectedStyle(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
-              >
-                <option value="">All Styles</option>
-                {styles.map((style) => (
-                  <option key={style} value={style}>
-                    {style}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Price Range */}
-            <div>
-              <select
-                value={priceRange}
-                onChange={(e) => setPriceRange(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
-              >
-                <option value="all">All Prices</option>
-                <option value="under100">Under $100</option>
-                <option value="100-200">$100 - $200</option>
-                <option value="over200">Over $200</option>
-              </select>
-            </div>
-
-            {/* Sort */}
-            <div>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
-              >
-                <option value="newest">Newest First</option>
-                <option value="price">Price: Low to High</option>
-                <option value="popular">Most Popular</option>
-              </select>
-            </div>
-
-            {/* View Toggle */}
-            <div className="flex bg-gray-100 rounded-xl p-1">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  viewMode === 'grid' ? 'bg-white shadow-sm' : 'text-gray-600'
-                }`}
-              >
-                Grid
-              </button>
-              <button
-                onClick={() => setViewMode('masonry')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  viewMode === 'masonry' ? 'bg-white shadow-sm' : 'text-gray-600'
-                }`}
-              >
-                Masonry
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-gray-600 text-lg">
-            Showing {filteredAndSortedItems.length} of {flashItems.length} flash designs
+      <section className="hero">
+        <div className="container">
+          <span className="tag tag--yellow">FLASH GALLERY</span>
+          <h1>DISCOVER EXCEPTIONAL FLASH DESIGNS</h1>
+          <p className="deck">
+            Premium ready-to-ink artwork from world-class artists across the globe
           </p>
         </div>
+      </section>
 
-        {/* Flash Items Grid/Masonry */}
-        {viewMode === 'grid' ? (
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
-            {filteredAndSortedItems.map((item) => (
-              <FlashCard key={item.id} item={item} />
-            ))}
-          </div>
-        ) : (
-          <div className="columns-1 md:columns-2 xl:columns-3 2xl:columns-4 gap-8">
-            {filteredAndSortedItems.map((item) => (
-              <div key={item.id} className="break-inside-avoid mb-8">
-                <FlashCard item={item} />
+      <section className="section">
+        <div className="container">
+          {/* Filters and Controls */}
+          <div className="border border-gray-200 p-4 sm:p-6 mb-8 md:mb-12 rounded-lg">
+            <div className="space-y-4 sm:space-y-6">
+              {/* Search */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search designs, artists, countries, or styles..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="input w-full pl-12 text-base"
+                  />
+                </div>
               </div>
-            ))}
-          </div>
-        )}
 
-        {/* Empty State */}
-        {filteredAndSortedItems.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-gray-400 text-8xl mb-6">🎨</div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">No flash designs found</h3>
-            <p className="text-gray-600 text-lg mb-8">
-              Try adjusting your search criteria or browse all designs.
-            </p>
-            <button
-              onClick={() => {
-                setSearchTerm('')
-                setSelectedArtist('')
-                setSelectedStyle('')
-                setPriceRange('all')
-              }}
-              className="bg-purple-600 text-white px-8 py-3 rounded-xl hover:bg-purple-700 transition-colors"
-            >
-              Clear Filters
-            </button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Artist Filter */}
+                <div className="flex-1 sm:min-w-[200px]">
+                  <select
+                    value={selectedArtist}
+                    onChange={(e) => setSelectedArtist(e.target.value)}
+                    className="input w-full text-base"
+                  >
+                    <option value="">ALL ARTISTS</option>
+                    {(artists || []).map((artist) => (
+                      <option key={artist.id} value={artist.id}>
+                        {artist.user?.firstName} {artist.user?.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Style Filter */}
+                <div className="flex-1 sm:min-w-[200px]">
+                  <select
+                    value={selectedStyle}
+                    onChange={(e) => setSelectedStyle(e.target.value)}
+                    className="input w-full text-base"
+                  >
+                    <option value="">ALL STYLES</option>
+                    {styles.map((style) => (
+                      <option key={style} value={style}>
+                        {style}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Price Range */}
+                <div className="flex-1 sm:min-w-[150px]">
+                  <select
+                    value={priceRange}
+                    onChange={(e) => setPriceRange(e.target.value)}
+                    className="input w-full text-base"
+                  >
+                    <option value="all">ALL PRICES</option>
+                    <option value="under100">UNDER $100</option>
+                    <option value="100-200">$100 - $200</option>
+                    <option value="over200">OVER $200</option>
+                  </select>
+                </div>
+
+                {/* Sort By */}
+                <div className="flex-1 sm:min-w-[150px]">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="input w-full text-base"
+                  >
+                    <option value="newest">SORT BY NEWEST</option>
+                    <option value="price">SORT BY PRICE</option>
+                    <option value="popular">SORT BY POPULAR</option>
+                  </select>
+                </div>
+
+                {/* View Mode Toggle */}
+                <div className="flex border border-gray-200 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                      viewMode === 'grid' 
+                        ? 'bg-gray-900 text-white' 
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Grid
+                  </button>
+                  <button
+                    onClick={() => setViewMode('masonry')}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                      viewMode === 'masonry' 
+                        ? 'bg-gray-900 text-white' 
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Masonry
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+
+          {/* Results Count */}
+          <div className="mb-6">
+            <p className="text-gray-600">
+              Showing {filteredAndSortedItems.length} of {flashItems.length} flash designs
+              {searchTerm && ` matching "${searchTerm}"`}
+              {selectedArtist && ` by selected artist`}
+              {selectedStyle && ` in ${selectedStyle} style`}
+            </p>
+          </div>
+
+          {/* Flash Items Grid/Masonry */}
+          {viewMode === 'grid' ? (
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
+              {filteredAndSortedItems.map((item) => (
+                <FlashCard key={item.id} item={item} />
+              ))}
+            </div>
+          ) : (
+            <div className="columns-1 md:columns-2 xl:columns-3 2xl:columns-4 gap-8">
+              {filteredAndSortedItems.map((item) => (
+                <div key={item.id} className="break-inside-avoid mb-8">
+                  <FlashCard item={item} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {filteredAndSortedItems.length === 0 && (
+            <div className="text-center py-16">
+              <div className="text-gray-400 text-8xl mb-6">🎨</div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">No flash designs found</h3>
+              <p className="text-gray-600 text-lg mb-8">
+                Try adjusting your search criteria or browse all designs.
+              </p>
+              <button
+                onClick={() => {
+                  setSearchTerm('')
+                  setSelectedArtist('')
+                  setSelectedStyle('')
+                  setPriceRange('all')
+                }}
+                className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   )
 }
 
 const FlashCard = ({ item }) => (
-  <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group">
+  <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group">
     {/* Image */}
     <div className="relative aspect-square overflow-hidden">
       <img
@@ -493,7 +487,7 @@ const FlashCard = ({ item }) => (
       </div>
 
       {/* Style Badge */}
-      <div className="absolute top-4 left-4 bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+      <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
         {item.style}
       </div>
     </div>
@@ -516,7 +510,7 @@ const FlashCard = ({ item }) => (
         {item.tags.slice(0, 3).map((tag) => (
           <span
             key={tag}
-            className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium"
+            className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium"
           >
             #{tag}
           </span>
@@ -531,7 +525,7 @@ const FlashCard = ({ item }) => (
       {/* Artist Info */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-sm">
               {item.artist.user.firstName[0]}{item.artist.user.lastName[0]}
             </span>
@@ -560,12 +554,12 @@ const FlashCard = ({ item }) => (
       <div className="flex space-x-3">
         <Link
           to={`/artists/${item.artist.id}`}
-          className="flex-1 bg-purple-600 text-white py-3 px-4 rounded-xl hover:bg-purple-700 transition-colors text-center font-semibold"
+          className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold"
         >
           Book Artist
         </Link>
-        <FavoriteButton artistId={item.artist.id} className="bg-gray-100 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors" size="w-5 h-5" />
+        <FavoriteButton artistId={item.artist.id} className="bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors" size="w-5 h-5" />
       </div>
     </div>
   </div>
-) 
+)
