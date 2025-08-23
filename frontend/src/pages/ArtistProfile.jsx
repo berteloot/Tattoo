@@ -91,11 +91,17 @@ export const ArtistProfile = () => {
     // Check API health first
     checkApiHealth().then(() => {
       fetchArtistProfile()
-      fetchServicesData()
       // Track page view when profile is loaded
       trackProfileView()
     })
   }, [id])
+
+  // Fetch services data after artist profile is loaded
+  useEffect(() => {
+    if (artist?.id) {
+      fetchServicesData()
+    }
+  }, [artist?.id])
 
   const trackProfileView = async () => {
     try {
@@ -145,7 +151,7 @@ export const ArtistProfile = () => {
       
       // Get artist's custom service pricing
       if (artist?.id) {
-        const artistServicesResponse = await api.get(`/artists/${artist.id}/services`)
+        const artistServicesResponse = await api.get(`/artist-services/artist/${artist.id}`)
         setArtistServices(artistServicesResponse.data.data || [])
       }
     } catch (error) {
@@ -155,12 +161,12 @@ export const ArtistProfile = () => {
 
   const getServicePrice = (serviceId) => {
     const artistService = artistServices.find(s => s.serviceId === serviceId)
-    return artistService?.price ?? null
+    return artistService?.customPrice ?? null
   }
 
   const getServiceDuration = (serviceId) => {
     const artistService = artistServices.find(s => s.serviceId === serviceId)
-    return artistService?.duration ?? null
+    return artistService?.customDuration ?? null
   }
 
   const fetchArtistProfile = async () => {
@@ -978,6 +984,13 @@ export const ArtistProfile = () => {
                       </span>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* No Services Message */}
+              {(!Array.isArray(allServices) || allServices.length === 0) && (
+                <div className="text-center py-4 text-gray-500">
+                  <p>No services available at the moment.</p>
                 </div>
               )}
             </div>
