@@ -11,7 +11,6 @@ const Studios = () => {
   const [studios, setStudios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterVerified, setFilterVerified] = useState(false);
   const [filterFeatured, setFilterFeatured] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [signupPromptType, setSignupPromptType] = useState('social');
@@ -26,14 +25,13 @@ const Studios = () => {
 
   useEffect(() => {
     fetchStudios(1); // Reset to page 1 when filters change
-  }, [filterVerified, filterFeatured]);
+  }, [filterFeatured]);
 
   const fetchStudios = async (page = 1) => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
-      if (filterVerified) params.append('verified', 'true');
       if (filterFeatured) params.append('featured', 'true');
       params.append('page', page.toString());
       params.append('limit', pagination.limit.toString());
@@ -218,16 +216,6 @@ const Studios = () => {
           </form>
           
           <div className="flex gap-2">
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={filterVerified}
-                onChange={(e) => setFilterVerified(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Verified Only</span>
-            </label>
-            
             <label className="flex items-center space-x-2">
               <input
                 type="checkbox"
