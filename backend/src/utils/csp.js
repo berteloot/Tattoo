@@ -85,6 +85,33 @@ const getCSPConfig = () => {
     console.log('⚠️ No Google Maps API key detected, Maps functionality will be limited');
   }
 
+  // Add Calendly support for booking widgets
+  console.log('📅 Adding Calendly CSP configuration for booking widgets...');
+  baseCSP.scriptSrc = [
+    ...baseCSP.scriptSrc,
+    "https://assets.calendly.com"
+  ];
+  
+  baseCSP.scriptSrcElem = [
+    ...baseCSP.scriptSrcElem,
+    "https://assets.calendly.com"
+  ];
+
+  baseCSP.connectSrc = [
+    ...baseCSP.connectSrc,
+    "https://assets.calendly.com"
+  ];
+
+  baseCSP.imgSrc = [
+    ...baseCSP.imgSrc,
+    "https://assets.calendly.com"
+  ];
+
+  // Add frame-src for Calendly iframes
+  baseCSP.frameSrc = ["'self'", "https://calendly.com"];
+  
+  console.log('✅ Calendly CSP configuration added');
+
   return baseCSP;
 };
 
