@@ -608,15 +608,15 @@ export const ArtistProfile = () => {
                 {artist.user.phone && (
                   <>
                     {isAuthenticated ? (
-                      <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                         <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                           <Phone className="w-5 h-5 text-blue-600" />
                         </div>
                         <div className="flex-1 min-w-0 overflow-hidden">
-                          <p className="text-sm font-medium text-gray-500">Phone</p>
+                          <p className="text-sm font-medium text-gray-500 mb-2">Phone</p>
                           <a 
                             href={`tel:${artist.user.phone}`}
-                            className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all"
+                            className="text-gray-900 text-sm font-medium hover:text-blue-600 transition-colors break-all"
                           >
                             {artist.user.phone}
                           </a>
@@ -644,39 +644,20 @@ export const ArtistProfile = () => {
                   </>
                 )}
 
-                {/* Email */}
-                {artist.user.email && (
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                      <Mail className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1 min-w-0 overflow-hidden">
-                      <p className="text-sm font-medium text-gray-500">Email</p>
-                      <ProtectedEmail 
-                        email={artist.user.email} 
-                        showIcon={false}
-                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all"
-                        recipient={artist}
-                        recipientType="artist"
-                      />
-                    </div>
-                  </div>
-                )}
-
                 {/* Website */}
                 {artist.website && (
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                       <Globe className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0 overflow-hidden">
-                      <p className="text-sm font-medium text-gray-500">Website</p>
+                      <p className="text-sm font-medium text-gray-500 mb-2">Website</p>
                       {isAuthenticated ? (
                         <a
                           href={artist.website.startsWith('http') ? artist.website : `https://${artist.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
+                          className="text-gray-900 text-sm font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
                         >
                           <span className="truncate">{artist.website.replace(/^https?:\/\//, '')}</span>
                           <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
@@ -687,7 +668,7 @@ export const ArtistProfile = () => {
                             setSignupPromptType('website');
                             setShowSignupPrompt(true);
                           }}
-                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
+                          className="text-gray-900 text-sm font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
                         >
                           <span className="truncate">{artist.website.replace(/^https?:\/\//, '')}</span>
                           <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
@@ -697,20 +678,42 @@ export const ArtistProfile = () => {
                   </div>
                 )}
 
+                {/* Email */}
+                {artist.user.email && (
+                  <div className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                      <Mail className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0 overflow-hidden">
+                      <p className="text-sm font-medium text-gray-500 mb-2">Email</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600 text-sm">Contact via message</span>
+                        <button
+                          onClick={() => setShowContactModal(true)}
+                          className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors font-medium"
+                          title="Send message"
+                        >
+                          Message
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Instagram */}
                 {artist.instagram && (
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center mr-3">
                       <Instagram className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1 min-w-0 overflow-hidden">
-                      <p className="text-sm font-medium text-gray-500">Instagram</p>
+                      <p className="text-sm font-medium text-gray-500 mb-2">Instagram</p>
                       {isAuthenticated ? (
                         <a
                           href={`https://instagram.com/${artist.instagram.replace('@', '')}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
+                          className="text-gray-900 text-sm font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
                         >
                           <span className="truncate">{artist.instagram}</span>
                           <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
@@ -721,7 +724,7 @@ export const ArtistProfile = () => {
                             setSignupPromptType('social');
                             setShowSignupPrompt(true);
                           }}
-                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
+                          className="text-gray-900 text-sm font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
                         >
                           <span className="truncate">{artist.instagram}</span>
                           <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
@@ -900,11 +903,6 @@ export const ArtistProfile = () => {
                                   </p>
                                 )}
                               </div>
-                              {customPrice !== null && customPrice !== service.price && (
-                                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full border border-blue-200 ml-2 flex-shrink-0">
-                                  Custom
-                                </span>
-                              )}
                             </div>
                             
                             <div className="flex items-center justify-between text-xs">
@@ -929,10 +927,6 @@ export const ArtistProfile = () => {
                     {/* Services Legend */}
                     <div className="mt-4 pt-3 border-t border-gray-100">
                       <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-blue-100 border border-blue-300 rounded"></div>
-                          Custom pricing
-                        </span>
                         <span className="flex items-center gap-1">
                           <div className="w-2 h-2 bg-gray-100 border border-gray-300 rounded"></div>
                           Standard pricing
