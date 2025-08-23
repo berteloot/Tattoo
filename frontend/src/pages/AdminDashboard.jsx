@@ -22,7 +22,11 @@ import {
   Calendar,
   DollarSign,
   Eye,
-  Plus
+  Plus,
+  Palette,
+  Globe,
+  FileText,
+  Shield
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -153,9 +157,129 @@ const AdminDashboard = () => {
                   <Users className="w-4 h-4 mr-2" />
                   Manage Users
                 </Link>
+                <Link
+                  to="/admin/artists"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                >
+                  <Palette className="w-4 h-4 mr-2" />
+                  Manage Artists
+                </Link>
+                <Link
+                  to="/admin/studios"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  <Building className="w-4 h-4 mr-2" />
+                  Manage Studios
+                </Link>
+                <Link
+                  to="/admin/artists/pending"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                >
+                  <UserCheck className="w-4 h-4 mr-2" />
+                  Pending Artists
+                </Link>
+                <Link
+                  to="/admin/reviews"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                >
+                  <Star className="w-4 h-4 mr-2" />
+                  Moderate Reviews
+                </Link>
+                <Link
+                  to="/admin/actions"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Audit Log
+                </Link>
+                <Link
+                  to="/admin/studios/upload"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Studios
+                </Link>
+                <Link
+                  to="/admin/geocoding"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                >
+                  <Globe className="w-4 h-4 mr-2" />
+                  Geocoding
+                </Link>
+                <Link
+                  to="/admin/content"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Content
+                </Link>
+                <Link
+                  to="/admin"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Link>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Admin Navigation */}
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex space-x-8 overflow-x-auto">
+            <Link
+              to="/admin/users"
+              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              <Users className="w-4 h-4 inline mr-2" />
+              Users
+            </Link>
+            <Link
+              to="/admin/artists"
+              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              <Palette className="w-4 h-4 inline mr-2" />
+              Artists
+            </Link>
+            <Link
+              to="/admin/studios"
+              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              <Building className="w-4 h-4 inline mr-2" />
+              Studios
+            </Link>
+            <Link
+              to="/admin/reviews"
+              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              <Star className="w-4 h-4 inline mr-2" />
+              Reviews
+            </Link>
+            <Link
+              to="/admin/geocoding"
+              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              <Globe className="w-4 h-4 inline mr-2" />
+              Geocoding
+            </Link>
+            <Link
+              to="/admin/content"
+              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              <FileText className="w-4 h-4 inline mr-2" />
+              Content
+            </Link>
+            <Link
+              to="/admin/actions"
+              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              <Shield className="w-4 h-4 inline mr-2" />
+              Audit Log
+            </Link>
+          </nav>
         </div>
       </div>
 
@@ -188,9 +312,9 @@ const AdminDashboard = () => {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Verified Artists</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Total Artists</dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {statsLoading ? '...' : (currentStats.verifiedArtists || 0).toLocaleString()}
+                      {statsLoading ? '...' : (currentStats.totalArtists || 0).toLocaleString()}
                     </dd>
                   </dl>
                 </div>
@@ -224,9 +348,84 @@ const AdminDashboard = () => {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Active Sessions</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Total Studios</dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {statsLoading ? '...' : (currentStats.activeSessions || 0).toLocaleString()}
+                      {statsLoading ? '...' : (currentStats.totalStudios || 0).toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Palette className="h-6 w-6 text-purple-400" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Featured Artists</dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {statsLoading ? '...' : (currentStats.featuredArtists || 0).toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Building className="h-6 w-6 text-indigo-400" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Geocoded Studios</dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {statsLoading ? '...' : (currentStats.geocodedStudios || 0).toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <MapPin className="h-6 w-6 text-orange-400" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Pending Geocoding</dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {statsLoading ? '...' : (currentStats.pendingGeocoding || 0).toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Image className="h-6 w-6 text-pink-400" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Total Flash</dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {statsLoading ? '...' : (currentStats.totalFlash || 0).toLocaleString()}
                     </dd>
                   </dl>
                 </div>
@@ -266,6 +465,32 @@ const AdminDashboard = () => {
             </Link>
 
             <Link
+              to="/admin/artists"
+              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div>
+                <span className="rounded-lg inline-flex p-3 bg-purple-50 text-purple-700 ring-4 ring-white">
+                  <Palette className="h-6 w-6" />
+                </span>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-lg font-medium">
+                  <span className="absolute inset-0" aria-hidden="true" />
+                  Artist Management
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Manage artists, verification, and featuring
+                </p>
+              </div>
+              <span
+                className="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400"
+                aria-hidden="true"
+              >
+                <Plus className="h-6 w-6" />
+              </span>
+            </Link>
+
+            <Link
               to="/admin/artists/pending"
               className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
             >
@@ -292,11 +517,63 @@ const AdminDashboard = () => {
             </Link>
 
             <Link
-              to="/admin/reviews"
+              to="/admin/studios"
+              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div>
+                <span className="rounded-lg inline-flex p-3 bg-indigo-50 text-indigo-700 ring-4 ring-white">
+                  <Building className="h-6 w-6" />
+                </span>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-lg font-medium">
+                  <span className="absolute inset-0" aria-hidden="true" />
+                  Studio Management
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Manage studios, verification, and featuring
+                </p>
+              </div>
+              <span
+                className="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400"
+                aria-hidden="true"
+              >
+                <Plus className="h-6 w-6" />
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/studios/upload"
               className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
             >
               <div>
                 <span className="rounded-lg inline-flex p-3 bg-green-50 text-green-700 ring-4 ring-white">
+                  <Upload className="h-6 w-6" />
+                </span>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-lg font-medium">
+                  <span className="absolute inset-0" aria-hidden="true" />
+                  Studio Upload
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Bulk upload studios from CSV files
+                </p>
+              </div>
+              <span
+                className="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400"
+                aria-hidden="true"
+              >
+                <Plus className="h-6 w-6" />
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/reviews"
+              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div>
+                <span className="rounded-lg inline-flex p-3 bg-orange-50 text-orange-700 ring-4 ring-white">
                   <Star className="h-6 w-6" />
                 </span>
               </div>
@@ -307,6 +584,84 @@ const AdminDashboard = () => {
                 </h3>
                 <p className="mt-2 text-sm text-gray-500">
                   Moderate reviews and maintain content quality
+                </p>
+              </div>
+              <span
+                className="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400"
+                aria-hidden="true"
+              >
+                <Plus className="h-6 w-6" />
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/geocoding"
+              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div>
+                <span className="rounded-lg inline-flex p-3 bg-teal-50 text-teal-700 ring-4 ring-white">
+                  <Globe className="h-6 w-6" />
+                </span>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-lg font-medium">
+                  <span className="absolute inset-0" aria-hidden="true" />
+                  Geocoding Management
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Manage location data and coordinates
+                </p>
+              </div>
+              <span
+                className="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400"
+                aria-hidden="true"
+              >
+                <Plus className="h-6 w-6" />
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/content"
+              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div>
+                <span className="rounded-lg inline-flex p-3 bg-pink-50 text-pink-700 ring-4 ring-white">
+                  <FileText className="h-6 w-6" />
+                </span>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-lg font-medium">
+                  <span className="absolute inset-0" aria-hidden="true" />
+                  Content Management
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Manage platform content and editorial
+                </p>
+              </div>
+              <span
+                className="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400"
+                aria-hidden="true"
+              >
+                <Plus className="h-6 w-6" />
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/actions"
+              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div>
+                <span className="rounded-lg inline-flex p-3 bg-red-50 text-red-700 ring-4 ring-white">
+                  <Shield className="h-6 w-6" />
+                </span>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-lg font-medium">
+                  <span className="absolute inset-0" aria-hidden="true" />
+                  Audit Log
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  View admin action history and audit trail
                 </p>
               </div>
               <span
