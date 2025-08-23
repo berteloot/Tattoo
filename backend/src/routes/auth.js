@@ -24,7 +24,8 @@ router.get('/test-cookies', (req, res) => {
     secure: false, // Allow HTTP in development
     sameSite: 'lax',
     maxAge: 60 * 1000, // 1 minute
-    path: '/'
+    path: '/',
+    domain: 'localhost' // Explicit localhost in development
   });
   
   res.json({
@@ -266,7 +267,7 @@ router.post('/login', [
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Lax in development
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/', // Accessible from all paths
-      domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Use default domain in development
+      domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost' // Explicit localhost in development
     });
 
     console.log('🍪 Setting refresh token cookie:', {
@@ -377,7 +378,7 @@ router.post('/refresh', async (req, res) => {
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Lax in development
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/', // Accessible from all paths
-      domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Use default domain in development
+      domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost' // Explicit localhost in development
     });
 
     res.json({
@@ -868,7 +869,7 @@ router.post('/logout', protect, async (req, res) => {
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       path: '/', // Match the path used when setting the cookie
-      domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Use default domain in development
+      domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost' // Explicit localhost in development
     });
 
     res.json({
