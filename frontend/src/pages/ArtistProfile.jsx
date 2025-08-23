@@ -561,88 +561,132 @@ export const ArtistProfile = () => {
                 </button>
               </div>
               {(reviews || []).length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {(reviews || []).map((review) => (
-                    <div key={review.id} className="border-b border-gray-100 pb-6 last:border-b-0">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-sm font-semibold text-blue-700">
+                    <div key={review.id} className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:border-gray-200 transition-all duration-200">
+                      {/* Review Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-4">
+                          {/* Reviewer Avatar */}
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <span className="text-sm font-bold text-white">
                               {review.author.firstName[0]}{review.author.lastName[0]}
                             </span>
                           </div>
-                          <div>
-                            <span className="font-semibold text-gray-900">
+                          
+                          {/* Reviewer Info */}
+                          <div className="flex-1">
+                            <h4 className="text-lg font-bold text-gray-900 mb-1">
                               {review.author.firstName} {review.author.lastName}
-                            </span>
-                            <div className="flex items-center mt-1">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-4 h-4 ${
-                                    i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
-                                  }`}
-                                />
-                              ))}
-                              <span className="text-sm text-gray-500 ml-2">
+                            </h4>
+                            <div className="flex items-center space-x-3">
+                              {/* Rating Stars */}
+                              <div className="flex items-center space-x-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-5 h-5 ${
+                                      i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              
+                              {/* Rating Number */}
+                              <span className="text-lg font-bold text-gray-900">
                                 {review.rating}.0
+                              </span>
+                              
+                              {/* Review Date */}
+                              <span className="text-sm text-gray-500">
+                                {new Date(review.createdAt).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
                               </span>
                             </div>
                           </div>
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {new Date(review.createdAt).toLocaleDateString()}
-                        </div>
+                        
+                        {/* Verified Badge (if applicable) */}
+                        {review.author.role === 'ARTIST' && (
+                          <div className="flex items-center space-x-1 bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-xs font-medium">Artist</span>
+                          </div>
+                        )}
                       </div>
                       
-                      {review.title && (
-                        <h3 className="font-semibold text-gray-900 mb-2 text-lg">{review.title}</h3>
-                      )}
-                      
-                      {review.comment && (
-                        <p className="text-gray-700 mb-3 leading-relaxed">{review.comment}</p>
-                      )}
-                      
-                      {/* Review Images */}
-                      {review.images && review.images.length > 0 && (
-                        <div className="mt-4">
-                          <div className="flex flex-wrap gap-3">
-                            {review.images.map((image, imageIndex) => (
-                              <div
-                                key={imageIndex}
-                                className="relative group cursor-pointer transform hover:scale-105 transition-all duration-200"
-                                onClick={() => {
-                                  setSelectedImage(image)
-                                  setIsImageModalOpen(true)
-                                }}
-                              >
-                                <img
-                                  src={image}
-                                  alt={`Review image ${imageIndex + 1}`}
-                                  className="w-20 h-20 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-colors shadow-sm"
-                                />
-                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
-                                      <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                      </svg>
+                      {/* Review Content */}
+                      <div className="space-y-4">
+                        {/* Review Title */}
+                        {review.title && (
+                          <h3 className="text-xl font-bold text-gray-900 leading-tight">
+                            "{review.title}"
+                          </h3>
+                        )}
+                        
+                        {/* Review Comment */}
+                        {review.comment && (
+                          <p className="text-gray-700 text-lg leading-relaxed">
+                            {review.comment}
+                          </p>
+                        )}
+                        
+                        {/* Review Images */}
+                        {review.images && review.images.length > 0 && (
+                          <div className="pt-2">
+                            <div className="flex flex-wrap gap-3">
+                              {review.images.map((image, imageIndex) => (
+                                <div
+                                  key={imageIndex}
+                                  className="relative group cursor-pointer transform hover:scale-105 transition-all duration-200"
+                                  onClick={() => {
+                                    setSelectedImage(image)
+                                    setIsImageModalOpen(true)
+                                  }}
+                                >
+                                  <img
+                                    src={image}
+                                    alt={`Review image ${imageIndex + 1}`}
+                                    className="w-24 h-24 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-colors shadow-md"
+                                  />
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
+                                        <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                        </svg>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
+                            <p className="text-sm text-gray-500 mt-3 italic">
+                              💡 Click on any image to view full size
+                            </p>
                           </div>
-                          <p className="text-xs text-gray-500 mt-2">
-                            Click on any image to view full size
-                          </p>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-600">No reviews yet. Be the first to leave a review!</p>
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No reviews yet</h3>
+                  <p className="text-gray-600 mb-4">
+                    Be the first to share your experience with this artist!
+                  </p>
+                </div>
               )}
             </div>
           </div>
