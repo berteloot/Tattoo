@@ -602,44 +602,39 @@ export const ArtistProfile = () => {
           <div className="xl:col-span-1 space-y-6">
             {/* Contact Information */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
                 <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
                 Contact Information
               </h2>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* Phone */}
                 {artist.user.phone && (
                   <>
                     {isAuthenticated ? (
-                      <div className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                          <Phone className="w-5 h-5 text-blue-600" />
+                      <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Phone className="w-6 h-6 text-blue-600" />
                         </div>
-                        <div className="flex-1 min-w-0 overflow-hidden">
-                          <p className="text-sm font-medium text-gray-500 mb-2">Phone</p>
-                          <a 
-                            href={`tel:${artist.user.phone}`}
-                            className="text-gray-900 text-sm font-medium hover:text-blue-600 transition-colors break-all"
-                          >
-                            {artist.user.phone}
-                          </a>
-                        </div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1">Phone</h3>
+                        <p className="text-xs text-gray-600 mb-3">Call {artist.user.firstName} directly</p>
+                        <a 
+                          href={`tel:${artist.user.phone}`}
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        >
+                          {artist.user.phone}
+                        </a>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex items-center flex-1 min-w-0 overflow-hidden">
-                          <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                            <Phone className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <div className="flex-1 min-w-0 overflow-hidden">
-                            <p className="text-sm font-medium text-blue-900">Phone number available</p>
-                            <p className="text-xs text-blue-700 break-words">Call {artist.user.firstName} directly</p>
-                          </div>
+                      <div className="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Phone className="w-6 h-6 text-blue-600" />
                         </div>
+                        <h3 className="text-sm font-semibold text-blue-900 mb-1">Phone</h3>
+                        <p className="text-xs text-blue-700 mb-3">Phone number available</p>
                         <Link 
                           to="/login" 
-                          className="text-blue-600 hover:text-blue-800 font-medium text-sm px-3 py-1 rounded-md border border-blue-300 hover:bg-blue-100 transition-colors flex-shrink-0 ml-2"
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                         >
                           Login to view
                         </Link>
@@ -648,127 +643,114 @@ export const ArtistProfile = () => {
                   </>
                 )}
 
-                {/* Website */}
-                {artist.website && (
-                  <div className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                      <Globe className="w-5 h-5 text-blue-600" />
+                {/* Email */}
+                {artist.user.email && (
+                  <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Mail className="w-6 h-6 text-blue-600" />
                     </div>
-                    <div className="flex-1 min-w-0 overflow-hidden">
-                      <p className="text-sm font-medium text-gray-500 mb-2">Website</p>
-                      {isAuthenticated ? (
-                        <a
-                          href={artist.website.startsWith('http') ? artist.website : `https://${artist.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-900 text-sm font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
-                        >
-                          <span className="truncate">{artist.website.replace(/^https?:\/\//, '')}</span>
-                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
-                        </a>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setSignupPromptType('website');
-                            setShowSignupPrompt(true);
-                          }}
-                          className="text-gray-900 text-sm font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
-                        >
-                          <span className="truncate">{artist.website.replace(/^https?:\/\//, '')}</span>
-                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
-                        </button>
-                      )}
-                    </div>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1">Email</h3>
+                    <p className="text-xs text-gray-600 mb-3">Contact via message</p>
+                    <button
+                      onClick={() => setShowContactModal(true)}
+                      className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium"
+                      title="Send message"
+                    >
+                      Message
+                    </button>
                   </div>
                 )}
 
-                {/* Email */}
-                {artist.user.email && (
-                  <div className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                      <Mail className="w-5 h-5 text-blue-600" />
+                {/* Website */}
+                {artist.website && (
+                  <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Globe className="w-6 h-6 text-blue-600" />
                     </div>
-                    <div className="flex-1 min-w-0 overflow-hidden">
-                      <p className="text-sm font-medium text-gray-500 mb-2">Email</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600 text-sm">Contact via message</span>
-                        <button
-                          onClick={() => setShowContactModal(true)}
-                          className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors font-medium"
-                          title="Send message"
-                        >
-                          Message
-                        </button>
-                      </div>
-                    </div>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1">Website</h3>
+                    <p className="text-xs text-gray-600 mb-3">Visit online portfolio</p>
+                    {isAuthenticated ? (
+                      <a
+                        href={artist.website.startsWith('http') ? artist.website : `https://${artist.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        {artist.website.replace(/^https?:\/\//, '')}
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSignupPromptType('website');
+                          setShowSignupPrompt(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        View website
+                      </button>
+                    )}
                   </div>
                 )}
 
                 {/* Instagram */}
                 {artist.instagram && (
-                  <div className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center mr-3">
-                      <Instagram className="w-5 h-5 text-white" />
+                  <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Instagram className="w-6 h-6 text-white" />
                     </div>
-                    <div className="flex-1 min-w-0 overflow-hidden">
-                      <p className="text-sm font-medium text-gray-500 mb-2">Instagram</p>
-                      {isAuthenticated ? (
-                        <a
-                          href={`https://instagram.com/${artist.instagram.replace('@', '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-900 text-sm font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
-                        >
-                          <span className="truncate">{artist.instagram}</span>
-                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
-                        </a>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setSignupPromptType('social');
-                            setShowSignupPrompt(true);
-                          }}
-                          className="text-gray-900 text-sm font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
-                        >
-                          <span className="truncate">{artist.instagram}</span>
-                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
-                        </button>
-                      )}
-                    </div>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1">Instagram</h3>
+                    <p className="text-xs text-gray-600 mb-3">Follow on social media</p>
+                    {isAuthenticated ? (
+                      <a
+                        href={`https://instagram.com/${artist.instagram.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        {artist.instagram}
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSignupPromptType('social');
+                          setShowSignupPrompt(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        View profile
+                      </button>
+                    )}
                   </div>
                 )}
 
                 {/* Other Social Media */}
                 {artist.facebook && (
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-3">
-                      <Facebook className="w-5 h-5 text-white" />
+                  <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Facebook className="w-6 h-6 text-white" />
                     </div>
-                    <div className="flex-1 min-w-0 overflow-hidden">
-                      <p className="text-sm font-medium text-gray-500">Facebook</p>
-                      {isAuthenticated ? (
-                        <a
-                          href={artist.facebook.startsWith('http') ? artist.facebook : `https://facebook.com/${artist.facebook}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
-                        >
-                          <span className="truncate">{artist.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}</span>
-                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
-                        </a>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setSignupPromptType('social');
-                            setShowSignupPrompt(true);
-                          }}
-                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
-                        >
-                          <span className="truncate">{artist.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}</span>
-                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
-                        </button>
-                      )}
-                    </div>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1">Facebook</h3>
+                    <p className="text-xs text-gray-600 mb-3">Connect on Facebook</p>
+                    {isAuthenticated ? (
+                      <a
+                        href={artist.facebook.startsWith('http') ? artist.facebook : `https://facebook.com/${artist.facebook}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        {artist.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSignupPromptType('social');
+                          setShowSignupPrompt(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        View profile
+                      </button>
+                    )}
                   </div>
                 )}
 
