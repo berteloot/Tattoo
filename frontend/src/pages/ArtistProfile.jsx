@@ -46,6 +46,7 @@ export const ArtistProfile = () => {
   const [showSignupPrompt, setShowSignupPrompt] = useState(false)
   const [signupPromptType, setSignupPromptType] = useState('contact')
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [showContactModal, setShowContactModal] = useState(false)
 
   // Helper function for fallback data - moved to top to fix hoisting issue
   const getDummyArtist = (id) => ({
