@@ -296,57 +296,105 @@ export const Artists = () => {
               : 'space-y-6'
             }>
               {sortedArtists.map((artist) => (
-                <div key={artist.id} className={`card group ${viewMode === 'list' ? 'flex-row' : ''}`}>
-                  <div className={`card__media bg-gray-100 flex items-center justify-center ${viewMode === 'list' ? 'w-32 h-32 flex-shrink-0' : ''}`}>
+                <div key={artist.id} className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group ${viewMode === 'list' ? 'flex' : ''}`}>
+                  {/* Profile Image Section */}
+                  <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-48 h-48 flex-shrink-0' : 'h-64'}`}>
                     {artist.profilePictureUrl ? (
                       <img
                         src={artist.profilePictureUrl}
                         alt={`${artist.user.firstName} ${artist.user.lastName}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <Users className="w-16 h-16 text-gray-400" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="card__category">
-                      {artist.featured && <span className="tag tag--yellow">FEATURED</span>}
-                    </div>
-                    <div className="card__title">
-                      {artist.user.firstName} {artist.user.lastName}
-                    </div>
-                    <div className="card__meta">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span>{artist.averageRating} ({artist.reviewCount} reviews)</span>
+                      <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <Users className="w-20 h-20 text-gray-400" />
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                        <MapPin className="w-4 h-4" />
-                        {artist.city}, {artist.state}
+                    )}
+                    
+                    {/* Featured Badge */}
+                    {artist.featured && (
+                      <div className="absolute top-3 left-3">
+                        <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                          FEATURED
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Rating Badge */}
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-sm">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                        <span className="text-sm font-semibold text-gray-800">
+                          {artist.averageRating || 'New'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content Section */}
+                  <div className={`${viewMode === 'list' ? 'flex-1' : ''} p-6`}>
+                    {/* Artist Name */}
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                      {artist.user.firstName} {artist.user.lastName}
+                    </h3>
+
+                    {/* Location & Rate */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm font-medium">
+                          {artist.city}, {artist.state}
+                        </span>
                       </div>
                       {artist.hourlyRate && (
-                        <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                        <div className="flex items-center gap-1 text-green-600">
                           <DollarSign className="w-4 h-4" />
-                          <span>${artist.hourlyRate}/hr</span>
+                          <span className="font-semibold">${artist.hourlyRate}</span>
+                          <span className="text-sm text-gray-500">/hr</span>
                         </div>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-3 mb-3">{artist.bio}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
+
+                    {/* Bio */}
+                    <p className="text-gray-700 text-sm leading-relaxed mb-4 line-clamp-3">
+                      {artist.bio || "No bio available"}
+                    </p>
+
+                    {/* Review Count */}
+                    <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
+                      <Star className="w-4 h-4 text-yellow-400" />
+                      <span>
+                        {artist.reviewCount || 0} review{(artist.reviewCount || 0) !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+
+                    {/* Specialties */}
+                    <div className="flex flex-wrap gap-2 mb-6">
                       {artist.specialties.slice(0, 3).map((specialty, index) => (
-                        <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                        <span 
+                          key={index} 
+                          className="bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full border border-blue-200 hover:bg-blue-100 transition-colors"
+                        >
                           {specialty.name}
                         </span>
                       ))}
+                      {artist.specialties.length > 3 && (
+                        <span className="bg-gray-100 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-full">
+                          +{artist.specialties.length - 3} more
+                        </span>
+                      )}
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-3">
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                       <Link 
                         to={`/artists/${artist.id}`} 
-                        className="inline-flex items-center justify-center text-sm font-semibold text-blue-600 hover:text-blue-800"
+                        className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
                       >
-                        <Eye className="w-4 h-4 mr-2" />
-                        VIEW PROFILE
+                        <Eye className="w-4 h-4" />
+                        View Profile
                       </Link>
+                      
                       <FavoriteButton artistId={artist.id} />
                     </div>
                   </div>
