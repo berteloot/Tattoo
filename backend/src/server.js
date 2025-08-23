@@ -88,21 +88,23 @@ app.use(cookieParser());
 
 // Debug endpoint to check file system in production
 app.get('/debug-paths', (req, res) => {
-  const fs = require('fs');
-  const path = require('path');
-  
   try {
+    // Get fresh build info
+    const freshBuildInfo = getFreshFrontendBuildInfo();
+    
     const currentDir = __dirname;
-    const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
     const backendDir = path.join(__dirname, '..');
     const rootDir = path.join(__dirname, '../..');
     
     const debugInfo = {
+      freshBuildInfo,
       currentDir,
-      frontendBuildPath,
+      originalFrontendBuildPath: path.join(__dirname, '../../frontend/dist'),
+      backendDir,
+      rootDir,
       paths: {
         currentDirExists: fs.existsSync(currentDir),
-        frontendBuildExists: fs.existsSync(frontendBuildPath),
+        freshFrontendBuildExists: freshBuildInfo.exists,
         backendDirExists: fs.existsSync(backendDir),
         rootDirExists: fs.existsSync(rootDir),
       },
@@ -123,8 +125,8 @@ app.get('/debug-paths', (req, res) => {
       debugInfo.listings.frontend = fs.readdirSync(frontendDir);
     }
     
-    if (fs.existsSync(frontendBuildPath)) {
-      debugInfo.listings.frontendBuild = fs.readdirSync(frontendBuildPath);
+    if (freshBuildInfo.exists) {
+      debugInfo.listings.frontendBuild = fs.readdirSync(freshBuildInfo.path);
     }
     
     res.json(debugInfo);
@@ -138,16 +140,56 @@ app.get('/debug-paths', (req, res) => {
 
 // Additional debug endpoint for root path testing
 app.get('/test-root', (req, res) => {
+  // Get fresh build info
+  const freshBuildInfo = getFreshFrontendBuildInfo();
+  
   res.json({
     message: 'Root path test endpoint working',
     timestamp: new Date().toISOString(),
-    frontendBuildPath,
-    frontendExists,
-    indexHtmlPath: indexHtmlPath,
-    indexHtmlExists: fs.existsSync(indexHtmlPath),
+    freshBuildInfo,
+    originalFrontendBuildPath: frontendBuildPath,
+    originalFrontendExists: frontendExists,
+    originalIndexHtmlPath: indexHtmlPath,
+    originalIndexHtmlExists: fs.existsSync(indexHtmlPath),
     currentDir: __dirname,
     workingDir: process.cwd()
   });
+});
+
+// Test HTML content endpoint
+app.get('/test-html', (req, res) => {
+  try {
+    const freshBuildInfo = getFreshFrontendBuildInfo();
+    
+    if (!freshBuildInfo.exists || !freshBuildInfo.indexExists) {
+      return res.status(404).json({
+        error: 'HTML file not found',
+        freshBuildInfo
+      });
+    }
+    
+    // Read the HTML file content
+    const htmlContent = fs.readFileSync(freshBuildInfo.indexPath, 'utf8');
+    
+    // Extract script and link tags to see what assets are referenced
+    const scriptMatches = htmlContent.match(/src="([^"]+)"/g) || [];
+    const linkMatches = htmlContent.match(/href="([^"]+)"/g) || [];
+    
+    res.json({
+      success: true,
+      freshBuildInfo,
+      htmlFileSize: htmlContent.length,
+      scriptTags: scriptMatches,
+      linkTags: linkMatches,
+      htmlPreview: htmlContent.substring(0, 500) + '...'
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to read HTML file',
+      message: error.message,
+      freshBuildInfo: getFreshFrontendBuildInfo()
+    });
+  }
 });
 
 // API routes
@@ -186,21 +228,24 @@ app.get('/api', (req, res) => {
 
 // Debug route to check what's happening at root path
 app.get('/', (req, res) => {
+  // Get fresh frontend build info to avoid caching issues
+  const freshBuildInfo = getFreshFrontendBuildInfo();
+  
   console.log('🔍 Root path accessed:', req.path);
-  console.log('🔍 Frontend build exists:', frontendExists);
-  console.log('🔍 Index HTML path:', indexHtmlPath);
+  console.log('🔍 Fresh frontend build exists:', freshBuildInfo.exists);
+  console.log('🔍 Fresh index HTML path:', freshBuildInfo.indexPath);
   console.log('🔍 Current working directory:', process.cwd());
   console.log('🔍 __dirname:', __dirname);
   
-  if (frontendExists && fs.existsSync(indexHtmlPath)) {
+  if (freshBuildInfo.exists && freshBuildInfo.indexExists) {
     console.log('✅ Serving React app from root path');
-    console.log('✅ File size:', fs.statSync(indexHtmlPath).size, 'bytes');
+    console.log('✅ File size:', fs.statSync(freshBuildInfo.indexPath).size, 'bytes');
     
     // Set proper headers for HTML
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     
-    res.sendFile(indexHtmlPath, (err) => {
+    res.sendFile(freshBuildInfo.indexPath, (err) => {
       if (err) {
         console.error('❌ Error serving index.html:', err.message);
         res.status(500).json({ error: 'Error serving React app', details: err.message });
@@ -208,13 +253,13 @@ app.get('/', (req, res) => {
     });
   } else {
     console.log('❌ Frontend not available, serving fallback');
-    console.log('❌ Frontend build path:', frontendBuildPath);
-    console.log('❌ Index HTML path:', indexHtmlPath);
+    console.log('❌ Fresh frontend build path:', freshBuildInfo.path);
+    console.log('❌ Fresh index HTML path:', freshBuildInfo.indexPath);
     
     // Try to list directory contents for debugging
     try {
-      if (fs.existsSync(frontendBuildPath)) {
-        const contents = fs.readdirSync(frontendBuildPath);
+      if (fs.existsSync(freshBuildInfo.path)) {
+        const contents = fs.readdirSync(freshBuildInfo.path);
         console.log('❌ Frontend build contents:', contents);
       }
     } catch (error) {
@@ -246,10 +291,10 @@ app.get('/', (req, res) => {
             
             <div class="debug-info">
               <h3>Debug Information:</h3>
-              <p><strong>Frontend Build Path:</strong> ${frontendBuildPath}</p>
-              <p><strong>Frontend Exists:</strong> ${frontendExists}</p>
-              <p><strong>Index HTML Path:</strong> ${indexHtmlPath}</p>
-              <p><strong>Index HTML Exists:</strong> ${fs.existsSync(indexHtmlPath)}</p>
+              <p><strong>Fresh Frontend Build Path:</strong> ${freshBuildInfo.path}</p>
+              <p><strong>Fresh Frontend Exists:</strong> ${freshBuildInfo.exists}</p>
+              <p><strong>Fresh Index HTML Path:</strong> ${freshBuildInfo.indexPath}</p>
+              <p><strong>Fresh Index HTML Exists:</strong> ${freshBuildInfo.indexExists}</p>
               <p><strong>Current Directory:</strong> ${__dirname}</p>
               <p><strong>Working Directory:</strong> ${process.cwd()}</p>
             </div>
@@ -280,6 +325,22 @@ const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
 // Enhanced check for frontend build with better logging
 const frontendExists = fs.existsSync(frontendBuildPath);
 const indexHtmlPath = path.join(frontendBuildPath, 'index.html');
+
+// Function to get fresh frontend build info (no caching)
+function getFreshFrontendBuildInfo() {
+  const freshPath = path.join(__dirname, '../../frontend/dist');
+  const freshIndexPath = path.join(freshPath, 'index.html');
+  
+  return {
+    path: freshPath,
+    indexPath: freshIndexPath,
+    exists: fs.existsSync(freshPath),
+    indexExists: fs.existsSync(freshIndexPath),
+    timestamp: new Date().toISOString()
+  };
+}
+
+// Initial frontend build info already set above
 
 // Additional path debugging
 console.log('🔍 Path debugging:');
@@ -482,18 +543,22 @@ if (!frontendExists) {
   // Comprehensive asset debugging endpoint
   app.get('/debug-build', (req, res) => {
     try {
+      // Get fresh build info
+      const freshBuildInfo = getFreshFrontendBuildInfo();
+      
       const buildInfo = {
-        frontendBuildPath,
+        freshBuildInfo,
+        originalFrontendBuildPath: frontendBuildPath,
         currentDir: __dirname,
-        buildExists: fs.existsSync(frontendBuildPath),
+        buildExists: freshBuildInfo.exists,
         timestamp: new Date().toISOString()
       };
       
       if (buildInfo.buildExists) {
-        const buildContents = fs.readdirSync(frontendBuildPath);
+        const buildContents = fs.readdirSync(freshBuildInfo.path);
         buildInfo.buildContents = buildContents;
         
-        const assetsDir = path.join(frontendBuildPath, 'assets');
+        const assetsDir = path.join(freshBuildInfo.path, 'assets');
         buildInfo.assetsDir = assetsDir;
         buildInfo.assetsExists = fs.existsSync(assetsDir);
         
