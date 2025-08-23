@@ -928,12 +928,19 @@ export const ArtistProfile = () => {
                     <p><strong>Debug Info:</strong></p>
                     <p>All Services Count: {allServices.length}</p>
                     <p>Artist Services Count: {artist?.services?.length || 0}</p>
-                    <p>Artist Services: {JSON.stringify(artist?.services?.map(s => ({ id: s.id, name: s.name })) || [])}</p>
-                    <p>Artist Services Data: {JSON.stringify(artistServices.map(s => ({ serviceId: s.serviceId, customPrice: s.customPrice, customDuration: s.customDuration })) || [])}</p>
+                    <p>Artist Services Type: {typeof artist?.services}</p>
+                    <p>Artist Services: {JSON.stringify(artist?.services || [])}</p>
+                    <p>Artist Services Data: {JSON.stringify(artistServices || [])}</p>
                   </div>
                   <div className="space-y-3">
-                    {artist.services.map((service) => {
-                      if (!service?.id) return null;
+                    {(() => {
+                      console.log('🔍 About to map services:', {
+                        artistServices: artist?.services,
+                        isArray: Array.isArray(artist?.services),
+                        length: artist?.services?.length
+                      });
+                      return Array.isArray(artist.services) && artist.services.map((service) => {
+                        if (!service?.id) return null;
                       
                       const customPrice = getServicePrice(service.id);
                       const customDuration = getServiceDuration(service.id);
@@ -974,7 +981,8 @@ export const ArtistProfile = () => {
                           </div>
                         </div>
                       );
-                    })}
+                    });
+                  })()}
                   </div>
                   
                   {/* Services Legend */}
