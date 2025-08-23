@@ -287,7 +287,7 @@ export const FlashGallery = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-purple-900 via-purple-800 to-purple-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+        <div className="container py-16">
           <div className="text-center">
             <h1 className="text-5xl font-bold mb-6">Global Flash Gallery</h1>
             <p className="text-xl text-purple-100 mb-8 max-w-3xl mx-auto">
@@ -311,7 +311,7 @@ export const FlashGallery = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="container py-8">
         {/* Filters and Controls */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">

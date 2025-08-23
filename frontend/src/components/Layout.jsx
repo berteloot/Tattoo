@@ -27,7 +27,7 @@ export const Layout = ({ children }) => {
       <SkipToMainContent />
       
       {/* Header */}
-      <header className="nav">
+      <header className="nav relative z-50">
         <div className="container">
           {/* Logo */}
           <Link to="/" className="brand">
@@ -118,13 +118,13 @@ export const Layout = ({ children }) => {
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer' }}
+              className="p-3 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileMenuOpen ? (
-                <X style={{ width: '24px', height: '24px' }} />
+                <X className="w-6 h-6" />
               ) : (
-                <Menu style={{ width: '24px', height: '24px' }} />
+                <Menu className="w-6 h-6" />
               )}
             </button>
           </div>
@@ -132,15 +132,14 @@ export const Layout = ({ children }) => {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden" style={{ borderTop: '1px solid var(--border)', padding: '16px 0' }}>
+          <div className="md:hidden border-t border-gray-200 py-6 bg-white absolute top-full left-0 right-0 shadow-lg z-40">
             <div className="container">
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              <ul className="space-y-3">
                 {navigation.map((item) => (
-                  <li key={item.name} style={{ marginBottom: '8px' }}>
+                  <li key={item.name}>
                     <Link
                       to={item.href}
-                      className="small"
-                      style={{ display: 'block', padding: '12px 0', fontSize: '16px' }}
+                      className="block py-4 px-4 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-lg transition-colors touch-manipulation"
                       onClick={() => {
                         console.log(`Mobile navigating to: ${item.href}`)
                         setMobileMenuOpen(false)
@@ -151,24 +150,22 @@ export const Layout = ({ children }) => {
                   </li>
                 ))}
                 
-                {isAuthenticated ? (
+                                {isAuthenticated ? (
                   <>
-                    <li style={{ marginBottom: '8px' }}>
+                    <li>
                       <Link
                         to="/profile"
-                        className="small"
-                        style={{ display: 'block', padding: '12px 0', fontSize: '16px' }}
+                        className="block py-3 px-4 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         PROFILE
                       </Link>
                     </li>
                     {user?.role === 'CLIENT' && (
-                      <li style={{ marginBottom: '8px' }}>
+                      <li>
                         <Link
                           to="/favorites"
-                          className="small"
-                          style={{ display: 'block', padding: '12px 0', fontSize: '16px' }}
+                          className="block py-3 px-4 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           <FavoritesCount />
@@ -176,11 +173,10 @@ export const Layout = ({ children }) => {
                       </li>
                     )}
                     {isArtist && (
-                      <li style={{ marginBottom: '8px' }}>
+                      <li>
                         <Link
                           to="/dashboard"
-                          className="cta"
-                          style={{ display: 'block', textAlign: 'center', margin: '16px 0' }}
+                          className="block w-full py-3 px-4 text-center text-base font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           DASHBOARD
@@ -188,18 +184,17 @@ export const Layout = ({ children }) => {
                       </li>
                     )}
                     {isAdmin && (
-                      <li style={{ marginBottom: '8px' }}>
+                      <li>
                         <Link
                           to="/admin"
-                          className="cta"
-                          style={{ display: 'block', textAlign: 'center', margin: '16px 0', backgroundColor: 'var(--accent-red)', color: '#fff', borderColor: 'var(--accent-red)' }}
+                          className="block w-full py-3 px-4 text-center text-base font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           ADMIN PANEL
                         </Link>
                       </li>
                     )}
-                    <li style={{ marginBottom: '8px' }}>
+                    <li>
                       <button
                         onClick={async () => {
                           try {
@@ -209,8 +204,7 @@ export const Layout = ({ children }) => {
                           }
                           setMobileMenuOpen(false)
                         }}
-                        className="small"
-                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}
+                        className="block w-full py-3 px-4 text-left text-base font-medium text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
                       >
                         LOGOUT
                       </button>
@@ -218,21 +212,19 @@ export const Layout = ({ children }) => {
                   </>
                 ) : (
                   <>
-                    <li style={{ marginBottom: '8px' }}>
+                    <li>
                       <Link
                         to="/login"
-                        className="small"
-                        style={{ display: 'block', padding: '12px 0', fontSize: '16px' }}
+                        className="block py-3 px-4 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         LOGIN
                       </Link>
                     </li>
-                    <li style={{ marginBottom: '8px' }}>
+                    <li>
                       <Link
                         to="/register"
-                        className="cta"
-                        style={{ display: 'block', textAlign: 'center', margin: '16px 0' }}
+                        className="block w-full py-3 px-4 text-center text-base font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         SIGN UP
@@ -247,24 +239,24 @@ export const Layout = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main id="main-content" className="container" style={{ padding: '32px 0' }}>
+      <main id="main-content" className="container py-8 sm:py-12 lg:py-16">
         {children}
       </main>
 
       {/* Footer */}
       <footer className="footer">
         <div className="container">
-          <div className="cols">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
             {/* Company Info */}
-            <div style={{ gridColumn: 'span 1' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <MapPin style={{ width: '24px', height: '24px', color: 'var(--accent-blue)' }} />
+            <div className="lg:col-span-1">
+              <div className="flex items-center gap-2 mb-4">
+                <MapPin className="w-6 h-6 text-blue-600" />
                 <span className="brand">TATTOOED WORLD</span>
               </div>
-              <p className="small" style={{ marginBottom: '16px', maxWidth: '400px' }}>
+              <p className="text-sm text-gray-600 mb-4 max-w-md">
                 Connect with talented tattoo artists in your area. Find your perfect match for custom designs, traditional styles, and everything in between.
               </p>
-              <p className="small" style={{ color: 'var(--muted)' }}>
+              <p className="text-sm text-gray-500">
                 © {currentYear} TATTOOED WORLD. ALL RIGHTS RESERVED.
               </p>
             </div>
