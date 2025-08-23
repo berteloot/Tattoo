@@ -26,8 +26,19 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is logged in on app start using refresh token
   useEffect(() => {
-    // Only try to refresh token if there's actually a refresh token cookie
-    const hasRefreshToken = document.cookie.includes('refreshToken=')
+    // Better cookie detection with debugging
+    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=')
+      acc[key] = value
+      return acc
+    }, {})
+    
+    console.log('🍪 All cookies:', cookies)
+    console.log('🔄 Looking for refreshToken cookie...')
+    
+    const hasRefreshToken = cookies.refreshToken || document.cookie.includes('refreshToken=')
+    console.log('🔄 Refresh token found:', !!hasRefreshToken)
+    
     if (hasRefreshToken) {
       console.log('🔄 Refresh token found, attempting token refresh...')
       refreshAccessToken()
@@ -72,8 +83,11 @@ export const AuthProvider = ({ children }) => {
       setLastRefreshTime(now)
 
       console.log(`🔄 Attempting token refresh (attempt ${refreshAttempts + 1}/${maxRefreshAttempts})`)
+      console.log('🍪 Cookies being sent:', document.cookie)
       
       const response = await authAPI.refreshToken()
+      
+      console.log('🔄 Refresh API response:', response)
       
       if (response.data && response.data.success) {
         const { accessToken: newAccessToken } = response.data.data

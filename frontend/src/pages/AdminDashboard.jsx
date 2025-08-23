@@ -137,88 +137,99 @@ const AdminDashboard = () => {
                   Welcome back, {user.firstName || user.name}. Manage your platform from here.
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3">
                 <button
                   onClick={testAPI}
                   disabled={isLoading}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 whitespace-nowrap"
                 >
                   {isLoading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-blue-600 mr-1 sm:mr-2"></div>
                   ) : (
-                    <BarChart3 className="w-4 h-4 mr-2" />
+                    <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   )}
-                  Test API
+                  <span className="hidden sm:inline">Test API</span>
+                  <span className="sm:hidden">Test</span>
                 </button>
                 <Link
                   to="/admin/users"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap"
                 >
-                  <Users className="w-4 h-4 mr-2" />
-                  Manage Users
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Users</span>
+                  <span className="sm:hidden">Users</span>
                 </Link>
                 <Link
                   to="/admin/artists"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 whitespace-nowrap"
                 >
-                  <Palette className="w-4 h-4 mr-2" />
-                  Manage Artists
+                  <Palette className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Artists</span>
+                  <span className="sm:hidden">Artists</span>
                 </Link>
                 <Link
                   to="/admin/studios"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 whitespace-nowrap"
                 >
-                  <Building className="w-4 h-4 mr-2" />
-                  Manage Studios
+                  <Building className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Studios</span>
+                  <span className="sm:hidden">Studios</span>
                 </Link>
                 <Link
                   to="/admin/artists/pending"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 whitespace-nowrap"
                 >
-                  <UserCheck className="w-4 h-4 mr-2" />
-                  Pending Artists
+                  <UserCheck className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Pending</span>
+                  <span className="sm:hidden">Pending</span>
                 </Link>
                 <Link
                   to="/admin/reviews"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 whitespace-nowrap"
                 >
-                  <Star className="w-4 h-4 mr-2" />
-                  Moderate Reviews
+                  <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Reviews</span>
+                  <span className="sm:hidden">Reviews</span>
                 </Link>
                 <Link
                   to="/admin/actions"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 whitespace-nowrap"
                 >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Audit Log
+                  <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Audit</span>
+                  <span className="sm:hidden">Audit</span>
                 </Link>
                 <Link
                   to="/admin/studios/upload"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 whitespace-nowrap"
                 >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Studios
+                  <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Upload</span>
+                  <span className="sm:hidden">Upload</span>
                 </Link>
                 <Link
                   to="/admin/geocoding"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 whitespace-nowrap"
                 >
-                  <Globe className="w-4 h-4 mr-2" />
-                  Geocoding
+                  <Globe className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Geocoding</span>
+                  <span className="sm:hidden">Geo</span>
                 </Link>
                 <Link
                   to="/admin/content"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 whitespace-nowrap"
                 >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Content
+                  <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Content</span>
+                  <span className="sm:hidden">Content</span>
                 </Link>
                 <Link
                   to="/admin"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 whitespace-nowrap"
                 >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Dashboard
+                  <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                  <span className="sm:hidden">Dash</span>
                 </Link>
               </div>
             </div>
@@ -229,54 +240,54 @@ const AdminDashboard = () => {
       {/* Admin Navigation */}
       <div className="bg-gray-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8 overflow-x-auto">
+          <nav className="flex space-x-4 sm:space-x-6 lg:space-x-8 overflow-x-auto scrollbar-hide">
             <Link
               to="/admin/users"
-              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-3 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-200"
             >
-              <Users className="w-4 h-4 inline mr-2" />
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
               Users
             </Link>
             <Link
               to="/admin/artists"
-              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-3 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-200"
             >
-              <Palette className="w-4 h-4 inline mr-2" />
+              <Palette className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
               Artists
             </Link>
             <Link
               to="/admin/studios"
-              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-3 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-200"
             >
-              <Building className="w-4 h-4 inline mr-2" />
+              <Building className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
               Studios
             </Link>
             <Link
               to="/admin/reviews"
-              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-3 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-200"
             >
-              <Star className="w-4 h-4 inline mr-2" />
+              <Star className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
               Reviews
             </Link>
             <Link
               to="/admin/geocoding"
-              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-3 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-200"
             >
-              <Globe className="w-4 h-4 inline mr-2" />
+              <Globe className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
               Geocoding
             </Link>
             <Link
               to="/admin/content"
-              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-3 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-200"
             >
-              <FileText className="w-4 h-4 inline mr-2" />
+              <FileText className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
               Content
             </Link>
             <Link
               to="/admin/actions"
-              className="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-3 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-200"
             >
-              <Shield className="w-4 h-4 inline mr-2" />
+              <Shield className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
               Audit Log
             </Link>
           </nav>
