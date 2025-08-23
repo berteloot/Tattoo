@@ -135,14 +135,7 @@ const LinkedStudios = ({ artistId, onStudioUnlinked, refreshTrigger }) => {
                   
                   {studio.address && (
                     <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
-                      <MapPin className="h-3 w-3" />
-                      <span className="flex-1">
-                        {studio.address}
-                        {studio.city && `, ${studio.city}`}
-                        {studio.state && `, ${studio.state}`}
-                        {studio.zipCode && ` ${studio.zipCode}`}
-                      </span>
-                      {studio.latitude && studio.longitude && (
+                      {studio.latitude && studio.longitude ? (
                         <Link
                           to="/map"
                           className="text-blue-600 hover:text-blue-800 transition-colors"
@@ -150,7 +143,15 @@ const LinkedStudios = ({ artistId, onStudioUnlinked, refreshTrigger }) => {
                         >
                           <MapPin className="h-3 w-3" />
                         </Link>
+                      ) : (
+                        <MapPin className="h-3 w-3 text-gray-400" />
                       )}
+                      <span className="flex-1">
+                        {studio.address}
+                        {studio.city && `, ${studio.city}`}
+                        {studio.state && `, ${studio.state}`}
+                        {studio.zipCode && ` ${studio.zipCode}`}
+                      </span>
                     </div>
                   )}
                   

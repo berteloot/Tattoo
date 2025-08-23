@@ -649,7 +649,20 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
               <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Unavailable</h3>
               <p className="text-gray-500 mb-4">Google Maps failed to load</p>
-              <p className="text-sm text-gray-400">Domain may need to be authorized in Google Cloud Console</p>
+              <div className="text-sm text-gray-400 space-y-2">
+                <p>This is likely due to a domain authorization issue.</p>
+                <p><strong>Current domain:</strong> {window.location.hostname}</p>
+                <p><strong>Error:</strong> {googleMapsLoadError?.message || 'Unknown error'}</p>
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-yellow-800 font-medium">To fix this:</p>
+                  <ol className="text-yellow-700 text-xs mt-2 space-y-1 text-left">
+                    <li>1. Go to <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer" className="underline">Google Cloud Console</a></li>
+                    <li>2. Navigate to APIs & Services &gt; Credentials</li>
+                    <li>3. Select your Google Maps API key</li>
+                    <li>4. Add <code className="bg-yellow-100 px-1 rounded">{window.location.origin}/*</code> to HTTP referrers</li>
+                  </ol>
+                </div>
+              </div>
             </div>
           </div>
         ) : !isGoogleMapsLoaded ? (
@@ -669,7 +682,11 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                   <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                   <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Unavailable</h3>
                   <p className="text-gray-500">Showing studio list instead</p>
-                  <p className="text-xs text-gray-400 mt-2">Google Maps API key may need domain authorization</p>
+                  <div className="text-xs text-gray-400 mt-2 space-y-1">
+                    <p>Google Maps API key may need domain authorization</p>
+                    <p><strong>Current domain:</strong> {window.location.hostname}</p>
+                    <p>Add <code className="bg-gray-100 px-1 rounded">{window.location.origin}/*</code> to Google Cloud Console</p>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {(studios || []).map((studio) => (

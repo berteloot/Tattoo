@@ -249,7 +249,17 @@ const Studios = () => {
               {/* Address */}
               {(studio.address || studio.city || studio.state) && (
                 <div className="flex items-center text-sm text-gray-600 mb-4">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                  {studio.latitude && studio.longitude ? (
+                    <Link
+                      to="/map"
+                      className="mr-2 text-blue-600 hover:text-blue-800 transition-colors"
+                      title="View on map"
+                    >
+                      <MapPin className="w-4 h-4" />
+                    </Link>
+                  ) : (
+                    <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                  )}
                   <span className="flex-1">
                     {studio.address && studio.address}
                     {studio.city && studio.address && ', '}
@@ -259,15 +269,6 @@ const Studios = () => {
                     {studio.zipCode && ' '}
                     {studio.zipCode && studio.zipCode}
                   </span>
-                  {studio.latitude && studio.longitude && (
-                    <Link
-                      to="/map"
-                      className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
-                      title="View on map"
-                    >
-                      <MapPin className="w-4 h-4" />
-                    </Link>
-                  )}
                 </div>
               )}
               

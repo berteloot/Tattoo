@@ -129,20 +129,21 @@ const StudioDetail = () => {
             <div className="flex items-center space-x-4 text-gray-600">
               {studio.city && studio.state && (
                 <div className="flex items-center">
-                  <MapPin className="w-4 h-4 mr-1" />
-                  <span>
-                    {studio.city}, {studio.state}
-                    {studio.zipCode && ` ${studio.zipCode}`}
-                  </span>
-                  {studio.latitude && studio.longitude && (
+                  {studio.latitude && studio.longitude ? (
                     <Link
                       to={`/map?studio=${studio.id}`}
-                      className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                      className="text-blue-600 hover:text-blue-800 transition-colors mr-1"
                       title="View on map"
                     >
                       <MapPin className="w-4 h-4" />
                     </Link>
+                  ) : (
+                    <MapPin className="w-4 h-4 mr-1 text-gray-400" />
                   )}
+                  <span>
+                    {studio.city}, {studio.state}
+                    {studio.zipCode && ` ${studio.zipCode}`}
+                  </span>
                 </div>
               )}
               <div className="flex items-center">
