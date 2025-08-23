@@ -316,12 +316,6 @@ const AdminUserManagement = () => {
                           {user.artistProfile ? (
                             <div>
                               <div className="font-medium">{user.artistProfile.studioName || 'No Studio Name'}</div>
-                              <div className="text-gray-500">
-                                {user.artistProfile.verificationStatus === 'APPROVED' ? '✅ Verified' :
-                                 user.artistProfile.verificationStatus === 'PENDING' ? '⏳ Pending' :
-                                 user.artistProfile.verificationStatus === 'REJECTED' ? '❌ Rejected' :
-                                 user.artistProfile.verificationStatus === 'SUSPENDED' ? '🚫 Suspended' : 'Unknown'}
-                              </div>
                             </div>
                           ) : (
                             <span className="text-gray-400">No Profile</span>

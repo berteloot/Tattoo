@@ -80,8 +80,7 @@ router.get('/', optionalAuth, [
       lat,
       lng,
       radius,
-      featured,
-      verificationStatus
+      featured
     } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -138,16 +137,20 @@ router.get('/', optionalAuth, [
       where.isFeatured = true;
     }
 
-    if (verificationStatus) {
-      where.verificationStatus = verificationStatus;
-    }
-
-
-
     // Get artists with their basic info and average rating
     const artists = await prisma.artistProfile.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        bio: true,
+        studioName: true,
+        city: true,
+        state: true,
+        hourlyRate: true,
+        minPrice: true,
+        maxPrice: true,
+        isFeatured: true,
+        profilePictureUrl: true,
         user: {
           select: {
             id: true,
@@ -171,7 +174,6 @@ router.get('/', optionalAuth, [
             price: true
           }
         },
-
         messages: {
           where: {
             isActive: true,

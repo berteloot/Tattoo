@@ -294,13 +294,6 @@ export const ArtistMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                     <h3 className="text-lg font-semibold text-gray-900">
                       {artist.user?.firstName} {artist.user?.lastName}
                     </h3>
-                    {/* Only show verification badge for non-admin users */}
-                    {artist.isVerified && artist.user?.role !== 'ADMIN' && artist.user?.role !== 'ARTIST_ADMIN' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                        <Star className="w-3 h-3" />
-                        Verified
-                      </span>
-                    )}
                     {artist.isFeatured && (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
                         <Star className="w-3 h-3" />
@@ -438,12 +431,6 @@ export const ArtistMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                         </p>
                       )}
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {/* Only show verification badge for non-admin users */}
-                        {artist.isVerified && artist.user?.role !== 'ADMIN' && artist.user?.role !== 'ARTIST_ADMIN' && (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                            Verified
-                          </span>
-                        )}
                         {artist.isFeatured && (
                           <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
                             Featured
@@ -545,9 +532,9 @@ export const ArtistMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                           icon={{
                             url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
                               <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="16" cy="16" r="16" fill="${artist.isFeatured ? '#F59E0B' : artist.isVerified ? '#10B981' : '#6B7280'}"/>
+                                <circle cx="16" cy="16" r="16" fill="${artist.isFeatured ? '#F59E0B' : '#6B7280'}"/>
                                 <circle cx="16" cy="16" r="12" fill="white"/>
-                                <circle cx="16" cy="16" r="8" fill="${artist.isFeatured ? '#F59E0B' : artist.isVerified ? '#10B981' : '#6B7280'}"/>
+                                <circle cx="16" cy="16" r="8" fill="${artist.isFeatured ? '#F59E0B' : '#6B7280'}"/>
                               </svg>
                             `),
                             scaledSize: new window.google.maps.Size(32, 32),
@@ -617,12 +604,6 @@ export const ArtistMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
                       {/* Status Badges */}
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {/* Only show verification badge for non-admin users */}
-                        {selectedArtist.isVerified && selectedArtist.user?.role !== 'ADMIN' && selectedArtist.user?.role !== 'ARTIST_ADMIN' && (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                            Verified
-                          </span>
-                        )}
                         {selectedArtist.isFeatured && (
                           <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
                             Featured

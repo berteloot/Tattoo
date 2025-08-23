@@ -234,10 +234,6 @@ export const Home = () => {
                   </div>
                   <div className="card__category">
                     <span className="tag tag--blue">FEATURED</span>
-                    {/* Only show verification badge for non-admin users */}
-                    {artist.isVerified && artist.user.role !== 'ADMIN' && artist.user.role !== 'ARTIST_ADMIN' && (
-                      <span className="tag tag--yellow ml-2">VERIFIED</span>
-                    )}
                   </div>
                   <div className="card__title">
                     {artist.user.firstName} {artist.user.lastName}

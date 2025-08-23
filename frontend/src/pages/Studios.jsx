@@ -337,12 +337,6 @@ const Studios = () => {
                 </div>
                 
                 <div className="flex space-x-2">
-                  {/* Only show verification badge for non-admin users */}
-                  {studio.isVerified && studio.claimedBy?.role !== 'ADMIN' && studio.claimedBy?.role !== 'ARTIST_ADMIN' && (
-                    <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                      Verified
-                    </span>
-                  )}
                   {studio.isFeatured && (
                     <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
                       Featured
