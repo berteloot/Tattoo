@@ -21,7 +21,14 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
   const [showImageUpload, setShowImageUpload] = useState(false)
 
   // Check if user can leave a review
-  const canLeaveReview = user && (user.role === 'CLIENT' || user.role === 'ARTIST')
+  const canLeaveReview = user && (user.role === 'CLIENT' || user.role === 'ARTIST' || user.role === 'ADMIN' || user.role === 'ARTIST_ADMIN')
+
+  // Debug logging
+  console.log('ReviewForm Debug:', {
+    user: user ? { id: user.id, email: user.email, role: user.role } : null,
+    canLeaveReview,
+    artist: artist ? { id: artist.id, name: `${artist.user.firstName} ${artist.user.lastName}` } : null
+  })
 
   const handleRatingChange = (rating) => {
     setFormData(prev => ({ ...prev, rating }))
