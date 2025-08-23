@@ -131,7 +131,6 @@ const StudioDetail = () => {
                 <div className="flex items-center">
                   <MapPin className="w-4 h-4 mr-1" />
                   <span>
-                    {studio.address && `${studio.address}, `}
                     {studio.city}, {studio.state}
                     {studio.zipCode && ` ${studio.zipCode}`}
                   </span>
@@ -148,27 +147,12 @@ const StudioDetail = () => {
               )}
               <div className="flex items-center">
                 <Users className="w-4 h-4 mr-1" />
-                {studioArtists.length} artists
+                <span className="text-gray-600">{studioArtists.length} artists</span>
               </div>
             </div>
           </div>
           
           <div className="flex space-x-2">
-            {studio.verificationStatus === 'APPROVED' && (
-              <span className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">
-                Verified
-              </span>
-            )}
-            {studio.verificationStatus === 'PENDING' && (
-              <span className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-full">
-                Pending
-              </span>
-            )}
-            {studio.verificationStatus === 'REJECTED' && (
-              <span className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-full">
-                Rejected
-              </span>
-            )}
             {studio.isFeatured && (
               <span className="px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded-full">
                 Featured
@@ -236,51 +220,6 @@ const StudioDetail = () => {
                   >
                     Visit Website
                   </a>
-                </div>
-              )}
-              {studio.address && (
-                <div className="flex items-start">
-                  <MapPin className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-gray-900">{studio.address}</p>
-                    {studio.city && studio.state && (
-                      <p className="text-gray-600">{studio.city}, {studio.state} {studio.zipCode}</p>
-                    )}
-                  </div>
-                  {studio.latitude && studio.longitude && (
-                    <Link
-                      to={`/map?studio=${studio.id}&lat=${studio.latitude}&lng=${studio.longitude}`}
-                      className="ml-2 text-blue-600 hover:text-blue-800 transition-colors flex-shrink-0"
-                      title="View on map"
-                    >
-                      <MapPin className="w-5 h-5" />
-                    </Link>
-                  )}
-                </div>
-              )}
-              
-              {/* Login to Contact CTA for studios */}
-              {!isAuthenticated && studio.phoneNumber && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 text-center mt-4">
-                  <Phone className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                  <h3 className="font-medium text-blue-900 mb-1">Interested in {studio.name}?</h3>
-                  <p className="text-blue-700 text-sm mb-3">
-                    Contact the studio directly to book your appointment
-                  </p>
-                  <div className="flex gap-2 justify-center">
-                    <Link 
-                      to="/register" 
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
-                    >
-                      Sign up to contact
-                    </Link>
-                    <Link 
-                      to="/login" 
-                      className="inline-flex items-center px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm"
-                    >
-                      Login
-                    </Link>
-                  </div>
                 </div>
               )}
             </div>
@@ -366,14 +305,6 @@ const StudioDetail = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Studio Information</h3>
             <div className="space-y-3 text-sm">
-              <div>
-                <span className="text-gray-600">Status:</span>
-                <span className="ml-2 font-medium">
-                  {studio.verificationStatus === 'APPROVED' ? 'Approved' : 
-                   studio.verificationStatus === 'PENDING' ? 'Pending Verification' : 
-                   studio.verificationStatus === 'REJECTED' ? 'Rejected' : 'Unknown'}
-                </span>
-              </div>
               {studio.claimedBy && studio.claimedByUser && (
                 <div>
                   <span className="text-gray-600">Claimed by:</span>
