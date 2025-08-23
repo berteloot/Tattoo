@@ -160,11 +160,15 @@ export const ArtistProfile = () => {
   }
 
   const getServicePrice = (serviceId) => {
+    console.log('🔍 getServicePrice called with:', { serviceId, artistServices, isArray: Array.isArray(artistServices) });
+    if (!Array.isArray(artistServices)) return null;
     const artistService = artistServices.find(s => s.serviceId === serviceId)
     return artistService?.customPrice ?? null
   }
 
   const getServiceDuration = (serviceId) => {
+    console.log('🔍 getServiceDuration called with:', { serviceId, artistServices, isArray: Array.isArray(artistServices) });
+    if (!Array.isArray(artistServices)) return null;
     const artistService = artistServices.find(s => s.serviceId === serviceId)
     return artistService?.customDuration ?? null
   }
