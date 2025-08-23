@@ -44,7 +44,7 @@ export const Home = () => {
   const getDummyFeaturedArtists = () => [
     {
       id: '1',
-      user: { firstName: 'Sarah', lastName: 'Chen' },
+      user: { firstName: 'Sarah', lastName: 'Chen', role: 'ARTIST' },
       studioName: 'Ink & Soul Studio',
       bio: 'Award-winning traditional tattoo artist with 8 years of experience.',
       city: 'Tokyo',
@@ -53,11 +53,12 @@ export const Home = () => {
       reviewCount: 327,
       specialties: [{ name: 'Traditional' }, { name: 'Japanese' }],
       isVerified: true,
-      featured: true
+      featured: true,
+      profilePictureUrl: 'https://via.placeholder.com/150'
     },
     {
       id: '2',
-      user: { firstName: 'Marcus', lastName: 'Rodriguez' },
+      user: { firstName: 'Marcus', lastName: 'Rodriguez', role: 'ARTIST' },
       studioName: 'Black Canvas Tattoo',
       bio: 'Master of black and grey realism. Creating stunning portraits.',
       city: 'Los Angeles',
@@ -66,11 +67,12 @@ export const Home = () => {
       reviewCount: 289,
       specialties: [{ name: 'Black & Grey' }],
       isVerified: true,
-      featured: true
+      featured: true,
+      profilePictureUrl: 'https://via.placeholder.com/150'
     },
     {
       id: '3',
-      user: { firstName: 'Emma', lastName: 'Thompson' },
+      user: { firstName: 'Emma', lastName: 'Thompson', role: 'ARTIST' },
       studioName: 'Simple Lines Studio',
       bio: 'Minimalist tattoo specialist creating elegant, simple designs.',
       city: 'London',
@@ -79,7 +81,8 @@ export const Home = () => {
       reviewCount: 456,
       specialties: [{ name: 'Minimalist' }, { name: 'Neo-Traditional' }],
       isVerified: true,
-      featured: true
+      featured: true,
+      profilePictureUrl: 'https://via.placeholder.com/150'
     }
   ]
 
@@ -219,11 +222,20 @@ export const Home = () => {
               {featuredArtists.map((artist) => (
                 <div key={artist.id} className="card group">
                   <div className="card__media bg-gray-100 flex items-center justify-center">
-                    <Users className="w-16 h-16 text-gray-400" />
+                    {artist.profilePictureUrl ? (
+                      <img
+                        src={artist.profilePictureUrl}
+                        alt={`${artist.user.firstName} ${artist.user.lastName}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Users className="w-16 h-16 text-gray-400" />
+                    )}
                   </div>
                   <div className="card__category">
                     <span className="tag tag--blue">FEATURED</span>
-                    {artist.isVerified && (
+                    {/* Only show verification badge for non-admin users */}
+                    {artist.isVerified && artist.user.role !== 'ADMIN' && artist.user.role !== 'ARTIST_ADMIN' && (
                       <span className="tag tag--yellow ml-2">VERIFIED</span>
                     )}
                   </div>

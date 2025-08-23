@@ -72,7 +72,7 @@ export const Artists = () => {
   const getDummyArtists = () => [
     {
       id: '1',
-      user: { firstName: 'Sarah', lastName: 'Chen' },
+      user: { firstName: 'Sarah', lastName: 'Chen', role: 'ARTIST' },
       studioName: 'Ink & Soul Studio',
       bio: 'Award-winning traditional tattoo artist with 8 years of experience. Specializing in classic American traditional and Japanese styles.',
       city: 'Tokyo',
@@ -83,11 +83,12 @@ export const Artists = () => {
       specialties: [{ id: '1', name: 'Traditional' }, { id: '2', name: 'Japanese' }],
       isVerified: true,
       featured: true,
-      portfolioCount: 145
+      portfolioCount: 145,
+      profilePictureUrl: 'https://via.placeholder.com/150'
     },
     {
       id: '2',
-      user: { firstName: 'Marcus', lastName: 'Rodriguez' },
+      user: { firstName: 'Marcus', lastName: 'Rodriguez', role: 'ARTIST' },
       studioName: 'Black Canvas Tattoo',
       bio: 'Master of black and grey realism. Creating stunning portraits and detailed artwork that tells your story.',
       city: 'Los Angeles',
@@ -98,11 +99,12 @@ export const Artists = () => {
       specialties: [{ id: '3', name: 'Black & Grey' }, { id: '4', name: 'Realistic' }],
       isVerified: true,
       featured: true,
-      portfolioCount: 89
+      portfolioCount: 89,
+      profilePictureUrl: 'https://via.placeholder.com/150'
     },
     {
       id: '3',
-      user: { firstName: 'Emma', lastName: 'Thompson' },
+      user: { firstName: 'Emma', lastName: 'Thompson', role: 'ARTIST' },
       studioName: 'Simple Lines Studio',
       bio: 'Minimalist tattoo specialist creating elegant, simple designs that speak volumes through simplicity.',
       city: 'London',
@@ -113,7 +115,8 @@ export const Artists = () => {
       specialties: [{ id: '5', name: 'Minimalist' }, { id: '6', name: 'Neo-Traditional' }],
       isVerified: true,
       featured: false,
-      portfolioCount: 234
+      portfolioCount: 234,
+      profilePictureUrl: 'https://via.placeholder.com/150'
     }
   ]
 
@@ -308,12 +311,23 @@ export const Artists = () => {
               {sortedArtists.map((artist) => (
                 <div key={artist.id} className={`card group ${viewMode === 'list' ? 'flex-row' : ''}`}>
                   <div className={`card__media bg-gray-100 flex items-center justify-center ${viewMode === 'list' ? 'w-32 h-32 flex-shrink-0' : ''}`}>
-                    <Users className="w-16 h-16 text-gray-400" />
+                    {artist.profilePictureUrl ? (
+                      <img
+                        src={artist.profilePictureUrl}
+                        alt={`${artist.user.firstName} ${artist.user.lastName}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Users className="w-16 h-16 text-gray-400" />
+                    )}
                   </div>
                   <div className="flex-1">
                     <div className="card__category">
                       {artist.featured && <span className="tag tag--yellow">FEATURED</span>}
-                      {artist.isVerified && <span className="tag tag--blue ml-2">VERIFIED</span>}
+                      {/* Only show verification badge for non-admin users */}
+                      {artist.isVerified && artist.user.role !== 'ADMIN' && artist.user.role !== 'ARTIST_ADMIN' && (
+                        <span className="tag tag--blue ml-2">VERIFIED</span>
+                      )}
                     </div>
                     <div className="card__title">
                       {artist.user.firstName} {artist.user.lastName}

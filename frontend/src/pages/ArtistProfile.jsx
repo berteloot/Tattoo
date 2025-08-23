@@ -279,7 +279,7 @@ export const ArtistProfile = () => {
                   alt={`${artist.user.firstName} ${artist.user.lastName}`}
                   className="w-24 h-24 lg:w-32 lg:h-32 rounded-full object-cover border-4 border-white shadow-lg"
                 />
-                {artist.isVerified && (
+                {artist.isVerified && artist.user.role !== 'ADMIN' && artist.user.role !== 'ARTIST_ADMIN' && (
                   <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-1 rounded-full">
                     <CheckCircle className="w-5 h-5" />
                   </div>
@@ -290,7 +290,7 @@ export const ArtistProfile = () => {
                   <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
                     {artist.user.firstName} {artist.user.lastName}
                   </h1>
-                  {artist.isVerified && (
+                  {artist.isVerified && artist.user.role !== 'ADMIN' && artist.user.role !== 'ARTIST_ADMIN' && (
                     <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Verified

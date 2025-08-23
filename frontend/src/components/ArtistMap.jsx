@@ -294,7 +294,8 @@ export const ArtistMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                     <h3 className="text-lg font-semibold text-gray-900">
                       {artist.user?.firstName} {artist.user?.lastName}
                     </h3>
-                    {artist.isVerified && (
+                    {/* Only show verification badge for non-admin users */}
+                    {artist.isVerified && artist.user?.role !== 'ADMIN' && artist.user?.role !== 'ARTIST_ADMIN' && (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
                         <Star className="w-3 h-3" />
                         Verified
@@ -437,7 +438,8 @@ export const ArtistMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                         </p>
                       )}
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {artist.isVerified && (
+                        {/* Only show verification badge for non-admin users */}
+                        {artist.isVerified && artist.user?.role !== 'ADMIN' && artist.user?.role !== 'ARTIST_ADMIN' && (
                           <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
                             Verified
                           </span>
@@ -615,7 +617,8 @@ export const ArtistMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
                       {/* Status Badges */}
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {selectedArtist.isVerified && (
+                        {/* Only show verification badge for non-admin users */}
+                        {selectedArtist.isVerified && selectedArtist.user?.role !== 'ADMIN' && selectedArtist.user?.role !== 'ARTIST_ADMIN' && (
                           <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
                             Verified
                           </span>

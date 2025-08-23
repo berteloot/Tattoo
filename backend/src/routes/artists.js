@@ -854,6 +854,16 @@ router.post('/', protect, authorize('ARTIST', 'ARTIST_ADMIN'), validateArtistPro
     });
     
     const profileData = createArtistProfileData(processedData, req.user.id);
+    
+    // Auto-verify ADMIN and ARTIST_ADMIN users
+    if (req.user.role === 'ADMIN' || req.user.role === 'ARTIST_ADMIN') {
+      profileData.verificationStatus = 'APPROVED';
+      profileData.isVerified = true;
+      profileData.verifiedAt = new Date();
+      profileData.verifiedBy = req.user.id;
+      console.log(`🔓 Auto-verifying ${req.user.role} user: ${req.user.email}`);
+    }
+    
     console.log('✅ Profile data created:', Object.keys(profileData));
 
     const artistProfile = await prisma.artistProfile.create({
@@ -982,6 +992,16 @@ router.put('/:id', protect, validateArtistProfile(true), async (req, res) => {
     
     // Create the update data object (without studioId)
     const updateData = updateArtistProfileData(processedData);
+
+    // Auto-verify ADMIN and ARTIST_ADMIN users if they're not already verified
+    if ((req.user.role === 'ADMIN' || req.user.role === 'ARTIST_ADMIN') && 
+        (!existingProfile.isVerified || existingProfile.verificationStatus !== 'APPROVED')) {
+      updateData.verificationStatus = 'APPROVED';
+      updateData.isVerified = true;
+      updateData.verifiedAt = new Date();
+      updateData.verifiedBy = req.user.id;
+      console.log(`🔓 Auto-verifying ${req.user.role} user profile update: ${req.user.email}`);
+    }
 
     const updatedProfile = await prisma.artistProfile.update({
       where: { id },
