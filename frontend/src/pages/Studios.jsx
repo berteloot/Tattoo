@@ -239,7 +239,20 @@ const Studios = () => {
 
       {/* Studios Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {studios.map((studio) => (
+        {studios.map((studio) => {
+          // Debug: Log first studio to see structure
+          if (studio.id === studios[0]?.id) {
+            console.log('🔍 First studio data:', {
+              id: studio.id,
+              title: studio.title,
+              latitude: studio.latitude,
+              longitude: studio.longitude,
+              hasCoordinates: studio.hasCoordinates,
+              typeLat: typeof studio.latitude,
+              typeLng: typeof studio.longitude
+            });
+          }
+          return (
           <div key={studio.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
             <div className="p-6 flex-1 flex flex-col">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -249,17 +262,22 @@ const Studios = () => {
               {/* Address */}
               {(studio.address || studio.city || studio.state) && (
                 <div className="flex items-center text-sm text-gray-600 mb-4">
-                  {studio.latitude && studio.longitude ? (
-                    <Link
-                      to="/map"
-                      className="mr-2 text-blue-600 hover:text-blue-800 transition-colors"
-                      title="View on map"
-                    >
-                      <MapPin className="w-4 h-4" />
-                    </Link>
-                  ) : (
-                    <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                  {/* Debug info - remove this after fixing */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <div className="text-xs text-red-500 mr-2">
+                      Lat: {studio.latitude || 'null'}, Lng: {studio.longitude || 'null'}
+                    </div>
                   )}
+                  
+                  {/* Always show clickable map pin for now */}
+                  <Link
+                    to="/map"
+                    className="mr-2 text-blue-600 hover:text-blue-800 transition-colors"
+                    title="View on map"
+                  >
+                    <MapPin className="w-4 h-4" />
+                  </Link>
+                  
                   <span className="flex-1">
                     {studio.address && studio.address}
                     {studio.city && studio.address && ', '}
@@ -398,7 +416,8 @@ const Studios = () => {
               </div>
             </div>
           </div>
-        ))}
+        );
+        })}
       </div>
 
       {/* Pagination */}
