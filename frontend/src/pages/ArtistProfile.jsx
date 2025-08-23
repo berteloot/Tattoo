@@ -51,6 +51,39 @@ export const ArtistProfile = () => {
   const [allServices, setAllServices] = useState([])
   const [artistServices, setArtistServices] = useState([])
 
+  // Helper function for fallback data - moved to top to fix hoisting issue
+  const getDummyArtist = (id) => ({
+    id,
+    user: {
+      id: 'dummy',
+      firstName: 'Sample',
+      lastName: 'Artist',
+      email: 'sample@example.com',
+      phone: '+1 (555) 123-4567'
+    },
+    bio: 'This is a sample artist profile. The actual data is being loaded.',
+    studioName: 'Sample Studio',
+    address: '123 Sample St',
+    city: 'Sample City',
+    state: 'Sample State',
+    zipCode: '12345',
+    country: 'Sample Country',
+    hourlyRate: 100,
+    minPrice: 80,
+    maxPrice: 500,
+    isVerified: true,
+    isFeatured: false,
+    flash: [],
+    gallery: [],
+    specialties: [],
+    services: [],
+    messages: [],
+    _count: {
+      flash: 0,
+      gallery: 0
+    }
+  })
+
   useEffect(() => {
     // Check API health first
     checkApiHealth().then(() => {
@@ -65,7 +98,7 @@ export const ArtistProfile = () => {
     try {
       // Track the profile view
       await api.post(`/artists/${id}/view`)
-      console.log('📊 Profile view tracked successfully')
+      console.log('Profile view tracked successfully')
     } catch (error) {
       console.error('Failed to track profile view:', error)
       // Don't show error to user, just log it
@@ -209,39 +242,6 @@ export const ArtistProfile = () => {
       </div>
     )
   }
-
-  // Helper function for fallback data
-  const getDummyArtist = (id) => ({
-    id,
-    user: {
-      id: 'dummy',
-      firstName: 'Sample',
-      lastName: 'Artist',
-      email: 'sample@example.com',
-      phone: '+1 (555) 123-4567'
-    },
-    bio: 'This is a sample artist profile. The actual data is being loaded.',
-    studioName: 'Sample Studio',
-    address: '123 Sample St',
-    city: 'Sample City',
-    state: 'Sample State',
-    zipCode: '12345',
-    country: 'Sample Country',
-    hourlyRate: 100,
-    minPrice: 80,
-    maxPrice: 500,
-    isVerified: true,
-    isFeatured: false,
-    flash: [],
-    gallery: [],
-    specialties: [],
-    services: [],
-    messages: [],
-    _count: {
-      flash: 0,
-      gallery: 0
-    }
-  })
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -438,7 +438,7 @@ export const ArtistProfile = () => {
                           <div className="flex items-center gap-1 text-gray-600">
                             <DollarSign className="w-4 h-4" />
                             <span className="font-semibold text-gray-900">
-                              {customPrice !== null ? (customPrice === 0 ? 'Free' : `$${customPrice}`) : `$${service.price || 'N/A'}`}
+                              {customPrice !== null ? (customPrice === 0 ? 'Free' : `${customPrice}`) : `${service.price || 'N/A'}`}
                             </span>
                           </div>
                           <div className="flex items-center gap-1 text-gray-600">
