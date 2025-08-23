@@ -178,7 +178,7 @@ export const Home = () => {
               </div>
               <h3>VERIFIED EXCELLENCE</h3>
               <p className="small">
-                Every artist is verified. Read 50,000+ authentic reviews from real clients worldwide.
+                Read authentic reviews from real clients worldwide.
               </p>
             </div>
             <div className="text-center md:col-span-2 lg:col-span-1">
