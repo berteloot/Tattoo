@@ -57,6 +57,10 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    console.log('ReviewForm: Starting submission with data:', formData)
+    console.log('ReviewForm: User info:', { id: user.id, email: user.email, role: user.role })
+    console.log('ReviewForm: Artist info:', { id: artist.user.id, name: `${artist.user.firstName} ${artist.user.lastName}` })
+    
     if (!formData.rating) {
       showError('Please select a rating')
       return
@@ -78,7 +82,11 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
         images: formData.images
       }
 
+      console.log('ReviewForm: Submitting review data:', reviewData)
+      
       const response = await reviewsAPI.create(reviewData)
+      
+      console.log('ReviewForm: API response:', response)
       
       if (response.data.success) {
         // Check if review was flagged for moderation
@@ -93,7 +101,11 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
         showError(response.data.error || 'Failed to submit review')
       }
     } catch (err) {
-      console.error('Review submission error:', err)
+      console.error('ReviewForm: Review submission error:', err)
+      console.error('ReviewForm: Error response:', err.response)
+      console.error('ReviewForm: Error status:', err.response?.status)
+      console.error('ReviewForm: Error data:', err.response?.data)
+      
       if (err.response?.status === 429) {
         showError('Rate limit exceeded. You can only submit 3 reviews per 24 hours.')
       } else {
