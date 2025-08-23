@@ -336,11 +336,76 @@ export const ArtistProfile = () => {
         </div>
       </div>
 
+      {/* Studio Information - Moved to top for better visibility */}
+      {studios && studios.length > 0 && (
+        <div className="bg-white border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Studio Information</h2>
+              <div className="space-y-4">
+                {studios.map((studioArtist) => {
+                  const studio = studioArtist.studio;
+                  return (
+                    <div key={studioArtist.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-medium text-gray-900">{studio.title}</h3>
+                            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                              {studioArtist.role}
+                            </span>
+                          </div>
+                          
+                          {studio.address && (
+                            <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+                              <MapPin className="h-3 w-3" />
+                              <span className="flex-1">
+                                {studio.address}
+                                {studio.city && `, ${studio.city}`}
+                                {studio.state && `, ${studio.state}`}
+                              </span>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>Joined {new Date(studioArtist.joinedAt).toLocaleDateString()}</span>
+                            </div>
+                            
+                            {studio.isVerified && (
+                              <span className="text-green-600 font-medium">✓ Verified</span>
+                            )}
+                            
+                            {studio.isFeatured && (
+                              <span className="text-blue-600 font-medium">★ Featured</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <Link
+                          to={`/studios/${studio.id}`}
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        >
+                          View Studio Details →
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-          {/* Main Content Area */}
-          <div className="xl:col-span-3 space-y-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {/* Left Column - Main Content */}
+          <div className="xl:col-span-2 space-y-6">
             {/* Artist Messages */}
             {artist.messages && artist.messages.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm p-6">
@@ -480,67 +545,6 @@ export const ArtistProfile = () => {
               </div>
             )}
 
-            {/* Studio Information */}
-            {studios && studios.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Studio Information</h2>
-                <div className="space-y-4">
-                  {studios.map((studioArtist) => {
-                    const studio = studioArtist.studio;
-                    return (
-                      <div key={studioArtist.id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-medium text-gray-900">{studio.title}</h3>
-                              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                                {studioArtist.role}
-                              </span>
-                            </div>
-                            
-                            {studio.address && (
-                              <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
-                                <MapPin className="h-3 w-3" />
-                                <span className="flex-1">
-                                  {studio.address}
-                                  {studio.city && `, ${studio.city}`}
-                                  {studio.state && `, ${studio.state}`}
-                                </span>
-                              </div>
-                            )}
-                            
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                <span>Joined {new Date(studioArtist.joinedAt).toLocaleDateString()}</span>
-                              </div>
-                              
-                              {studio.isVerified && (
-                                <span className="text-green-600 font-medium">✓ Verified</span>
-                              )}
-                              
-                              {studio.isFeatured && (
-                                <span className="text-blue-600 font-medium">★ Featured</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-3 pt-3 border-t border-gray-100">
-                          <Link
-                            to={`/studios/${studio.id}`}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                          >
-                            View Studio Details →
-                          </Link>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Reviews */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
@@ -594,7 +598,7 @@ export const ArtistProfile = () => {
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Right Column - Sidebar */}
           <div className="xl:col-span-1 space-y-6">
             {/* Contact Information */}
             <div className="bg-white rounded-xl shadow-sm p-6">
