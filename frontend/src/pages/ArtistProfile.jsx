@@ -35,6 +35,7 @@ import ProtectedEmail from '../components/ProtectedEmail'
 import { ArtistMessages } from '../components/ArtistMessage'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
+import SignupPromptModal from '../components/SignupPromptModal'
 
 export const ArtistProfile = () => {
   const { id } = useParams()
@@ -48,6 +49,8 @@ export const ArtistProfile = () => {
   const [error, setError] = useState(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false)
+  const [signupPromptType, setSignupPromptType] = useState('contact')
   const [allServices, setAllServices] = useState([])
   const [artistServices, setArtistServices] = useState([])
 
@@ -307,23 +310,53 @@ export const ArtistProfile = () => {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 ml-auto">
               {artist.calendlyUrl ? (
-                <a
-                  href={artist.calendlyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Book Consultation
-                </a>
+                <>
+                  {isAuthenticated ? (
+                    <a
+                      href={artist.calendlyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Book Consultation
+                    </a>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        setSignupPromptType('calendly');
+                        setShowSignupPrompt(true);
+                      }}
+                      className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Book Consultation
+                    </button>
+                  )}
+                </>
               ) : (
-                <button 
-                  onClick={() => setShowContactModal(true)}
-                  className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Contact Artist
-                </button>
+                <>
+                  {isAuthenticated ? (
+                    <button 
+                      onClick={() => setShowContactModal(true)}
+                      className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Contact Artist
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        setSignupPromptType('contact');
+                        setShowSignupPrompt(true);
+                      }}
+                      className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Contact Artist
+                    </button>
+                  )}
+                </>
               )}
               
               {/* Dashboard Link for Artist Viewing Own Profile */}
@@ -758,15 +791,28 @@ export const ArtistProfile = () => {
                     </div>
                     <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="text-sm font-medium text-gray-500">Website</p>
-                      <a
-                        href={artist.website.startsWith('http') ? artist.website : `https://${artist.website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
-                      >
-                        <span className="truncate">{artist.website.replace(/^https?:\/\//, '')}</span>
-                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
-                      </a>
+                      {isAuthenticated ? (
+                        <a
+                          href={artist.website.startsWith('http') ? artist.website : `https://${artist.website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
+                        >
+                          <span className="truncate">{artist.website.replace(/^https?:\/\//, '')}</span>
+                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setSignupPromptType('website');
+                            setShowSignupPrompt(true);
+                          }}
+                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
+                        >
+                          <span className="truncate">{artist.website.replace(/^https?:\/\//, '')}</span>
+                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -779,15 +825,28 @@ export const ArtistProfile = () => {
                     </div>
                     <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="text-sm font-medium text-gray-500">Instagram</p>
-                      <a
-                        href={`https://instagram.com/${artist.instagram.replace('@', '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
-                      >
-                        <span className="truncate">{artist.instagram}</span>
-                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
-                      </a>
+                      {isAuthenticated ? (
+                        <a
+                          href={`https://instagram.com/${artist.instagram.replace('@', '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
+                        >
+                          <span className="truncate">{artist.instagram}</span>
+                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setSignupPromptType('social');
+                            setShowSignupPrompt(true);
+                          }}
+                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
+                        >
+                          <span className="truncate">{artist.instagram}</span>
+                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -800,15 +859,28 @@ export const ArtistProfile = () => {
                     </div>
                     <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="text-sm font-medium text-gray-500">Facebook</p>
-                      <a
-                        href={artist.facebook.startsWith('http') ? artist.facebook : `https://facebook.com/${artist.facebook}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
-                      >
-                        <span className="truncate">{artist.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}</span>
-                        <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
-                      </a>
+                      {isAuthenticated ? (
+                        <a
+                          href={artist.facebook.startsWith('http') ? artist.facebook : `https://facebook.com/${artist.facebook}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
+                        >
+                          <span className="truncate">{artist.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}</span>
+                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setSignupPromptType('social');
+                            setShowSignupPrompt(true);
+                          }}
+                          className="text-gray-900 font-medium hover:text-blue-600 transition-colors break-all block flex items-center"
+                        >
+                          <span className="truncate">{artist.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}</span>
+                          <ExternalLink className="w-3 h-3 ml-1 flex-shrink-0" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -845,12 +917,15 @@ export const ArtistProfile = () => {
                             <p className="text-xs text-green-700 break-words">Schedule directly with {artist.user.firstName}</p>
                           </div>
                         </div>
-                        <Link 
-                          to="/register" 
+                        <button 
+                          onClick={() => {
+                            setSignupPromptType('calendly');
+                            setShowSignupPrompt(true);
+                          }}
                           className="text-green-600 hover:text-green-800 font-medium text-sm px-3 py-1 rounded-md border border-green-300 hover:bg-green-100 transition-colors flex-shrink-0 ml-2"
                         >
                           Sign up to book
-                        </Link>
+                        </button>
                       </div>
                     )}
                   </>
@@ -945,6 +1020,13 @@ export const ArtistProfile = () => {
         onSuccess={() => {
           showSuccessToast('Message sent successfully!', `Your message has been sent to ${artist.user.firstName}. They will get back to you soon.`)
         }}
+      />
+
+      {/* Signup Prompt Modal */}
+      <SignupPromptModal
+        isOpen={showSignupPrompt}
+        onClose={() => setShowSignupPrompt(false)}
+        featureType={signupPromptType}
       />
     </div>
   )

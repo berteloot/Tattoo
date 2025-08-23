@@ -6,6 +6,12 @@ import { Link } from 'react-router-dom'
 import { useToast } from '../contexts/ToastContext'
 import { useGoogleMaps } from '../contexts/GoogleMapsContext'
 import GoogleMapsErrorBoundary from './GoogleMapsErrorBoundary'
+import { useAuth } from '../contexts/AuthContext'
+import { api } from '../services/api'
+import { MapPin, Star, Phone, Mail, ExternalLink, Eye, MessageCircle, Calendar } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ContactEmailModal } from './ContactEmailModal'
+import SignupPromptModal from './SignupPromptModal'
 
 const mapContainerStyle = {
   width: '100%',
@@ -22,14 +28,17 @@ export const ArtistMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   const [selectedArtist, setSelectedArtist] = useState(null)
   const [loading, setLoading] = useState(true)
   const [searching, setSearching] = useState(false)
+  const [showMessageForm, setShowMessageForm] = useState(false)
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false)
+  const [signupPromptType, setSignupPromptType] = useState('contact')
   const [mapError, setMapError] = useState(false)
   const [mapCenter, setMapCenter] = useState(center)
   const [mapZoom, setMapZoom] = useState(10)
-  const [showMessageForm, setShowMessageForm] = useState(false)
   const [viewMode, setViewMode] = useState('map') // 'map' or 'list'
   const mapRef = useRef(null)
   const { error: showError } = useToast()
   const { isLoaded: isGoogleMapsLoaded, loadError: googleMapsLoadError, hasApiKey } = useGoogleMaps()
+  const { user, isAuthenticated } = useAuth()
 
   // Memoize the search parameters to prevent unnecessary re-renders
   const searchParams = useMemo(() => ({
@@ -592,12 +601,24 @@ export const ArtistMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                         {selectedArtist.email && (
                           <div className="flex items-center space-x-1">
                             <Mail className="w-3 h-3 text-gray-500" />
-                            <button
-                              onClick={() => setShowMessageForm(true)}
-                              className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
-                            >
-                              Send Message
-                            </button>
+                            {isAuthenticated ? (
+                              <button
+                                onClick={() => setShowMessageForm(true)}
+                                className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                              >
+                                Send Message
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setSignupPromptType('contact');
+                                  setShowSignupPrompt(true);
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                              >
+                                Send Message
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -640,6 +661,13 @@ export const ArtistMap = ({ searchTerm = '', filterVerified = false, filterFeatu
           </GoogleMapsErrorBoundary>
         )
       )}
+      
+      {/* Signup Prompt Modal */}
+      <SignupPromptModal
+        isOpen={showSignupPrompt}
+        onClose={() => setShowSignupPrompt(false)}
+        featureType={signupPromptType}
+      />
     </div>
   )
 } 

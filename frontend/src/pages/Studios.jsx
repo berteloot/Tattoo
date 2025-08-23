@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import ProtectedEmail from '../components/ProtectedEmail';
+import SignupPromptModal from '../components/SignupPromptModal';
 
 const Studios = () => {
   const [studios, setStudios] = useState([]);
@@ -12,9 +13,11 @@ const Studios = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterVerified, setFilterVerified] = useState(false);
   const [filterFeatured, setFilterFeatured] = useState(false);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+  const [signupPromptType, setSignupPromptType] = useState('social');
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 50,
+    limit: 12,
     total: 0,
     pages: 0
   });
@@ -310,21 +313,51 @@ const Studios = () => {
               {/* Social Media */}
               <div className="flex space-x-3 mb-4">
                 {studio.website && (
-                  <a
-                    href={studio.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800"
-                    title="Visit website"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
+                  <>
+                    {isAuthenticated ? (
+                      <a
+                        href={studio.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Visit website"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSignupPromptType('website');
+                          setShowSignupPrompt(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Visit website (requires signup)"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
+                    )}
+                  </>
                 )}
-                {getSocialIcon('facebook', studio.facebookUrl)}
-                {getSocialIcon('instagram', studio.instagramUrl)}
-                {getSocialIcon('twitter', studio.twitterUrl)}
-                {getSocialIcon('linkedin', studio.linkedinUrl)}
-                {getSocialIcon('youtube', studio.youtubeUrl)}
+                {isAuthenticated ? (
+                  <>
+                    {getSocialIcon('facebook', studio.facebookUrl)}
+                    {getSocialIcon('instagram', studio.instagramUrl)}
+                    {getSocialIcon('twitter', studio.twitterUrl)}
+                    {getSocialIcon('linkedin', studio.linkedinUrl)}
+                    {getSocialIcon('youtube', studio.youtubeUrl)}
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setSignupPromptType('social');
+                      setShowSignupPrompt(true);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    title="View social media (requires signup)"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </button>
+                )}
               </div>
 
               {/* Status & Artists */}
@@ -375,12 +408,13 @@ const Studios = () => {
 
       {/* Pagination */}
       <Pagination />
-
-      {studios.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No studios found matching your criteria.</p>
-        </div>
-      )}
+      
+      {/* Signup Prompt Modal */}
+      <SignupPromptModal
+        isOpen={showSignupPrompt}
+        onClose={() => setShowSignupPrompt(false)}
+        featureType={signupPromptType}
+      />
     </div>
   );
 };
