@@ -5,7 +5,6 @@ import { useSearchParams } from 'react-router-dom'
 
 const Map = () => {
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterVerified, setFilterVerified] = useState(false)
   const [filterFeatured, setFilterFeatured] = useState(false)
   const [focusStudioId, setFocusStudioId] = useState(null)
   const [focusCoordinates, setFocusCoordinates] = useState(null)
@@ -46,7 +45,6 @@ const Map = () => {
   useEffect(() => {
     const handleClearSearch = () => {
       setSearchTerm('')
-      setFilterVerified(false)
       setFilterFeatured(false)
       setFocusStudioId(null)
       setFocusCoordinates(null)
@@ -63,7 +61,7 @@ const Map = () => {
     setFocusCoordinates(null)
     // Search is handled automatically by the StudioMap component
     console.log('Searching for:', searchTerm)
-    console.log('Filters:', { verified: filterVerified, featured: filterFeatured })
+    console.log('Filters:', { featured: filterFeatured })
   }
 
   // Geocode a city to get coordinates for focusing
@@ -149,16 +147,6 @@ const Map = () => {
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        checked={filterVerified}
-                        onChange={(e) => setFilterVerified(e.target.checked)}
-                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                      />
-                      <span className="text-sm text-gray-700">Verified Only</span>
-                    </label>
-                    
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
                         checked={filterFeatured}
                         onChange={(e) => setFilterFeatured(e.target.checked)}
                         className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
@@ -186,7 +174,6 @@ const Map = () => {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <StudioMap 
             searchTerm={searchTerm} 
-            filterVerified={filterVerified} 
             filterFeatured={filterFeatured} 
             focusStudioId={focusStudioId}
             focusCoordinates={focusCoordinates}
@@ -200,7 +187,6 @@ const Map = () => {
             <h3 className="text-lg font-semibold text-blue-900 mb-2">🔍 Search Results</h3>
             <p className="text-blue-800">
               Showing studios matching "<strong>{searchTerm}</strong>"
-              {filterVerified && " (Verified only)"}
               {filterFeatured && " (Featured only)"}
             </p>
             <p className="text-sm text-blue-700 mt-1">
@@ -237,7 +223,7 @@ const Map = () => {
           <h3 className="text-lg font-semibold text-blue-900 mb-2">💡 Tips</h3>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• <strong>Search:</strong> Type studio name, city, or address to find specific studios</li>
-            <li>• <strong>Filters:</strong> Use checkboxes to show only verified or featured studios</li>
+            <li>• <strong>Filters:</strong> Use the checkbox to show only featured studios</li>
             <li>• <strong>Map Navigation:</strong> Click on any studio marker to see details and get directions</li>
             <li>• <strong>Directions:</strong> Use the "Get Directions" feature to find the best route</li>
             <li>• <strong>Studio Focus:</strong> Click the map pin on a studio page to focus on that studio</li>

@@ -20,7 +20,7 @@ const center = {
   lng: -73.5673
 }
 
-export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatured = false, focusStudioId = null, focusCoordinates = null, cityFocusCoordinates = null }) => {
+export const StudioMap = ({ searchTerm = '', filterFeatured = false, focusStudioId = null, focusCoordinates = null, cityFocusCoordinates = null }) => {
   const [studios, setStudios] = useState([])
   const [selectedStudio, setSelectedStudio] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -49,10 +49,9 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
   // Memoize the search parameters to prevent unnecessary re-renders
   const searchParams = useMemo(() => ({
     searchTerm,
-    filterVerified,
     filterFeatured,
     focusStudioId
-  }), [searchTerm, filterVerified, filterFeatured, focusStudioId])
+  }), [searchTerm, filterFeatured, focusStudioId])
 
   // Error boundary for component crashes
   if (componentError) {
@@ -171,7 +170,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
 
   useEffect(() => {
     fetchStudios()
-  }, [filterVerified, filterFeatured, focusStudioId])
+  }, [filterFeatured, focusStudioId])
 
   // Debounced search effect
   useEffect(() => {
@@ -224,7 +223,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       // Build query parameters
       const params = new URLSearchParams()
       if (searchTerm) params.append('search', searchTerm)
-      if (filterVerified) params.append('verified', 'true')
+  
       if (filterFeatured) params.append('featured', 'true')
       params.append('all', 'true')
 
@@ -478,11 +477,7 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
                     "{searchTerm}"
                   </span>
                 )}
-                {filterVerified && (
-                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                    Verified Only
-                  </span>
-                )}
+
                 {filterFeatured && (
                   <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded">
                     Featured Only
@@ -520,11 +515,10 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
               <div className="text-sm text-gray-500">
                 {studios.length} studio{studios.length !== 1 ? 's' : ''} found
               </div>
-              {(searchTerm || filterVerified || filterFeatured) && (
+              {(searchTerm || filterFeatured) && (
                 <button
                   onClick={() => {
                     setSearchTerm('')
-                    setFilterVerified(false)
                     setFilterFeatured(false)
                   }}
                   className="text-sm text-gray-500 hover:text-gray-700"
