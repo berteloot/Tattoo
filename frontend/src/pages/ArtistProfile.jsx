@@ -189,6 +189,8 @@ export const ArtistProfile = () => {
       } else {
         console.log('Using API artist profile data')
         console.log('Artist data:', artistResult.data.data.artist)
+        console.log('Artist services:', artistResult.data.data.artist?.services)
+        console.log('Artist services count:', artistResult.data.data.artist?.services?.length)
         console.log('Flash items:', artistResult.data.data.artist?.flash)
         console.log('Flash count:', artistResult.data.data.artist?._count?.flash)
         console.log('Gallery items:', artistResult.data.data.artist?.gallery)
@@ -921,6 +923,14 @@ export const ArtistProfile = () => {
               {Array.isArray(allServices) && allServices.length > 0 && (
                 <div>
                   <h3 className="text-md font-medium text-gray-900 mb-3">Available Services</h3>
+                  {/* Debug info */}
+                  <div className="mb-4 p-3 bg-gray-100 rounded text-xs">
+                    <p><strong>Debug Info:</strong></p>
+                    <p>All Services Count: {allServices.length}</p>
+                    <p>Artist Services Count: {artist?.services?.length || 0}</p>
+                    <p>Artist Services: {JSON.stringify(artist?.services?.map(s => ({ id: s.id, name: s.name })) || [])}</p>
+                    <p>Artist Services Data: {JSON.stringify(artistServices.map(s => ({ serviceId: s.serviceId, customPrice: s.customPrice, customDuration: s.customDuration })) || [])}</p>
+                  </div>
                   <div className="space-y-3">
                     {allServices.map((service) => {
                       if (!service?.id) return null;
