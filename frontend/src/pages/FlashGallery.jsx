@@ -225,6 +225,25 @@ export const FlashGallery = () => {
       createdAt: '2023-12-28T10:45:00Z',
       likes: 334,
       views: 2623
+    },
+    {
+      id: '9',
+      title: 'Violette Floral Design',
+      description: 'Elegant violette flower arrangement with delicate petals and soft colors',
+      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
+      price: 160,
+      isAvailable: true,
+      tags: ['floral', 'violette', 'delicate', 'soft', 'nature'],
+      artist: {
+        id: '7',
+        user: { firstName: 'Violette', lastName: 'Dubois' },
+        studioName: 'Paris Ink Studio',
+        city: 'Paris'
+      },
+      style: 'Watercolor',
+      createdAt: '2024-01-20T12:00:00Z',
+      likes: 189,
+      views: 1123
     }
   ]
 
@@ -242,10 +261,16 @@ export const FlashGallery = () => {
     .filter(item => {
       if (!item) return false
       
+      // Enhanced search that includes artist names, studio names, and cities
       const matchesSearch = !searchTerm || 
                            item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+                           item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                           item.artist?.user?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.artist?.user?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.artist?.studioName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.artist?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.style?.toLowerCase().includes(searchTerm.toLowerCase())
       
       const matchesArtist = !selectedArtist || item.artist?.id === selectedArtist
       const matchesStyle = !selectedStyle || item.style === selectedStyle
@@ -254,6 +279,20 @@ export const FlashGallery = () => {
         (priceRange === 'under100' && item.price < 100) ||
         (priceRange === '100-200' && item.price >= 100 && item.price <= 200) ||
         (priceRange === 'over200' && item.price > 200)
+      
+      // Debug logging for search matching
+      if (searchTerm && searchTerm.trim() !== '') {
+        console.log(`Searching for "${searchTerm}" in item:`, {
+          title: item.title,
+          description: item.description,
+          tags: item.tags,
+          artistName: `${item.artist?.user?.firstName} ${item.artist?.user?.lastName}`,
+          studioName: item.artist?.studioName,
+          city: item.artist?.city,
+          style: item.style,
+          matchesSearch
+        })
+      }
       
       return matchesSearch && matchesArtist && matchesStyle && matchesPrice
     })
@@ -307,12 +346,44 @@ export const FlashGallery = () => {
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
-                    placeholder="Search designs, artists, countries, or styles..."
+                    placeholder="Search by design name, artist, studio, city, style, or tags..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="input w-full pl-12 text-base"
                   />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Clear search"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
+                {searchTerm && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Search includes: titles, descriptions, tags, artist names, studio names, cities, and styles
+                  </p>
+                )}
+                {!searchTerm && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-400 mb-2">Try searching for:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['rose', 'dragon', 'minimalist', 'traditional', 'Sarah', 'Tokyo', 'Los Angeles', 'watercolor'].map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          onClick={() => setSearchTerm(suggestion)}
+                          className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
