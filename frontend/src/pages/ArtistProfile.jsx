@@ -160,14 +160,12 @@ export const ArtistProfile = () => {
   }
 
   const getServicePrice = (serviceId) => {
-    console.log('🔍 getServicePrice called with:', { serviceId, artistServices, isArray: Array.isArray(artistServices) });
     if (!Array.isArray(artistServices)) return null;
     const artistService = artistServices.find(s => s.serviceId === serviceId)
     return artistService?.customPrice ?? null
   }
 
   const getServiceDuration = (serviceId) => {
-    console.log('🔍 getServiceDuration called with:', { serviceId, artistServices, isArray: Array.isArray(artistServices) });
     if (!Array.isArray(artistServices)) return null;
     const artistService = artistServices.find(s => s.serviceId === serviceId)
     return artistService?.customDuration ?? null
@@ -927,25 +925,9 @@ export const ArtistProfile = () => {
               {artist?.services && Array.isArray(artist.services) && artist.services.length > 0 && (
                 <div>
                   <h3 className="text-md font-medium text-gray-900 mb-3">Available Services</h3>
-                  {/* Debug info */}
-                  <div className="mb-4 p-3 bg-gray-100 rounded text-xs">
-                    <p><strong>Debug Info:</strong></p>
-                    <p>All Services Count: {allServices.length}</p>
-                    <p>Artist Services Count: {artist?.services?.length || 0}</p>
-                    <p>Artist Services Type: {typeof artist?.services}</p>
-                    <p>Artist Services: {JSON.stringify(artist?.services || [])}</p>
-                    <p>Artist Services Data: {JSON.stringify(artistServices || [])}</p>
-                    <p>First Service Sample: {artist?.services?.[0] ? JSON.stringify(artist.services[0]) : 'None'}</p>
-                  </div>
+
                   <div className="space-y-3">
-                    {(() => {
-                      console.log('🔍 About to map services:', {
-                        artistServices: artist?.services,
-                        isArray: Array.isArray(artist?.services),
-                        length: artist?.services?.length
-                      });
-                      return Array.isArray(artist.services) && artist.services.map((service) => {
-                        console.log('🔍 Rendering service:', service);
+                    {Array.isArray(artist.services) && artist.services.map((service) => {
                         if (!service?.id) return null;
                       
                       const customPrice = getServicePrice(service.id);
@@ -987,8 +969,7 @@ export const ArtistProfile = () => {
                           </div>
                         </div>
                       );
-                    });
-                  })()}
+                    })}
                   </div>
                   
                   {/* Services Legend */}
