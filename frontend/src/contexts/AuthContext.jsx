@@ -27,17 +27,40 @@ export const AuthProvider = ({ children }) => {
   // Check if user is logged in on app start using refresh token
   useEffect(() => {
     // Better cookie detection with debugging
-    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-      const [key, value] = cookie.trim().split('=')
-      acc[key] = value
-      return acc
-    }, {})
+    // Parse cookies more robustly
+    let cookies = {}
+    if (document.cookie) {
+      try {
+        cookies = document.cookie.split(';').reduce((acc, cookie) => {
+          const trimmedCookie = cookie.trim()
+          if (trimmedCookie && trimmedCookie.includes('=')) {
+            const [key, value] = trimmedCookie.split('=', 2)
+            if (key && value !== undefined) {
+              acc[key] = value
+            }
+          }
+          return acc
+        }, {})
+      } catch (error) {
+        console.error('Error parsing cookies:', error)
+        cookies = {}
+      }
+    }
     
     console.log('🍪 All cookies:', cookies)
+    console.log('🍪 Raw cookie string:', document.cookie)
     console.log('🔄 Looking for refreshToken cookie...')
     
-    const hasRefreshToken = cookies.refreshToken || document.cookie.includes('refreshToken=')
+    // Check for refresh token more reliably
+    const hasRefreshToken = cookies.refreshToken || 
+                           document.cookie.includes('refreshToken=') || 
+                           document.cookie.includes('refreshToken')
     console.log('🔄 Refresh token found:', !!hasRefreshToken)
+    
+    // Additional debugging for cookie domain issues
+    console.log('🌐 Current location:', window.location.href)
+    console.log('🌐 Current hostname:', window.location.hostname)
+    console.log('🌐 Current origin:', window.location.origin)
     
     if (hasRefreshToken) {
       console.log('🔄 Refresh token found, attempting token refresh...')
