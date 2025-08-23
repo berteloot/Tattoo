@@ -26,6 +26,8 @@ services:
       echo "VITE_API_URL set to: $VITE_API_URL"
       echo "Verifying environment variable is available..."
       echo "VITE_API_URL from env: $VITE_API_URL"
+      echo "Environment variables before build:"
+      env | grep VITE
       echo "Running npm run build with explicit env..."
       VITE_API_URL="https://tattooedworld.org/api" npm run build
       echo "Build command completed. Checking results..."
@@ -36,6 +38,7 @@ services:
         if [ -d "dist/assets" ]; then
           echo "✅ Assets directory found"
           ls -la dist/assets/
+          echo "📊 Assets count: $(ls dist/assets/ | wc -l)"
         else
           echo "❌ No assets directory found in dist"
         fi
@@ -44,6 +47,10 @@ services:
         echo "Build failed - checking for errors..."
         exit 1
       fi
+      
+      echo "🔍 Testing frontend build with verification script..."
+      cd ../backend
+      node scripts/test-frontend-build.js
       cd ..
     startCommand: cd backend && npm run start:prod
     envVars:

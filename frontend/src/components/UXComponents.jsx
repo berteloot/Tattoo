@@ -33,6 +33,150 @@ export const LoadingSpinner = ({ size = 'md', text = 'Loading...' }) => {
   )
 }
 
+export const Input = ({
+  label,
+  type = 'text',
+  error,
+  required = false,
+  disabled = false,
+  placeholder,
+  value,
+  onChange,
+  onBlur,
+  className = '',
+  ...props
+}) => {
+  const inputId = `input-${Math.random().toString(36).substr(2, 9)}`
+
+  return (
+    <div className={`space-y-2 ${className}`}>
+      {label && (
+        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+      )}
+      <input
+        id={inputId}
+        type={type}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        disabled={disabled}
+        placeholder={placeholder}
+        className={`
+          w-full px-3 py-2 border rounded-lg transition-colors
+          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+          disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
+          ${error ? 'border-red-300' : 'border-gray-300'}
+        `}
+        aria-invalid={error ? 'true' : 'false'}
+        aria-describedby={error ? `${inputId}-error` : undefined}
+        {...props}
+      />
+      {error && (
+        <p id={`${inputId}-error`} className="text-sm text-red-600" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
+export const Button = ({
+  children,
+  variant = 'primary',
+  size = 'md',
+  loading = false,
+  disabled = false,
+  className = '',
+  ...props
+}) => {
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+  
+  const variants = {
+    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
+    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
+    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500',
+    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500'
+  }
+  
+  const sizes = {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-6 py-3 text-base',
+    xl: 'px-8 py-4 text-lg'
+  }
+  
+  return (
+    <button
+      className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
+      disabled={disabled || loading}
+      {...props}
+    >
+      {loading && <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+      {children}
+    </button>
+  )
+}
+
+export const Toast = ({ type = 'info', title, message, onClose, duration = 5000 }) => {
+  const [isVisible, setIsVisible] = React.useState(true)
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(false)
+      setTimeout(onClose, 300) // Wait for fade out animation
+    }, duration)
+
+    return () => clearTimeout(timer)
+  }, [duration, onClose])
+
+  const icons = {
+    success: '✓',
+    error: '✕',
+    warning: '⚠',
+    info: 'ℹ'
+  }
+
+  const colors = {
+    success: 'border-green-200 bg-green-50 text-green-800',
+    error: 'border-red-200 bg-red-50 text-red-800',
+    warning: 'border-yellow-200 bg-yellow-50 text-yellow-800',
+    info: 'border-blue-200 bg-blue-50 text-blue-800'
+  }
+
+  if (!isVisible) return null
+
+  return (
+    <div
+      className={`max-w-sm w-full p-4 rounded-lg border shadow-lg transition-all duration-300 ${
+        isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
+      } ${colors[type]}`}
+      role="alert"
+      aria-live="assertive"
+    >
+      <div className="flex items-start space-x-3">
+        <span className="text-lg">{icons[type]}</span>
+        <div className="flex-1 min-w-0">
+          {title && <h4 className="text-sm font-medium">{title}</h4>}
+          {message && <p className="text-sm mt-1">{message}</p>}
+        </div>
+        <button
+          onClick={() => {
+            setIsVisible(false)
+            setTimeout(onClose, 300)
+          }}
+          className="text-current opacity-70 hover:opacity-100 transition-opacity"
+          aria-label="Close notification"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export const ResponsiveContainer = ({ children, className = '', maxWidth = 'max-w-7xl' }) => (
   <div className={`w-full mx-auto px-4 sm:px-6 lg:px-8 ${maxWidth} ${className}`}>
     {children}

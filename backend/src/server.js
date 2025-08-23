@@ -83,15 +83,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Cookie parsing middleware for refresh tokens
 app.use(cookieParser());
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    message: 'Tattooed World API is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
-  });
-});
+// Health check endpoint - moved to /api/health only to avoid conflicts with root path
+// The root path should serve the React app, not the health check
 
 // Debug endpoint to check file system in production
 app.get('/debug-paths', (req, res) => {
@@ -143,6 +136,20 @@ app.get('/debug-paths', (req, res) => {
   }
 });
 
+// Additional debug endpoint for root path testing
+app.get('/test-root', (req, res) => {
+  res.json({
+    message: 'Root path test endpoint working',
+    timestamp: new Date().toISOString(),
+    frontendBuildPath,
+    frontendExists,
+    indexHtmlPath: indexHtmlPath,
+    indexHtmlExists: fs.existsSync(indexHtmlPath),
+    currentDir: __dirname,
+    workingDir: process.cwd()
+  });
+});
+
 // API routes
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
@@ -177,15 +184,92 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Favicon handler to prevent 500 errors
-app.get('/favicon.ico', (req, res) => {
-  res.status(204).end(); // No content response for favicon
+// Debug route to check what's happening at root path
+app.get('/', (req, res) => {
+  console.log('🔍 Root path accessed:', req.path);
+  console.log('🔍 Frontend build exists:', frontendExists);
+  console.log('🔍 Index HTML path:', indexHtmlPath);
+  console.log('🔍 Current working directory:', process.cwd());
+  console.log('🔍 __dirname:', __dirname);
+  
+  if (frontendExists && fs.existsSync(indexHtmlPath)) {
+    console.log('✅ Serving React app from root path');
+    console.log('✅ File size:', fs.statSync(indexHtmlPath).size, 'bytes');
+    
+    // Set proper headers for HTML
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    
+    res.sendFile(indexHtmlPath, (err) => {
+      if (err) {
+        console.error('❌ Error serving index.html:', err.message);
+        res.status(500).json({ error: 'Error serving React app', details: err.message });
+      }
+    });
+  } else {
+    console.log('❌ Frontend not available, serving fallback');
+    console.log('❌ Frontend build path:', frontendBuildPath);
+    console.log('❌ Index HTML path:', indexHtmlPath);
+    
+    // Try to list directory contents for debugging
+    try {
+      if (fs.existsSync(frontendBuildPath)) {
+        const contents = fs.readdirSync(frontendBuildPath);
+        console.log('❌ Frontend build contents:', contents);
+      }
+    } catch (error) {
+      console.log('❌ Error reading frontend build directory:', error.message);
+    }
+    
+    res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Tattooed World - Debug</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+            .container { max-width: 600px; margin: 0 auto; }
+            .debug-info { background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: left; }
+            .api-link { display: inline-block; margin: 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+            .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>🎨 Tattooed World - Debug Mode</h1>
+            <p>Root path accessed but frontend build not available.</p>
+            
+            <div class="error">
+              <h3>🚨 Frontend Build Issue Detected</h3>
+              <p>The React app build files are not available. This indicates a deployment problem.</p>
+            </div>
+            
+            <div class="debug-info">
+              <h3>Debug Information:</h3>
+              <p><strong>Frontend Build Path:</strong> ${frontendBuildPath}</p>
+              <p><strong>Frontend Exists:</strong> ${frontendExists}</p>
+              <p><strong>Index HTML Path:</strong> ${indexHtmlPath}</p>
+              <p><strong>Index HTML Exists:</strong> ${fs.existsSync(indexHtmlPath)}</p>
+              <p><strong>Current Directory:</strong> ${__dirname}</p>
+              <p><strong>Working Directory:</strong> ${process.cwd()}</p>
+            </div>
+            
+            <br>
+            <a href="/api/health" class="api-link">Health Check</a>
+            <a href="/api" class="api-link">API Info</a>
+            <a href="/debug-build" class="api-link">Debug Build</a>
+            <br><br>
+            <p><small>This debug page shows that the root path is being handled but the frontend build is not available.</small></p>
+            <p><small>Check the Render deployment logs for build errors.</small></p>
+          </div>
+        </body>
+      </html>
+    `);
+  }
 });
 
-// Vite.svg handler to prevent 500 errors (legacy asset reference)
-app.get('/vite.svg', (req, res) => {
-  res.status(204).end(); // No content response for vite.svg
-});
+// Removed specific favicon and vite.svg handlers - let static file serving handle them
+// This prevents conflicts with the React app routing
 
 // 404 handler for API routes only - this should come after all API routes
 app.use('/api/*', notFound);
@@ -196,6 +280,37 @@ const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
 // Enhanced check for frontend build with better logging
 const frontendExists = fs.existsSync(frontendBuildPath);
 const indexHtmlPath = path.join(frontendBuildPath, 'index.html');
+
+// Additional path debugging
+console.log('🔍 Path debugging:');
+console.log('  - __dirname:', __dirname);
+console.log('  - frontendBuildPath:', frontendBuildPath);
+console.log('  - frontendExists:', frontendExists);
+console.log('  - indexHtmlPath:', indexHtmlPath);
+console.log('  - indexHtmlExists:', fs.existsSync(indexHtmlPath));
+
+// Try alternative paths if the default path doesn't exist
+let alternativePaths = [];
+if (!frontendExists) {
+  alternativePaths = [
+    path.join(__dirname, '../frontend/dist'),
+    path.join(__dirname, '../../frontend/dist'),
+    path.join(__dirname, '../../../frontend/dist'),
+    path.join(process.cwd(), 'frontend/dist'),
+    path.join(process.cwd(), '../frontend/dist'),
+    path.join(process.cwd(), '../../frontend/dist')
+  ];
+  
+  console.log('🔍 Trying alternative paths:');
+  for (const altPath of alternativePaths) {
+    const exists = fs.existsSync(altPath);
+    console.log(`  - ${altPath}: ${exists}`);
+    if (exists) {
+      console.log(`✅ Found frontend build at alternative path: ${altPath}`);
+      break;
+    }
+  }
+}
 
 // Log detailed information about the frontend build
 console.log('🔍 Frontend build check:');
@@ -535,11 +650,16 @@ if (!frontendExists) {
     }
   });
 
-  // React catch-all route - MUST be last to handle SPA routing without masking API 404s
+  // React catch-all route for SPA routing (excluding API routes)
   app.get('*', (req, res) => {
     // Skip API routes
     if (req.path.startsWith('/api/')) {
       return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
+    // Skip root path (already handled above)
+    if (req.path === '/') {
+      return res.status(404).json({ error: 'Root path already handled' });
     }
     
     // Check if index.html exists
@@ -548,7 +668,8 @@ if (!frontendExists) {
       return res.status(500).json({ error: 'Frontend build incomplete' });
     }
     
-    // Serve React app for all non-API routes (SPA routing)
+    // Serve React app for all other non-API routes (SPA routing)
+    console.log(`🎨 Serving React app for SPA route: ${req.path}`);
     res.sendFile(indexHtmlPath);
   });
 }
