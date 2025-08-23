@@ -20,7 +20,7 @@ const center = {
   lng: -73.5673
 }
 
-export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatured = false, focusStudioId = null, focusCoordinates = null }) => {
+export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatured = false, focusStudioId = null, focusCoordinates = null, cityFocusCoordinates = null }) => {
   const [studios, setStudios] = useState([])
   const [selectedStudio, setSelectedStudio] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -207,6 +207,15 @@ export const StudioMap = ({ searchTerm = '', filterVerified = false, filterFeatu
       setMapZoom(15)
     }
   }, [focusCoordinates])
+
+  // Focus on city coordinates if provided (city-level zoom)
+  useEffect(() => {
+    if (cityFocusCoordinates && cityFocusCoordinates.lat && cityFocusCoordinates.lng) {
+      setMapCenter(cityFocusCoordinates)
+      setMapZoom(12) // City-level zoom (wider view than studio focus)
+      console.log('Focusing on city coordinates:', cityFocusCoordinates)
+    }
+  }, [cityFocusCoordinates])
 
   const fetchStudios = async () => {
     try {

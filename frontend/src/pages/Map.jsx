@@ -9,6 +9,7 @@ const Map = () => {
   const [filterFeatured, setFilterFeatured] = useState(false)
   const [focusStudioId, setFocusStudioId] = useState(null)
   const [focusCoordinates, setFocusCoordinates] = useState(null)
+  const [cityFocusCoordinates, setCityFocusCoordinates] = useState(null)
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
@@ -30,11 +31,14 @@ const Map = () => {
       })
     }
     
-    // If city is provided but no coordinates, set search term to focus on city
+    // If city is provided but no coordinates, geocode the city and focus on it
     if (city && !lat && !lng) {
       const citySearch = state ? `${city}, ${state}` : city
       setSearchTerm(citySearch)
       console.log('Focusing on city:', citySearch)
+      
+      // Geocode the city to get coordinates for focusing
+      geocodeCity(citySearch)
     }
   }, [searchParams])
 
@@ -62,11 +66,43 @@ const Map = () => {
     console.log('Filters:', { verified: filterVerified, featured: filterFeatured })
   }
 
+  // Geocode a city to get coordinates for focusing
+  const geocodeCity = async (cityName) => {
+    try {
+      // Wait for Google Maps to be loaded
+      if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
+        console.log('Waiting for Google Maps to load before geocoding city...')
+        // Retry after a short delay
+        setTimeout(() => geocodeCity(cityName), 1000)
+        return
+      }
+      
+      // Use Google Maps Geocoding API
+      const geocoder = new window.google.maps.Geocoder()
+      const result = await geocoder.geocode({ address: cityName })
+      
+      if (result.results.length > 0) {
+        const location = result.results[0].geometry.location
+        const cityCoords = {
+          lat: location.lat(),
+          lng: location.lng()
+        }
+        setCityFocusCoordinates(cityCoords)
+        console.log('City geocoded successfully:', cityName, cityCoords)
+      } else {
+        console.warn('Could not geocode city:', cityName)
+      }
+    } catch (error) {
+      console.error('Error geocoding city:', error)
+    }
+  }
+
   // Clear search and reset map view
   const handleClearSearch = () => {
     setSearchTerm('')
     setFocusStudioId(null)
     setFocusCoordinates(null)
+    setCityFocusCoordinates(null)
   }
 
   return (
@@ -154,6 +190,7 @@ const Map = () => {
             filterFeatured={filterFeatured} 
             focusStudioId={focusStudioId}
             focusCoordinates={focusCoordinates}
+            cityFocusCoordinates={cityFocusCoordinates}
           />
         </div>
         
