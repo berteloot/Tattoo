@@ -935,6 +935,7 @@ export const ArtistProfile = () => {
                     <p>Artist Services Type: {typeof artist?.services}</p>
                     <p>Artist Services: {JSON.stringify(artist?.services || [])}</p>
                     <p>Artist Services Data: {JSON.stringify(artistServices || [])}</p>
+                    <p>First Service Sample: {artist?.services?.[0] ? JSON.stringify(artist.services[0]) : 'None'}</p>
                   </div>
                   <div className="space-y-3">
                     {(() => {
@@ -944,6 +945,7 @@ export const ArtistProfile = () => {
                         length: artist?.services?.length
                       });
                       return Array.isArray(artist.services) && artist.services.map((service) => {
+                        console.log('🔍 Rendering service:', service);
                         if (!service?.id) return null;
                       
                       const customPrice = getServicePrice(service.id);
