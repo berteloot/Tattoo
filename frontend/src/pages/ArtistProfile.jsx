@@ -47,12 +47,9 @@ export const ArtistProfile = () => {
   const [studios, setStudios] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showReviewForm, setShowReviewForm] = useState(false)
-  const [showContactModal, setShowContactModal] = useState(false)
   const [showSignupPrompt, setShowSignupPrompt] = useState(false)
   const [signupPromptType, setSignupPromptType] = useState('contact')
-  const [allServices, setAllServices] = useState([])
-  const [artistServices, setArtistServices] = useState([])
+  const [copied, setCopied] = useState(false)
 
   // Helper function for fallback data - moved to top to fix hoisting issue
   const getDummyArtist = (id) => ({
@@ -96,13 +93,6 @@ export const ArtistProfile = () => {
     })
   }, [id])
 
-  // Fetch services data after artist profile is loaded
-  useEffect(() => {
-    if (artist?.id) {
-      fetchServicesData()
-    }
-  }, [artist?.id])
-
   const trackProfileView = async () => {
     try {
       // Track the profile view
@@ -144,33 +134,6 @@ export const ArtistProfile = () => {
     }
   }
 
-  const fetchServicesData = async () => {
-    try {
-      const response = await api.get('/services')
-      setAllServices(response.data.data || [])
-      
-      // Get artist's custom service pricing
-      if (artist?.id) {
-        const artistServicesResponse = await api.get(`/artist-services/artist/${artist.id}`)
-        setArtistServices(artistServicesResponse.data.data || [])
-      }
-    } catch (error) {
-      console.error('Failed to fetch services:', error)
-    }
-  }
-
-  const getServicePrice = (serviceId) => {
-    if (!Array.isArray(artistServices)) return null;
-    const artistService = artistServices.find(s => s.serviceId === serviceId)
-    return artistService?.customPrice ?? null
-  }
-
-  const getServiceDuration = (serviceId) => {
-    if (!Array.isArray(artistServices)) return null;
-    const artistService = artistServices.find(s => s.serviceId === serviceId)
-    return artistService?.customDuration ?? null
-  }
-
   const fetchArtistProfile = async () => {
     try {
       setLoading(true)
@@ -191,8 +154,8 @@ export const ArtistProfile = () => {
       } else {
         console.log('Using API artist profile data')
         console.log('Artist data:', artistResult.data.data.artist)
-        console.log('Artist services:', artistResult.data.data.artist?.services)
-        console.log('Artist services count:', artistResult.data.data.artist?.services?.length)
+        console.log('Artist services:', artistResult.data.data.artist?.artistServices)
+        console.log('Artist services count:', artistResult.data.data.artist?.artistServices?.length)
         console.log('Flash items:', artistResult.data.data.artist?.flash)
         console.log('Flash count:', artistResult.data.data.artist?._count?.flash)
         console.log('Gallery items:', artistResult.data.data.artist?.gallery)
@@ -921,79 +884,80 @@ export const ArtistProfile = () => {
                 )}
               </div>
 
-              {/* Individual Services */}
-              {artist?.services && Array.isArray(artist.services) && artist.services.length > 0 && (
-                <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Available Services</h3>
+                {/* Individual Services */}
+                {artist?.artistServices && Array.isArray(artist.artistServices) && artist.artistServices.length > 0 && (
+                  <div>
+                    <h3 className="text-md font-medium text-gray-900 mb-3">Available Services</h3>
 
-                  <div className="space-y-3">
-                    {Array.isArray(artist.services) && artist.services.map((service) => {
-                        if (!service?.id) return null;
-                      
-                      const customPrice = getServicePrice(service.id);
-                      const customDuration = getServiceDuration(service.id);
-                      
-                      return (
-                        <div key={service.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-900 text-sm mb-1">
-                                {service.name}
-                              </h4>
-                              {service.description && (
-                                <p className="text-gray-600 text-xs leading-relaxed line-clamp-2">
-                                  {service.description}
-                                </p>
+                    <div className="space-y-3">
+                      {Array.isArray(artist.artistServices) && artist.artistServices.map((artistService) => {
+                        if (!artistService?.service?.id) return null;
+                        
+                        const service = artistService.service;
+                        const customPrice = artistService.customPrice;
+                        const customDuration = artistService.customDuration;
+                        
+                        return (
+                          <div key={artistService.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-gray-900 text-sm mb-1">
+                                  {service.name}
+                                </h4>
+                                {service.description && (
+                                  <p className="text-gray-600 text-xs leading-relaxed line-clamp-2">
+                                    {service.description}
+                                  </p>
+                                )}
+                              </div>
+                              {customPrice !== null && customPrice !== service.price && (
+                                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full border border-blue-200 ml-2 flex-shrink-0">
+                                  Custom
+                                </span>
                               )}
                             </div>
-                            {customPrice !== null && (
-                              <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full border border-blue-200 ml-2 flex-shrink-0">
-                                Custom
-                              </span>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-1 text-gray-600">
-                              <DollarSign className="w-3 h-3" />
-                              <span className="font-medium text-gray-900">
-                                {customPrice !== null ? (customPrice === 0 ? 'Free' : `$${customPrice}`) : `$${service.price || 'N/A'}`}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1 text-gray-600">
-                              <Clock className="w-3 h-3" />
-                              <span className="font-medium">
-                                {customDuration !== null ? (customDuration === 0 ? 'Varies' : `${customDuration} min`) : `${service.duration || 'N/A'} min`}
-                              </span>
+                            
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <DollarSign className="w-3 h-3" />
+                                <span className="font-medium text-gray-900">
+                                  {customPrice !== null ? (customPrice === 0 ? 'Free' : `$${customPrice}`) : `$${service.price || 'N/A'}`}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <Clock className="w-3 h-3" />
+                                <span className="font-medium">
+                                  {customDuration !== null ? (customDuration === 0 ? 'Varies' : `${customDuration} min`) : `${service.duration || 'N/A'} min`}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Services Legend */}
-                  <div className="mt-4 pt-3 border-t border-gray-100">
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-blue-100 border border-blue-300 rounded"></div>
-                        Custom pricing
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-gray-100 border border-gray-300 rounded"></div>
-                        Standard pricing
-                      </span>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Services Legend */}
+                    <div className="mt-4 pt-3 border-t border-gray-100">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-blue-100 border border-blue-300 rounded"></div>
+                          Custom pricing
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-gray-100 border border-gray-300 rounded"></div>
+                          Standard pricing
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* No Services Message */}
-              {(!artist?.services || !Array.isArray(artist.services) || artist.services.length === 0) && (
-                <div className="text-center py-4 text-gray-500">
-                  <p>No services available at the moment.</p>
-                </div>
-              )}
+                {/* No Services Message */}
+                {(!artist?.artistServices || !Array.isArray(artist.artistServices) || artist.artistServices.length === 0) && (
+                  <div className="text-center py-4 text-gray-500">
+                    <p>No services available at the moment.</p>
+                  </div>
+                )}
             </div>
 
             {/* Calendly Widget */}

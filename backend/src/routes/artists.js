@@ -550,14 +550,23 @@ router.get('/:id', optionalAuth, async (req, res) => {
             category: true
           }
         },
-        services: {
+        artistServices: {
+          where: { isActive: true },
           select: {
             id: true,
-            name: true,
-            description: true,
-            price: true,
-            duration: true
-          }
+            customPrice: true,
+            customDuration: true,
+            service: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                duration: true
+              }
+            }
+          },
+          orderBy: { service: { name: 'asc' } }
         },
         flash: {
           where: { 
