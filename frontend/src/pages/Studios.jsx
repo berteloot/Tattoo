@@ -377,7 +377,11 @@ const Studios = () => {
               <div className="flex space-x-2">
                 <Link
                   to={`/studios/${studio.id}`}
-                  className="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className={`flex-1 text-center py-2 px-4 rounded-lg transition-colors font-medium ${
+                    studio.isFeatured 
+                      ? 'bg-yellow-500 text-yellow-900 hover:bg-yellow-600' 
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
                 >
                   View Details
                 </Link>
