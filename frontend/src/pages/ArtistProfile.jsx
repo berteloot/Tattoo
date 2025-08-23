@@ -403,96 +403,13 @@ export const ArtistProfile = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Specialties</h2>
                 <div className="flex flex-wrap gap-2">
                   {artist.specialties.map((specialty) => (
-                    <span
-                      key={specialty.id}
-                      className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-200"
+                    <span 
+                      key={specialty.id} 
+                      className="inline-flex items-center px-3 py-2 bg-blue-50 text-blue-700 text-sm font-medium rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
                     >
                       {specialty.icon} {specialty.name}
                     </span>
                   ))}
-                </div>
-              </div>
-            )}
-
-            {/* Services - Compact and Organized */}
-            {Array.isArray(allServices) && allServices.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Services & Pricing</h2>
-                
-                {/* Services Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {allServices.map((service) => {
-                    if (!service?.id) return null;
-                    
-                    const customPrice = getServicePrice(service.id);
-                    const customDuration = getServiceDuration(service.id);
-                    const isSelected = artist?.services?.some(s => s?.id === service.id);
-                    
-                    // Show all services, but highlight selected ones
-                    return (
-                      <div key={service.id} className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
-                        isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-white'
-                      }`}>
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 text-lg mb-1">
-                              {service.name}
-                            </h3>
-                            {service.description && (
-                              <p className="text-gray-600 text-sm leading-relaxed">
-                                {service.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex flex-col items-end gap-2 ml-2">
-                            {customPrice !== null && (
-                              <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full border border-blue-200">
-                                Custom
-                              </span>
-                            )}
-                            {isSelected && (
-                              <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full border border-green-200">
-                                Available
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <DollarSign className="w-4 h-4" />
-                            <span className="font-semibold text-gray-900">
-                              {customPrice !== null ? (customPrice === 0 ? 'Free' : `${customPrice}`) : `${service.price || 'N/A'}`}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <Clock className="w-4 h-4" />
-                            <span className="font-medium">
-                              {customDuration !== null ? (customDuration === 0 ? 'Varies' : `${customDuration} min`) : `${service.duration || 'N/A'} min`}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                {/* Services Legend */}
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
-                      Custom pricing available
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
-                      Service offered
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
-                      Standard service
-                    </span>
-                  </div>
                 </div>
               </div>
             )}
@@ -967,19 +884,21 @@ export const ArtistProfile = () => {
               </div>
             </div>
 
-            {/* Pricing */}
+            {/* Services & Pricing */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
-                Pricing
+                Services & Pricing
               </h2>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              
+              {/* General Pricing */}
+              <div className="space-y-3 mb-6 pb-4 border-b border-gray-100">
+                <div className="flex justify-between items-center py-2">
                   <span className="text-gray-600">Hourly Rate:</span>
                   <span className="font-semibold text-gray-900">${artist.hourlyRate}/hr</span>
                 </div>
                 {artist.minPrice && (
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <div className="flex justify-between items-center py-2">
                     <span className="text-gray-600">Starting Price:</span>
                     <span className="font-semibold text-gray-900">${artist.minPrice}</span>
                   </div>
@@ -991,6 +910,76 @@ export const ArtistProfile = () => {
                   </div>
                 )}
               </div>
+
+              {/* Individual Services */}
+              {Array.isArray(allServices) && allServices.length > 0 && (
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Available Services</h3>
+                  <div className="space-y-3">
+                    {allServices.map((service) => {
+                      if (!service?.id) return null;
+                      
+                      const customPrice = getServicePrice(service.id);
+                      const customDuration = getServiceDuration(service.id);
+                      const isSelected = artist?.services?.some(s => s?.id === service.id);
+                      
+                      // Only show services that the artist offers
+                      if (!isSelected) return null;
+                      
+                      return (
+                        <div key={service.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-900 text-sm mb-1">
+                                {service.name}
+                              </h4>
+                              {service.description && (
+                                <p className="text-gray-600 text-xs leading-relaxed line-clamp-2">
+                                  {service.description}
+                                </p>
+                              )}
+                            </div>
+                            {customPrice !== null && (
+                              <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full border border-blue-200 ml-2 flex-shrink-0">
+                                Custom
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <DollarSign className="w-3 h-3" />
+                              <span className="font-medium text-gray-900">
+                                {customPrice !== null ? (customPrice === 0 ? 'Free' : `$${customPrice}`) : `$${service.price || 'N/A'}`}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <Clock className="w-3 h-3" />
+                              <span className="font-medium">
+                                {customDuration !== null ? (customDuration === 0 ? 'Varies' : `${customDuration} min`) : `${service.duration || 'N/A'} min`}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Services Legend */}
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-blue-100 border border-blue-300 rounded"></div>
+                        Custom pricing
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-gray-100 border border-gray-300 rounded"></div>
+                        Standard pricing
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Calendly Widget */}
