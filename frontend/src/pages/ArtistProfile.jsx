@@ -18,11 +18,7 @@ import {
   Calendar,
   MessageCircle,
   Plus,
-  Share2,
-  Eye,
-  Heart,
-  CheckCircle,
-  Award
+  Share2
 } from 'lucide-react'
 import { LoadingSpinner } from '../components/UXComponents'
 import { CalendlyWidget } from '../components/CalendlyWidget'
@@ -49,7 +45,7 @@ export const ArtistProfile = () => {
   const [error, setError] = useState(null)
   const [showSignupPrompt, setShowSignupPrompt] = useState(false)
   const [signupPromptType, setSignupPromptType] = useState('contact')
-  const [copied, setCopied] = useState(false)
+  const [showReviewForm, setShowReviewForm] = useState(false)
 
   // Helper function for fallback data - moved to top to fix hoisting issue
   const getDummyArtist = (id) => ({
@@ -153,13 +149,6 @@ export const ArtistProfile = () => {
         setReviews(artistResult.data.reviews)
       } else {
         console.log('Using API artist profile data')
-        console.log('Artist data:', artistResult.data.data.artist)
-        console.log('Artist services:', artistResult.data.data.artist?.artistServices)
-        console.log('Artist services count:', artistResult.data.data.artist?.artistServices?.length)
-        console.log('Flash items:', artistResult.data.data.artist?.flash)
-        console.log('Flash count:', artistResult.data.data.artist?._count?.flash)
-        console.log('Gallery items:', artistResult.data.data.artist?.gallery)
-        console.log('Gallery count:', artistResult.data.data.artist?._count?.gallery)
         setArtist(artistResult.data.data.artist)
         setReviews(artistResult.data.data.reviews || [])
       }
