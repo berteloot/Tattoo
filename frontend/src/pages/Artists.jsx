@@ -181,20 +181,7 @@ export const Artists = () => {
           <p className="deck">
             Connect with verified artists worldwide, explore diverse styles, and find your perfect artist anywhere on the planet
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mt-8">
-            <div className="bg-white/10 p-4 sm:p-6 border border-white/20 text-center rounded-lg">
-              <div className="text-2xl sm:text-3xl font-bold mb-2">10,000+</div>
-              <div className="text-white/80 text-sm">GLOBAL ARTISTS</div>
-            </div>
-            <div className="bg-white/10 p-4 sm:p-6 border border-white/20 text-center rounded-lg">
-              <div className="text-2xl sm:text-3xl font-bold mb-2">4.9★</div>
-              <div className="text-white/80 text-sm">AVERAGE RATING</div>
-            </div>
-            <div className="bg-white/10 p-4 sm:p-6 border border-white/20 text-center rounded-lg">
-              <div className="text-2xl sm:text-3xl font-bold mb-2">1M+</div>
-              <div className="text-white/80 text-sm">SATISFIED CLIENTS</div>
-            </div>
-          </div>
+
         </div>
       </section>
 

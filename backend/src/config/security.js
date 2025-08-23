@@ -1,6 +1,6 @@
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import cors from "cors";
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const cors = require("cors");
 
 const allowedOrigins = [
   "https://tattooedworld.org",
@@ -10,7 +10,7 @@ const allowedOrigins = [
   "https://tattooed-world-backend.onrender.com"
 ];
 
-export const corsMiddleware = cors({
+const corsMiddleware = cors({
   origin: (origin, cb) => {
     // Allow non-browser requests (no Origin) like curl/health checks
     if (!origin) return cb(null, true);
@@ -148,7 +148,7 @@ const applySecurityMiddleware = (app) => {
   console.log('✅ Security middleware applied successfully');
 };
 
-export {
+module.exports = {
   securityConfig,
   applySecurityMiddleware
 };
