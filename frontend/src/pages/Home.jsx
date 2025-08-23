@@ -98,12 +98,12 @@ export const Home = () => {
             and find your perfect artist anywhere in the world.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-            <Link to="/map" className="cta text-center">
-              <MapPin style={{ width: '16px', height: '16px', marginRight: '8px' }} />
-              EXPLORE WORLDWIDE
+            <Link to="/artists" className="cta">
+              <Search style={{ width: '20px', height: '20px', marginRight: '12px' }} />
+              FIND ARTISTS
             </Link>
-            <Link to="/register" className="cta text-center">
-              <Plus style={{ width: '16px', height: '16px', marginRight: '8px' }} />
+            <Link to="/register" className="cta cta--outline">
+              <Plus style={{ width: '20px', height: '20px', marginRight: '12px' }} />
               JOIN AS ARTIST
             </Link>
           </div>
@@ -155,11 +155,11 @@ export const Home = () => {
       {/* Features Section */}
       <section className="section">
         <div className="container">
-          <div className="text-center mb-8 md:mb-12">
-            <span className="tag tag--yellow">TRUSTED WORLDWIDE</span>
-            <h2>THE GLOBAL STANDARD FOR TATTOO DISCOVERY</h2>
-            <p className="deck">
-              Over 10,000+ artists in 50+ countries trust Tattooed World to connect them with clients
+          <div className="section-header">
+            <h2 className="section-title">WHY CHOOSE TATTOOED WORLD?</h2>
+            <p className="section-subtitle">
+              Connect with exceptional tattoo artists worldwide. Discover portfolios, read authentic reviews, 
+              and find your perfect artist anywhere in the world.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
@@ -266,30 +266,6 @@ export const Home = () => {
               ))}
             </div>
           )}
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="section" style={{ backgroundColor: 'var(--bg)' }}>
-        <div className="container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
-            <div>
-              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">10,000+</div>
-              <div className="text-sm text-gray-600">ARTISTS WORLDWIDE</div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">50+</div>
-              <div className="text-sm text-gray-600">COUNTRIES</div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">50,000+</div>
-              <div className="text-sm text-gray-600">REVIEWS</div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">100,000+</div>
-              <div className="text-sm text-gray-600">HAPPY CLIENTS</div>
-            </div>
-          </div>
         </div>
       </section>
 
