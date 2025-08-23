@@ -240,8 +240,8 @@ const Studios = () => {
       {/* Studios Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {studios.map((studio) => (
-          <div key={studio.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="p-6">
+          <div key={studio.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+            <div className="p-6 flex-1 flex flex-col">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 {studio.title}
               </h3>
@@ -370,12 +370,14 @@ const Studios = () => {
                   )}
                 </div>
               </div>
+            </div>
 
-              {/* Actions */}
+            {/* Actions - Always at bottom */}
+            <div className="px-6 pb-6">
               <div className="flex space-x-2">
                 <Link
                   to={`/studios/${studio.id}`}
-                  className="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   View Details
                 </Link>
@@ -383,7 +385,7 @@ const Studios = () => {
                 {user?.role === 'ARTIST' && !studio.claimedBy && (
                   <button
                     onClick={() => handleClaimStudio(studio.id)}
-                    className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+                    className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
                   >
                     Claim
                   </button>
