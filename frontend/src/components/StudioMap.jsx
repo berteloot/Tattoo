@@ -464,7 +464,7 @@ export const StudioMap = ({ searchTerm = '', filterFeatured = false, focusStudio
   return (
     <div className="w-full">
       {/* Search Results Header */}
-      {(searchTerm || filterVerified || filterFeatured) && (
+      {(searchTerm || filterFeatured) && (
         <div className="bg-white border-b border-gray-200 px-4 py-3 mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
