@@ -15,9 +15,9 @@ export const useAuth = () => {
 }
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [localAccessToken, setLocalAccessToken] = useState(null) // Renamed to avoid conflict
+  // Single source of truth for authentication state
+  const [auth, setAuth] = useState({ user: null, status: 'loading' }) // 'loading' | 'auth' | 'anon'
+  const [localAccessToken, setLocalAccessToken] = useState(null) // For token management
   const [isRefreshing, setIsRefreshing] = useState(false) // Prevent multiple refresh attempts
   const [refreshAttempts, setRefreshAttempts] = useState(0) // Track refresh attempts
   const [lastRefreshTime, setLastRefreshTime] = useState(0) // Track last refresh time
@@ -57,24 +57,71 @@ export const AuthProvider = ({ children }) => {
         console.log('✅ Session valid, user is authenticated')
         const { user } = response.data.data
         
-        // Set user data
-        setUser(user)
+        // Set authentication state
+        setAuth({ user, status: 'auth' })
         setLocalAccessToken(getAccessToken()) // Get token from tokenManager
-        setAuthStatus('authenticated')
-        setLoading(false)
       } else {
         console.log('❌ Session invalid, user needs to login')
-        setUser(null)
+        setAuth({ user: null, status: 'anon' })
         setLocalAccessToken(null)
-        setAuthStatus('unauthenticated')
-        setLoading(false)
       }
     } catch (error) {
       console.log('❌ Session check failed:', error.message)
-      setUser(null)
+      setAuth({ user: null, status: 'anon' })
       setLocalAccessToken(null)
-      setAuthStatus('unauthenticated')
-      setLoading(false)
+    }
+  }
+
+  // Login function
+  const login = async (email, password) => {
+    try {
+      console.log('🔄 Attempting login for:', email)
+      const response = await authAPI.login({ email, password })
+      
+      if (response.data && response.data.success) {
+        const { user, accessToken } = response.data.data
+        
+        // Store access token securely
+        setAccessToken(accessToken)
+        setLocalAccessToken(accessToken)
+        
+        // Re-check session after login to get full user data
+        const sessionResponse = await authAPI.checkSession()
+        if (sessionResponse.data && sessionResponse.data.success) {
+          setAuth({ user: sessionResponse.data.data.user, status: 'auth' })
+        }
+        
+        showSuccessToast('Login successful!')
+        navigate('/')
+        return { success: true }
+      } else {
+        showErrorToast('Login failed. Please check your credentials.')
+        return { success: false, error: 'Login failed' }
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      const errorMessage = error.response?.data?.error || 'Login failed. Please try again.'
+      showErrorToast(errorMessage)
+      return { success: false, error: errorMessage }
+    }
+  }
+
+  // Logout function
+  const logout = async () => {
+    try {
+      await authAPI.logout()
+      clearAccessToken()
+      setLocalAccessToken(null)
+      setAuth({ user: null, status: 'anon' })
+      showSuccessToast('Logged out successfully')
+      navigate('/')
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Even if logout fails, clear local state
+      clearAccessToken()
+      setLocalAccessToken(null)
+      setAuth({ user: null, status: 'anon' })
+      navigate('/')
     }
   }
 
@@ -139,7 +186,6 @@ export const AuthProvider = ({ children }) => {
       // Handle rate limiting - don't retry immediately
       if (error.response?.status === 429) {
         console.log('Rate limit exceeded during token refresh, will retry later')
-        setLoading(false)
         return
       }
       
@@ -198,7 +244,7 @@ export const AuthProvider = ({ children }) => {
       // Check if response has the expected structure
       if (response.data && response.data.success && response.data.data) {
         console.log('✅ User profile fetched successfully')
-        setUser(response.data.data.user)
+        setAuth({ user: response.data.data.user, status: 'auth' })
       } else {
         throw new Error('Invalid response format from server')
       }
@@ -213,8 +259,7 @@ export const AuthProvider = ({ children }) => {
       // Handle rate limiting (429) - don't retry immediately
       if (error.response?.status === 429) {
         console.log('Rate limit exceeded, will retry later')
-        setUser(null)
-        setLoading(false)
+        setAuth({ user: null, status: 'anon' })
         return
       }
       
@@ -242,95 +287,14 @@ export const AuthProvider = ({ children }) => {
       } else {
         // For other errors (like 500), keep the token but set user to null temporarily
         console.log('Server error, keeping token but clearing user data temporarily')
-        setUser(null)
+        setAuth({ user: null, status: 'anon' })
       }
     } finally {
-      setLoading(false)
+      // Loading state is now handled by auth.status
     }
   }
 
-  const login = async (email, password) => {
-    try {
-      console.log('Attempting login for:', email)
-      const response = await authAPI.login({ email, password })
-      console.log('Login API response:', response)
-      
-      // Handle successful login
-      if (response && response.data && response.data.success) {
-        const { accessToken, user } = response.data.data || {}
-        
-        if (accessToken && user) {
-          // Reset refresh state on successful login
-          setRefreshAttempts(0)
-          setIsRefreshing(false)
-          setLastRefreshTime(0)
-          
-          // Store access token securely in memory using token manager
-          setAccessToken(accessToken)
-          
-          // Also update local state for consistency
-          setLocalAccessToken(accessToken)
-          
-          setUser(user)
-          
-          // Debug: Check if refresh token cookie was set
-          console.log('🍪 After login - All cookies:', document.cookie)
-          console.log('🍪 After login - Cookies object:', document.cookie.split(';').reduce((acc, cookie) => {
-            const [key, value] = cookie.trim().split('=')
-            acc[key] = value
-            return acc
-          }, {}))
-          
-          console.log('Login successful, navigating to home')
-          console.log('Access token stored securely in memory, refresh token in httpOnly cookie')
-          navigate('/')
-          
-          return { success: true }
-        } else {
-          console.error('Missing access token or user in response')
-          return { success: false, error: 'Invalid response from server' }
-        }
-      } else {
-        // Handle login failure
-        const errorMessage = response?.data?.error || 'Login failed'
-        const requiresEmailVerification = response?.data?.requiresEmailVerification || false
-        
-        console.log('Login failed:', errorMessage)
-        return { 
-          success: false, 
-          error: errorMessage,
-          requiresEmailVerification 
-        }
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      
-      // Handle different error types
-      let errorMessage = 'Login failed'
-      let requiresEmailVerification = false
-      
-      if (error.response) {
-        // Server error response
-        const status = error.response.status
-        if (status === 401) {
-          errorMessage = error.response.data?.error || 'Invalid email or password'
-          requiresEmailVerification = error.response.data?.requiresEmailVerification || false
-        } else if (status === 400) {
-          errorMessage = error.response.data?.error || 'Invalid credentials'
-        } else {
-          errorMessage = error.response.data?.error || `Server error (${status})`
-        }
-      } else if (error.message) {
-        errorMessage = error.message
-      }
-      
-      return { 
-        success: false, 
-        error: errorMessage,
-        requiresEmailVerification 
-      }
-    }
-  }
+  // Login function is now defined above
 
   const register = async (userData) => {
     try {
@@ -353,7 +317,7 @@ export const AuthProvider = ({ children }) => {
           if (token && user) {
             // Store token securely in memory using token manager
             setAccessToken(token)
-            setUser(user)
+            setAuth({ user, status: 'auth' })
             
             navigate('/')
             return { success: true }
@@ -387,37 +351,14 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const logout = async () => {
-    try {
-      // Call logout API to invalidate refresh token on server
-      await authAPI.logout()
-    } catch (error) {
-      console.warn('Logout API call failed, but proceeding with local logout:', error)
-    } finally {
-      // Reset all authentication and refresh state
-      setRefreshAttempts(0)
-      setIsRefreshing(false)
-      setLastRefreshTime(0)
-      
-      // Always perform local cleanup using secure token manager
-      clearAccessToken()
-      setLocalAccessToken(null)
-      setUser(null)
-      
-      console.log('Logout completed, navigating to home')
-      console.log('Access token securely cleared from memory, refresh token invalidated on server')
-      navigate('/')
-      
-      return { success: true, message: 'Logged out successfully' }
-    }
-  }
+  // Logout function is now defined above
 
   const updateProfile = async (profileData) => {
     try {
       const response = await authAPI.updateProfile(profileData)
       
       if (response.data && response.data.success && response.data.data) {
-        setUser(response.data.data.user)
+        setAuth({ user: response.data.data.user, status: 'auth' })
         return { success: true }
       } else {
         const message = response.data?.error || 'Profile update failed'
@@ -430,9 +371,9 @@ export const AuthProvider = ({ children }) => {
   }
 
   const updateUser = (updates) => {
-    setUser(prevUser => ({
-      ...prevUser,
-      ...updates
+    setAuth(prevAuth => ({
+      ...prevAuth,
+      user: prevAuth.user ? { ...prevAuth.user, ...updates } : null
     }))
   }
 
@@ -447,9 +388,8 @@ export const AuthProvider = ({ children }) => {
     
     // Clear local state
     setLocalAccessToken(null)
-    setUser(null)
+    setAuth({ user: null, status: 'anon' })
     setRefreshAttempts(0)
-    setLoading(false)
     
     // Clear API headers
     delete api.defaults.headers.common['Authorization']
@@ -459,18 +399,17 @@ export const AuthProvider = ({ children }) => {
   }
 
   const value = {
-    user,
-    loading,
+    ...auth, // Spread the auth state (user, status)
     login,
     register,
     logout,
     updateProfile,
     updateUser,
-    isAuthenticated: !!user,
-    isArtist: user?.role === 'ARTIST' || user?.role === 'ARTIST_ADMIN',
-    isClient: user?.role === 'CLIENT',
-    isAdmin: user?.role === 'ADMIN' || user?.role === 'ARTIST_ADMIN',
-    isArtistAdmin: user?.role === 'ARTIST_ADMIN'
+    isAuthenticated: auth.status === 'auth',
+    isArtist: auth.user?.role === 'ARTIST' || auth.user?.role === 'ARTIST_ADMIN',
+    isClient: auth.user?.role === 'CLIENT',
+    isAdmin: auth.user?.role === 'ADMIN' || auth.user?.role === 'ARTIST_ADMIN',
+    isArtistAdmin: auth.user?.role === 'ARTIST_ADMIN'
   }
 
   return (
