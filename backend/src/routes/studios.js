@@ -193,9 +193,10 @@ router.get('/', async (req, res) => {
     
     const total = await prisma.studio.count({ where });
     
-    // Add caching headers for better performance
-    res.set('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
-    res.set('ETag', `studios-${total}-${Date.now()}`);
+    // No caching for studio data to ensure fresh map display
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     
     res.json({
       success: true,
