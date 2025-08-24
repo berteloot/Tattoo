@@ -55,11 +55,17 @@ export const AuthProvider = ({ children }) => {
       
       if (response.data && response.data.success) {
         console.log('✅ Session valid, user is authenticated')
-        const { user } = response.data.data
+        const { user, accessToken } = response.data.data
+        
+        // Store the access token from session
+        if (accessToken) {
+          setAccessToken(accessToken)
+          setLocalAccessToken(accessToken)
+          console.log('🔑 Access token stored from session')
+        }
         
         // Set authentication state
         setAuth({ user, status: 'auth' })
-        setLocalAccessToken(getAccessToken()) // Get token from tokenManager
       } else {
         console.log('❌ Session invalid, user needs to login')
         setAuth({ user: null, status: 'anon' })
