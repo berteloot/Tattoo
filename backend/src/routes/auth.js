@@ -456,9 +456,19 @@ router.get('/session', async (req, res) => {
     // Remove password from response
     const { password, ...userWithoutPassword } = user;
 
+    // Generate new access token for the session
+    const accessToken = jwt.sign(
+      { id: user.id, type: 'access' },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m' }
+    );
+
     res.json({
       success: true,
-      data: { user: userWithoutPassword }
+      data: { 
+        user: userWithoutPassword,
+        accessToken 
+      }
     });
   } catch (error) {
     console.error('Session check error:', error);
