@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -11,9 +11,31 @@ export const Login = () => {
   })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, user, status } = useAuth()
   const { success, error: showError } = useToast()
   const navigate = useNavigate()
+
+  // Redirect authenticated users away from login page
+  useEffect(() => {
+    if (status === 'auth' && user) {
+      console.log('🔄 User already authenticated, redirecting from login page...')
+      navigate('/')
+    }
+  }, [status, user, navigate])
+
+  // Show loading while checking authentication status
+  if (status === 'loading') {
+    return (
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  // Don't render login form if user is already authenticated
+  if (status === 'auth' && user) {
+    return null
+  }
 
   const validateForm = () => {
     const newErrors = {}
