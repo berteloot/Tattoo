@@ -24,51 +24,18 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate()
   const { success: showSuccessToast, error: showErrorToast } = useToast()
 
-  // Check if user is logged in on app start using refresh token
+  // Check if user is logged in on app start using session endpoint
   useEffect(() => {
-    // Better cookie detection with debugging
-    // Parse cookies more robustly
-    let cookies = {}
-    if (document.cookie) {
-      try {
-        cookies = document.cookie.split(';').reduce((acc, cookie) => {
-          const trimmedCookie = cookie.trim()
-          if (trimmedCookie && trimmedCookie.includes('=')) {
-            const [key, value] = trimmedCookie.split('=', 2)
-            if (key && value !== undefined) {
-              acc[key] = value
-            }
-          }
-          return acc
-        }, {})
-      } catch (error) {
-        console.error('Error parsing cookies:', error)
-        cookies = {}
-      }
-    }
+    // Don't try to read HttpOnly cookies - they're invisible to JavaScript
+    // Instead, call the session endpoint to check if user is authenticated
+    console.log('🔄 Checking authentication status via session endpoint...')
     
-    console.log('🍪 All cookies:', cookies)
-    console.log('🍪 Raw cookie string:', document.cookie)
-    console.log('🔄 Looking for refreshToken cookie...')
-    
-    // Check for refresh token more reliably
-    const hasRefreshToken = cookies.refreshToken || 
-                           document.cookie.includes('refreshToken=') || 
-                           document.cookie.includes('refreshToken')
-    console.log('🔄 Refresh token found:', !!hasRefreshToken)
-    
-    // Additional debugging for cookie domain issues
+    // Additional debugging for domain issues
     console.log('🌐 Current location:', window.location.href)
     console.log('🌐 Current hostname:', window.location.hostname)
     console.log('🌐 Current origin:', window.location.origin)
     
-    if (hasRefreshToken) {
-      console.log('🔄 Refresh token found, attempting token refresh...')
-      refreshAccessToken()
-    } else {
-      console.log('ℹ️ No refresh token found, user needs to login')
-      setLoading(false)
-    }
+    checkSession()
   }, [])
 
   // Sync tokenManager state with local state
@@ -79,6 +46,37 @@ export const AuthProvider = ({ children }) => {
       setLocalAccessToken(token)
     }
   }, [localAccessToken])
+
+  // Function to check if user has valid session (server-side validation)
+  const checkSession = async () => {
+    try {
+      console.log('🔄 Checking session via /api/auth/session endpoint...')
+      const response = await authAPI.checkSession()
+      
+      if (response.data && response.data.success) {
+        console.log('✅ Session valid, user is authenticated')
+        const { user } = response.data.data
+        
+        // Set user data
+        setUser(user)
+        setLocalAccessToken(getAccessToken()) // Get token from tokenManager
+        setAuthStatus('authenticated')
+        setLoading(false)
+      } else {
+        console.log('❌ Session invalid, user needs to login')
+        setUser(null)
+        setLocalAccessToken(null)
+        setAuthStatus('unauthenticated')
+        setLoading(false)
+      }
+    } catch (error) {
+      console.log('❌ Session check failed:', error.message)
+      setUser(null)
+      setLocalAccessToken(null)
+      setAuthStatus('unauthenticated')
+      setLoading(false)
+    }
+  }
 
   // Function to refresh access token using refresh token cookie
   const refreshAccessToken = async () => {

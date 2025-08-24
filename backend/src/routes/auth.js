@@ -25,7 +25,7 @@ router.get('/test-cookies', (req, res) => {
     sameSite: 'lax',
     maxAge: 60 * 1000, // 1 minute
     path: '/',
-    domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain or localhost in development
+    domain: process.env.NODE_ENV === 'production' ? 'tattooedworld.org' : 'localhost' // Production domain or localhost in development
   });
   
   res.json({
@@ -267,7 +267,7 @@ router.post('/login', [
       sameSite: 'lax', // Use lax for better compatibility
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/', // Accessible from all paths
-      domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain or localhost in development
+      domain: process.env.NODE_ENV === 'production' ? 'tattooedworld.org' : 'localhost' // Production domain or localhost in development
     });
 
     console.log('🍪 Setting refresh token cookie:', {
@@ -276,7 +276,7 @@ router.post('/login', [
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
-      domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost',
+      domain: process.env.NODE_ENV === 'production' ? 'tattooedworld.org' : 'localhost',
       tokenLength: refreshToken.length
     });
 
@@ -394,6 +394,77 @@ router.post('/refresh', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Server error while refreshing token'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/auth/session
+ * @desc    Check if user has valid session (validates HttpOnly refresh token)
+ * @access  Public
+ */
+router.get('/session', async (req, res) => {
+  try {
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        error: 'No refresh token found'
+      });
+    }
+
+    // Verify refresh token
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid refresh token'
+      });
+    }
+
+    // Check if token is a refresh token
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token type'
+      });
+    }
+
+    // Get user and verify they exist and are active
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      include: {
+        artistProfile: {
+          include: {
+            specialties: true,
+            services: true
+          }
+        }
+      }
+    });
+
+    if (!user || !user.isActive) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not found or inactive'
+      });
+    }
+
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user;
+
+    res.json({
+      success: true,
+      data: { user: userWithoutPassword }
+    });
+  } catch (error) {
+    console.error('Session check error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while checking session'
     });
   }
 });
@@ -868,9 +939,9 @@ router.post('/logout', protect, async (req, res) => {
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      sameSite: 'lax', // Use lax for better compatibility
       path: '/', // Match the path used when setting the cookie
-      domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain or localhost in development
+      domain: process.env.NODE_ENV === 'production' ? 'tattooedworld.org' : 'localhost' // Production domain or localhost in development
     });
 
     res.json({
