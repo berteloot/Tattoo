@@ -450,7 +450,7 @@ export const FlashGallery = () => {
                 <div className="flex border border-gray-200 rounded-lg overflow-hidden">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    className={`px-3 sm:px-4 py-2 text-sm font-medium transition-colors ${
                       viewMode === 'grid' 
                         ? 'bg-gray-900 text-white' 
                         : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -460,7 +460,7 @@ export const FlashGallery = () => {
                   </button>
                   <button
                     onClick={() => setViewMode('masonry')}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    className={`px-3 sm:px-4 py-2 text-sm font-medium transition-colors ${
                       viewMode === 'masonry' 
                         ? 'bg-gray-900 text-white' 
                         : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -485,16 +485,16 @@ export const FlashGallery = () => {
 
           {/* Flash Items Grid/Masonry */}
           {viewMode === 'grid' ? (
-            <div className="grid md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
               {filteredAndSortedItems.map((item) => (
                 <FlashCard key={item.id} item={item} />
               ))}
             </div>
           ) : (
-            <div className="columns-1 md:columns-2 xl:columns-3 2xl:columns-4 gap-8">
+            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 sm:gap-6 lg:gap-8">
               {filteredAndSortedItems.map((item) => (
-                <div key={item.id} className="break-inside-avoid mb-8">
-                  <FlashCard item={item} />
+                <div key={item.id} className="break-inside-avoid mb-4 sm:mb-6 lg:mb-8">
+                  <FlashCard key={item.id} item={item} />
                 </div>
               ))}
             </div>
@@ -528,9 +528,9 @@ export const FlashGallery = () => {
 }
 
 const FlashCard = ({ item }) => (
-  <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group">
+  <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group h-full flex flex-col">
     {/* Image */}
-    <div className="relative aspect-square overflow-hidden">
+    <div className="relative aspect-square overflow-hidden flex-shrink-0">
       <img
         src={item.imageUrl}
         alt={item.title}
@@ -553,7 +553,7 @@ const FlashCard = ({ item }) => (
       </div>
 
       {/* Price Badge */}
-      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full font-semibold">
+      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full font-semibold text-sm">
         ${item.price}
       </div>
 
@@ -563,73 +563,83 @@ const FlashCard = ({ item }) => (
       </div>
     </div>
 
-    <div className="p-6">
+    <div className="p-4 sm:p-6 flex-1 flex flex-col">
       {/* Title and Artist */}
-      <div className="mb-4">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
+      <div className="mb-3 sm:mb-4">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 line-clamp-2">{item.title}</h3>
         <div className="flex items-center space-x-2 text-gray-600">
-          <MapPin className="w-4 h-4" />
-          <span className="text-sm">{item.artist.studioName}</span>
+          <MapPin className="w-4 h-4 flex-shrink-0" />
+          <span className="text-sm truncate">{item.artist.studioName}</span>
         </div>
       </div>
 
       {/* Description */}
-      <p className="text-gray-600 mb-4 line-clamp-2">{item.description}</p>
+      {item.description && (
+        <p className="text-gray-600 mb-3 sm:mb-4 line-clamp-2 text-sm">{item.description}</p>
+      )}
 
       {/* Tags */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {item.tags.slice(0, 3).map((tag) => (
-          <span
-            key={tag}
-            className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium"
-          >
-            #{tag}
-          </span>
-        ))}
-        {item.tags.length > 3 && (
-          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-            +{item.tags.length - 3} more
-          </span>
-        )}
-      </div>
-
-      {/* Artist Info */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">
-              {item.artist.user.firstName[0]}{item.artist.user.lastName[0]}
+      {item.tags && item.tags.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
+          {item.tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium"
+            >
+              #{tag}
             </span>
-          </div>
-          <div>
-            <p className="font-semibold text-gray-900">
-              <Link
-                to={`/artists/${item.artist.id}`}
-                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
-                title={`View ${item.artist.user.firstName} ${item.artist.user.lastName}'s profile`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {item.artist.user.firstName} {item.artist.user.lastName}
-              </Link>
-            </p>
-            <p className="text-sm text-gray-500">{item.artist.city}</p>
-          </div>
+          ))}
+          {item.tags.length > 3 && (
+            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+              +{item.tags.length - 3} more
+            </span>
+          )}
         </div>
-        <div className="text-right">
-          <p className="text-2xl font-bold text-gray-900">${item.price}</p>
-          <p className="text-sm text-gray-500">Ready to ink</p>
-        </div>
-      </div>
+      )}
 
-      {/* Action Buttons */}
-      <div className="flex space-x-3">
-        <Link
-          to={`/artists/${item.artist.id}`}
-          className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold"
-        >
-          Book Artist
-        </Link>
-        <FavoriteButton artistId={item.artist.id} className="bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors" size="w-5 h-5" />
+      {/* Artist Info and Price */}
+      <div className="mt-auto">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-sm">
+                {item.artist.user.firstName[0]}{item.artist.user.lastName[0]}
+              </span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-gray-900 truncate">
+                <Link
+                  to={`/artists/${item.artist.id}`}
+                  className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                  title={`View ${item.artist.user.firstName} ${item.artist.user.lastName}'s profile`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {item.artist.user.firstName} {item.artist.user.lastName}
+                </Link>
+              </p>
+              <p className="text-sm text-gray-500 truncate">{item.artist.city}</p>
+            </div>
+          </div>
+          <div className="text-right flex-shrink-0 ml-3">
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">${item.price}</p>
+            <p className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">Ready to ink</p>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex space-x-2 sm:space-x-3">
+          <Link
+            to={`/artists/${item.artist.id}`}
+            className="flex-1 bg-blue-600 text-white py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold text-sm sm:text-base"
+          >
+            Book Artist
+          </Link>
+          <FavoriteButton 
+            artistId={item.artist.id} 
+            className="bg-gray-100 text-gray-700 py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-gray-200 transition-colors flex-shrink-0" 
+            size="w-4 h-4 sm:w-5 sm:h-5" 
+          />
+        </div>
       </div>
     </div>
   </div>

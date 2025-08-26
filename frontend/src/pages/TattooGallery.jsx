@@ -233,22 +233,23 @@ const TattooGallery = () => {
             </div>
           </div>
           
-          <div className="text-right">
-            <div className="font-semibold text-gray-800">
+          <div className="min-w-0 flex-1 text-right ml-4">
+            <div className="font-semibold text-gray-800 truncate">
               {item.artist?.id ? (
                 <Link
                   to={`/artists/${item.artist.id}`}
                   className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
                   title={`View ${item.artist.user.firstName} ${item.artist.user.lastName}'s profile`}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   {item.artist.user.firstName} {item.artist.user.lastName}
                 </Link>
               ) : (
-                <span>{item.artist?.user?.firstName} {item.artist?.user?.lastName}</span>
+                <span className="truncate">{item.artist?.user?.firstName} {item.artist?.user?.lastName}</span>
               )}
             </div>
             {item.hoursSpent && (
-              <div className="text-xs">
+              <div className="text-xs text-gray-500">
                 {item.hoursSpent}h work
               </div>
             )}
@@ -368,7 +369,7 @@ const TattooGallery = () => {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             {/* Search */}
             <div className="flex-1 max-w-md">
@@ -379,13 +380,13 @@ const TattooGallery = () => {
                   placeholder="Search gallery items..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
                 />
               </div>
             </div>
 
             {/* View Mode and Filter Toggle */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="flex items-center bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('grid')}
@@ -403,7 +404,7 @@ const TattooGallery = () => {
               
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm sm:text-base"
               >
                 <Filter className="w-4 h-4" />
                 <span>Filters</span>
@@ -498,7 +499,7 @@ const TattooGallery = () => {
         ) : (
           <>
             <div className={viewMode === 'grid' 
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6'
               : 'space-y-4'
             }>
               {galleryItems.map(item => (
