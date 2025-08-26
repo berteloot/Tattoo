@@ -14,10 +14,23 @@ router.post('/recreate-users', async (req, res) => {
 
     console.log('🚨 Emergency: Recreating test users...');
 
-    // Hash passwords
-    const adminPasswordHash = await bcrypt.hash('admin123', 10);
-    const artistPasswordHash = await bcrypt.hash('artist123', 10);
-    const clientPasswordHash = await bcrypt.hash('client123', 10);
+    // Generate secure random passwords for emergency accounts
+    const generateSecurePassword = () => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+      let password = '';
+      for (let i = 0; i < 16; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return password;
+    };
+    
+    const adminPassword = generateSecurePassword();
+    const artistPassword = generateSecurePassword();
+    const clientPassword = generateSecurePassword();
+    
+    const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
+    const artistPasswordHash = await bcrypt.hash(artistPassword, 10);
+    const clientPasswordHash = await bcrypt.hash(clientPassword, 10);
 
     // Upsert admin user
     const adminUser = await prisma.user.upsert({
@@ -97,7 +110,13 @@ router.post('/recreate-users', async (req, res) => {
     res.json({ 
       success: true, 
       message: 'Test users recreated successfully',
-      users: ['berteloot@gmail.com', 'artist@example.com', 'client@example.com']
+      users: ['berteloot@gmail.com', 'artist@example.com', 'client@example.com'],
+      passwords: {
+        admin: adminPassword,
+        artist: artistPassword,
+        client: clientPassword
+      },
+      note: 'Passwords are generated once and not stored. Use password reset for future access.'
     });
 
   } catch (error) {

@@ -138,8 +138,16 @@ app.get('/debug-paths', (req, res) => {
   }
 });
 
-// Additional debug endpoint for root path testing
+// Additional debug endpoint for root path testing (development only)
 app.get('/test-root', (req, res) => {
+  // Block this endpoint in production for security
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({
+      success: false,
+      error: 'Endpoint not found'
+    });
+  }
+
   // Get fresh build info
   const freshBuildInfo = getFreshFrontendBuildInfo();
   
@@ -156,8 +164,16 @@ app.get('/test-root', (req, res) => {
   });
 });
 
-// Test HTML content endpoint
+// Test HTML content endpoint (development only)
 app.get('/test-html', (req, res) => {
+  // Block this endpoint in production for security
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({
+      success: false,
+      error: 'Endpoint not found'
+    });
+  }
+
   try {
     const freshBuildInfo = getFreshFrontendBuildInfo();
     
@@ -181,7 +197,7 @@ app.get('/test-html', (req, res) => {
       htmlFileSize: htmlContent.length,
       scriptTags: scriptMatches,
       linkTags: linkMatches,
-      htmlPreview: htmlContent.substring(0, 500) + '...'
+      htmlPreview: htmlContent.substring(0,500) + '...'
     });
   } catch (error) {
     res.status(500).json({
@@ -497,8 +513,16 @@ if (!frontendExists) {
     }
   }));
 
-  // Debug endpoint to check asset availability
+  // Debug endpoint to check asset availability (development only)
   app.get('/debug-assets', (req, res) => {
+    // Block this endpoint in production for security
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(404).json({
+        success: false,
+        error: 'Endpoint not found'
+      });
+    }
+
     const assetsDir = path.join(frontendBuildPath, 'assets');
     try {
       if (fs.existsSync(assetsDir)) {
@@ -540,8 +564,16 @@ if (!frontendExists) {
     }
   });
 
-  // Comprehensive asset debugging endpoint
+  // Comprehensive asset debugging endpoint (development only)
   app.get('/debug-build', (req, res) => {
+    // Block this endpoint in production for security
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(404).json({
+        success: false,
+        error: 'Endpoint not found'
+      });
+    }
+
     try {
       // Get fresh build info
       const freshBuildInfo = getFreshFrontendBuildInfo();
@@ -558,7 +590,7 @@ if (!frontendExists) {
         const buildContents = fs.readdirSync(freshBuildInfo.path);
         buildInfo.buildContents = buildContents;
         
-        const assetsDir = path.join(freshBuildInfo.path, 'assets');
+        const assetsDir = path.join(freshBuildPath, 'assets');
         buildInfo.assetsDir = assetsDir;
         buildInfo.assetsExists = fs.existsSync(assetsDir);
         
@@ -590,7 +622,7 @@ if (!frontendExists) {
         
         // Check index.html
         const indexHtmlPath = path.join(frontendBuildPath, 'index.html');
-        if (fs.existsSync(indexHtmlPath)) {
+        if (buildInfo.buildExists) {
           const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
           buildInfo.indexHtml = {
             exists: true,
@@ -615,8 +647,16 @@ if (!frontendExists) {
     }
   });
 
-  // Test CSS serving endpoint
+  // Test CSS serving endpoint (development only)
   app.get('/test-css', (req, res) => {
+    // Block this endpoint in production for security
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(404).json({
+        success: false,
+        error: 'Endpoint not found'
+      });
+    }
+
     res.setHeader('Content-Type', 'text/css; charset=utf-8');
     res.send(`
       /* Test CSS */

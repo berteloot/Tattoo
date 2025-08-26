@@ -61,8 +61,16 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-// Test endpoint to verify data structure
+// Test endpoint to verify data structure (development only)
 router.get('/test', async (req, res) => {
+  // Block this endpoint in production for security
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({
+      success: false,
+      error: 'Endpoint not found'
+    });
+  }
+
   try {
     logger.geocoding('GET /test - Processing request');
     
@@ -170,8 +178,16 @@ router.get('/count', async (req, res) => {
   }
 });
 
-// Debug endpoint to check artist verification status (no auth required)
+// Debug endpoint to check artist verification status (development only)
 router.get('/debug-artists', async (req, res) => {
+  // Block this endpoint in production for security
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({
+      success: false,
+      error: 'Endpoint not found'
+    });
+  }
+
   try {
     logger.geocoding('GET /debug-artists - Processing request');
     
@@ -252,8 +268,16 @@ router.get('/debug-artists', async (req, res) => {
   }
 });
 
-// Debug endpoint to check what studios exist in the database
+// Debug endpoint to check what studios exist in the database (development only)
 router.get('/debug-studios', async (req, res) => {
+  // Block this endpoint in production for security
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({
+      success: false,
+      error: 'Endpoint not found'
+    });
+  }
+
   try {
     logger.geocoding('GET /debug-studios - Processing request');
     

@@ -10,10 +10,18 @@ const router = express.Router();
 
 /**
  * @route   GET /api/auth/test-cookies
- * @desc    Test endpoint to check cookie functionality
- * @access  Public
+ * @desc    Test endpoint to check cookie functionality (development only)
+ * @access  Public (development only)
  */
 router.get('/test-cookies', (req, res) => {
+  // Block this endpoint in production for security
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({
+      success: false,
+      error: 'Endpoint not found'
+    });
+  }
+
   console.log('🍪 Test cookies endpoint called');
   console.log('🍪 Request cookies:', req.cookies);
   console.log('🍪 Request headers:', req.headers);
@@ -213,8 +221,8 @@ router.post('/login', [
       });
     }
 
-    // Check if email is verified (bypass for test accounts in production)
-    const testEmails = [
+    // Check if email is verified (bypass for test accounts only in development)
+    const testEmails = process.env.NODE_ENV !== 'production' ? [
       'admin@tattoolocator.com',
       'client@example.com', 
       'artist@example.com',
@@ -223,7 +231,7 @@ router.post('/login', [
       'emma@example.com',
       'marcus@example.com',
       'pending@example.com'
-    ]
+    ] : [];
     
     if (!user.emailVerified && !testEmails.includes(user.email)) {
       return res.status(401).json({

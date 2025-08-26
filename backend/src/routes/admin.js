@@ -1508,12 +1508,20 @@ router.post('/quick-fix-verification', protect, async (req, res) => {
 
 /**
  * @route   POST /api/admin/fix-test-accounts
- * @desc    Fix test accounts for production (temporary)
- * @access  Admin only
+ * @desc    Fix test accounts for production (development only)
+ * @access  Admin only (development only)
  */
 router.post('/fix-test-accounts', protect, adminOnly, async (req, res) => {
+  // Block this endpoint in production for security
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({
+      success: false,
+      error: 'Endpoint not found'
+    });
+  }
+
   try {
-    console.log('🔄 Fixing test accounts in production...')
+    console.log('🔄 Fixing test accounts in development...')
     
     // Update all test accounts to have emailVerified: true
     const testEmails = [
@@ -2865,10 +2873,18 @@ router.put('/gallery/approve-all', async (req, res) => {
 
 /**
  * @route   GET /api/admin/debug/artists
- * @desc    Debug endpoint to check artist verification status
- * @access  Admin only
+ * @desc    Debug endpoint to check artist verification status (development only)
+ * @access  Admin only (development only)
  */
 router.get('/debug/artists', async (req, res) => {
+  // Block this endpoint in production for security
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({
+      success: false,
+      error: 'Endpoint not found'
+    });
+  }
+
   try {
     // Get all users with ARTIST role
     const artistUsers = await prisma.user.findMany({
@@ -2943,10 +2959,18 @@ router.get('/debug/artists', async (req, res) => {
 
 /**
  * @route   POST /api/admin/test-csv-mapping
- * @desc    Test CSV field mapping for debugging
- * @access  Admin only
+ * @desc    Test CSV field mapping for debugging (development only)
+ * @access  Admin only (development only)
  */
 router.post('/test-csv-mapping', protect, adminOnly, async (req, res) => {
+  // Block this endpoint in production for security
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({
+      success: false,
+      error: 'Endpoint not found'
+    });
+  }
+
   try {
     const { csvData } = req.body;
     
