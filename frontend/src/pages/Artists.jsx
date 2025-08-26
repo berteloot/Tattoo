@@ -355,6 +355,13 @@ export const Artists = () => {
                       )}
                     </div>
 
+                    {/* Artist Messages */}
+                    {artist.messages && artist.messages.length > 0 && (
+                      <div className="mb-4">
+                        <ArtistMessages messages={artist.messages} variant="card" />
+                      </div>
+                    )}
+
                     {/* Bio */}
                     <p className="text-gray-700 text-sm leading-relaxed mb-4 line-clamp-3">
                       {artist.bio || "No bio available"}

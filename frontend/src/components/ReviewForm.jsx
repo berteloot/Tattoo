@@ -100,7 +100,7 @@ export const ReviewForm = ({ artist, onClose, onReviewSubmitted }) => {
       console.log('ReviewForm: API response:', JSON.stringify(response, null, 2))
       
       if (response.data.success) {
-        showSuccess('Review submitted successfully!')
+        success('Review submitted successfully!')
         onReviewSubmitted(response.data.data.review)
         onClose()
         setFormData({
