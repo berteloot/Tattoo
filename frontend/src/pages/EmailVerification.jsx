@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { authAPI } from '../services/api';
+import axios from 'axios';
 import { CheckCircle, XCircle, Mail, RefreshCw, ArrowLeft } from 'lucide-react';
 
 const EmailVerification = () => {
@@ -18,9 +18,45 @@ const EmailVerification = () => {
 
   const token = searchParams.get('token');
 
+  // Get API URL dynamically
+  const getApiUrl = () => {
+    if (import.meta.env.VITE_API_URL) {
+      return import.meta.env.VITE_API_URL;
+    }
+    if (import.meta.env.DEV) {
+      return '/api';
+    }
+    return '/api';
+  };
+
+  // Test function to debug API calls
+  const testApiCall = async () => {
+    try {
+      console.log('🧪 Testing API call...');
+      console.log('🌐 API URL:', getApiUrl());
+      
+      const testResponse = await axios.get(`${getApiUrl()}/health`, {
+        withCredentials: true
+      });
+      
+      console.log('✅ Health check response:', testResponse.data);
+      return true;
+    } catch (error) {
+      console.error('❌ Health check failed:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     if (token) {
-      verifyEmail(token);
+      // Test API connection first
+      testApiCall().then(isWorking => {
+        if (isWorking) {
+          verifyEmail(token);
+        } else {
+          setVerificationStatus('error');
+        }
+      });
     } else {
       setVerificationStatus('error');
     }
@@ -30,17 +66,20 @@ const EmailVerification = () => {
     try {
       setVerificationStatus('verifying');
       
-      // Debug: Check if authAPI and verifyEmail exist
-      console.log('authAPI:', authAPI);
-      console.log('authAPI.verifyEmail:', authAPI.verifyEmail);
+      console.log('🔍 Verifying email with token:', verificationToken);
+      console.log('🌐 API URL:', getApiUrl());
       
-      if (!authAPI || !authAPI.verifyEmail) {
-        console.error('authAPI.verifyEmail is not available');
-        setVerificationStatus('error');
-        return;
-      }
-      
-      const response = await authAPI.verifyEmail(verificationToken);
+      // Direct axios call instead of authAPI
+      const response = await axios.post(`${getApiUrl()}/auth/verify-email`, {
+        token: verificationToken
+      }, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('✅ Verification response:', response.data);
 
       if (response.data.success) {
         setVerificationStatus('success');
@@ -58,7 +97,7 @@ const EmailVerification = () => {
         }, 3000);
       }
     } catch (error) {
-      console.error('Email verification error:', error);
+      console.error('❌ Email verification error:', error);
       
       if (error.response?.status === 400) {
         if (error.response.data.error.includes('expired')) {
@@ -76,40 +115,35 @@ const EmailVerification = () => {
     e.preventDefault();
     
     if (!email) {
-              showErrorToast('Email Required', 'Please enter your email address');
+      showErrorToast('Email Required', 'Please enter your email address');
       return;
     }
 
     try {
       setIsResending(true);
       
-      // Debug: Check if authAPI and resendVerification exist
-      console.log('authAPI:', authAPI);
-      console.log('authAPI.resendVerification:', authAPI.resendVerification);
+      console.log('📧 Resending verification to:', email);
+      console.log('🌐 API URL:', getApiUrl());
       
-      if (!authAPI || !authAPI.resendVerification) {
-        console.error('authAPI.resendVerification is not available');
-        showErrorToast('API Error', 'API method not available. Please refresh the page.');
-        return;
-      }
-      
-      const response = await authAPI.resendVerification(email);
+      // Direct axios call instead of authAPI
+      const response = await axios.post(`${getApiUrl()}/auth/resend-verification`, {
+        email: email
+      }, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('✅ Resend response:', response.data);
 
       if (response.data.success) {
         showSuccessToast('Email Sent!', 'Verification email sent! Please check your inbox.');
         setShowResendForm(false);
       }
     } catch (error) {
-      console.error('Resend verification error:', error);
-      
-      // Handle specific error cases
-      if (error.response?.status === 400) {
-        showErrorToast('Invalid Email', error.response.data.error || 'Invalid email address');
-      } else if (error.response?.status === 500) {
-                  showErrorToast('Service Unavailable', 'Email service temporarily unavailable. Please try again later.');
-        } else {
-          showErrorToast('Resend Failed', 'Failed to resend verification email. Please try again.');
-      }
+      console.error('❌ Resend verification error:', error);
+      showErrorToast('Error', error.response?.data?.error || 'Failed to resend verification email');
     } finally {
       setIsResending(false);
     }
