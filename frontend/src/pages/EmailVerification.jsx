@@ -84,10 +84,9 @@ const EmailVerification = () => {
       if (response.data.success) {
         setVerificationStatus('success');
         
-        // Automatically log the user in
-        if (response.data.data.token && response.data.data.user) {
-          loginWithToken(response.data.data.token, response.data.data.user);
-        }
+        // User is already authenticated via session, just show success
+        console.log('✅ Email verification successful');
+        console.log('👤 User data:', response.data.data.user);
         
         showSuccessToast('Email Verified!', 'Welcome to Tattooed World!');
         
