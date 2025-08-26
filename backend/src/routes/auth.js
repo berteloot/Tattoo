@@ -33,7 +33,7 @@ router.get('/test-cookies', (req, res) => {
     sameSite: 'lax',
     maxAge: 60 * 1000, // 1 minute
     path: '/',
-    domain: process.env.NODE_ENV === 'production' ? 'tattooedworld.org' : 'localhost' // Production domain or localhost in development
+    domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain with dot to cover all subdomains
   });
   
   res.json({
@@ -275,16 +275,16 @@ router.post('/login', [
       sameSite: 'lax', // Use lax for better compatibility
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/', // Accessible from all paths
-      domain: process.env.NODE_ENV === 'production' ? 'tattooedworld.org' : 'localhost' // Production domain or localhost in development
+      domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain with dot to cover all subdomains
     });
 
     console.log('🍪 Setting refresh token cookie:', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: true,
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
-      domain: process.env.NODE_ENV === 'production' ? 'tattooedworld.org' : 'localhost',
+      domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost',
       tokenLength: refreshToken.length
     });
 
@@ -383,11 +383,11 @@ router.post('/refresh', async (req, res) => {
     // Set new refresh token as httpOnly, secure cookie
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Only HTTPS in production
+      secure: true, // Always secure in production
       sameSite: 'lax', // Use lax for better compatibility
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/', // Accessible from all paths
-      domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain or localhost in development
+      domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain with dot to cover all subdomains
     });
 
     res.json({
@@ -956,10 +956,10 @@ router.post('/logout', protect, async (req, res) => {
     // Clear refresh token cookie
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true, // Always secure in production
       sameSite: 'lax', // Use lax for better compatibility
       path: '/', // Match the path used when setting the cookie
-      domain: process.env.NODE_ENV === 'production' ? 'tattooedworld.org' : 'localhost' // Production domain or localhost in development
+      domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain with dot to cover all subdomains
     });
 
     res.json({
