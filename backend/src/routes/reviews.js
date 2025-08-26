@@ -475,7 +475,17 @@ router.post('/', protect, authorize('CLIENT', 'ARTIST'), [
     // Send notification to artist if review is approved
     if (!requiresModeration && emailService.isConfigured()) {
       try {
-        await emailService.sendReviewNotification({
+        console.log('📧 Sending review notification email to artist:', {
+          artistEmail: recipient.email,
+          artistName: `${recipient.firstName} ${recipient.lastName}`,
+          reviewerName: `${req.user.firstName} ${req.user.lastName}`,
+          rating,
+          title,
+          comment,
+          emailServiceConfigured: emailService.isConfigured()
+        });
+        
+        const emailResult = await emailService.sendReviewNotification({
           to: recipient.email,
           artistName: `${recipient.firstName} ${recipient.lastName}`,
           reviewerName: `${req.user.firstName} ${req.user.lastName}`,
@@ -483,9 +493,21 @@ router.post('/', protect, authorize('CLIENT', 'ARTIST'), [
           title,
           comment
         });
+        
+        if (emailResult.success) {
+          console.log('✅ Review notification email sent successfully:', emailResult.messageId);
+        } else {
+          console.error('❌ Failed to send review notification email:', emailResult.error);
+        }
       } catch (emailError) {
-        console.error('Failed to send review notification:', emailError);
+        console.error('❌ Error sending review notification email:', emailError);
       }
+    } else {
+      console.log('📧 Review notification email not sent:', {
+        requiresModeration,
+        emailServiceConfigured: emailService.isConfigured(),
+        reason: requiresModeration ? 'Review requires moderation' : 'Email service not configured'
+      });
     }
 
     res.status(201).json({

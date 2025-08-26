@@ -1967,6 +1967,13 @@ export const ArtistDashboard = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Reviews</h3>
               
+              {/* Debug info */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mb-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
+                  <strong>Debug:</strong> User ID: {user?.id}, Reviews count: {Array.isArray(reviews) ? reviews.length : 'Not array'}, Loading: {reviewsLoading ? 'Yes' : 'No'}
+                </div>
+              )}
+              
               {Array.isArray(reviews) && reviews.length > 0 ? (
                 <div className="space-y-3">
                   {reviews.slice(0, 3).map((review) => {
@@ -1999,6 +2006,8 @@ export const ArtistDashboard = () => {
                     );
                   })}
                 </div>
+              ) : reviewsLoading ? (
+                <p className="text-gray-500 text-center py-4">Loading reviews...</p>
               ) : (
                 <p className="text-gray-500 text-center py-4">No reviews yet</p>
               )}

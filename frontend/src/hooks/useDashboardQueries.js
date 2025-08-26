@@ -102,16 +102,26 @@ export const useArtistTattoos = (artistId) => {
 }
 
 // Custom hook for artist reviews
-export const useArtistReviews = (artistId) => {
+export const useArtistReviews = (userId) => {
   return useQuery({
-    queryKey: ['artist', 'reviews', artistId],
+    queryKey: ['artist', 'reviews', userId],
     queryFn: async () => {
-      const response = await api.get(`/reviews?recipientId=${artistId}`)
-      return response.data?.data?.reviews || response.data?.reviews || []
+      try {
+        console.log('🔍 Fetching reviews for user ID:', userId);
+        const response = await api.get(`/reviews?recipientId=${userId}`);
+        const reviews = response.data?.data?.reviews || response.data?.reviews || [];
+        console.log('📋 Fetched reviews:', reviews.length, 'reviews');
+        return reviews;
+      } catch (error) {
+        console.error('❌ Error fetching artist reviews:', error);
+        return [];
+      }
     },
-    enabled: !!artistId,
-    staleTime: 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    enabled: !!userId,
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 }
 

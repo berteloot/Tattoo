@@ -47,7 +47,14 @@ class EmailService {
   }
 
   isConfigured() {
-    return !!process.env.SENDGRID_API_KEY
+    const configured = !!process.env.SENDGRID_API_KEY;
+    console.log('📧 Email service configuration check:', {
+      hasSendGridKey: !!process.env.SENDGRID_API_KEY,
+      fromEmail: this.fromEmail,
+      fromName: this.fromName,
+      configured
+    });
+    return configured;
   }
 
   // Email verification email
@@ -301,6 +308,12 @@ class EmailService {
   // New review notification
   async sendReviewNotification({ to, artistName, reviewerName, rating, title, comment }) {
     const subject = 'New Review on Your Profile! ⭐'
+    
+    // Use the correct production URL
+    const frontendUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5173' 
+      : (process.env.FRONTEND_URL || 'https://tattooedworld.org');
+    
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
@@ -327,9 +340,9 @@ class EmailService {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooedworld.org')}/profile" 
+            <a href="${frontendUrl}/dashboard" 
                style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              View Your Profile
+              View Your Dashboard
             </a>
           </div>
           
@@ -389,7 +402,7 @@ class EmailService {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooedworld.org')}/bookings/${booking.id}" 
+            <a href="${frontendUrl}/bookings/${booking.id}" 
                style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View Booking Details
             </a>
