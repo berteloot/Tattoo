@@ -552,11 +552,6 @@ const FlashCard = ({ item }) => (
         </div>
       </div>
 
-      {/* Price Badge */}
-      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full font-semibold text-sm">
-        ${item.price}
-      </div>
-
       {/* Style Badge */}
       <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
         {item.style}

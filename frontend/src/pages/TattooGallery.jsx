@@ -212,7 +212,7 @@ const TattooGallery = () => {
           )}
         </div>
 
-        <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => handleLike(item.id)}
@@ -232,9 +232,12 @@ const TattooGallery = () => {
               <span>{item._count.views}</span>
             </div>
           </div>
-          
-          <div className="min-w-0 flex-1 text-right ml-4">
-            <div className="font-semibold text-gray-800 truncate">
+        </div>
+        
+        {/* Artist Info - Full Name on New Line */}
+        <div className="flex items-center justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold text-gray-800">
               {item.artist?.id ? (
                 <Link
                   to={`/artists/${item.artist.id}`}
@@ -245,11 +248,11 @@ const TattooGallery = () => {
                   {item.artist.user.firstName} {item.artist.user.lastName}
                 </Link>
               ) : (
-                <span className="truncate">{item.artist?.user?.firstName} {item.artist?.user?.lastName}</span>
+                <span>{item.artist?.user?.firstName} {item.artist?.user?.lastName}</span>
               )}
             </div>
             {item.hoursSpent && (
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 mt-1">
                 {item.hoursSpent}h work
               </div>
             )}
