@@ -11,6 +11,15 @@ class EmailService {
   constructor() {
     this.fromEmail = process.env.FROM_EMAIL || 'stan@berteloot.org'
     this.fromName = 'Tattooed World'
+    this.version = '2.0.0' // Version identifier for debugging
+    
+    console.log('📧 EmailService initialized:', {
+      version: this.version,
+      fromEmail: this.fromEmail,
+      fromName: this.fromName,
+      NODE_ENV: process.env.NODE_ENV,
+      FRONTEND_URL: process.env.FRONTEND_URL
+    });
   }
 
   async sendEmail(to, subject, htmlContent, textContent = '') {
@@ -60,12 +69,34 @@ class EmailService {
   // Email verification email
   async sendEmailVerificationEmail(user, verificationToken) {
     try {
-      // Use localhost for development, production URL for production
-      const frontendUrl = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:5173' 
-        : (process.env.FRONTEND_URL || 'https://tattooedworld.org');
+      // More robust URL construction with fallback
+      let frontendUrl;
+      
+      if (process.env.NODE_ENV === 'development') {
+        frontendUrl = 'http://localhost:5173';
+      } else if (process.env.FRONTEND_URL) {
+        frontendUrl = process.env.FRONTEND_URL;
+      } else {
+        // Hardcoded fallback for production
+        frontendUrl = 'https://tattooedworld.org';
+      }
+      
+      // Ensure the URL doesn't have the old onrender domain
+      if (frontendUrl.includes('onrender.com')) {
+        console.warn('⚠️ Detected old onrender.com URL, using fallback');
+        frontendUrl = 'https://tattooedworld.org';
+      }
       
       const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`
+      
+      // Debug logging for URL construction
+      console.log('📧 Email verification URL debug:', {
+        NODE_ENV: process.env.NODE_ENV,
+        FRONTEND_URL: process.env.FRONTEND_URL,
+        calculatedFrontendUrl: frontendUrl,
+        finalVerificationUrl: verificationUrl,
+        hasOldUrl: frontendUrl.includes('onrender.com')
+      });
       
       const subject = 'Verify Your Email - Tattooed World 🎨'
       const htmlContent = `
