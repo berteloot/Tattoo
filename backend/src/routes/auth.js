@@ -271,8 +271,8 @@ router.post('/login', [
     // Set refresh token as httpOnly, secure cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Only HTTPS in production
-      sameSite: 'lax', // Use lax for better compatibility
+      secure: true, // Always secure in production
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Strict in production for CSRF protection
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/', // Accessible from all paths
       domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain with dot to cover all subdomains
@@ -315,6 +315,41 @@ router.post('/login', [
  */
 router.post('/refresh', async (req, res) => {
   try {
+    // CSRF Protection: Validate Origin/Referer for same-site requests
+    const origin = req.headers.origin;
+    const referer = req.headers.referer;
+    
+    // In production, require strict origin validation
+    if (process.env.NODE_ENV === 'production') {
+      const allowedOrigins = [
+        'https://tattooedworld.org',
+        'https://www.tattooedworld.org',
+        'https://api.tattooedworld.org'
+      ];
+      
+      // Check if origin is allowed
+      if (origin && !allowedOrigins.includes(origin)) {
+        console.log(`🚫 CSRF blocked: Invalid origin ${origin}`);
+        return res.status(403).json({
+          success: false,
+          error: 'Invalid origin'
+        });
+      }
+      
+      // Additional referer validation for extra security
+      if (referer) {
+        const refererUrl = new URL(referer);
+        const refererOrigin = refererUrl.origin;
+        if (!allowedOrigins.includes(refererOrigin)) {
+          console.log(`🚫 CSRF blocked: Invalid referer ${refererOrigin}`);
+          return res.status(403).json({
+            success: false,
+            error: 'Invalid referer'
+          });
+        }
+      }
+    }
+    
     console.log('🍪 Received cookies:', req.cookies);
     console.log('🍪 All headers:', req.headers);
     
@@ -384,7 +419,7 @@ router.post('/refresh', async (req, res) => {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: true, // Always secure in production
-      sameSite: 'lax', // Use lax for better compatibility
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Strict in production for CSRF protection
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/', // Accessible from all paths
       domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain with dot to cover all subdomains
@@ -957,7 +992,7 @@ router.post('/logout', protect, async (req, res) => {
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: true, // Always secure in production
-      sameSite: 'lax', // Use lax for better compatibility
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Strict in production for CSRF protection
       path: '/', // Match the path used when setting the cookie
       domain: process.env.NODE_ENV === 'production' ? '.tattooedworld.org' : 'localhost' // Production domain with dot to cover all subdomains
     });

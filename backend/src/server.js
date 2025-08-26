@@ -894,11 +894,29 @@ if (require.main === module) {
   startServer();
 }
 
-// Handle unhandled promise rejections
+// Handle unhandled promise rejections gracefully
 process.on('unhandledRejection', (err, promise) => {
-  console.log(`Error: ${err.message}`);
-  // Close server & exit process
-  process.exit(1);
+  console.error('🚨 Unhandled Promise Rejection:', {
+    error: err.message,
+    stack: err.stack,
+    promise: promise,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Log additional context for debugging
+  if (err.code) {
+    console.error('Error code:', err.code);
+  }
+  if (err.syscall) {
+    console.error('System call:', err.syscall);
+  }
+  
+  // Don't crash the process for transient errors
+  // Let the process manager handle truly fatal issues
+  console.error('⚠️ Process will continue running. Monitor logs for issues.');
+  
+  // Optional: Send metrics/alerting here
+  // Example: sendToMonitoringService('unhandledRejection', err);
 });
 
 module.exports = app; // Force rebuild - Sat Aug  9 21:04:14 CEST 2025
