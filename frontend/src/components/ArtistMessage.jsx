@@ -69,14 +69,16 @@ export const ArtistMessage = ({ message, variant = 'profile' }) => {
   return (
     <div className={`
       ${isCard ? 'rounded-lg border-l-3 p-3 mb-3' : 'rounded-xl border-l-4 p-5 mb-4'}
-      transition-all duration-200 hover:shadow-md
+      transition-all duration-300 ease-in-out hover:shadow-md hover:scale-[1.02]
       ${style.border} ${style.bg} ${style.shadow}
+      ${isCard ? 'hover:bg-opacity-80' : 'hover:bg-opacity-90'}
+      border-r border-t border-b border-gray-100
     `}>
       <div className={`flex items-start ${isCard ? 'space-x-3' : 'space-x-4'}`}>
         {/* Icon with subtle background */}
         <div className={`
-          ${isCard ? 'p-1.5' : 'p-2'} rounded-full ${style.bg} border ${style.border}
-          flex-shrink-0
+          ${isCard ? 'p-1.5' : 'p-2'} rounded-full bg-white/70 border ${style.border}
+          flex-shrink-0 backdrop-blur-sm
         `}>
           <IconComponent className={`${isCard ? 'w-4 h-4' : 'w-5 h-5'} ${style.iconColor}`} />
         </div>
@@ -98,6 +100,8 @@ export const ArtistMessage = ({ message, variant = 'profile' }) => {
               ${style.text} ${isCard ? 'text-xs' : 'text-base'} 
               ${isCard ? 'leading-tight' : 'leading-relaxed'}
               prose prose-sm max-w-none
+              ${isCard ? 'line-clamp-2' : ''}
+              break-words
             `}
             dangerouslySetInnerHTML={{ __html: message.content }}
           />

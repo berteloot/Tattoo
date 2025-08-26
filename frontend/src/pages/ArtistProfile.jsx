@@ -413,8 +413,8 @@ export const ArtistProfile = () => {
             {artist.messages && artist.messages.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                  <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
-                  Latest Updates from {artist.user.firstName}
+                  <MessageCircle className="w-5 h-5 mr-2 text-purple-600" />
+                  Community Updates from {artist.user.firstName}
                 </h2>
                 <ArtistMessages messages={artist.messages} variant="profile" />
               </div>
