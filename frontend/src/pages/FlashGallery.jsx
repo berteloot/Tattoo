@@ -616,7 +616,7 @@ const FlashCard = ({ item }) => (
             </div>
           </div>
           <div className="text-right flex-shrink-0 ml-3">
-            <p className="text-xl sm:text-2xl font-bold text-gray-900">${item.price}</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{item.price}</p>
             <p className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">Ready to ink</p>
           </div>
         </div>
