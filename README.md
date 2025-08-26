@@ -19,7 +19,7 @@ The `VITE_GOOGLE_MAPS_API_KEY` environment variable is used in the frontend and 
    - Under "Application restrictions", select "HTTP referrers (web sites)"
    - Add ONLY your production domains:
      ```
-     https://tattooed-world-backend.onrender.com/*
+     https://tattooedworld.org/*
      https://yourdomain.com/*
      http://localhost:5173/* (for development)
      ```

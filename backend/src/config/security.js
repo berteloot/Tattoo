@@ -5,9 +5,7 @@ const cors = require("cors");
 const allowedOrigins = [
   "https://tattooedworld.org",
   "https://www.tattooedworld.org",
-  // keep these two during migration/testing; you can remove later
-  "https://api.tattooedworld.org",
-  "https://tattooed-world-backend.onrender.com"
+  "https://api.tattooedworld.org"
 ];
 
 const corsMiddleware = cors({

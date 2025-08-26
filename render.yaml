@@ -80,6 +80,8 @@ services:
         value: image/jpeg,image/png,image/webp
       - key: FRONTEND_URL
         value: https://tattooedworld.org
+      - key: FROM_EMAIL
+        value: stan@berteloot.org
       # Google Maps API for geocoding (set in Render dashboard)
       - key: GOOGLE_MAPS_API_KEY
         sync: false
