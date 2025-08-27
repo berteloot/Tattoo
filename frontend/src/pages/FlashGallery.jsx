@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Search, Filter, Eye, DollarSign, Tag, Calendar, Star, MapPin, Instagram } from 'lucide-react'
 import { FavoriteButton } from '../components/FavoriteButton'
 import { flashAPI, artistsAPI } from '../services/api'
@@ -16,6 +16,8 @@ export const FlashGallery = () => {
   const [priceRange, setPriceRange] = useState('all')
   const [viewMode, setViewMode] = useState('grid') // 'grid' or 'masonry'
   const [sortBy, setSortBy] = useState('newest') // 'newest', 'price', 'popular'
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     console.log('FlashGallery component mounted, fetching data...')
@@ -91,7 +93,8 @@ export const FlashGallery = () => {
       style: 'Traditional',
       createdAt: '2024-01-15T10:00:00Z',
       likes: 245,
-      views: 1234
+      views: 1234,
+      size: 1.5
     },
     {
       id: '2',
@@ -110,7 +113,8 @@ export const FlashGallery = () => {
       style: 'Black & Grey',
       createdAt: '2024-01-10T14:30:00Z',
       likes: 167,
-      views: 2456
+      views: 2456,
+      size: 2
     },
     {
       id: '3',
@@ -129,7 +133,8 @@ export const FlashGallery = () => {
       style: 'Minimalist',
       createdAt: '2024-01-12T09:15:00Z',
       likes: 189,
-      views: 1567
+      views: 1567,
+      size: 1
     },
     {
       id: '4',
@@ -148,7 +153,8 @@ export const FlashGallery = () => {
       style: 'Watercolor',
       createdAt: '2024-01-08T16:45:00Z',
       likes: 323,
-      views: 2789
+      views: 2789,
+      size: 1.2
     },
     {
       id: '5',
@@ -167,7 +173,8 @@ export const FlashGallery = () => {
       style: 'Japanese',
       createdAt: '2024-01-05T11:20:00Z',
       likes: 456,
-      views: 3892
+      views: 3892,
+      size: 1.8
     },
     {
       id: '6',
@@ -186,7 +193,8 @@ export const FlashGallery = () => {
       style: 'Geometric',
       createdAt: '2024-01-03T13:10:00Z',
       likes: 278,
-      views: 2345
+      views: 2345,
+      size: 1.5
     },
     {
       id: '7',
@@ -205,7 +213,8 @@ export const FlashGallery = () => {
       style: 'Black & Grey',
       createdAt: '2024-01-01T15:30:00Z',
       likes: 192,
-      views: 1478
+      views: 1478,
+      size: 1.2
     },
     {
       id: '8',
@@ -224,7 +233,8 @@ export const FlashGallery = () => {
       style: 'Neo-Traditional',
       createdAt: '2023-12-28T10:45:00Z',
       likes: 334,
-      views: 2623
+      views: 2623,
+      size: 1.8
     },
     {
       id: '9',
@@ -243,7 +253,8 @@ export const FlashGallery = () => {
       style: 'Watercolor',
       createdAt: '2024-01-20T12:00:00Z',
       likes: 189,
-      views: 1123
+      views: 1123,
+      size: 1.2
     }
   ]
 
@@ -528,27 +539,25 @@ export const FlashGallery = () => {
 }
 
 const FlashCard = ({ item }) => (
-  <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group h-full flex flex-col">
+  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-100">
     {/* Image */}
-    <div className="relative aspect-square overflow-hidden flex-shrink-0">
+    <div className="relative group">
       <img
         src={item.imageUrl}
         alt={item.title}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        className="w-full h-64 object-cover"
+        loading="lazy"
       />
       
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <div className="absolute bottom-4 left-4 right-4 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Eye className="w-4 h-4" />
-              <span className="text-sm">{item.views}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">{item.likes || 0} likes</span>
-            </div>
-          </div>
+      {/* Hover Overlay */}
+      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex space-x-4">
+          <button
+            onClick={() => navigate(`/artists/${item.artist.id}`)}
+            className="bg-white text-gray-800 px-4 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+          >
+            View Details
+          </button>
         </div>
       </div>
 
@@ -557,84 +566,64 @@ const FlashCard = ({ item }) => (
         {item.style}
       </div>
     </div>
+    
+    <div className="p-4">
+      {/* Title - Full Name Below Image */}
+      <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+        {item.title}
+      </h3>
+      
+      {/* Location/Studio */}
+      <div className="flex items-center space-x-2 text-gray-600 mb-2">
+        <MapPin className="w-4 h-4 flex-shrink-0" />
+        <span className="text-sm truncate">{item.artist.studioName}</span>
+      </div>
 
-    <div className="p-4 sm:p-6 flex-1 flex flex-col">
-      {/* Title and Artist */}
-      <div className="mb-3 sm:mb-4">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 line-clamp-2">{item.title}</h3>
-        <div className="flex items-center space-x-2 text-gray-600">
-          <MapPin className="w-4 h-4 flex-shrink-0" />
-          <span className="text-sm truncate">{item.artist.studioName}</span>
+      {/* Price/Size Details */}
+      <div className="mb-3">
+        <p className="text-sm text-gray-600">
+          {item.size ? `${item.size} inches minimum: ` : 'Price range: '}
+          <span className="font-semibold text-gray-900">{item.price}</span>
+        </p>
+      </div>
+
+      {/* Artist Info and Status */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-3 min-w-0 flex-1">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-bold text-sm">
+              {item.artist.user.firstName[0]}{item.artist.user.lastName[0]}
+            </span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-gray-900 truncate">
+              <Link
+                to={`/artists/${item.artist.id}`}
+                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                title={`View ${item.artist.user.firstName} ${item.artist.user.lastName}'s profile`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {item.artist.user.firstName} {item.artist.user.lastName}
+              </Link>
+            </p>
+            <p className="text-sm text-gray-500">Ready to ink</p>
+          </div>
         </div>
       </div>
 
-      {/* Description */}
-      {item.description && (
-        <p className="text-gray-600 mb-3 sm:mb-4 line-clamp-2 text-sm">{item.description}</p>
-      )}
-
-      {/* Tags */}
-      {item.tags && item.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
-          {item.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium"
-            >
-              #{tag}
-            </span>
-          ))}
-          {item.tags.length > 3 && (
-            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-              +{item.tags.length - 3} more
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Artist Info and Price */}
-      <div className="mt-auto">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <div className="flex items-center space-x-3 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-sm">
-                {item.artist.user.firstName[0]}{item.artist.user.lastName[0]}
-              </span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-gray-900 truncate">
-                <Link
-                  to={`/artists/${item.artist.id}`}
-                  className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
-                  title={`View ${item.artist.user.firstName} ${item.artist.user.lastName}'s profile`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {item.artist.user.firstName} {item.artist.user.lastName}
-                </Link>
-              </p>
-              <p className="text-sm text-gray-500 truncate">{item.artist.city}</p>
-            </div>
-          </div>
-          <div className="text-right flex-shrink-0 ml-3">
-            <p className="text-xl sm:text-2xl font-bold text-gray-900">{item.price}</p>
-            <p className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">Ready to ink</p>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex space-x-2 sm:space-x-3">
-          <Link
-            to={`/artists/${item.artist.id}`}
-            className="flex-1 bg-blue-600 text-white py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold text-sm sm:text-base"
-          >
-            Book Artist
-          </Link>
-          <FavoriteButton 
-            artistId={item.artist.id} 
-            className="bg-gray-100 text-gray-700 py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-gray-200 transition-colors flex-shrink-0" 
-            size="w-4 h-4 sm:w-5 sm:h-5" 
-          />
-        </div>
+      {/* Action Buttons */}
+      <div className="flex space-x-2">
+        <Link
+          to={`/artists/${item.artist.id}`}
+          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold text-sm"
+        >
+          Book Artist
+        </Link>
+        <FavoriteButton 
+          artistId={item.artist.id} 
+          className="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors flex-shrink-0" 
+          size="w-4 h-4" 
+        />
       </div>
     </div>
   </div>
