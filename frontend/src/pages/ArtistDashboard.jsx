@@ -1474,96 +1474,148 @@ export const ArtistDashboard = () => {
                 </div>
                 
                 {reviews.length > 0 ? (
-                  <div className="space-y-4">
-                    {reviews.map((review) => {
-                      if (!review?.id) return null;
-                      
-                      return (
-                        <div key={review.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-3 flex-1">
-                              {review.author?.avatar ? (
-                                <img
-                                  src={review.author.avatar}
-                                  alt={`${review.author.firstName} ${review.author.lastName}`}
-                                  className="w-12 h-12 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
-                                  <span className="text-white font-bold text-lg">
-                                    {review.author?.firstName?.[0] || 'C'}{review.author?.lastName?.[0] || 'L'}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Client
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Rating
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Review
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {reviews.map((review) => {
+                          if (!review?.id) return null;
+                          
+                          return (
+                            <tr key={review.id} className="hover:bg-gray-50 transition-colors">
+                              {/* Client Column */}
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center space-x-3">
+                                  {review.author?.avatar ? (
+                                    <img
+                                      src={review.author.avatar}
+                                      alt={`${review.author.firstName} ${review.author.lastName}`}
+                                      className="w-10 h-10 rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
+                                      <span className="text-white font-bold text-sm">
+                                        {review.author?.firstName?.[0] || 'C'}{review.author?.lastName?.[0] || 'L'}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {review.author?.firstName} {review.author?.lastName}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      {review.author?.email || 'No email'}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              
+                              {/* Rating Column */}
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center space-x-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star 
+                                      key={i} 
+                                      className={`h-4 w-4 ${
+                                        i < (review.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                      }`}
+                                    />
+                                  ))}
+                                  <span className="ml-2 text-sm font-medium text-gray-900">
+                                    {review.rating}/5
                                   </span>
                                 </div>
-                              )}
+                              </td>
                               
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-2">
-                                  <h3 className="font-medium text-gray-900">
-                                    {review.author?.firstName} {review.author?.lastName}
-                                  </h3>
-                                  <div className="flex items-center space-x-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <Star 
-                                        key={i} 
-                                        className={`h-3 w-3 ${
-                                          i < (review.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                                        }`}
+                              {/* Review Column */}
+                              <td className="px-6 py-4">
+                                <div className="max-w-xs">
+                                  <p className="text-sm text-gray-900 line-clamp-2">
+                                    {review.comment || 'No comment provided'}
+                                  </p>
+                                  {review.imageUrl && (
+                                    <div className="mt-2">
+                                      <img
+                                        src={review.imageUrl}
+                                        alt="Review image"
+                                        className="w-16 h-16 object-cover rounded border border-gray-200"
                                       />
-                                    ))}
-                                  </div>
-                                  <span className="text-sm text-gray-500">({review.rating}/5)</span>
+                                    </div>
+                                  )}
                                 </div>
-                                
-                                <p className="text-gray-700 mb-2">{review.comment || 'No comment provided'}</p>
-                                
-                                <div className="flex items-center space-x-4 text-xs text-gray-500">
-                                  <span>Posted: {new Date(review.createdAt).toLocaleDateString()}</span>
+                              </td>
+                              
+                              {/* Date Column */}
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <div>
+                                  <div>Posted: {new Date(review.createdAt).toLocaleDateString()}</div>
                                   {review.updatedAt && review.updatedAt !== review.createdAt && (
-                                    <span>Updated: {new Date(review.updatedAt).toLocaleDateString()}</span>
-                                  )}
-                                  {review.isHidden && (
-                                    <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
-                                      Hidden
-                                    </span>
+                                    <div className="text-xs text-gray-400">
+                                      Updated: {new Date(review.updatedAt).toLocaleDateString()}
+                                    </div>
                                   )}
                                 </div>
-                                
-                                {/* Review Image */}
-                                {review.imageUrl && (
-                                  <div className="mt-3">
-                                    <img
-                                      src={review.imageUrl}
-                                      alt="Review image"
-                                      className="w-24 h-24 object-cover rounded-lg border border-gray-200"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center space-x-2 ml-4">
-                              <button
-                                onClick={() => {
-                                  setSelectedReview(review);
-                                  setShowReviewModal(true);
-                                }}
-                                className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-md transition-colors"
-                                title="View Details"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => navigate(`/artists/${profile.id}#reviews`)}
-                                className="text-green-600 hover:text-green-800 p-2 hover:bg-green-50 rounded-md transition-colors"
-                                title="View on Profile"
-                              >
-                                <Globe className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                              </td>
+                              
+                              {/* Status Column */}
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  review.isHidden 
+                                    ? 'bg-red-100 text-red-800' 
+                                    : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {review.isHidden ? 'Hidden' : 'Visible'}
+                                </span>
+                              </td>
+                              
+                              {/* Actions Column */}
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedReview(review);
+                                      setShowReviewModal(true);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-md transition-colors"
+                                    title="View Details"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => navigate(`/artists/${profile.id}#reviews`)}
+                                    className="text-green-600 hover:text-green-800 p-2 hover:bg-green-50 rounded-md transition-colors"
+                                    title="View on Profile"
+                                  >
+                                    <Globe className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 ) : (
                   <div className="text-center py-8">
