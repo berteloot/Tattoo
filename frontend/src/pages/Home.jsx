@@ -122,7 +122,7 @@ export const Home = () => {
             </p>
           </div>
           
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="border-2 border-black p-4">
             <StudioMap />
           </div>
         </div>
@@ -220,7 +220,7 @@ export const Home = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {featuredArtists.map((artist) => (
-                <div key={artist.id} className="card group">
+                <div key={artist.id} className="card group border-2 border-black">
                   <div className="card__media bg-gray-100 flex items-center justify-center">
                     {artist.profilePictureUrl ? (
                       <img

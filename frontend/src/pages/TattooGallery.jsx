@@ -153,7 +153,7 @@ const TattooGallery = () => {
   };
 
   const GalleryCard = ({ item }) => (
-    <div className="bg-white border-2 border-black overflow-hidden">
+    <div className="bg-white border-2 border-black overflow-hidden h-full flex flex-col">
       <div className="relative group">
         <img
           src={item.thumbnailUrl || item.imageUrl}
@@ -183,7 +183,7 @@ const TattooGallery = () => {
         )}
       </div>
       
-      <div className="p-6">
+      <div className="p-6 flex flex-col flex-1">
         <h3 className="text-lg font-semibold text-gray-800 mb-3 line-clamp-2">
           {item.title}
         </h3>
@@ -212,7 +212,7 @@ const TattooGallery = () => {
           )}
         </div>
 
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+        <div className="flex items-center justify-between text-sm text-gray-500 mb-4 mt-auto">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => handleLike(item.id)}
@@ -235,7 +235,7 @@ const TattooGallery = () => {
         </div>
         
         {/* Artist Info - Full Name on New Line */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           <div className="min-w-0 flex-1">
             <div className="font-semibold text-gray-800">
               {item.artist?.id ? (
@@ -501,7 +501,7 @@ const TattooGallery = () => {
               : 'space-y-4'
             }>
               {galleryItems.map(item => (
-                <div key={item.id} onClick={() => navigate(`/gallery/${item.id}`)}>
+                <div key={item.id} onClick={() => navigate(`/gallery/${item.id}`)} className={viewMode === 'grid' ? 'h-full' : ''}>
                   {viewMode === 'grid' ? <GalleryCard item={item} /> : <GalleryList item={item} />}
                 </div>
               ))}

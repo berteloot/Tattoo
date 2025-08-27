@@ -64,8 +64,37 @@ const Studios = () => {
       success('Studio claim request submitted successfully!', 'Your claim request has been submitted and will be reviewed.');
       fetchStudios(pagination.page); // Refresh the current page
     } catch (error) {
-      console.error('Failed to claim studio:', error);
+      console.error('Failed to claim studio', error);
       showError('Failed to claim studio', error.response?.data?.error || 'Unable to submit claim request at this time');
+    }
+  };
+
+  const handleFavorite = async (studioId) => {
+    if (!isAuthenticated) {
+      setSignupPromptType('favorite');
+      setShowSignupPrompt(true);
+      return;
+    }
+
+    try {
+      // Toggle favorite status
+      const response = await api.post(`/studios/${studioId}/favorite`);
+      if (response.data && response.data.success) {
+        // Update the studio's favorite status in the local state
+        setStudios(prevStudios => 
+          prevStudios.map(studio => 
+            studio.id === studioId 
+              ? { ...studio, isFavorited: !studio.isFavorited }
+              : studio
+          )
+        );
+        
+        const message = response.data.isFavorited ? 'Studio added to favorites!' : 'Studio removed from favorites!';
+        success('Favorites updated', message);
+      }
+    } catch (error) {
+      console.error('Failed to update favorite status:', error);
+      showError('Failed to update favorite', 'Unable to update favorite status at this time');
     }
   };
 
@@ -254,14 +283,8 @@ const Studios = () => {
           }
           return (
           <div key={studio.id} className="bg-white border-2 border-black overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
-            {/* Studio Image */}
-            <div className="relative aspect-video overflow-hidden">
-              <img
-                src={studio.imageUrl || '/default-studio.jpg'}
-                alt={studio.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              
+            {/* Studio Name Header */}
+            <div className="relative bg-gray-50 p-6 border-b border-gray-200">
               {/* Featured Badge */}
               {studio.isFeatured && (
                 <div className="absolute top-3 left-3 bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-semibold">
@@ -275,17 +298,19 @@ const Studios = () => {
                   {studio.status === 'ACTIVE' ? 'Active' : studio.status}
                 </span>
               </div>
+              
+              {/* Studio Name */}
+              <h3 className="text-2xl font-bold text-black mb-2 group-hover:text-blue-600 transition-colors">
+                <Link to={`/studios/${studio.id}`} className="hover:underline">
+                  {studio.name}
+                </Link>
+              </h3>
             </div>
 
             {/* Studio Info */}
             <div className="p-6 flex-1 flex flex-col">
-              {/* Name and Location */}
+              {/* Location */}
               <div className="mb-4">
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                  <Link to={`/studios/${studio.id}`} className="hover:underline">
-                    {studio.name}
-                  </Link>
-                </h3>
                 <div className="flex items-center space-x-2 text-gray-600 mb-2">
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   <span className="text-sm">{studio.city}, {studio.country}</span>
