@@ -91,6 +91,23 @@ app.get('/test-frontend', (req, res) => {
   try {
     const freshBuildInfo = getFreshFrontendBuildInfo();
     
+    // Test all possible paths
+    const pathTests = possiblePaths.map(testPath => {
+      const exists = fs.existsSync(testPath);
+      const indexPath = path.join(testPath, 'index.html');
+      const assetsPath = path.join(testPath, 'assets');
+      const indexExists = fs.existsSync(indexPath);
+      const assetsExist = fs.existsSync(assetsPath);
+      
+      return {
+        path: testPath,
+        exists,
+        indexExists,
+        assetsExist,
+        valid: exists && indexExists && assetsExist
+      };
+    });
+    
     if (freshBuildInfo.exists && freshBuildInfo.indexExists) {
       const htmlContent = fs.readFileSync(freshBuildInfo.indexPath, 'utf8');
       res.json({
@@ -99,7 +116,11 @@ app.get('/test-frontend', (req, res) => {
         buildPath: freshBuildInfo.path,
         indexPath: freshBuildInfo.indexPath,
         fileSize: fs.statSync(freshBuildInfo.indexPath).size,
-        htmlPreview: htmlContent.substring(0, 200) + '...'
+        htmlPreview: htmlContent.substring(0, 200) + '...',
+        pathTests,
+        currentWorkingDirectory: process.cwd(),
+        dirname: __dirname,
+        environment: process.env.NODE_ENV
       });
     } else {
       res.json({
@@ -108,7 +129,11 @@ app.get('/test-frontend', (req, res) => {
         buildPath: freshBuildInfo.path,
         indexPath: freshBuildInfo.indexPath,
         exists: freshBuildInfo.exists,
-        indexExists: freshBuildInfo.indexExists
+        indexExists: freshBuildInfo.indexExists,
+        pathTests,
+        currentWorkingDirectory: process.cwd(),
+        dirname: __dirname,
+        environment: process.env.NODE_ENV
       });
     }
   } catch (error) {
@@ -116,7 +141,10 @@ app.get('/test-frontend', (req, res) => {
       success: false,
       error: 'Failed to test frontend build',
       message: error.message,
-      freshBuildInfo: getFreshFrontendBuildInfo()
+      freshBuildInfo: getFreshFrontendBuildInfo(),
+      currentWorkingDirectory: process.cwd(),
+      dirname: __dirname,
+      environment: process.env.NODE_ENV
     });
   }
 });
@@ -380,8 +408,49 @@ app.get('/', (req, res) => {
 app.use('/api/*', notFound);
 
 // Serve static files from the React app build directory
-// When running from backend directory (cd backend && npm start), the path should be ../frontend/dist
-const frontendBuildPath = path.join(__dirname, '../frontend/dist');
+// Enhanced path detection with multiple fallbacks for different environments
+const possiblePaths = [
+  path.join(__dirname, '../frontend/dist'),           // ../frontend/dist from backend/src
+  path.join(__dirname, '../../frontend/dist'),        // ../../frontend/dist from backend/src  
+  path.join(process.cwd(), 'frontend/dist'),          // frontend/dist from current working directory
+  path.join(process.cwd(), '../frontend/dist'),       // ../frontend/dist from current working directory
+  path.join(process.cwd(), '../../frontend/dist'),    // ../../frontend/dist from current working directory
+  '/opt/render/project/src/frontend/dist',            // Absolute path for Render production
+  '/opt/render/project/frontend/dist'                 // Alternative absolute path
+];
+
+console.log('🔍 Frontend build path detection:');
+console.log('  - __dirname:', __dirname);
+console.log('  - process.cwd():', process.cwd());
+console.log('  - NODE_ENV:', process.env.NODE_ENV);
+
+// Find the first valid frontend build path
+let frontendBuildPath = null;
+for (const testPath of possiblePaths) {
+  console.log(`  - Testing path: ${testPath}`);
+  if (fs.existsSync(testPath)) {
+    const indexPath = path.join(testPath, 'index.html');
+    const assetsPath = path.join(testPath, 'assets');
+    
+    if (fs.existsSync(indexPath) && fs.existsSync(assetsPath)) {
+      console.log(`✅ Found valid frontend build at: ${testPath}`);
+      frontendBuildPath = testPath;
+      break;
+    } else {
+      console.log(`⚠️ Path exists but incomplete: ${testPath}`);
+      console.log(`  - index.html exists: ${fs.existsSync(indexPath)}`);
+      console.log(`  - assets directory exists: ${fs.existsSync(assetsPath)}`);
+    }
+  } else {
+    console.log(`  - Path not found: ${testPath}`);
+  }
+}
+
+// Fallback to default path if none found
+if (!frontendBuildPath) {
+  frontendBuildPath = path.join(__dirname, '../frontend/dist');
+  console.log(`⚠️ No valid path found, using fallback: ${frontendBuildPath}`);
+}
 
 // Enhanced check for frontend build with better logging
 const frontendExists = fs.existsSync(frontendBuildPath);
@@ -389,14 +458,30 @@ const indexHtmlPath = path.join(frontendBuildPath, 'index.html');
 
 // Function to get fresh frontend build info (no caching)
 function getFreshFrontendBuildInfo() {
-  const freshPath = path.join(__dirname, '../frontend/dist');
-  const freshIndexPath = path.join(freshPath, 'index.html');
+  // Use the same path detection logic as above
+  for (const testPath of possiblePaths) {
+    if (fs.existsSync(testPath)) {
+      const indexPath = path.join(testPath, 'index.html');
+      const assetsPath = path.join(testPath, 'assets');
+      
+      if (fs.existsSync(indexPath) && fs.existsSync(assetsPath)) {
+        return {
+          path: testPath,
+          indexPath: indexPath,
+          exists: true,
+          indexExists: true,
+          timestamp: new Date().toISOString()
+        };
+      }
+    }
+  }
   
+  // Fallback to the current frontendBuildPath
   return {
-    path: freshPath,
-    indexPath: freshIndexPath,
-    exists: fs.existsSync(freshPath),
-    indexExists: fs.existsSync(freshIndexPath),
+    path: frontendBuildPath,
+    indexPath: path.join(frontendBuildPath, 'index.html'),
+    exists: fs.existsSync(frontendBuildPath),
+    indexExists: fs.existsSync(path.join(frontendBuildPath, 'index.html')),
     timestamp: new Date().toISOString()
   };
 }
