@@ -171,6 +171,7 @@ export const ArtistDashboard = () => {
     isLoading: allReviewsLoading, 
     error: allReviewsError 
   } = useArtistAllReviews(profile?.userId || user?.id)
+  const allReviewsCount = allReviews?.length || 0
 
   // Debug logging for reviews
   useEffect(() => {
