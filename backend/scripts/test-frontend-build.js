@@ -8,12 +8,67 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔍 Testing frontend build status...');
-console.log('=====================================');
+console.log('🔍 Testing frontend build paths...');
+console.log('Current working directory:', process.cwd());
+console.log('__dirname:', __dirname);
 
-// Get current directory
+// Test different possible paths
+const possiblePaths = [
+  path.join(__dirname, '../frontend/dist'),           // From backend directory
+  path.join(__dirname, '../../frontend/dist'),        // From backend/src directory
+  path.join(__dirname, '../../../frontend/dist'),     // From backend/src directory
+  path.join(process.cwd(), 'frontend/dist'),          // From current working directory
+  path.join(process.cwd(), '../frontend/dist'),       // From parent of current directory
+];
+
+console.log('\n🔍 Testing possible frontend build paths:');
+for (const possiblePath of possiblePaths) {
+  const exists = fs.existsSync(possiblePath);
+  console.log(`  - ${possiblePath}: ${exists ? '✅ EXISTS' : '❌ NOT FOUND'}`);
+  
+  if (exists) {
+    try {
+      const contents = fs.readdirSync(possiblePath);
+      console.log(`    Contents: ${contents.join(', ')}`);
+      
+      const indexPath = path.join(possiblePath, 'index.html');
+      const indexExists = fs.existsSync(indexPath);
+      console.log(`    index.html: ${indexExists ? '✅ EXISTS' : '❌ NOT FOUND'}`);
+      
+      const assetsDir = path.join(possiblePath, 'assets');
+      const assetsExist = fs.existsSync(assetsDir);
+      console.log(`    assets directory: ${assetsExist ? '✅ EXISTS' : '❌ NOT FOUND'}`);
+      
+      if (assetsExist) {
+        const assets = fs.readdirSync(assetsDir);
+        console.log(`    Assets count: ${assets.length}`);
+        console.log(`    Asset files: ${assets.join(', ')}`);
+      }
+    } catch (error) {
+      console.log(`    Error reading directory: ${error.message}`);
+    }
+  }
+}
+
+// Check if we're in the right directory structure
+console.log('\n🔍 Directory structure check:');
 const currentDir = process.cwd();
-console.log('Current working directory:', currentDir);
+const parentDir = path.join(currentDir, '..');
+const grandParentDir = path.join(currentDir, '../..');
+
+console.log(`Current directory: ${currentDir}`);
+console.log(`Parent directory: ${parentDir}`);
+console.log(`Grand parent directory: ${grandParentDir}`);
+
+if (fs.existsSync(parentDir)) {
+  const parentContents = fs.readdirSync(parentDir);
+  console.log(`Parent contents: ${parentContents.join(', ')}`);
+}
+
+if (fs.existsSync(grandParentDir)) {
+  const grandParentContents = fs.readdirSync(grandParentDir);
+  console.log(`Grand parent contents: ${grandParentContents.join(', ')}`);
+}
 
 // Try multiple possible frontend build paths
 const possiblePaths = [

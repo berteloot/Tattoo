@@ -86,6 +86,41 @@ app.use(cookieParser());
 // Health check endpoint - moved to /api/health only to avoid conflicts with root path
 // The root path should serve the React app, not the health check
 
+// Test endpoint to verify frontend build accessibility
+app.get('/test-frontend', (req, res) => {
+  try {
+    const freshBuildInfo = getFreshFrontendBuildInfo();
+    
+    if (freshBuildInfo.exists && freshBuildInfo.indexExists) {
+      const htmlContent = fs.readFileSync(freshBuildInfo.indexPath, 'utf8');
+      res.json({
+        success: true,
+        message: 'Frontend build is accessible',
+        buildPath: freshBuildInfo.path,
+        indexPath: freshBuildInfo.indexPath,
+        fileSize: fs.statSync(freshBuildInfo.indexPath).size,
+        htmlPreview: htmlContent.substring(0, 200) + '...'
+      });
+    } else {
+      res.json({
+        success: false,
+        message: 'Frontend build not found',
+        buildPath: freshBuildInfo.path,
+        indexPath: freshBuildInfo.indexPath,
+        exists: freshBuildInfo.exists,
+        indexExists: freshBuildInfo.indexExists
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to test frontend build',
+      message: error.message,
+      freshBuildInfo: getFreshFrontendBuildInfo()
+    });
+  }
+});
+
 // Debug endpoint to check file system in production
 app.get('/debug-paths', (req, res) => {
   try {
@@ -336,7 +371,8 @@ app.get('/', (req, res) => {
 app.use('/api/*', notFound);
 
 // Serve static files from the React app build directory
-const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
+// When running from backend directory (cd backend && npm start), the path should be ../frontend/dist
+const frontendBuildPath = path.join(__dirname, '../frontend/dist');
 
 // Enhanced check for frontend build with better logging
 const frontendExists = fs.existsSync(frontendBuildPath);
@@ -344,7 +380,7 @@ const indexHtmlPath = path.join(frontendBuildPath, 'index.html');
 
 // Function to get fresh frontend build info (no caching)
 function getFreshFrontendBuildInfo() {
-  const freshPath = path.join(__dirname, '../../frontend/dist');
+  const freshPath = path.join(__dirname, '../frontend/dist');
   const freshIndexPath = path.join(freshPath, 'index.html');
   
   return {
