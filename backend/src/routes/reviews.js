@@ -275,6 +275,20 @@ router.get('/', optionalAuth, [
       orderBy
     });
 
+    // Debug logging for troubleshooting
+    if (recipientId) {
+      console.log('🔍 Reviews API Debug:', {
+        recipientId,
+        whereClause: where,
+        reviewsFound: reviews.length,
+        totalReviews: await prisma.review.count({ where: { recipientId } }),
+        allReviewsForRecipient: await prisma.review.findMany({
+          where: { recipientId },
+          select: { id: true, isHidden: true, isApproved: true, rating: true }
+        })
+      });
+    }
+
     // Get total count for pagination
     const total = await prisma.review.count({ where });
 
