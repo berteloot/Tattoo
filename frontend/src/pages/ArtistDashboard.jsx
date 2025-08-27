@@ -42,7 +42,10 @@ import {
   XCircle,
   Eye,
   Upload,
-  MessageSquare
+  MessageSquare,
+  Heart,
+  Mail,
+  Users
 } from 'lucide-react'
 
 export const ArtistDashboard = () => {
@@ -176,6 +179,21 @@ export const ArtistDashboard = () => {
   // State for artist services (custom pricing)
   const [artistServices, setArtistServices] = useState([])
 
+  // State for favorites management
+  const [favoriteClients, setFavoriteClients] = useState([])
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailFormData, setEmailFormData] = useState({
+    subject: '',
+    message: '',
+    clientIds: [],
+    sendToAll: false
+  })
+  const [selectedClients, setSelectedClients] = useState([])
+
+  // State for reviews management
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [selectedReview, setSelectedReview] = useState(null)
+
   // Function to get custom pricing for a service
   const getServicePrice = (serviceId) => {
     if (!serviceId || !Array.isArray(artistServices)) return null;
@@ -209,9 +227,25 @@ export const ArtistDashboard = () => {
     }
   };
 
+  // Fetch favorite clients when profile is available
+  const fetchFavoriteClients = async () => {
+    if (!profile?.id) return;
+    
+    try {
+      const response = await api.get('/artists/my-favorites');
+      if (response.data?.success) {
+        setFavoriteClients(response.data.data.clients || []);
+      }
+    } catch (error) {
+      console.error('Error fetching favorite clients:', error);
+      setFavoriteClients([]);
+    }
+  };
+
   useEffect(() => {
     if (profile?.id) {
       fetchArtistServices();
+      fetchFavoriteClients();
     }
   }, [profile?.id]);
 
@@ -542,6 +576,66 @@ export const ArtistDashboard = () => {
       imageBytes: null
     }))
   }
+
+  // Email favorites handlers
+  const handleEmailFavorites = async (e) => {
+    e.preventDefault();
+    
+    try {
+      // Prepare the email data
+      const emailData = {
+        subject: emailFormData.subject,
+        message: emailFormData.message,
+        sendToAll: emailFormData.sendToAll
+      };
+      
+      // If not sending to all, include selected client IDs
+      if (!emailFormData.sendToAll && selectedClients.length > 0) {
+        emailData.clientIds = selectedClients;
+      }
+      
+      const response = await api.post('/artists/email-favorites', emailData);
+      if (response.data?.success) {
+        success('Emails sent successfully!');
+        setShowEmailModal(false);
+        setEmailFormData({
+          subject: '',
+          message: '',
+          clientIds: [],
+          sendToAll: false
+        });
+        setSelectedClients([]);
+      }
+    } catch (error) {
+      console.error('Error sending emails:', error);
+      const errorMessage = error.response?.data?.error || 'Error sending emails';
+      showError(errorMessage);
+    }
+  };
+
+  const handleClientSelection = (clientId) => {
+    setSelectedClients(prev => 
+      prev.includes(clientId) 
+        ? prev.filter(id => id !== clientId)
+        : [...prev, clientId]
+    );
+  };
+
+  const handleSelectAllClients = () => {
+    if (selectedClients.length === favoriteClients.length) {
+      setSelectedClients([]);
+    } else {
+      setSelectedClients(favoriteClients.map(client => client.client.id));
+    }
+  };
+
+  const handleEmailInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEmailFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
 
   // Flash Gallery handlers
   const handleEditFlash = (item) => {
@@ -1210,6 +1304,277 @@ export const ArtistDashboard = () => {
               )}
             </div>
 
+            {/* Favorites Management */}
+            {profile.id && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">Favorites Management</h2>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">
+                      {favoriteClients.length} client{favoriteClients.length !== 1 ? 's' : ''} favorited you
+                    </span>
+                    {favoriteClients.length > 0 && (
+                      <button
+                        onClick={() => {
+                          setEmailFormData(prev => ({ ...prev, sendToAll: false }));
+                          setSelectedClients([]);
+                          setShowEmailModal(true);
+                        }}
+                        className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Email Clients
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                {favoriteClients.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedClients.length === favoriteClients.length}
+                          onChange={handleSelectAllClients}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                          Select All ({selectedClients.length}/{favoriteClients.length})
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setEmailFormData(prev => ({ ...prev, sendToAll: true }));
+                          setSelectedClients([]);
+                          setShowEmailModal(true);
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        Email All
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {favoriteClients.map((favorite) => {
+                        const client = favorite.client;
+                        if (!client?.id) return null;
+                        
+                        return (
+                          <div key={favorite.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div className="flex items-start space-x-3">
+                              <input
+                                type="checkbox"
+                                checked={selectedClients.includes(client.id)}
+                                onChange={() => handleClientSelection(client.id)}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  {client.avatar ? (
+                                    <img
+                                      src={client.avatar}
+                                      alt={`${client.firstName} ${client.lastName}`}
+                                      className="w-10 h-10 rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
+                                      <span className="text-white font-bold text-sm">
+                                        {client.firstName?.[0] || 'C'}{client.lastName?.[0] || 'L'}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <h3 className="font-medium text-gray-900">
+                                      {client.firstName} {client.lastName}
+                                    </h3>
+                                    <p className="text-sm text-gray-500">{client.email}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                                  <span>Favorited: {new Date(favorite.favoritedAt).toLocaleDateString()}</span>
+                                  <span>Member since: {new Date(client.createdAt).toLocaleDateString()}</span>
+                                </div>
+                                
+                                <div className="flex items-center space-x-4 text-xs">
+                                  <div className="flex items-center space-x-1">
+                                    <Star className="h-3 w-3 text-yellow-400" />
+                                    <span>{client.averageRating || 0}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <MessageSquare className="h-3 w-3 text-blue-400" />
+                                    <span>{client.reviewCount || 0} reviews</span>
+                                  </div>
+                                </div>
+                                
+                                <button
+                                  onClick={() => {
+                                    setEmailFormData(prev => ({
+                                      ...prev,
+                                      clientIds: [client.id],
+                                      sendToAll: false
+                                    }));
+                                    setSelectedClients([client.id]);
+                                    setShowEmailModal(true);
+                                  }}
+                                  className="w-full mt-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors text-sm font-medium"
+                                >
+                                  Email This Client
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No clients have favorited you yet</p>
+                    <p className="text-sm text-gray-400">Keep building your portfolio to attract more clients</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Reviews Management */}
+            {profile.id && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">Reviews Management</h2>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">
+                      {reviews.length} review{reviews.length !== 1 ? 's' : ''} received
+                    </span>
+                    {reviews.length > 0 && (
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`h-4 w-4 ${
+                                i < (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / Math.max(reviews.length, 1))
+                                  ? 'text-yellow-400 fill-current'
+                                  : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">
+                          {reviews.length > 0 
+                            ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+                            : '0.0'
+                          }
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {reviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {reviews.map((review) => {
+                      if (!review?.id) return null;
+                      
+                      return (
+                        <div key={review.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3 flex-1">
+                              {review.author?.avatar ? (
+                                <img
+                                  src={review.author.avatar}
+                                  alt={`${review.author.firstName} ${review.author.lastName}`}
+                                  className="w-12 h-12 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
+                                  <span className="text-white font-bold text-lg">
+                                    {review.author?.firstName?.[0] || 'C'}{review.author?.lastName?.[0] || 'L'}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <h3 className="font-medium text-gray-900">
+                                    {review.author?.firstName} {review.author?.lastName}
+                                  </h3>
+                                  <div className="flex items-center space-x-1">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star 
+                                        key={i} 
+                                        className={`h-3 w-3 ${
+                                          i < (review.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-sm text-gray-500">({review.rating}/5)</span>
+                                </div>
+                                
+                                <p className="text-gray-700 mb-2">{review.comment || 'No comment provided'}</p>
+                                
+                                <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                  <span>Posted: {new Date(review.createdAt).toLocaleDateString()}</span>
+                                  {review.updatedAt && review.updatedAt !== review.createdAt && (
+                                    <span>Updated: {new Date(review.updatedAt).toLocaleDateString()}</span>
+                                  )}
+                                  {review.isHidden && (
+                                    <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+                                      Hidden
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Review Image */}
+                                {review.imageUrl && (
+                                  <div className="mt-3">
+                                    <img
+                                      src={review.imageUrl}
+                                      alt="Review image"
+                                      className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2 ml-4">
+                              <button
+                                onClick={() => {
+                                  setSelectedReview(review);
+                                  setShowReviewModal(true);
+                                }}
+                                className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-md transition-colors"
+                                title="View Details"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => navigate(`/artists/${profile.id}#reviews`)}
+                                className="text-green-600 hover:text-green-800 p-2 hover:bg-green-50 rounded-md transition-colors"
+                                title="View on Profile"
+                              >
+                                <Globe className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No reviews received yet</p>
+                    <p className="text-sm text-gray-400">Complete some work to start receiving client reviews</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Flash Creation Form Modal */}
             {showFlashForm && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1564,6 +1929,7 @@ export const ArtistDashboard = () => {
                         value={editFlashFormData.complexity}
                         onChange={handleEditFlashInputChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="150"
                       >
                         <option value="SIMPLE">Simple</option>
                         <option value="MEDIUM">Medium</option>
@@ -1635,6 +2001,228 @@ export const ArtistDashboard = () => {
                       </button>
                     </div>
                   </form>
+                </div>
+              </div>
+            )}
+
+            {/* Email Favorites Modal */}
+            {showEmailModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Email Favorite Clients</h3>
+                    <button
+                      onClick={() => setShowEmailModal(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <XCircle className="h-6 w-6" />
+                    </button>
+                  </div>
+                  
+                  <form onSubmit={handleEmailFavorites} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Subject *
+                      </label>
+                      <input
+                        type="text"
+                        name="subject"
+                        value={emailFormData.subject}
+                        onChange={handleEmailInputChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter email subject"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Message *
+                      </label>
+                      <textarea
+                        name="message"
+                        value={emailFormData.message}
+                        onChange={handleEmailInputChange}
+                        rows={6}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your message to clients..."
+                      />
+                    </div>
+                    
+                    <div className="flex items-center space-x-4">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="sendToAll"
+                          checked={emailFormData.sendToAll}
+                          onChange={handleEmailInputChange}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Send to all favorite clients</span>
+                      </label>
+                    </div>
+                    
+                    {!emailFormData.sendToAll && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Select Clients to Email
+                        </label>
+                        <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-md p-3">
+                          {favoriteClients.map((favorite) => {
+                            const client = favorite.client;
+                            if (!client?.id) return null;
+                            
+                            return (
+                              <label key={client.id} className="flex items-center space-x-2 py-1">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedClients.includes(client.id)}
+                                  onChange={() => handleClientSelection(client.id)}
+                                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <span className="text-sm text-gray-700">
+                                  {client.firstName} {client.lastName} ({client.email})
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Selected: {selectedClients.length} client{selectedClients.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-end space-x-3 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowEmailModal(false)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        Send Email{emailFormData.sendToAll ? ' to All' : ` to ${selectedClients.length} Client${selectedClients.length !== 1 ? 's' : ''}`}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Review Details Modal */}
+            {showReviewModal && selectedReview && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Review Details</h3>
+                    <button
+                      onClick={() => setShowReviewModal(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <XCircle className="h-6 w-6" />
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      {selectedReview.author?.avatar ? (
+                        <img
+                          src={selectedReview.author.avatar}
+                          alt={`${selectedReview.author.firstName} ${selectedReview.author.lastName}`}
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-xl">
+                            {selectedReview.author?.firstName?.[0] || 'C'}{selectedReview.author?.lastName?.[0] || 'L'}
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <h4 className="text-lg font-medium text-gray-900">
+                          {selectedReview.author?.firstName} {selectedReview.author?.lastName}
+                        </h4>
+                        <div className="flex items-center space-x-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`h-5 w-5 ${
+                                i < (selectedReview.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                          <span className="ml-2 text-sm text-gray-500">({selectedReview.rating}/5)</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h5 className="text-sm font-medium text-gray-700 mb-2">Review</h5>
+                      <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">
+                        {selectedReview.comment || 'No comment provided'}
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Posted:</span>
+                        <span className="ml-2 text-gray-600">
+                          {new Date(selectedReview.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {selectedReview.updatedAt && selectedReview.updatedAt !== selectedReview.createdAt && (
+                        <div>
+                          <span className="font-medium text-gray-700">Updated:</span>
+                          <span className="ml-2 text-gray-600">
+                            {new Date(selectedReview.updatedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="font-medium text-gray-700">Status:</span>
+                        <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                          selectedReview.isHidden 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {selectedReview.isHidden ? 'Hidden' : 'Visible'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Review Image */}
+                    {selectedReview.imageUrl && (
+                      <div>
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Review Image</h5>
+                        <img
+                          src={selectedReview.imageUrl}
+                          alt="Review image"
+                          className="w-full max-w-md h-auto object-cover rounded-lg border border-gray-200"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => navigate(`/artists/${profile.id}#reviews`)}
+                        className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        View on Profile
+                      </button>
+                      <button
+                        onClick={() => setShowReviewModal(false)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
