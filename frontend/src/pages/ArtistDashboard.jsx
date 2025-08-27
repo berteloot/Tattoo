@@ -1385,78 +1385,119 @@ export const ArtistDashboard = () => {
                       </button>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {favoriteClients.map((favorite) => {
-                        const client = favorite.client;
-                        if (!client?.id) return null;
-                        
-                        return (
-                          <div key={favorite.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                            <div className="flex items-start space-x-3">
+                    {/* Favorites Table */}
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full bg-white border border-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               <input
                                 type="checkbox"
-                                checked={selectedClients.includes(client.id)}
-                                onChange={() => handleClientSelection(client.id)}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                                checked={selectedClients.length === favoriteClients.length}
+                                onChange={handleSelectAllClients}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                               />
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-2">
-                                  {client.avatar ? (
-                                    <img
-                                      src={client.avatar}
-                                      alt={`${client.firstName} ${client.lastName}`}
-                                      className="w-10 h-10 rounded-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
-                                      <span className="text-white font-bold text-sm">
-                                        {client.firstName?.[0] || 'C'}{client.lastName?.[0] || 'L'}
-                                      </span>
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              CLIENT
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              EMAIL
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              FAVORITED
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              MEMBER SINCE
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              ACTIVITY
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              ACTIONS
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {favoriteClients.map((favorite) => {
+                            const client = favorite.client;
+                            if (!client?.id) return null;
+                            
+                            return (
+                              <tr key={favorite.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-4 whitespace-nowrap">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedClients.includes(client.id)}
+                                    onChange={() => handleClientSelection(client.id)}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                  />
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    {client.avatar ? (
+                                      <img
+                                        src={client.avatar}
+                                        alt={`${client.firstName} ${client.lastName}`}
+                                        className="w-10 h-10 rounded-full object-cover mr-3"
+                                      />
+                                    ) : (
+                                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center mr-3">
+                                        <span className="text-white font-bold text-sm">
+                                          {client.firstName?.[0] || 'C'}{client.lastName?.[0] || 'L'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div>
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {client.firstName} {client.lastName}
+                                      </div>
                                     </div>
-                                  )}
-                                  <div>
-                                    <h3 className="font-medium text-gray-900">
-                                      {client.firstName} {client.lastName}
-                                    </h3>
-                                    <p className="text-sm text-gray-500">{client.email}</p>
                                   </div>
-                                </div>
-                                
-                                <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                                  <span>Favorited: {new Date(favorite.favoritedAt).toLocaleDateString()}</span>
-                                  <span>Member since: {new Date(client.createdAt).toLocaleDateString()}</span>
-                                </div>
-                                
-                                <div className="flex items-center space-x-4 text-xs">
-                                  <div className="flex items-center space-x-1">
-                                    <Star className="h-3 w-3 text-yellow-400" />
-                                    <span>{client.averageRating || 0}</span>
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {client.email}
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {new Date(favorite.favoritedAt).toLocaleDateString()}
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {new Date(client.createdAt).toLocaleDateString()}
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  <div className="flex items-center gap-3">
+                                    <span className="flex items-center gap-1">
+                                      <Star className="h-3 w-3 text-yellow-400" />
+                                      {client.averageRating || 0}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <MessageSquare className="h-3 w-3 text-blue-400" />
+                                      {client.reviewCount || 0}
+                                    </span>
                                   </div>
-                                  <div className="flex items-center space-x-1">
-                                    <MessageSquare className="h-3 w-3 text-blue-400" />
-                                    <span>{client.reviewCount || 0} reviews</span>
-                                  </div>
-                                </div>
-                                
-                                <button
-                                  onClick={() => {
-                                    setEmailFormData(prev => ({
-                                      ...prev,
-                                      clientIds: [client.id],
-                                      sendToAll: false
-                                    }));
-                                    setSelectedClients([client.id]);
-                                    setShowEmailModal(true);
-                                  }}
-                                  className="w-full mt-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors text-sm font-medium"
-                                >
-                                  Email This Client
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                                  <button
+                                    onClick={() => {
+                                      setEmailFormData(prev => ({
+                                        ...prev,
+                                        clientIds: [client.id],
+                                        sendToAll: false
+                                      }));
+                                      setSelectedClients([client.id]);
+                                      setShowEmailModal(true);
+                                    }}
+                                    className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200 transition-colors flex items-center gap-1"
+                                  >
+                                    <Mail className="h-3 w-3" />
+                                    Email
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 ) : (
