@@ -172,9 +172,18 @@ export const ArtistDashboard = () => {
       userId: user?.id,
       reviewsCount: reviews?.length || 0,
       reviewsLoading,
-      reviewsError
+      reviewsError,
+      profileData: profile
     });
-  }, [profile?.id, profile?.userId, user?.id, reviews, reviewsLoading, reviewsError]);
+    
+    // Additional debugging for profile structure
+    if (profile && Object.keys(profile).length > 0) {
+      console.log('📋 Full Profile Data:', profile);
+      console.log('🔑 Profile Keys:', Object.keys(profile));
+      console.log('👤 User ID in Profile:', profile.userId);
+      console.log('👤 User Object in Profile:', profile.user);
+    }
+  }, [profile?.id, profile?.userId, user?.id, reviews, reviewsLoading, reviewsError, profile]);
   
   const { 
     data: specialties = [], 
