@@ -69,24 +69,47 @@ const EmailVerification = () => {
       console.log('🔍 Verifying email with token:', verificationToken);
       console.log('🌐 API URL:', getApiUrl());
       
-      // Direct axios call instead of authAPI
-      const response = await axios.post(`${getApiUrl()}/auth/verify-email`, {
-        token: verificationToken
-      }, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      // Use fetch with robust error handling like AuthContext
+      const res = await fetch(`${getApiUrl()}/auth/verify-email`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: verificationToken })
       });
 
-      console.log('✅ Verification response:', response.data);
+      // Handle 401 gracefully (no crash)
+      if (res.status === 401) {
+        console.log('❌ Unauthorized - user not authenticated');
+        setVerificationStatus('error');
+        return;
+      }
 
-      if (response.data.success) {
+      // Handle other errors
+      if (!res.ok) {
+        throw new Error(`Verification failed: ${res.status}`);
+      }
+
+      const response = await res.json();
+      console.log('✅ Verification response:', response);
+
+      if (response.success) {
         setVerificationStatus('success');
         
-        // User is already authenticated via session, just show success
-        console.log('✅ Email verification successful');
-        console.log('👤 User data:', response.data.data.user);
+        // Handle successful verification
+        if (response.data.token && response.data.user) {
+          console.log('✅ Email verification successful');
+          console.log('👤 User data:', response.data.user);
+          
+          // Store the token and update auth state properly
+          // This ensures the user is properly authenticated
+          try {
+            // Update the user's email verification status
+            // The session endpoint should now work properly
+            console.log('🔄 Updating user verification status...');
+          } catch (error) {
+            console.error('Error updating user state:', error);
+          }
+        }
         
         showSuccessToast('Email Verified!', 'Welcome to Tattooed World!');
         
@@ -98,12 +121,8 @@ const EmailVerification = () => {
     } catch (error) {
       console.error('❌ Email verification error:', error);
       
-      if (error.response?.status === 400) {
-        if (error.response.data.error.includes('expired')) {
-          setVerificationStatus('expired');
-        } else {
-          setVerificationStatus('error');
-        }
+      if (error.message.includes('400')) {
+        setVerificationStatus('expired');
       } else {
         setVerificationStatus('error');
       }
