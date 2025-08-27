@@ -162,7 +162,19 @@ export const ArtistDashboard = () => {
     data: reviews = [], 
     isLoading: reviewsLoading, 
     error: reviewsError 
-  } = useArtistReviews(profile?.userId)
+  } = useArtistReviews(profile?.userId || user?.id)
+
+  // Debug logging for reviews
+  useEffect(() => {
+    console.log('🔍 Debug Reviews:', {
+      profileId: profile?.id,
+      profileUserId: profile?.userId,
+      userId: user?.id,
+      reviewsCount: reviews?.length || 0,
+      reviewsLoading,
+      reviewsError
+    });
+  }, [profile?.id, profile?.userId, user?.id, reviews, reviewsLoading, reviewsError]);
   
   const { 
     data: specialties = [], 
