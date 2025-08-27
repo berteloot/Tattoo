@@ -92,6 +92,84 @@ const checkRateLimit = (userId) => {
 };
 
 /**
+ * @route   GET /api/reviews/debug
+ * @desc    Get ALL reviews for debugging (including hidden/unapproved)
+ * @access  Private (Admin/Artist only)
+ */
+router.get('/debug', protect, async (req, res) => {
+  try {
+    const { recipientId } = req.query;
+    
+    if (!recipientId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Recipient ID is required for debug endpoint'
+      });
+    }
+
+    // Get ALL reviews for this recipient (no filtering)
+    const allReviews = await prisma.review.findMany({
+      where: { recipientId },
+      include: {
+        author: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatar: true
+          }
+        },
+        recipient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatar: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Get review count without filters
+    const totalCount = await prisma.review.count({
+      where: { recipientId }
+    });
+
+    // Get review count with current filters
+    const filteredCount = await prisma.review.count({
+      where: {
+        recipientId,
+        isHidden: false,
+        isApproved: true
+      }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        allReviews,
+        counts: {
+          total: totalCount,
+          filtered: filteredCount,
+          hidden: totalCount - filteredCount
+        },
+        recipientId,
+        debug: true
+      }
+    });
+  } catch (error) {
+    console.error('Debug reviews error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while debugging reviews'
+    });
+  }
+});
+
+/**
  * @route   GET /api/reviews
  * @desc    Get reviews with filtering and moderation
  * @access  Public
