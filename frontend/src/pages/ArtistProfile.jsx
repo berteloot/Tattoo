@@ -1,19 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { 
-  Star, 
-  MapPin, 
-  Clock, 
-  DollarSign, 
-  Phone, 
-  Globe, 
-  Instagram, 
-  ArrowLeft, 
-  Mail, 
-  Facebook, 
-  Twitter, 
-  Youtube, 
-  Linkedin, 
+import {
+  Star,
+  MapPin,
+  Clock,
+  DollarSign,
+  Phone,
+  Globe,
+  Instagram,
+  ArrowLeft,
+  Mail,
+  Facebook,
   ExternalLink,
   Calendar,
   MessageCircle,
@@ -28,7 +25,6 @@ import { ContactEmailModal } from '../components/ContactEmailModal'
 import { ImageModal } from '../components/ImageModal'
 import { artistsAPI, api } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
-import ProtectedEmail from '../components/ProtectedEmail'
 import { ArtistMessages } from '../components/ArtistMessage'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -39,6 +35,7 @@ export const ArtistProfile = () => {
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
   const { success: showSuccessToast, error: showErrorToast } = useToast()
+
   const [artist, setArtist] = useState(null)
   const [reviews, setReviews] = useState([])
   const [studios, setStudios] = useState([])
@@ -51,7 +48,7 @@ export const ArtistProfile = () => {
   const [selectedImage, setSelectedImage] = useState(null)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
 
-  // Helper function for fallback data - moved to top to fix hoisting issue
+  // Dummy fallback artist
   const getDummyArtist = (id) => ({
     id,
     user: {
@@ -85,22 +82,19 @@ export const ArtistProfile = () => {
   })
 
   useEffect(() => {
-    // Check API health first
     checkApiHealth().then(() => {
       fetchArtistProfile()
-      // Track page view when profile is loaded
       trackProfileView()
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   const trackProfileView = async () => {
     try {
-      // Track the profile view
       await api.post(`/artists/${id}/view`)
       console.log('Profile view tracked successfully')
     } catch (error) {
       console.error('Failed to track profile view:', error)
-      // Don't show error to user, just log it
     }
   }
 
@@ -117,16 +111,14 @@ export const ArtistProfile = () => {
         await navigator.share(shareData)
         showSuccessToast('Profile shared successfully!')
       } else {
-        // Fallback to copying URL to clipboard
         await navigator.clipboard.writeText(profileUrl)
         showSuccessToast('Profile URL copied to clipboard!')
       }
     } catch (error) {
       console.error('Error sharing profile:', error)
-      // Fallback to copying URL to clipboard
       try {
         await navigator.clipboard.writeText(profileUrl)
-        showSuccessToast('Share failed - please copy the URL manually')
+        showSuccessToast('Share failed - URL copied to clipboard')
       } catch (clipboardError) {
         console.error('Clipboard access failed:', clipboardError)
         showSuccessToast('Share failed - please copy the URL manually')
@@ -138,7 +130,7 @@ export const ArtistProfile = () => {
     try {
       setLoading(true)
       console.log('Fetching artist profile for ID:', id)
-      
+
       const [artistResult, studiosResult] = await Promise.all([
         apiCallWithFallback(
           () => artistsAPI.getById(id),
@@ -146,7 +138,7 @@ export const ArtistProfile = () => {
         ),
         artistsAPI.getStudios(id).catch(() => ({ data: { data: [] } }))
       ])
-      
+
       if (artistResult.isFallback) {
         console.log('Using fallback artist profile data')
         setArtist(artistResult.data.artist)
@@ -156,7 +148,7 @@ export const ArtistProfile = () => {
         setArtist(artistResult.data.data.artist)
         setReviews(artistResult.data.data.reviews || [])
       }
-      
+
       setStudios(studiosResult.data.data || [])
     } catch (err) {
       console.error('Unexpected error in fetchArtistProfile:', err)
@@ -167,7 +159,7 @@ export const ArtistProfile = () => {
   }
 
   const handleReviewSubmitted = (newReview) => {
-    setReviews(prev => [newReview, ...prev])
+    setReviews((prev) => [newReview, ...prev])
   }
 
   if (loading) {
@@ -316,10 +308,10 @@ export const ArtistProfile = () => {
                     >
                       Contact Artist
                     </button>
-                    <FavoriteButton 
-                      artistId={artist.id} 
-                      className="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium" 
-                      size="w-5 h-5" 
+                    <FavoriteButton
+                      artistId={artist.id}
+                      className="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                      size="w-5 h-5"
                     />
                   </div>
                 </div>
@@ -329,7 +321,7 @@ export const ArtistProfile = () => {
             {/* Specialties and Services */}
             <div className="bg-white border-2 border-black p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Specialties & Services</h2>
-              
+
               {/* Specialties */}
               {artist.specialties && artist.specialties.length > 0 && (
                 <div className="mb-6">
@@ -418,10 +410,10 @@ export const ArtistProfile = () => {
               )}
             </div>
 
-            {/* Reviews */}
+            {/* Reviews (summary) */}
             <div className="bg-white border-2 border-black p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Reviews & Ratings</h2>
-              
+
               {/* Rating Summary */}
               <div className="flex items-center space-x-6 mb-6">
                 <div className="text-center">
@@ -430,32 +422,27 @@ export const ArtistProfile = () => {
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-5 h-5 ${
-                          i < (artist.averageRating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                        }`}
+                        className={`w-5 h-5 ${i < (artist.averageRating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                       />
                     ))}
                   </div>
                   <div className="text-sm text-gray-600">{artist.reviewCount || 0} reviews</div>
                 </div>
-                
+
                 <div className="flex-1">
                   <div className="space-y-2">
                     {[5, 4, 3, 2, 1].map((rating) => {
-                      const count = artist.ratingDistribution?.[rating] || 0;
-                      const percentage = artist.reviewCount ? (count / artist.reviewCount) * 100 : 0;
+                      const count = artist.ratingDistribution?.[rating] || 0
+                      const percentage = artist.reviewCount ? (count / artist.reviewCount) * 100 : 0
                       return (
                         <div key={rating} className="flex items-center space-x-2">
                           <span className="text-sm text-gray-600 w-4">{rating}</span>
                           <div className="flex-1 bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-yellow-400 h-2 rounded-full"
-                              style={{ width: `${percentage}%` }}
-                            />
+                            <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${percentage}%` }} />
                           </div>
                           <span className="text-sm text-gray-600 w-8">{count}</span>
                         </div>
-                      );
+                      )
                     })}
                   </div>
                 </div>
@@ -481,9 +468,7 @@ export const ArtistProfile = () => {
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-4 h-4 ${
-                                i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                              }`}
+                              className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                             />
                           ))}
                         </div>
@@ -503,7 +488,7 @@ export const ArtistProfile = () => {
         </div>
       </div>
 
-      {/* Studio Information - Moved to top for better visibility */}
+      {/* Studio Information */}
       {studios && studios.length > 0 && (
         <div className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -511,7 +496,7 @@ export const ArtistProfile = () => {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Studio Information</h2>
               <div className="space-y-4">
                 {studios.map((studioArtist) => {
-                  const studio = studioArtist.studio;
+                  const studio = studioArtist.studio
                   return (
                     <div key={studioArtist.id} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-start justify-between">
@@ -522,7 +507,7 @@ export const ArtistProfile = () => {
                               {studioArtist.role}
                             </span>
                           </div>
-                          
+
                           {studio.address && (
                             <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
                               <MapPin className="h-3 w-3" />
@@ -533,24 +518,24 @@ export const ArtistProfile = () => {
                               </span>
                             </div>
                           )}
-                          
+
                           <div className="flex items-center gap-4 text-xs text-gray-500">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               <span>Joined {new Date(studioArtist.joinedAt).toLocaleDateString()}</span>
                             </div>
-                            
+
                             {studio.isVerified && (
                               <span className="text-green-600 font-medium">✓ Verified</span>
                             )}
-                            
+
                             {studio.isFeatured && (
                               <span className="text-blue-600 font-medium">★ Featured</span>
                             )}
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="mt-3 pt-3 border-t border-gray-100">
                         <Link
                           to={`/studios/${studio.id}`}
@@ -560,12 +545,13 @@ export const ArtistProfile = () => {
                         </Link>
                       </div>
                     </div>
-                  );
+                  )
                 })}
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -597,8 +583,8 @@ export const ArtistProfile = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Specialties</h2>
                 <div className="flex flex-wrap gap-2">
                   {artist.specialties.map((specialty) => (
-                    <span 
-                      key={specialty.id} 
+                    <span
+                      key={specialty.id}
                       className="inline-flex items-center px-3 py-2 bg-blue-50 text-blue-700 text-sm font-medium rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
                     >
                       {specialty.icon} {specialty.name}
@@ -614,8 +600,8 @@ export const ArtistProfile = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Available Flash Designs</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {artist.flash.map((flashItem) => (
-                    <div 
-                      key={flashItem.id} 
+                    <div
+                      key={flashItem.id}
                       className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
                       onClick={() => navigate(`/flash/${flashItem.id}`)}
                       title={`View ${flashItem.title} details`}
@@ -667,8 +653,8 @@ export const ArtistProfile = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Tattoo Portfolio</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {artist.gallery.map((galleryItem) => (
-                    <div 
-                      key={galleryItem.id} 
+                    <div
+                      key={galleryItem.id}
                       className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
                       onClick={() => navigate(`/gallery/${galleryItem.id}`)}
                       title={`View ${galleryItem.title} details`}
@@ -711,7 +697,7 @@ export const ArtistProfile = () => {
               </div>
             )}
 
-            {/* Reviews */}
+            {/* Reviews (detailed) */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Reviews</h2>
@@ -736,7 +722,7 @@ export const ArtistProfile = () => {
                               {review.author.firstName[0]}{review.author.lastName[0]}
                             </span>
                           </div>
-                          
+
                           {/* Reviewer Info */}
                           <div className="flex-1">
                             <h4 className="text-lg font-bold text-gray-900 mb-1">
@@ -748,18 +734,16 @@ export const ArtistProfile = () => {
                                 {[...Array(5)].map((_, i) => (
                                   <Star
                                     key={i}
-                                    className={`w-5 h-5 ${
-                                      i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
-                                    }`}
+                                    className={`w-5 h-5 ${i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`}
                                   />
                                 ))}
                               </div>
-                              
+
                               {/* Rating Number */}
                               <span className="text-lg font-bold text-gray-900">
                                 {review.rating}.0
                               </span>
-                              
+
                               {/* Review Date */}
                               <span className="text-sm text-gray-500">
                                 {new Date(review.createdAt).toLocaleDateString('en-US', {
@@ -771,7 +755,7 @@ export const ArtistProfile = () => {
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* Verified Badge (if applicable) */}
                         {review.author.role === 'ARTIST' && (
                           <div className="flex items-center space-x-1 bg-green-100 text-green-800 px-2 py-1 rounded-full">
@@ -782,7 +766,7 @@ export const ArtistProfile = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Review Content */}
                       <div className="space-y-4">
                         {/* Review Title */}
@@ -791,14 +775,14 @@ export const ArtistProfile = () => {
                             "{review.title}"
                           </h3>
                         )}
-                        
+
                         {/* Review Comment */}
                         {review.comment && (
                           <p className="text-gray-700 text-lg leading-relaxed">
                             {review.comment}
                           </p>
                         )}
-                        
+
                         {/* Review Images */}
                         {review.images && review.images.length > 0 && (
                           <div className="pt-2">
@@ -862,7 +846,7 @@ export const ArtistProfile = () => {
                 <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
                 Contact Information
               </h2>
-              
+
               <div className="space-y-6">
                 {/* Phone */}
                 {artist.user.phone && (
@@ -874,7 +858,7 @@ export const ArtistProfile = () => {
                         </div>
                         <h3 className="text-sm font-semibold text-gray-900 mb-1">Phone</h3>
                         <p className="text-xs text-gray-600 mb-3">Call {artist.user.firstName} directly</p>
-                        <a 
+                        <a
                           href={`tel:${artist.user.phone}`}
                           className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                         >
@@ -888,8 +872,8 @@ export const ArtistProfile = () => {
                         </div>
                         <h3 className="text-sm font-semibold text-blue-900 mb-1">Phone</h3>
                         <p className="text-xs text-blue-700 mb-3">Phone number available</p>
-                        <Link 
-                          to="/login" 
+                        <Link
+                          to="/login"
                           className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                         >
                           Login to view
@@ -937,8 +921,8 @@ export const ArtistProfile = () => {
                     ) : (
                       <button
                         onClick={() => {
-                          setSignupPromptType('website');
-                          setShowSignupPrompt(true);
+                          setSignupPromptType('website')
+                          setShowSignupPrompt(true)
                         }}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
@@ -968,8 +952,8 @@ export const ArtistProfile = () => {
                     ) : (
                       <button
                         onClick={() => {
-                          setSignupPromptType('social');
-                          setShowSignupPrompt(true);
+                          setSignupPromptType('social')
+                          setShowSignupPrompt(true)
                         }}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
@@ -979,7 +963,7 @@ export const ArtistProfile = () => {
                   </div>
                 )}
 
-                {/* Other Social Media */}
+                {/* Facebook */}
                 {artist.facebook && (
                   <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -999,8 +983,8 @@ export const ArtistProfile = () => {
                     ) : (
                       <button
                         onClick={() => {
-                          setSignupPromptType('social');
-                          setShowSignupPrompt(true);
+                          setSignupPromptType('social')
+                          setShowSignupPrompt(true)
                         }}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
@@ -1042,10 +1026,10 @@ export const ArtistProfile = () => {
                             <p className="text-xs text-green-700 break-words">Schedule directly with {artist.user.firstName}</p>
                           </div>
                         </div>
-                        <button 
+                        <button
                           onClick={() => {
-                            setSignupPromptType('calendly');
-                            setShowSignupPrompt(true);
+                            setSignupPromptType('calendly')
+                            setShowSignupPrompt(true)
                           }}
                           className="text-green-600 hover:text-green-800 font-medium text-sm px-3 py-1 rounded-md border border-green-300 hover:bg-green-100 transition-colors flex-shrink-0 ml-2"
                         >
@@ -1056,8 +1040,8 @@ export const ArtistProfile = () => {
                   </>
                 )}
 
-                {/* No contact info message */}
-                {!artist.user.phone && !artist.user.email && !artist.website && !artist.instagram && 
+                {/* No contact info */}
+                {!artist.user.phone && !artist.user.email && !artist.website && !artist.instagram &&
                  !artist.facebook && !artist.twitter && !artist.youtube && !artist.linkedin && !artist.pinterest && !artist.calendlyUrl && (
                   <div className="text-center py-6">
                     <MessageCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
@@ -1065,7 +1049,7 @@ export const ArtistProfile = () => {
                   </div>
                 )}
 
-                {/* Login to Contact CTA for non-authenticated users */}
+                {/* Login CTA */}
                 {!isAuthenticated && (artist.user.phone || artist.calendlyUrl) && (
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 text-center mt-4">
                     <MessageCircle className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -1074,14 +1058,14 @@ export const ArtistProfile = () => {
                       Contact {artist.user.firstName} directly to discuss your next tattoo
                     </p>
                     <div className="flex gap-2 justify-center">
-                      <Link 
-                        to="/register" 
+                      <Link
+                        to="/register"
                         className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                       >
                         Sign up to contact
                       </Link>
-                      <Link 
-                        to="/login" 
+                      <Link
+                        to="/login"
                         className="inline-flex items-center px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm"
                       >
                         Login
@@ -1098,7 +1082,7 @@ export const ArtistProfile = () => {
                 <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
                 Services & Pricing
               </h2>
-              
+
               {/* General Pricing */}
               <div className="space-y-3 mb-6 pb-4 border-b border-gray-100">
                 <div className="flex justify-between items-center py-2">
@@ -1119,81 +1103,81 @@ export const ArtistProfile = () => {
                 )}
               </div>
 
-                {/* Individual Services */}
-                {artist?.artistServices && Array.isArray(artist.artistServices) && artist.artistServices.length > 0 && (
-                  <div>
-                    <h3 className="text-md font-medium text-gray-900 mb-3">Available Services</h3>
+              {/* Individual Services */}
+              {artist?.artistServices && Array.isArray(artist.artistServices) && artist.artistServices.length > 0 && (
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Available Services</h3>
 
-                    <div className="space-y-3">
-                      {Array.isArray(artist.artistServices) && artist.artistServices.map((artistService) => {
-                        if (!artistService?.service?.id) return null;
-                        
-                        const service = artistService.service;
-                        const customPrice = artistService.customPrice;
-                        const customDuration = artistService.customDuration;
-                        
-                        return (
-                          <div key={artistService.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900 text-sm mb-1">
-                                  {service.name}
-                                </h4>
-                                {service.description && (
-                                  <p className="text-gray-600 text-xs leading-relaxed line-clamp-2">
-                                    {service.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-1 text-gray-600">
-                                <DollarSign className="w-3 h-3" />
-                                <span className="font-medium text-gray-900">
-                                  {customPrice !== null ? (customPrice === 0 ? 'Free' : `$${customPrice}`) : `$${service.price || 'N/A'}`}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1 text-gray-600">
-                                <Clock className="w-3 h-3" />
-                                <span className="font-medium">
-                                  {customDuration !== null ? (customDuration === 0 ? 'Varies' : `${customDuration} min`) : `${service.duration || 'N/A'} min`}
-                                </span>
-                              </div>
+                  <div className="space-y-3">
+                    {artist.artistServices.map((artistService) => {
+                      if (!artistService?.service?.id) return null
+
+                      const service = artistService.service
+                      const customPrice = artistService.customPrice
+                      const customDuration = artistService.customDuration
+
+                      return (
+                        <div key={artistService.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-900 text-sm mb-1">
+                                {service.name}
+                              </h4>
+                              {service.description && (
+                                <p className="text-gray-600 text-xs leading-relaxed line-clamp-2">
+                                  {service.description}
+                                </p>
+                              )}
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Services Legend */}
-                    <div className="mt-4 pt-3 border-t border-gray-100">
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-gray-100 border border-gray-300 rounded"></div>
-                          Standard pricing
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
 
-                {/* No Services Message */}
-                {(!artist?.artistServices || !Array.isArray(artist.artistServices) || artist.artistServices.length === 0) && (
-                  <div className="text-center py-4 text-gray-500">
-                    <p>No services available at the moment.</p>
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <DollarSign className="w-3 h-3" />
+                              <span className="font-medium text-gray-900">
+                                {customPrice !== null ? (customPrice === 0 ? 'Free' : `$${customPrice}`) : `$${service.price || 'N/A'}`}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <Clock className="w-3 h-3" />
+                              <span className="font-medium">
+                                {customDuration !== null ? (customDuration === 0 ? 'Varies' : `${customDuration} min`) : `${service.duration || 'N/A'} min`}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                )}
+
+                  {/* Legend */}
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-gray-100 border border-gray-300 rounded"></div>
+                        Standard pricing
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* No Services */}
+              {(!artist?.artistServices || !Array.isArray(artist.artistServices) || artist.artistServices.length === 0) && (
+                <div className="text-center py-4 text-gray-500">
+                  <p>No services available at the moment.</p>
+                </div>
+              )}
             </div>
-
-            {/* Calendly Widget */}
-            <CalendlyWidget 
-              calendlyUrl={artist.calendlyUrl}
-              artistName={`${artist.user.firstName} ${artist.user.lastName}`}
-            />
           </div>
         </div>
       </div>
+
+      {/* Calendly Widget */}
+      <CalendlyWidget
+        calendlyUrl={artist.calendlyUrl}
+        artistName={`${artist.user.firstName} ${artist.user.lastName}`}
+      />
 
       {/* Review Form Modal */}
       {showReviewForm && (
@@ -1211,7 +1195,10 @@ export const ArtistProfile = () => {
         recipient={artist}
         recipientType="artist"
         onSuccess={() => {
-          showSuccessToast('Message sent successfully!', `Your message has been sent to ${artist.user.firstName}. They will get back to you soon.`)
+          showSuccessToast(
+            'Message sent successfully!',
+            `Your message has been sent to ${artist.user.firstName}. They will get back to you soon.`
+          )
         }}
       />
 
@@ -1233,4 +1220,4 @@ export const ArtistProfile = () => {
       />
     </div>
   )
-} 
+}
