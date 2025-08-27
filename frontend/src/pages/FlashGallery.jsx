@@ -349,7 +349,7 @@ export const FlashGallery = () => {
       <section className="section">
         <div className="container">
           {/* Filters and Controls */}
-          <div className="border-2 border-black p-4 sm:p-6 mb-8 md:mb-12 rounded-lg">
+          <div className="border-2 border-black p-4 sm:p-6 mb-8 md:mb-12">
             <div className="space-y-4 sm:space-y-6">
               {/* Search */}
               <div className="flex-1">
@@ -513,7 +513,7 @@ export const FlashGallery = () => {
 
           {/* Empty State */}
           {filteredAndSortedItems.length === 0 && (
-            <div className="border-2 border-black bg-white rounded-lg p-8 text-center">
+            <div className="border-2 border-black bg-white p-8 text-center">
               <div className="text-gray-400 text-8xl mb-6">🎨</div>
               <h3 className="text-2xl font-semibold text-gray-900 mb-4">No flash designs found</h3>
               <p className="text-gray-600 text-lg mb-8">
@@ -539,7 +539,7 @@ export const FlashGallery = () => {
 }
 
 const FlashCard = ({ item }) => (
-  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border-2 border-black">
+  <div className="bg-white shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border-2 border-black">
     {/* Image */}
     <div className="relative group">
       <img

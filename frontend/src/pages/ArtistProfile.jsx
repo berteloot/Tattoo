@@ -369,47 +369,6 @@ export const ArtistProfile = () => {
               )}
             </div>
 
-            {/* Gallery */}
-            <div className="bg-white border-2 border-black p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Portfolio Gallery</h2>
-                {user?.role === 'ARTIST' && user?.id === artist.id && (
-                  <Link
-                    to="/artist/gallery"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                  >
-                    Manage Gallery
-                  </Link>
-                )}
-              </div>
-
-              {artist.gallery && artist.gallery.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {artist.gallery.slice(0, 6).map((item) => (
-                    <div key={item.id} className="relative group cursor-pointer" onClick={() => navigate(`/gallery/${item.id}`)}>
-                      <img
-                        src={item.thumbnailUrl || item.imageUrl}
-                        alt={item.title}
-                        className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 rounded-lg flex items-center justify-center">
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white font-medium">
-                          View Details
-                        </div>
-                      </div>
-                      {item.isFeatured && (
-                        <div className="absolute top-2 right-2">
-                          <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-8">No gallery items yet.</p>
-              )}
-            </div>
-
             {/* Reviews (summary) */}
             <div className="bg-white border-2 border-black p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Reviews & Ratings</h2>
@@ -492,7 +451,7 @@ export const ArtistProfile = () => {
       {studios && studios.length > 0 && (
         <div className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="bg-white border-2 border-black rounded-xl p-6">
+            <div className="bg-white border-2 border-black p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Studio Information</h2>
               <div className="space-y-4">
                 {studios.map((studioArtist) => {
@@ -560,7 +519,7 @@ export const ArtistProfile = () => {
           <div className="xl:col-span-2 space-y-6">
             {/* Artist Messages */}
             {artist.messages && artist.messages.length > 0 && (
-              <div className="bg-white border-2 border-black rounded-xl p-6">
+              <div className="bg-white border-2 border-black p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                   <MessageCircle className="w-5 h-5 mr-2 text-purple-600" />
                   Community Updates from {artist.user.firstName}
@@ -571,7 +530,7 @@ export const ArtistProfile = () => {
 
             {/* Bio */}
             {artist.bio && (
-              <div className="bg-white border-2 border-black rounded-xl p-6">
+              <div className="bg-white border-2 border-black p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">About</h2>
                 <p className="text-gray-700 leading-relaxed">{artist.bio}</p>
               </div>
@@ -579,7 +538,7 @@ export const ArtistProfile = () => {
 
             {/* Specialties */}
             {artist.specialties && artist.specialties.length > 0 && (
-              <div className="bg-white border-2 border-black rounded-xl p-6">
+              <div className="bg-white border-2 border-black p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Specialties</h2>
                 <div className="flex flex-wrap gap-2">
                   {artist.specialties.map((specialty) => (
@@ -596,7 +555,7 @@ export const ArtistProfile = () => {
 
             {/* Flash Items */}
             {artist.flash && artist.flash.length > 0 && (
-              <div className="bg-white border-2 border-black rounded-xl p-6">
+              <div className="bg-white border-2 border-black p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Available Flash Designs</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {artist.flash.map((flashItem) => (
@@ -649,7 +608,7 @@ export const ArtistProfile = () => {
 
             {/* Tattoo Gallery */}
             {artist.gallery && artist.gallery.length > 0 && (
-              <div className="bg-white border-2 border-black rounded-xl p-6">
+              <div className="bg-white border-2 border-black p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Tattoo Portfolio</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {artist.gallery.map((galleryItem) => (
@@ -698,7 +657,7 @@ export const ArtistProfile = () => {
             )}
 
             {/* Reviews (detailed) */}
-            <div className="bg-white border-2 border-black rounded-xl p-6">
+            <div className="bg-white border-2 border-black p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Reviews</h2>
                 <button
@@ -841,7 +800,7 @@ export const ArtistProfile = () => {
           {/* Right Column - Sidebar */}
           <div className="xl:col-span-1 space-y-6">
             {/* Contact Information */}
-            <div className="bg-white border-2 border-black rounded-xl p-6">
+            <div className="bg-white border-2 border-black p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
                 <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
                 Contact Information
@@ -1079,7 +1038,7 @@ export const ArtistProfile = () => {
             </div>
 
             {/* Services & Pricing */}
-            <div className="bg-white border-2 border-black rounded-xl p-6">
+            <div className="bg-white border-2 border-black p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
                 Services & Pricing
