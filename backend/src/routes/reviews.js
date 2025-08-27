@@ -329,6 +329,96 @@ router.get('/', optionalAuth, [
 });
 
 /**
+ * @route   GET /api/reviews/all
+ * @desc    Get ALL reviews for an artist (including unapproved) - for dashboard use
+ * @access  Private (Artist only)
+ */
+router.get('/all', protect, async (req, res) => {
+  try {
+    const { recipientId, page = 1, limit = 50 } = req.query;
+
+    if (!recipientId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Recipient ID is required'
+      });
+    }
+
+    // Only filter by recipientId and isHidden (show all approval statuses)
+    const where = {
+      recipientId,
+      isHidden: false
+    };
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const orderBy = { createdAt: 'desc' };
+
+    // Get all reviews (including unapproved)
+    const reviews = await prisma.review.findMany({
+      where,
+      include: {
+        author: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            createdAt: true
+          }
+        },
+        recipient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        }
+      },
+      skip,
+      take: parseInt(limit),
+      orderBy
+    });
+
+    // Get total count for pagination
+    const totalReviews = await prisma.review.count({ where });
+
+    // Calculate average rating
+    const avgRatingResult = await prisma.review.aggregate({
+      where,
+      _avg: {
+        rating: true
+      }
+    });
+
+    const averageRating = avgRatingResult._avg.rating || 0;
+
+    res.json({
+      success: true,
+      data: {
+        reviews,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: totalReviews,
+          pages: Math.ceil(totalReviews / parseInt(limit))
+        },
+        averageRating: {
+          rating: averageRating,
+          count: totalReviews
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching all reviews:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch reviews'
+    });
+  }
+});
+
+/**
  * @route   POST /api/reviews
  * @desc    Create a new review with enhanced validation and moderation
  * @access  Private (CLIENT, ARTIST roles)

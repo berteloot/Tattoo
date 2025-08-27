@@ -7,6 +7,7 @@ import {
   useArtistFlash, 
   useArtistTattoos,
   useArtistReviews, 
+  useArtistAllReviews, 
   useSpecialties, 
   useServices 
 } from '../hooks/useDashboardQueries'
@@ -163,6 +164,13 @@ export const ArtistDashboard = () => {
     isLoading: reviewsLoading, 
     error: reviewsError 
   } = useArtistReviews(profile?.userId || user?.id)
+  
+  // All reviews data (including unapproved) for dashboard management
+  const { 
+    data: allReviews = [], 
+    isLoading: allReviewsLoading, 
+    error: allReviewsError 
+  } = useArtistAllReviews(profile?.userId || user?.id)
 
   // Debug logging for reviews
   useEffect(() => {
@@ -1467,16 +1475,16 @@ export const ArtistDashboard = () => {
                   <h2 className="text-xl font-semibold text-gray-900">Reviews Management</h2>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-600">
-                      {reviews.length} review{reviews.length !== 1 ? 's' : ''} received
+                      {allReviewsLoading ? 'Loading...' : `${allReviewsCount} total reviews`}
                     </span>
-                    {reviews.length > 0 && (
+                    {allReviewsCount > 0 && (
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center space-x-1">
                           {[...Array(5)].map((_, i) => (
                             <Star 
                               key={i} 
                               className={`h-4 w-4 ${
-                                i < (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / Math.max(reviews.length, 1))
+                                i < (allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / Math.max(allReviews.length, 1))
                                   ? 'text-yellow-400 fill-current'
                                   : 'text-gray-300'
                               }`}
@@ -1484,8 +1492,8 @@ export const ArtistDashboard = () => {
                           ))}
                         </div>
                         <span className="text-sm font-medium text-gray-700">
-                          {reviews.length > 0 
-                            ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+                          {allReviewsCount > 0 
+                            ? (allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviews.length).toFixed(1)
                             : '0.0'
                           }
                         </span>
@@ -1494,7 +1502,12 @@ export const ArtistDashboard = () => {
                   </div>
                 </div>
                 
-                {reviews.length > 0 ? (
+                {!allReviewsLoading && allReviewsCount === 0 ? (
+                  <div className="text-gray-500 text-center py-8">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <p>No reviews yet</p>
+                  </div>
+                ) : (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -1520,7 +1533,7 @@ export const ArtistDashboard = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {reviews.map((review) => {
+                        {allReviews.map((review) => {
                           if (!review?.id) return null;
                           
                           return (
@@ -1636,14 +1649,8 @@ export const ArtistDashboard = () => {
                           );
                         })}
                       </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No reviews received yet</p>
-                    <p className="text-sm text-gray-400">Complete some work to start receiving client reviews</p>
-                  </div>
+                                          </table>
+                    </div>
                 )}
               </div>
             )}

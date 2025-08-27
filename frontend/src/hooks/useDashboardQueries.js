@@ -101,7 +101,7 @@ export const useArtistTattoos = (artistId) => {
   })
 }
 
-// Custom hook for artist reviews
+// Custom hook for artist reviews (approved only)
 export const useArtistReviews = (userId) => {
   return useQuery({
     queryKey: ['artist', 'reviews', userId],
@@ -114,6 +114,30 @@ export const useArtistReviews = (userId) => {
         return reviews;
       } catch (error) {
         console.error('❌ Error fetching artist reviews:', error);
+        return [];
+      }
+    },
+    enabled: !!userId,
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  })
+}
+
+// Custom hook for artist ALL reviews (including unapproved) for dashboard
+export const useArtistAllReviews = (userId) => {
+  return useQuery({
+    queryKey: ['artist', 'allReviews', userId],
+    queryFn: async () => {
+      try {
+        console.log('🔍 Fetching ALL reviews for user ID:', userId);
+        const response = await api.get(`/reviews/all?recipientId=${userId}`);
+        const reviews = response.data?.data?.reviews || response.data?.reviews || [];
+        console.log('📋 Fetched ALL reviews:', reviews.length, 'reviews');
+        return reviews;
+      } catch (error) {
+        console.error('❌ Error fetching artist all reviews:', error);
         return [];
       }
     },
