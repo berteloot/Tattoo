@@ -162,7 +162,7 @@ export const ArtistDashboard = () => {
     data: reviews = [], 
     isLoading: reviewsLoading, 
     error: reviewsError 
-  } = useArtistReviews(user?.id)
+  } = useArtistReviews(profile?.userId)
   
   const { 
     data: specialties = [], 
