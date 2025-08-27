@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, Users, ExternalLink, Phone, Mail, Facebook, Instagram, Twitter, Linkedin, Youtube, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Users, ExternalLink, Phone, Mail, Facebook, Instagram, Twitter, Linkedin, Youtube, ChevronLeft, ChevronRight, Star, Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
@@ -253,176 +253,115 @@ const Studios = () => {
             });
           }
           return (
-          <div key={studio.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
-            <div className="p-6 flex-1 flex flex-col">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {studio.title}
-              </h3>
+          <div key={studio.id} className="bg-white border-2 border-black overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+            {/* Studio Image */}
+            <div className="relative aspect-video overflow-hidden">
+              <img
+                src={studio.imageUrl || '/default-studio.jpg'}
+                alt={studio.name}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
               
-              {/* Address */}
-              {(studio.address || studio.city || studio.state) && (
-                <div className="flex items-center text-sm text-gray-600 mb-4">
-                  {/* Debug info - remove this after fixing */}
-                  {process.env.NODE_ENV === 'development' && (
-                    <div className="text-xs text-red-500 mr-2">
-                      Lat: {studio.latitude || 'null'}, Lng: {studio.longitude || 'null'}
-                    </div>
-                  )}
-                  
-                  <span className="flex-1">
-                    {studio.address && studio.address}
-                    {studio.city && studio.address && ', '}
-                    {studio.city && studio.city}
-                    {studio.state && (studio.address || studio.city) && ', '}
-                    {studio.state && studio.state}
-                    {studio.zipCode && ' '}
-                    {studio.zipCode && studio.zipCode}
-                  </span>
-                  
-                  {/* Map pin on the right side - restore working functionality */}
-                  {studio.latitude && studio.longitude ? (
-                    <Link
-                      to={`/map?studio=${studio.id}&lat=${studio.latitude}&lng=${studio.longitude}&city=${encodeURIComponent(studio.city || '')}`}
-                      className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
-                      title="View studio on map"
-                    >
-                      <MapPin className="w-4 h-4" />
-                    </Link>
-                  ) : (
-                    <Link
-                      to={`/map?city=${encodeURIComponent(studio.city || '')}&state=${encodeURIComponent(studio.state || '')}`}
-                      className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
-                      title="View city on map"
-                    >
-                      <MapPin className="w-4 h-4" />
-                    </Link>
-                  )}
+              {/* Featured Badge */}
+              {studio.isFeatured && (
+                <div className="absolute top-3 left-3 bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-semibold">
+                  Featured
                 </div>
               )}
               
-              {/* Contact Info */}
-              <div className="space-y-2 mb-4">
-                {studio.phoneNumber && (
-                  <>
-                    {isAuthenticated ? (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Phone className="w-4 h-4 mr-2" />
-                        <a href={`tel:${studio.phoneNumber}`} className="hover:text-blue-600">
-                          {studio.phoneNumber}
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="flex items-center text-sm text-blue-600">
-                        <Phone className="w-4 h-4 mr-2" />
-                        <span className="text-blue-800 font-medium">Phone available - </span>
-                        <Link to="/login" className="hover:text-blue-800 underline">
-                          Login to view
-                        </Link>
-                      </div>
-                    )}
-                  </>
-                )}
-                {studio.email && (
-                  <ProtectedEmail email={studio.email} className="text-sm text-gray-600" />
-                )}
-              </div>
-
-              {/* Social Media */}
-              <div className="flex space-x-3 mb-4">
-                {studio.website && (
-                  <>
-                    {isAuthenticated ? (
-                      <a
-                        href={studio.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800"
-                        title="Visit website"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setSignupPromptType('website');
-                          setShowSignupPrompt(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-800"
-                        title="Visit website (requires signup)"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </button>
-                    )}
-                  </>
-                )}
-                {isAuthenticated ? (
-                  <>
-                    {getSocialIcon('facebook', studio.facebookUrl)}
-                    {getSocialIcon('instagram', studio.instagramUrl)}
-                    {getSocialIcon('twitter', studio.twitterUrl)}
-                    {getSocialIcon('linkedin', studio.linkedinUrl)}
-                    {getSocialIcon('youtube', studio.youtubeUrl)}
-                  </>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setSignupPromptType('social');
-                      setShowSignupPrompt(true);
-                    }}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                    title="View social media (requires signup)"
-                  >
-                    <Instagram className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Status & Artists */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <Users className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">
-                    {studio._count?.studioArtists || 0} artists
-                  </span>
-                </div>
-                
-                <div className="flex space-x-2">
-                  {studio.isFeatured && (
-                    <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                      Featured
-                    </span>
-                  )}
-                  {studio.claimedBy && (
-                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                      Claimed
-                    </span>
-                  )}
-                </div>
+              {/* Status Badge */}
+              <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-sm">
+                <span className="text-xs font-medium text-gray-700">
+                  {studio.status === 'ACTIVE' ? 'Active' : studio.status}
+                </span>
               </div>
             </div>
 
-            {/* Actions - Always at bottom */}
-            <div className="px-6 pb-6">
-              <div className="flex space-x-2">
+            {/* Studio Info */}
+            <div className="p-6 flex-1 flex flex-col">
+              {/* Name and Location */}
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                  <Link to={`/studios/${studio.id}`} className="hover:underline">
+                    {studio.name}
+                  </Link>
+                </h3>
+                <div className="flex items-center space-x-2 text-gray-600 mb-2">
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm">{studio.city}, {studio.country}</span>
+                </div>
+                {studio.address && (
+                  <p className="text-sm text-gray-700">{studio.address}</p>
+                )}
+              </div>
+
+              {/* Description */}
+              {studio.description && (
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {studio.description}
+                </p>
+              )}
+
+              {/* Specialties */}
+              {studio.specialties && studio.specialties.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex flex-wrap gap-2">
+                    {studio.specialties.slice(0, 3).map((specialty) => (
+                      <span
+                        key={specialty.id}
+                        className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium"
+                      >
+                        {specialty.name}
+                      </span>
+                    ))}
+                    {studio.specialties.length > 3 && (
+                      <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                        +{studio.specialties.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Rating and Reviews */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < (studio.averageRating || 0)
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-600">
+                    {studio.averageRating ? studio.averageRating.toFixed(1) : 'No'} ({studio.reviewCount || 0} reviews)
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3 mt-auto">
                 <Link
                   to={`/studios/${studio.id}`}
-                  className={`flex-1 text-center py-2 px-4 rounded-lg transition-colors font-medium ${
-                    studio.isFeatured 
-                      ? 'bg-yellow-500 text-yellow-900 hover:bg-yellow-600' 
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold text-sm"
+                >
+                  View Studio
+                </Link>
+                <button
+                  onClick={() => handleFavorite(studio.id)}
+                  className={`py-3 px-4 rounded-lg transition-colors flex-shrink-0 ${
+                    studio.isFavorited
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  View Details
-                </Link>
-                
-                {user?.role === 'ARTIST' && !studio.claimedBy && (
-                  <button
-                    onClick={() => handleClaimStudio(studio.id)}
-                    className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                  >
-                    Claim
-                  </button>
-                )}
+                  <Heart className={`w-4 h-4 ${studio.isFavorited ? 'fill-current' : ''}`} />
+                </button>
               </div>
             </div>
           </div>

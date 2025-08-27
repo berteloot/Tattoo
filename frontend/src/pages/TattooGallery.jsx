@@ -153,7 +153,7 @@ const TattooGallery = () => {
   };
 
   const GalleryCard = ({ item }) => (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <div className="bg-white border-2 border-black overflow-hidden">
       <div className="relative group">
         <img
           src={item.thumbnailUrl || item.imageUrl}
@@ -183,18 +183,18 @@ const TattooGallery = () => {
         )}
       </div>
       
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+      <div className="p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3 line-clamp-2">
           {item.title}
         </h3>
         
         {item.description && (
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
             {item.description}
           </p>
         )}
 
-        <div className="flex flex-wrap gap-1 mb-3">
+        <div className="flex flex-wrap gap-2 mb-4">
           {item.tattooStyle && (
             <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
               {item.tattooStyle}
@@ -212,7 +212,7 @@ const TattooGallery = () => {
           )}
         </div>
 
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => handleLike(item.id)}
@@ -251,11 +251,6 @@ const TattooGallery = () => {
                 <span>{item.artist?.user?.firstName} {item.artist?.user?.lastName}</span>
               )}
             </div>
-            {item.hoursSpent && (
-              <div className="text-xs text-gray-500 mt-1">
-                {item.hoursSpent}h work
-              </div>
-            )}
           </div>
         </div>
       </div>

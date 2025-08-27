@@ -155,113 +155,114 @@ export const Favorites = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {favorites.map((favorite) => (
-              <div key={favorite.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow group">
-                {/* Header Image */}
-                <div className="relative h-48 overflow-hidden">
-                  {favorite.artist.profilePictureUrl ? (
-                    <img
-                      src={favorite.artist.profilePictureUrl}
-                      alt={`${favorite.artist.user.firstName} ${favorite.artist.user.lastName}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                      <div className="text-gray-400 text-6xl font-bold">
-                        {favorite.artist.user.firstName[0]}{favorite.artist.user.lastName[0]}
+              <div key={favorite.id} className="bg-white border-2 border-black overflow-hidden hover:shadow-xl transition-shadow group">
+                {/* Image */}
+                <div className="relative aspect-square overflow-hidden">
+                  <img
+                    src={favorite.imageUrl}
+                    alt={favorite.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-4 left-4 right-4 text-white">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Eye className="w-4 h-4" />
+                          <span className="text-sm">{favorite.views || 0}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm">{favorite.likes || 0} likes</span>
+                        </div>
                       </div>
                     </div>
-                  )}
-                  
-                  {/* Featured Badge */}
-                  {favorite.artist.isFeatured && (
-                    <div className="absolute top-3 left-3">
-                      <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                        FEATURED
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Verified Badge */}
-                  {favorite.artist.isVerified && (
-                    <div className="absolute top-3 right-3 bg-blue-500 text-white p-2 rounded-full shadow-sm">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
+                  </div>
+
+                  {/* Style Badge */}
+                  <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    {favorite.style || 'Flash'}
+                  </div>
                 </div>
 
                 <div className="p-6">
-                  {/* Artist Info */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-1">
-                        {favorite.artist.user.firstName} {favorite.artist.user.lastName}
-                      </h3>
-                      <p className="text-primary-600 font-semibold">{favorite.artist.studioName}</p>
-                    </div>
-                    <FavoriteButton 
-                      artistId={favorite.artist.id} 
-                      onFavoriteRemoved={() => handleFavoriteRemoved(favorite.artist.id)}
-                    />
-                  </div>
-
-                  {/* Rating and Location */}
-                  <div className="flex items-center space-x-4 mb-4">
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-5 h-5 text-red-500 fill-current" />
-                      <span className="font-semibold text-gray-900">{favorite.artist.averageRating}</span>
-                      <span className="text-gray-500">({favorite.artist.reviewCount})</span>
-                    </div>
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <MapPin className="w-4 h-4" />
-                      <span>{favorite.artist.city}, {favorite.artist.state}</span>
+                  {/* Title and Artist */}
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">{favorite.title}</h3>
+                    <div className="flex items-center space-x-2 text-gray-600 mb-2">
+                      <MapPin className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-sm truncate">{favorite.artist?.studioName || 'Studio'}</span>
                     </div>
                   </div>
 
-                  {/* Price */}
-                  <div className="flex items-center space-x-2 mb-4">
-                    <DollarSign className="w-5 h-5 text-green-600" />
-                    <span className="text-lg font-semibold text-gray-900">${favorite.artist.hourlyRate}</span>
-                    <span className="text-gray-500">/hour</span>
-                  </div>
+                  {/* Description */}
+                  {favorite.description && (
+                    <p className="text-gray-600 mb-4 line-clamp-2 text-sm">{favorite.description}</p>
+                  )}
 
-                  {/* Specialties */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {favorite.artist.specialties?.slice(0, 3).map((specialty) => (
-                      <span
-                        key={specialty.id}
-                        className="px-3 py-1 bg-primary-100 text-primary-700 text-sm rounded-full font-medium"
+                  {/* Tags */}
+                  {favorite.tags && favorite.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {favorite.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                      {favorite.tags.length > 3 && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                          +{favorite.tags.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Artist Info and Price */}
+                  <div className="mt-auto">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold text-sm">
+                            {favorite.artist?.user?.firstName?.[0] || 'A'}{favorite.artist?.user?.lastName?.[0] || 'A'}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-gray-900 truncate">
+                            <Link
+                              to={`/artists/${favorite.artist?.id}`}
+                              className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                              title={`View ${favorite.artist?.user?.firstName || 'Artist'} ${favorite.artist?.user?.lastName || ''}'s profile`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {favorite.artist?.user?.firstName || 'Artist'} {favorite.artist?.user?.lastName || ''}
+                            </Link>
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">{favorite.artist?.city || 'Location'}</p>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-3">
+                        <p className="text-xl font-bold text-gray-900">{favorite.price || 'Contact'}</p>
+                        <p className="text-xs text-gray-500 whitespace-nowrap">Ready to ink</p>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex space-x-3">
+                      <Link
+                        to={`/artists/${favorite.artist?.id}`}
+                        className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold text-sm"
                       >
-                        {specialty.name}
-                      </span>
-                    ))}
-                    {favorite.artist.specialties?.length > 3 && (
-                      <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-                        +{favorite.artist.specialties.length - 3} more
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Bio */}
-                  <p className="text-gray-600 mb-6 line-clamp-2">
-                    {favorite.artist.bio}
-                  </p>
-
-                  {/* Portfolio Count */}
-                  <div className="flex items-center space-x-2 mb-6 text-gray-500">
-                    <Eye className="w-4 h-4" />
-                    <span>{favorite.artist._count.flash} portfolio pieces</span>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex space-x-3">
-                    <Link
-                      to={`/artists/${favorite.artist.id}`}
-                      className="flex-1 bg-primary-600 text-white py-3 px-4 rounded-xl hover:bg-primary-700 transition-colors text-center font-semibold"
-                    >
-                      View Profile
-                    </Link>
+                        Book Artist
+                      </Link>
+                      <button
+                        onClick={() => handleRemoveFavorite(favorite.id)}
+                        className="bg-red-100 text-red-700 py-3 px-4 rounded-lg hover:bg-red-200 transition-colors flex-shrink-0"
+                      >
+                        <Heart className="w-4 h-4 fill-current" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

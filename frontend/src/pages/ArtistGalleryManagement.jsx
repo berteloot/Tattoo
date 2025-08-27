@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Eye, Star, Upload, Image, Clock, MapPin, Tag } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Star, Upload, Image, Clock, MapPin, Tag, Calendar } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { api, galleryAPI } from '../services/api';
@@ -390,7 +390,7 @@ const ArtistGalleryManagement = () => {
   };
 
   const GalleryItemCard = ({ item }) => (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white border-2 border-black overflow-hidden">
       <div className="relative">
         <img
           src={item.thumbnailUrl || item.imageUrl}
@@ -411,76 +411,50 @@ const ArtistGalleryManagement = () => {
         </div>
       </div>
       
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">
+      <div className="p-6">
+        <h3 className="font-semibold text-gray-900 mb-3 line-clamp-1">
           {item.title}
         </h3>
         
-        <div className="flex flex-wrap gap-1 mb-3">
+        <div className="flex flex-wrap gap-2 mb-4">
           {item.tattooStyle && (
-            <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
+            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
               {item.tattooStyle}
             </span>
           )}
           {item.bodyLocation && (
-            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
               {item.bodyLocation}
             </span>
           )}
         </div>
 
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1">
-              <Eye className="w-4 h-4" />
-              <span>{item._count?.views || 0}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span>❤️</span>
-              <span>{item._count?.likes || 0}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span>💬</span>
-              <span>{item._count?.comments || 0}</span>
-            </div>
+        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-4 h-4" />
+            <span>{new Date(item.createdAt).toLocaleDateString()}</span>
           </div>
-          
           {item.hoursSpent && (
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4" />
-              <span>{item.hoursSpent}h</span>
+              <span>{item.hoursSpent}h work</span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="text-xs text-gray-500">
-            {new Date(item.createdAt).toLocaleDateString()}
-          </div>
-          
-          <div className="flex space-x-2">
-            <button
-              onClick={() => handleView(item.id)}
-              className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-              title="View Details"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleEdit(item)}
-              className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
-              title="Edit Item"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleDelete(item.id)}
-              className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-              title="Delete Item"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleEdit(item)}
+            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDelete(item.id)}
+            className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>

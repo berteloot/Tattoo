@@ -131,147 +131,124 @@ const FlashDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Image Section */}
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="relative aspect-square cursor-pointer" onClick={() => setImageViewerOpen(true)}>
-                <img
-                  src={flashItem.imageUrl}
-                  alt={flashItem.title}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center">
-                  <div className="opacity-0 hover:opacity-100 transition-opacity duration-300 text-white font-medium">
-                    Click to enlarge
-                  </div>
-                </div>
-              </div>
+            {/* Flash Image */}
+            <div className="bg-white border-2 border-black overflow-hidden">
+              <img
+                src={flashItem.imageUrl}
+                alt={flashItem.title}
+                className="w-full h-auto max-h-96 object-cover"
+              />
             </div>
 
-            {/* Tags */}
-            {flashItem.tags && flashItem.tags.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {flashItem.tags.map((tag, index) => (
-                    <span key={index} className="px-3 py-1 bg-indigo-100 text-indigo-800 text-sm rounded-full">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+            {/* Tags and Style */}
+            <div className="bg-white border-2 border-black p-6">
+              <div className="mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 mb-4">{flashItem.title}</h1>
+                <p className="text-gray-600 text-lg leading-relaxed">{flashItem.description}</p>
               </div>
-            )}
-          </div>
 
-          {/* Details Section */}
-          <div className="space-y-6">
-            {/* Title and Artist */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{flashItem.title}</h1>
-              
-              {flashItem.description && (
-                <p className="text-gray-600 text-lg mb-6">{flashItem.description}</p>
-              )}
+              {/* Tags and Style */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                {flashItem.tags && flashItem.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-2 bg-blue-100 text-blue-700 text-sm rounded-full font-medium"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+                {flashItem.style && (
+                  <span className="px-3 py-2 bg-green-100 text-green-700 text-sm rounded-full font-medium">
+                    {flashItem.style}
+                  </span>
+                )}
+              </div>
 
-              {/* Artist Info */}
-              <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-indigo-600" />
+              {/* Price and Size */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Pricing</h3>
+                  <p className="text-2xl font-bold text-blue-600">{flashItem.price}</p>
+                  {flashItem.size && (
+                    <p className="text-sm text-gray-600 mt-1">Minimum size: {flashItem.size} inches</p>
+                  )}
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">
-                    {flashItem.artist.user.firstName} {flashItem.artist.user.lastName}
-                  </p>
-                  <Link
-                    to={`/artists/${flashItem.artist.id}`}
-                    className="text-indigo-600 hover:text-indigo-800 text-sm hover:underline transition-colors"
-                  >
-                    View Artist Profile →
-                  </Link>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Availability</h3>
+                  <p className="text-green-600 font-medium">Ready to ink</p>
+                  <p className="text-sm text-gray-600 mt-1">Contact artist for booking</p>
                 </div>
               </div>
             </div>
 
-            {/* Pricing and Details */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Details</h3>
-              
-              <div className="space-y-4">
-                {flashItem.basePrice && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Base Price</span>
-                    <span className="text-2xl font-bold text-indigo-600">${flashItem.basePrice}</span>
-                  </div>
-                )}
-
-                {flashItem.complexity && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Complexity</span>
-                    <span className="text-gray-900 font-medium capitalize">{flashItem.complexity.toLowerCase()}</span>
-                  </div>
-                )}
-
-                {flashItem.timeEstimate && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Estimated Time</span>
-                    <span className="text-gray-900 font-medium">{flashItem.timeEstimate} minutes</span>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Repeatable</span>
-                  <span className="text-gray-900 font-medium">
-                    {flashItem.isRepeatable !== undefined ? (flashItem.isRepeatable ? 'Yes' : 'No') : 'Not specified'}
+            {/* Artist Information */}
+            <div className="bg-white border-2 border-black p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Artist Information</h2>
+              <div className="flex items-start space-x-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-xl">
+                    {flashItem.artist?.user?.firstName?.[0] || 'A'}{flashItem.artist?.user?.lastName?.[0] || 'A'}
                   </span>
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Available</span>
-                  <span className={`font-medium ${flashItem.isAvailable !== undefined ? (flashItem.isAvailable ? 'text-green-600' : 'text-red-600') : 'text-gray-600'}`}>
-                    {flashItem.isAvailable !== undefined ? (flashItem.isAvailable ? 'Yes' : 'No') : 'Not specified'}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Created</span>
-                  <span className="text-gray-900 font-medium">
-                    {new Date(flashItem.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Section */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Get This Design</h3>
-              
-              <div className="space-y-4">
-                <p className="text-gray-600">
-                  Interested in getting this flash design? Contact the artist to discuss details and book your session.
-                </p>
-                
-                <div className="flex space-x-3">
-                  <Link
-                    to={`/artists/${flashItem.artist.id}`}
-                    className="flex-1 inline-flex items-center justify-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                  >
-                    <User className="w-5 h-5" />
-                    <span>View Artist Profile</span>
-                  </Link>
-                  
-                  {flashItem.artist.user.email && (
-                    <button
-                      onClick={() => {
-                        const subject = encodeURIComponent(`Flash Design: ${flashItem.title}`);
-                        const body = encodeURIComponent(`Hi ${flashItem.artist.user.firstName},\n\nI'm interested in your flash design "${flashItem.title}". Could you tell me more about availability and pricing?\n\nThanks!`);
-                        window.open(`mailto:${flashItem.artist.user.email}?subject=${subject}&body=${body}`);
-                      }}
-                      className="flex-1 inline-flex items-center justify-center space-x-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <Link
+                      to={`/artists/${flashItem.artist?.id}`}
+                      className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                     >
-                      <Mail className="w-5 h-5" />
-                      <span>Email Artist</span>
-                    </button>
+                      {flashItem.artist?.user?.firstName || 'Artist'} {flashItem.artist?.user?.lastName || ''}
+                    </Link>
+                  </h3>
+                  {flashItem.artist?.studioName && (
+                    <p className="text-gray-700 font-medium mb-2">{flashItem.artist.studioName}</p>
+                  )}
+                  <div className="flex items-center space-x-2 text-gray-600 mb-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>{flashItem.artist?.city || 'Location'}, {flashItem.artist?.country || 'Country'}</span>
+                  </div>
+                  {flashItem.artist?.bio && (
+                    <p className="text-gray-600 text-sm leading-relaxed">{flashItem.artist.bio}</p>
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Reviews Section */}
+            <div className="bg-white border-2 border-black p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Reviews</h2>
+              {flashItem.reviews && flashItem.reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {flashItem.reviews.map((review) => (
+                    <div key={review.id} className="border-t border-gray-200 pt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                            <span className="text-gray-600 text-sm font-medium">
+                              {review.author?.firstName?.[0] || 'U'}{review.author?.lastName?.[0] || 'U'}
+                            </span>
+                          </div>
+                          <span className="font-medium text-gray-900">
+                            {review.author?.firstName || 'User'} {review.author?.lastName || ''}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm">{review.content}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">No reviews yet. Be the first to review this flash design!</p>
+              )}
             </div>
           </div>
         </div>

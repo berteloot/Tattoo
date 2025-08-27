@@ -41,7 +41,8 @@ import {
   Trash2,
   XCircle,
   Eye,
-  Upload
+  Upload,
+  MessageSquare
 } from 'lucide-react'
 
 export const ArtistDashboard = () => {

@@ -539,7 +539,7 @@ export const FlashGallery = () => {
 }
 
 const FlashCard = ({ item }) => (
-  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-100">
+  <div className="bg-white border-2 border-black overflow-hidden">
     {/* Image */}
     <div className="relative group">
       <img
@@ -567,20 +567,20 @@ const FlashCard = ({ item }) => (
       </div>
     </div>
     
-    <div className="p-4">
+    <div className="p-6">
       {/* Title - Full Name Below Image */}
-      <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+      <h3 className="text-lg font-semibold text-gray-800 mb-3 line-clamp-2">
         {item.title}
       </h3>
       
       {/* Location/Studio */}
-      <div className="flex items-center space-x-2 text-gray-600 mb-2">
+      <div className="flex items-center space-x-2 text-gray-600 mb-3">
         <MapPin className="w-4 h-4 flex-shrink-0" />
         <span className="text-sm truncate">{item.artist.studioName}</span>
       </div>
 
       {/* Price/Size Details */}
-      <div className="mb-3">
+      <div className="mb-4">
         <p className="text-sm text-gray-600">
           {item.size ? `${item.size} inches minimum: ` : 'Price range: '}
           <span className="font-semibold text-gray-900">{item.price}</span>
@@ -588,40 +588,33 @@ const FlashCard = ({ item }) => (
       </div>
 
       {/* Artist Info and Status */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-3 min-w-0 flex-1">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-sm">
-              {item.artist.user.firstName[0]}{item.artist.user.lastName[0]}
-            </span>
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-gray-900 truncate">
-              <Link
-                to={`/artists/${item.artist.id}`}
-                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
-                title={`View ${item.artist.user.firstName} ${item.artist.user.lastName}'s profile`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {item.artist.user.firstName} {item.artist.user.lastName}
-              </Link>
-            </p>
-            <p className="text-sm text-gray-500">Ready to ink</p>
-          </div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-gray-900 truncate">
+            <Link
+              to={`/artists/${item.artist.id}`}
+              className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+              title={`View ${item.artist.user.firstName} ${item.artist.user.lastName}'s profile`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {item.artist.user.firstName} {item.artist.user.lastName}
+            </Link>
+          </p>
+          <p className="text-sm text-gray-500">Ready to ink</p>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex space-x-2">
+      <div className="flex space-x-3">
         <Link
           to={`/artists/${item.artist.id}`}
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold text-sm"
+          className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold text-sm"
         >
           Book Artist
         </Link>
         <FavoriteButton 
           artistId={item.artist.id} 
-          className="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors flex-shrink-0" 
+          className="bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors flex-shrink-0" 
           size="w-4 h-4" 
         />
       </div>

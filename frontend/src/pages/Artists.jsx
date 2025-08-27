@@ -296,113 +296,110 @@ export const Artists = () => {
               : 'space-y-6'
             }>
               {sortedArtists.map((artist) => (
-                <div key={artist.id} className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group ${viewMode === 'list' ? 'flex' : ''}`}>
-                  {/* Profile Image Section */}
-                  <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-48 h-48 flex-shrink-0' : 'h-64'}`}>
-                    {artist.profilePictureUrl ? (
-                      <img
-                        src={artist.profilePictureUrl}
-                        alt={`${artist.user.firstName} ${artist.user.lastName}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <Users className="w-20 h-20 text-gray-400" />
+                <div key={artist.id} className={`bg-white border-2 border-black overflow-hidden group ${viewMode === 'list' ? 'flex' : ''}`}>
+                  {/* Artist Image */}
+                  <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-48 h-48 flex-shrink-0' : 'aspect-square'}`}>
+                    <img
+                      src={artist.profilePictureUrl || '/default-artist.jpg'}
+                      alt={`${artist.user.firstName} ${artist.user.lastName}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    
+                    {/* Verification Badge */}
+                    {artist.verificationStatus === 'APPROVED' && (
+                      <div className="absolute top-3 left-3 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                        Verified
                       </div>
                     )}
                     
                     {/* Featured Badge */}
-                    {artist.featured && (
-                      <div className="absolute top-3 left-3">
-                        <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                          FEATURED
-                        </span>
+                    {artist.isFeatured && (
+                      <div className="absolute top-3 right-3 bg-yellow-400 text-black px-2 py-1 rounded-full text-xs font-semibold">
+                        Featured
                       </div>
                     )}
                     
-                    {/* Rating Badge */}
+                    {/* Status Badge */}
                     <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-sm">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-semibold text-gray-800">
-                          {artist.averageRating || 'New'}
-                        </span>
-                      </div>
+                      <span className="text-xs font-medium text-gray-700">
+                        {artist.verificationStatus === 'APPROVED' ? 'Active' : artist.verificationStatus}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Content Section */}
+                  {/* Artist Info */}
                   <div className={`${viewMode === 'list' ? 'flex-1' : ''} p-6`}>
-                    {/* Artist Name */}
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                      {artist.user.firstName} {artist.user.lastName}
-                    </h3>
-
-                    {/* Location & Rate */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <MapPin className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-medium">
-                          {artist.city}, {artist.state}
-                        </span>
+                    {/* Name and Location */}
+                    <div className="mb-4">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                        <Link to={`/artists/${artist.id}`} className="hover:underline">
+                          {artist.user.firstName} {artist.user.lastName}
+                        </Link>
+                      </h3>
+                      <div className="flex items-center space-x-2 text-gray-600 mb-2">
+                        <MapPin className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm">{artist.city}, {artist.country}</span>
                       </div>
-                      {artist.hourlyRate && (
-                        <div className="flex items-center gap-1 text-green-600">
-                          <DollarSign className="w-4 h-4" />
-                          <span className="font-semibold">${artist.hourlyRate}</span>
-                          <span className="text-sm text-gray-500">/hr</span>
-                        </div>
+                      {artist.studioName && (
+                        <p className="text-sm text-gray-700 font-medium">{artist.studioName}</p>
                       )}
-                    </div>
-
-                    {/* Artist Messages */}
-                    {artist.messages && artist.messages.length > 0 && (
-                      <div className="mb-4">
-                        <ArtistMessages messages={artist.messages} variant="card" />
-                      </div>
-                    )}
-
-                    {/* Bio */}
-                    <p className="text-gray-700 text-sm leading-relaxed mb-4 line-clamp-3">
-                      {artist.bio || "No bio available"}
-                    </p>
-
-                    {/* Review Count */}
-                    <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
-                      <Star className="w-4 h-4 text-yellow-400" />
-                      <span>
-                        {artist.reviewCount || 0} review{(artist.reviewCount || 0) !== 1 ? 's' : ''}
-                      </span>
                     </div>
 
                     {/* Specialties */}
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      {artist.specialties.slice(0, 3).map((specialty, index) => (
-                        <span 
-                          key={index} 
-                          className="bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full border border-blue-200 hover:bg-blue-100 transition-colors"
-                        >
-                          {specialty.name}
+                    {artist.specialties && artist.specialties.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-2">
+                          {artist.specialties.slice(0, 3).map((specialty) => (
+                            <span
+                              key={specialty.id}
+                              className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium"
+                            >
+                              {specialty.name}
+                            </span>
+                          ))}
+                          {artist.specialties.length > 3 && (
+                            <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                              +{artist.specialties.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Rating and Reviews */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i < (artist.averageRating || 0)
+                                  ? 'text-yellow-400 fill-current'
+                                  : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          {artist.averageRating ? artist.averageRating.toFixed(1) : 'No'} ({artist.reviewCount || 0} reviews)
                         </span>
-                      ))}
-                      {artist.specialties.length > 3 && (
-                        <span className="bg-gray-100 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-full">
-                          +{artist.specialties.length - 3} more
-                        </span>
-                      )}
+                      </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <Link 
-                        to={`/artists/${artist.id}`} 
-                        className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+                    <div className="flex space-x-3">
+                      <Link
+                        to={`/artists/${artist.id}`}
+                        className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-semibold text-sm"
                       >
-                        <Eye className="w-4 h-4" />
                         View Profile
                       </Link>
-                      
-                      <FavoriteButton artistId={artist.id} />
+                      <FavoriteButton 
+                        artistId={artist.id} 
+                        className="bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors flex-shrink-0" 
+                        size="w-4 h-4" 
+                      />
                     </div>
                   </div>
                 </div>

@@ -1,7 +1,8 @@
 import { StudioMap } from '../components/StudioMap'
-import { MapPin, Search, Filter, X } from 'lucide-react'
+import { MapPin, Search, Filter, X, Phone, Mail, ExternalLink } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 const Map = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -10,6 +11,7 @@ const Map = () => {
   const [focusCoordinates, setFocusCoordinates] = useState(null)
   const [cityFocusCoordinates, setCityFocusCoordinates] = useState(null)
   const [searchParams] = useSearchParams()
+  const [selectedStudio, setSelectedStudio] = useState(null)
 
   useEffect(() => {
     // Check if there's a studio ID in the URL params
@@ -103,6 +105,34 @@ const Map = () => {
     setCityFocusCoordinates(null)
   }
 
+  const handleGetDirections = (studio) => {
+    if (studio && studio.lat && studio.lng) {
+      const directionsService = new google.maps.DirectionsService();
+      const directionsRenderer = new google.maps.DirectionsRenderer();
+      const map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: studio.lat, lng: studio.lng },
+        zoom: 15,
+      });
+      directionsRenderer.setMap(map);
+
+      const request = {
+        origin: focusCoordinates || cityFocusCoordinates || { lat: 0, lng: 0 }, // Use current focus or default to 0,0
+        destination: { lat: studio.lat, lng: studio.lng },
+        travelMode: google.maps.TravelMode.DRIVING,
+      };
+
+      directionsService.route(request, (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+          directionsRenderer.setDirections(result);
+        } else {
+          window.alert('Directions request failed due to ' + status);
+        }
+      });
+    } else {
+      alert('Studio does not have coordinates for directions.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -178,6 +208,7 @@ const Map = () => {
             focusStudioId={focusStudioId}
             focusCoordinates={focusCoordinates}
             cityFocusCoordinates={cityFocusCoordinates}
+            onStudioClick={(studio) => setSelectedStudio(studio)}
           />
         </div>
         
@@ -231,6 +262,75 @@ const Map = () => {
             <li>• <strong>Status Badges:</strong> Verified studios have green badges, featured studios have purple badges</li>
             <li>• <strong>Clear Search:</strong> Click the X button to clear your search and see all studios</li>
           </ul>
+        </div>
+
+        {/* Studio Info Card */}
+        <div className="bg-white border-2 border-black overflow-hidden">
+          <div className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedStudio?.name}</h3>
+                <div className="flex items-center space-x-2 text-gray-600 mb-2">
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm">{selectedStudio?.address}</span>
+                </div>
+                {selectedStudio?.city && (
+                  <p className="text-sm text-gray-700">{selectedStudio.city}, {selectedStudio.state}</p>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedStudio(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Contact Info */}
+            <div className="space-y-3 mb-4">
+              {selectedStudio?.phoneNumber && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Phone className="w-4 h-4" />
+                  <span>{selectedStudio.phoneNumber}</span>
+                </div>
+              )}
+              {selectedStudio?.email && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Mail className="w-4 h-4" />
+                  <span>{selectedStudio.email}</span>
+                </div>
+              )}
+              {selectedStudio?.website && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <ExternalLink className="w-4 h-4" />
+                  <a
+                    href={selectedStudio.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    Visit Website
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3">
+              <Link
+                to={`/studios/${selectedStudio?.id}`}
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-medium text-sm"
+              >
+                View Details
+              </Link>
+              <button
+                onClick={() => handleGetDirections(selectedStudio)}
+                className="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+              >
+                Directions
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

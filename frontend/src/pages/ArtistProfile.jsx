@@ -240,99 +240,263 @@ export const ArtistProfile = () => {
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
-            {/* Profile Picture and Basic Info */}
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <img
-                  src={artist.profilePictureUrl || `https://ui-avatars.com/api/?name=${artist.user.firstName}+${artist.user.lastName}&background=random&size=120`}
-                  alt={`${artist.user.firstName} ${artist.user.lastName}`}
-                  className="w-24 h-24 lg:w-32 lg:h-32 rounded-full object-cover border-4 border-white shadow-lg"
-                />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-                    {artist.user.firstName} {artist.user.lastName}
-                  </h1>
+            {/* Profile Information */}
+            <div className="bg-white border-2 border-black p-6">
+              <div className="flex items-start space-x-6">
+                {/* Profile Picture */}
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  {artist.profilePictureUrl ? (
+                    <img
+                      src={artist.profilePictureUrl}
+                      alt={`${artist.user.firstName} ${artist.user.lastName}`}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white font-bold text-2xl">
+                      {artist.user.firstName[0]}{artist.user.lastName[0]}
+                    </span>
+                  )}
                 </div>
-                
-                {artist.studioName && (
-                  <div className="flex items-center gap-2 text-gray-600 mb-2">
-                    <MapPin className="w-4 h-4" />
-                    <span className="font-medium">{artist.studioName}</span>
+
+                {/* Profile Details */}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                        {artist.user.firstName} {artist.user.lastName}
+                      </h1>
+                      {artist.studioName && (
+                        <p className="text-xl text-gray-700 font-medium">{artist.studioName}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      {artist.verificationStatus === 'APPROVED' && (
+                        <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          Verified
+                        </div>
+                      )}
+                      {artist.isFeatured && (
+                        <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-semibold">
+                          Featured
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-                
-                {(artist.address || artist.city) && (
-                  <div className="text-gray-500 text-sm">
-                    {[artist.address, artist.city, artist.state, artist.zipCode, artist.country]
-                      .filter(Boolean)
-                      .join(', ')}
+
+                  {/* Location and Contact */}
+                  <div className="flex items-center space-x-4 text-gray-600 mb-4">
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="w-4 h-4" />
+                      <span>{artist.city}, {artist.country}</span>
+                    </div>
+                    {artist.phoneNumber && (
+                      <div className="flex items-center space-x-2">
+                        <Phone className="w-4 h-4" />
+                        <span>{artist.phoneNumber}</span>
+                      </div>
+                    )}
+                    {artist.email && (
+                      <div className="flex items-center space-x-2">
+                        <Mail className="w-4 h-4" />
+                        <span>{artist.email}</span>
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  {/* Bio */}
+                  {artist.bio && (
+                    <p className="text-gray-700 leading-relaxed mb-4">{artist.bio}</p>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setShowContactModal(true)}
+                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      Contact Artist
+                    </button>
+                    <FavoriteButton 
+                      artistId={artist.id} 
+                      className="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium" 
+                      size="w-5 h-5" 
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 ml-auto">
-              {artist.calendlyUrl ? (
-                <>
-                  {isAuthenticated ? (
-                    <a
-                      href={artist.calendlyUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Book Consultation
-                    </a>
-                  ) : (
-                    <button 
-                      onClick={() => {
-                        setSignupPromptType('calendly');
-                        setShowSignupPrompt(true);
-                      }}
-                      className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Book Consultation
-                    </button>
-                  )}
-                </>
-              ) : (
-                <>
-                  {isAuthenticated ? (
-                    <button 
-                      onClick={() => setShowContactModal(true)}
-                      className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Contact Artist
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => {
-                        setSignupPromptType('contact');
-                        setShowSignupPrompt(true);
-                      }}
-                      className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Contact Artist
-                    </button>
-                  )}
-                </>
-              )}
+            {/* Specialties and Services */}
+            <div className="bg-white border-2 border-black p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Specialties & Services</h2>
               
-              {/* Dashboard Link for Artist Viewing Own Profile */}
-              {isAuthenticated && user?.id === artist.user.id && (
-                <Link
-                  to="/dashboard"
-                  className="inline-flex items-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Dashboard
-                </Link>
+              {/* Specialties */}
+              {artist.specialties && artist.specialties.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Tattoo Styles</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {artist.specialties.map((specialty) => (
+                      <span
+                        key={specialty.id}
+                        className="px-3 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                      >
+                        {specialty.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Services */}
+              {artist.services && artist.services.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Services Offered</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {artist.services.map((service) => (
+                      <div key={service.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="font-medium text-gray-900">{service.name}</span>
+                        {service.price && (
+                          <span className="text-blue-600 font-semibold">${service.price}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Pricing */}
+              {artist.hourlyRate && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Pricing</h3>
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="w-5 h-5 text-green-600" />
+                    <span className="text-2xl font-bold text-green-600">${artist.hourlyRate}</span>
+                    <span className="text-gray-600">per hour</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Gallery */}
+            <div className="bg-white border-2 border-black p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Portfolio Gallery</h2>
+                {user?.role === 'ARTIST' && user?.id === artist.id && (
+                  <Link
+                    to="/artist/gallery"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    Manage Gallery
+                  </Link>
+                )}
+              </div>
+
+              {artist.gallery && artist.gallery.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {artist.gallery.slice(0, 6).map((item) => (
+                    <div key={item.id} className="relative group cursor-pointer" onClick={() => navigate(`/gallery/${item.id}`)}>
+                      <img
+                        src={item.thumbnailUrl || item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 rounded-lg flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white font-medium">
+                          View Details
+                        </div>
+                      </div>
+                      {item.isFeatured && (
+                        <div className="absolute top-2 right-2">
+                          <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">No gallery items yet.</p>
+              )}
+            </div>
+
+            {/* Reviews */}
+            <div className="bg-white border-2 border-black p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Reviews & Ratings</h2>
+              
+              {/* Rating Summary */}
+              <div className="flex items-center space-x-6 mb-6">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-gray-900">{artist.averageRating ? artist.averageRating.toFixed(1) : 'No'}</div>
+                  <div className="flex items-center justify-center mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-5 h-5 ${
+                          i < (artist.averageRating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="text-sm text-gray-600">{artist.reviewCount || 0} reviews</div>
+                </div>
+                
+                <div className="flex-1">
+                  <div className="space-y-2">
+                    {[5, 4, 3, 2, 1].map((rating) => {
+                      const count = artist.ratingDistribution?.[rating] || 0;
+                      const percentage = artist.reviewCount ? (count / artist.reviewCount) * 100 : 0;
+                      return (
+                        <div key={rating} className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-600 w-4">{rating}</span>
+                          <div className="flex-1 bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-yellow-400 h-2 rounded-full"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <span className="text-sm text-gray-600 w-8">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Reviews List */}
+              {reviews && reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="border-t border-gray-200 pt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                            <span className="text-gray-600 text-sm font-medium">
+                              {review.author?.firstName?.[0] || 'U'}{review.author?.lastName?.[0] || 'U'}
+                            </span>
+                          </div>
+                          <span className="font-medium text-gray-900">
+                            {review.author?.firstName || 'User'} {review.author?.lastName || ''}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm">{review.content}</p>
+                      <div className="text-xs text-gray-500 mt-2">
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">No reviews yet. Be the first to review this artist!</p>
               )}
             </div>
           </div>
@@ -401,8 +565,7 @@ export const ArtistProfile = () => {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -185,272 +185,164 @@ const GalleryDetail = () => {
           <span>Back to Gallery</span>
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Image Section */}
-          <div className="space-y-4">
-            {/* Main Image */}
-            <div className="relative">
-              <img
-                src={galleryItem.imageUrl}
-                alt={galleryItem.title}
-                className="w-full h-96 lg:h-[500px] object-cover rounded-lg cursor-pointer"
-                onClick={() => openImageViewer(1)}
-              />
-              <div className="absolute top-4 right-4 flex space-x-2">
-                {galleryItem.isFeatured && (
-                  <div className="bg-yellow-400 text-white p-2 rounded-full">
-                    <Star className="w-5 h-5" />
-                  </div>
-                )}
-                {galleryItem.isBeforeAfter && (
-                  <div className="bg-blue-500 text-white px-3 py-2 rounded-full text-sm font-semibold">
-                    Before/After
-                  </div>
-                )}
-              </div>
-            </div>
+        {/* Gallery Image */}
+        <div className="bg-white border-2 border-black overflow-hidden">
+          <img
+            src={galleryItem.imageUrl}
+            alt={galleryItem.title}
+            className="w-full h-auto max-h-96 object-cover"
+          />
+        </div>
 
-            {/* Before/After Images */}
-            {galleryItem.isBeforeAfter && (galleryItem.beforeImageUrl || galleryItem.afterImageUrl) && (
-              <div className="grid grid-cols-2 gap-4">
-                {galleryItem.beforeImageUrl && (
-                  <div className="relative">
-                    <img
-                      src={galleryItem.beforeImageUrl}
-                      alt="Before"
-                      className="w-full h-32 object-cover rounded-lg cursor-pointer"
-                      onClick={() => openImageViewer(0)}
-                    />
-                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
-                      Before
-                    </div>
-                  </div>
-                )}
-                {galleryItem.afterImageUrl && (
-                  <div className="relative">
-                    <img
-                      src={galleryItem.afterImageUrl}
-                      alt="After"
-                      className="w-full h-32 object-cover rounded-lg cursor-pointer"
-                      onClick={() => openImageViewer(2)}
-                    />
-                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
-                      After
-                    </div>
-                  </div>
-                )}
-              </div>
+        {/* Gallery Details */}
+        <div className="bg-white border-2 border-black p-6">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">{galleryItem.title}</h1>
+            {galleryItem.description && (
+              <p className="text-gray-600 text-lg leading-relaxed">{galleryItem.description}</p>
             )}
           </div>
 
-          {/* Details Section */}
-          <div className="space-y-6">
-            {/* Title and Actions */}
+          {/* Tags and Categories */}
+          <div className="flex flex-wrap gap-3 mb-6">
+            {galleryItem.tattooStyle && (
+              <span className="px-3 py-2 bg-purple-100 text-purple-700 text-sm rounded-full font-medium">
+                {galleryItem.tattooStyle}
+              </span>
+            )}
+            {galleryItem.bodyLocation && (
+              <span className="px-3 py-2 bg-blue-100 text-blue-700 text-sm rounded-full font-medium">
+                {galleryItem.bodyLocation}
+              </span>
+            )}
+            {galleryItem.colorType && (
+              <span className="px-3 py-2 bg-green-100 text-green-700 text-sm rounded-full font-medium">
+                {galleryItem.colorType}
+              </span>
+            )}
+            {galleryItem.tags && galleryItem.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-full font-medium"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Details Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{galleryItem.title}</h1>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
-                  <button
-                    onClick={handleLike}
-                    className={`flex items-center space-x-1 hover:text-red-500 transition-colors ${
-                      galleryItem.userLiked ? 'text-red-500' : ''
-                    }`}
-                  >
-                    <Heart className={`w-5 h-5 ${galleryItem.userLiked ? 'fill-current' : ''}`} />
-                    <span>{galleryItem._count.likes}</span>
-                  </button>
-                  <div className="flex items-center space-x-1">
-                    <MessageCircle className="w-5 h-5" />
-                    <span>{galleryItem._count.comments}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Eye className="w-5 h-5" />
-                    <span>{galleryItem._count.views}</span>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={handleShare}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  <Share2 className="w-4 h-4" />
-                  <span>Share</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Artist Info */}
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Artist</h3>
-              <div className="flex items-center space-x-3">
-                {galleryItem.artist?.user?.avatar && (
-                  <img
-                    src={galleryItem.artist.user.avatar}
-                    alt="Artist"
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                )}
-                <div>
-                  <div className="font-medium text-gray-900">
-                    {galleryItem.artist?.id ? (
-                      <Link
-                        to={`/artists/${galleryItem.artist.id}`}
-                        className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
-                        title={`View ${galleryItem.artist.user.firstName} ${galleryItem.artist.user.lastName}'s profile`}
-                      >
-                        {galleryItem.artist.user.firstName} {galleryItem.artist.user.lastName}
-                      </Link>
-                    ) : (
-                      <span>{galleryItem.artist?.user?.firstName} {galleryItem.artist?.user?.lastName}</span>
-                    )}
-                  </div>
-                  {galleryItem.artist?.studioName && (
-                    <div className="text-sm text-gray-600">{galleryItem.artist.studioName}</div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Tattoo Details */}
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-3">Tattoo Details</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                {galleryItem.tattooStyle && (
-                  <div className="flex items-center space-x-2">
-                    <Tag className="w-4 h-4 text-gray-400" />
-                    <div>
-                      <div className="text-gray-500">Style</div>
-                      <div className="font-medium">{galleryItem.tattooStyle}</div>
-                    </div>
-                  </div>
-                )}
-                {galleryItem.bodyLocation && (
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="w-4 h-4 text-gray-400" />
-                    <div>
-                      <div className="text-gray-500">Location</div>
-                      <div className="font-medium">{galleryItem.bodyLocation}</div>
-                    </div>
-                  </div>
-                )}
-                {galleryItem.hoursSpent && (
-                  <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    <div>
-                      <div className="text-gray-500">Hours</div>
-                      <div className="font-medium">{galleryItem.hoursSpent}h</div>
-                    </div>
-                  </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Tattoo Details</h3>
+              <div className="space-y-2">
+                {galleryItem.tattooSize && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Size:</span> {galleryItem.tattooSize}
+                  </p>
                 )}
                 {galleryItem.sessionCount && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 text-gray-400">#</div>
-                    <div>
-                      <div className="text-gray-500">Sessions</div>
-                      <div className="font-medium">{galleryItem.sessionCount}</div>
-                    </div>
-                  </div>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Sessions:</span> {galleryItem.sessionCount}
+                  </p>
+                )}
+                {galleryItem.hoursSpent && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Time:</span> {galleryItem.hoursSpent} hours
+                  </p>
                 )}
               </div>
             </div>
-
-            {/* Description */}
-            {galleryItem.description && (
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                <p className="text-gray-700 leading-relaxed">{galleryItem.description}</p>
-              </div>
-            )}
-
-            {/* Tags */}
-            {(galleryItem.tags?.length > 0 || galleryItem.categories?.length > 0) && (
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h3 className="font-semibold text-gray-900 mb-3">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {galleryItem.tags?.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                  {galleryItem.categories?.map((category, index) => (
-                    <span
-                      key={index}
-                      className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
-                    >
-                      {category}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Comments Section */}
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-4">Comments ({galleryItem._count.comments})</h3>
-              
-              {/* Add Comment */}
-              {user && (
-                <form onSubmit={handleCommentSubmit} className="mb-6">
-                  <textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Add a comment..."
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                    rows="3"
-                    maxLength="1000"
-                  />
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-sm text-gray-500">
-                      {comment.length}/1000 characters
-                    </span>
-                    <button
-                      type="submit"
-                      disabled={submittingComment || !comment.trim()}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {submittingComment ? 'Posting...' : 'Post Comment'}
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Comments List */}
-              <div className="space-y-4">
-                {galleryItem.comments?.map((comment) => (
-                  <div key={comment.id} className="border-b border-gray-200 pb-4 last:border-b-0">
-                    <div className="flex items-start space-x-3">
-                      {comment.user?.avatar && (
-                        <img
-                          src={comment.user.avatar}
-                          alt="User"
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="font-medium text-gray-900">
-                            {comment.user?.firstName} {comment.user?.lastName}
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            {new Date(comment.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-gray-700">{comment.comment}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {galleryItem.comments?.length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Client Information</h3>
+              <div className="space-y-2">
+                {galleryItem.clientConsent && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Consent:</span> Client approved sharing
+                  </p>
+                )}
+                {galleryItem.clientAnonymous && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Privacy:</span> Client anonymous
+                  </p>
+                )}
+                {galleryItem.clientAgeVerified && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Age:</span> Client age verified
+                  </p>
                 )}
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Artist Information */}
+        <div className="bg-white border-2 border-black p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Artist Information</h2>
+          <div className="flex items-start space-x-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-xl">
+                {galleryItem.artist?.user?.firstName?.[0] || 'A'}{galleryItem.artist?.user?.lastName?.[0] || 'A'}
+              </span>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <Link
+                  to={`/artists/${galleryItem.artist?.id}`}
+                  className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                >
+                  {galleryItem.artist?.user?.firstName || 'Artist'} {galleryItem.artist?.user?.lastName || ''}
+                </Link>
+              </h3>
+              {galleryItem.artist?.studioName && (
+                <p className="text-gray-700 font-medium mb-2">{galleryItem.artist.studioName}</p>
+              )}
+              <div className="flex items-center space-x-2 text-gray-600 mb-2">
+                <MapPin className="w-4 h-4" />
+                <span>{galleryItem.artist?.city || 'Location'}, {galleryItem.artist?.country || 'Country'}</span>
+              </div>
+              {galleryItem.artist?.bio && (
+                <p className="text-gray-600 text-sm leading-relaxed">{galleryItem.artist.bio}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="bg-white border-2 border-black p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Reviews</h2>
+          {galleryItem.reviews && galleryItem.reviews.length > 0 ? (
+            <div className="space-y-4">
+              {galleryItem.reviews.map((review) => (
+                <div key={review.id} className="border-t border-gray-200 pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        <span className="text-gray-600 text-sm font-medium">
+                          {review.author?.firstName?.[0] || 'U'}{review.author?.lastName?.[0] || 'U'}
+                        </span>
+                      </div>
+                      <span className="font-medium text-gray-900">
+                        {review.author?.firstName || 'User'} {review.author?.lastName || ''}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-sm">{review.content}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">No reviews yet. Be the first to review this gallery item!</p>
+          )}
         </div>
       </div>
 
