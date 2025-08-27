@@ -161,22 +161,19 @@ app.get('/favicon.ico', (req, res) => {
 // Debug endpoint to check file system in production
 app.get('/debug-paths', (req, res) => {
   try {
-    // Get fresh build info
-    const freshBuildInfo = getFreshFrontendBuildInfo();
-    
     const currentDir = __dirname;
     const backendDir = path.join(__dirname, '..');
     const rootDir = path.join(__dirname, '../..');
     
     const debugInfo = {
-      freshBuildInfo,
+      frontendDir: FRONTEND_DIR,
+      indexHtml: INDEX_HTML,
       currentDir,
-      originalFrontendBuildPath: path.join(__dirname, '../../frontend/dist'),
       backendDir,
       rootDir,
       paths: {
         currentDirExists: fs.existsSync(currentDir),
-        freshFrontendBuildExists: freshBuildInfo.exists,
+        frontendExists,
         backendDirExists: fs.existsSync(backendDir),
         rootDirExists: fs.existsSync(rootDir),
       },
@@ -192,13 +189,8 @@ app.get('/debug-paths', (req, res) => {
       debugInfo.listings.backend = fs.readdirSync(backendDir);
     }
     
-    const frontendDir = path.join(__dirname, '../../frontend');
-    if (fs.existsSync(frontendDir)) {
-      debugInfo.listings.frontend = fs.readdirSync(frontendDir);
-    }
-    
-    if (freshBuildInfo.exists) {
-      debugInfo.listings.frontendBuild = fs.readdirSync(freshBuildInfo.path);
+    if (frontendExists) {
+      debugInfo.listings.frontendBuild = fs.readdirSync(frontendBuildPath);
     }
     
     res.json(debugInfo);
@@ -219,18 +211,14 @@ app.get('/test-root', (req, res) => {
       error: 'Endpoint not found'
     });
   }
-
-  // Get fresh build info
-  const freshBuildInfo = getFreshFrontendBuildInfo();
   
   res.json({
     message: 'Root path test endpoint working',
     timestamp: new Date().toISOString(),
-    freshBuildInfo,
-    originalFrontendBuildPath: frontendBuildPath,
-    originalFrontendExists: frontendExists,
-    originalIndexHtmlPath: indexHtmlPath,
-    originalIndexHtmlExists: fs.existsSync(indexHtmlPath),
+    frontendDir: FRONTEND_DIR,
+    indexHtml: INDEX_HTML,
+    frontendExists,
+    indexHtmlExists: fs.existsSync(indexHtmlPath),
     currentDir: __dirname,
     workingDir: process.cwd()
   });
@@ -247,17 +235,18 @@ app.get('/test-html', (req, res) => {
   }
 
   try {
-    const freshBuildInfo = getFreshFrontendBuildInfo();
-    
-    if (!freshBuildInfo.exists || !freshBuildInfo.indexExists) {
+    if (!frontendExists || !fs.existsSync(indexHtmlPath)) {
       return res.status(404).json({
         error: 'HTML file not found',
-        freshBuildInfo
+        frontendDir: FRONTEND_DIR,
+        indexHtml: INDEX_HTML,
+        frontendExists,
+        indexHtmlExists: fs.existsSync(indexHtmlPath)
       });
     }
     
     // Read the HTML file content
-    const htmlContent = fs.readFileSync(freshBuildInfo.indexPath, 'utf8');
+    const htmlContent = fs.readFileSync(indexHtmlPath, 'utf8');
     
     // Extract script and link tags to see what assets are referenced
     const scriptMatches = htmlContent.match(/src="([^"]+)"/g) || [];
@@ -265,7 +254,8 @@ app.get('/test-html', (req, res) => {
     
     res.json({
       success: true,
-      freshBuildInfo,
+      frontendDir: FRONTEND_DIR,
+      indexHtml: INDEX_HTML,
       htmlFileSize: htmlContent.length,
       scriptTags: scriptMatches,
       linkTags: linkMatches,
@@ -275,7 +265,8 @@ app.get('/test-html', (req, res) => {
     res.status(500).json({
       error: 'Failed to read HTML file',
       message: error.message,
-      freshBuildInfo: getFreshFrontendBuildInfo()
+      frontendDir: FRONTEND_DIR,
+      indexHtml: INDEX_HTML
     });
   }
 });
@@ -314,92 +305,49 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Debug route to check what's happening at root path
+// Root endpoint - serve React app
 app.get('/', (req, res) => {
-  // Get fresh frontend build info to avoid caching issues
-  const freshBuildInfo = getFreshFrontendBuildInfo();
-  
   console.log('🔍 Root path accessed:', req.path);
-  console.log('🔍 Fresh frontend build exists:', freshBuildInfo.exists);
-  console.log('🔍 Fresh index HTML path:', freshBuildInfo.indexPath);
+  console.log('🔍 Frontend build exists:', frontendExists);
+  console.log('🔍 Index HTML path:', indexHtmlPath);
   console.log('🔍 Current working directory:', process.cwd());
   console.log('🔍 __dirname:', __dirname);
   
-  if (freshBuildInfo.exists && freshBuildInfo.indexExists) {
+  if (frontendExists && fs.existsSync(indexHtmlPath)) {
     console.log('✅ Serving React app from root path');
-    console.log('✅ File size:', fs.statSync(freshBuildInfo.indexPath).size, 'bytes');
+    console.log('✅ File size:', fs.statSync(indexHtmlPath).size, 'bytes');
     
     // Set proper headers for HTML
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     
-    res.sendFile(freshBuildInfo.indexPath, (err) => {
+    res.sendFile(indexHtmlPath, (err) => {
       if (err) {
         console.error('❌ Error serving index.html:', err.message);
         res.status(500).json({ error: 'Error serving React app', details: err.message });
       }
     });
   } else {
-    console.log('❌ Frontend not available, serving fallback');
-    console.log('❌ Fresh frontend build path:', freshBuildInfo.path);
-    console.log('❌ Fresh index HTML path:', freshBuildInfo.indexPath);
+    console.log('❌ Frontend not available - this should not happen in production');
+    console.log('❌ Frontend build path:', frontendBuildPath);
+    console.log('❌ Index HTML path:', indexHtmlPath);
     
-    // Try to list directory contents for debugging
-    try {
-      if (fs.existsSync(freshBuildInfo.path)) {
-        const contents = fs.readdirSync(freshBuildInfo.path);
-        console.log('❌ Frontend build contents:', contents);
-      }
-    } catch (error) {
-      console.log('❌ Error reading frontend build directory:', error.message);
+    // In production, this should never happen due to fail-fast logic
+    if (process.env.NODE_ENV === 'production') {
+      console.error('🚨 CRITICAL: Frontend build missing in production');
+      process.exit(1);
     }
     
-    res.status(200).send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Tattooed World - Debug</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
-            .container { max-width: 600px; margin: 0 auto; }
-            .debug-info { background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: left; }
-            .api-link { display: inline-block; margin: 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
-            .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>🎨 Tattooed World - Debug Mode</h1>
-            <p>Root path accessed but frontend build not available.</p>
-            
-            <div class="error">
-              <h3>🚨 Frontend Build Issue Detected</h3>
-              <p>The React app build files are not available. This indicates a deployment problem.</p>
-            </div>
-            
-            <div class="debug-info">
-              <h3>Debug Information:</h3>
-              <p><strong>Fresh Frontend Build Path:</strong> ${freshBuildInfo.path}</p>
-              <p><strong>Fresh Frontend Exists:</strong> ${freshBuildInfo.exists}</p>
-              <p><strong>Fresh Index HTML Path:</strong> ${freshBuildInfo.indexPath}</p>
-              <p><strong>Fresh Index HTML Exists:</strong> ${freshBuildInfo.indexExists}</p>
-              <p><strong>Current Directory:</strong> ${__dirname}</p>
-              <p><strong>Working Directory:</strong> ${process.cwd()}</p>
-            </div>
-            
-            <br>
-            <a href="/api/health" class="api-link">Health Check</a>
-            <a href="/api" class="api-link">API Info</a>
-            <a href="/debug-build" class="api-link">Debug Build</a>
-            <br><br>
-            <p><small>This debug page shows that the root path is being handled but the frontend build is not available.</small></p>
-            <p><small>Check the Render deployment logs for build errors.</small></p>
-          </div>
-        </body>
-      </html>
-    `);
+    res.status(500).json({
+      error: 'Frontend build not available',
+      message: 'This should not happen in production',
+      frontendDir: FRONTEND_DIR,
+      indexHtml: INDEX_HTML
+    });
   }
 });
+            
+
 
 // Removed specific favicon and vite.svg handlers - let static file serving handle them
 // This prevents conflicts with the React app routing
@@ -442,44 +390,13 @@ function getFreshFrontendBuildInfo() {
   };
 }
 
-// Initial frontend build info already set above
-
-// Additional path debugging
-console.log('🔍 Path debugging:');
+// Log frontend build status
+console.log('🔍 Frontend build status:');
 console.log('  - __dirname:', __dirname);
 console.log('  - frontendBuildPath:', frontendBuildPath);
 console.log('  - frontendExists:', frontendExists);
 console.log('  - indexHtmlPath:', indexHtmlPath);
 console.log('  - indexHtmlExists:', fs.existsSync(indexHtmlPath));
-
-// Try alternative paths if the default path doesn't exist
-let alternativePaths = [];
-if (!frontendExists) {
-  alternativePaths = [
-    path.join(__dirname, '../frontend/dist'),
-    path.join(__dirname, '../../frontend/dist'),
-    path.join(__dirname, '../../../frontend/dist'),
-    path.join(process.cwd(), 'frontend/dist'),
-    path.join(process.cwd(), '../frontend/dist'),
-    path.join(process.cwd(), '../../frontend/dist')
-  ];
-  
-  console.log('🔍 Trying alternative paths:');
-  for (const altPath of alternativePaths) {
-    const exists = fs.existsSync(altPath);
-    console.log(`  - ${altPath}: ${exists}`);
-    if (exists) {
-      console.log(`✅ Found frontend build at alternative path: ${altPath}`);
-      break;
-    }
-  }
-}
-
-// Log detailed information about the frontend build
-console.log('🔍 Frontend build check:');
-console.log('  - Path:', frontendBuildPath);
-console.log('  - Exists:', frontendExists);
-console.log('  - Current directory:', __dirname);
 
 if (frontendExists) {
   try {
