@@ -274,11 +274,13 @@ const Studios = () => {
             console.log('🔍 First studio data:', {
               id: studio.id,
               title: studio.title,
-              latitude: studio.latitude,
-              longitude: studio.longitude,
-              hasCoordinates: studio.hasCoordinates,
-              typeLat: typeof studio.latitude,
-              typeLng: typeof studio.longitude
+              name: studio.name,
+              city: studio.city,
+              country: studio.country,
+              address: studio.address,
+              description: studio.description,
+              isFeatured: studio.isFeatured,
+              status: studio.status
             });
           }
           return (
@@ -302,7 +304,7 @@ const Studios = () => {
               {/* Studio Name */}
               <h3 className="text-2xl font-bold text-black mb-2 group-hover:text-blue-600 transition-colors">
                 <Link to={`/studios/${studio.id}`} className="hover:underline">
-                  {studio.name}
+                  {studio.title || studio.name || 'Studio Name Not Available'}
                 </Link>
               </h3>
             </div>
