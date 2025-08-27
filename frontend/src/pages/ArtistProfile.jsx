@@ -231,7 +231,7 @@ export const ArtistProfile = () => {
       {/* Hero Section */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
+          <div className="flex flex-col space-y-6">
             {/* Profile Information */}
             <div className="bg-white border-2 border-black p-6">
               <div className="flex items-start space-x-6">
@@ -492,7 +492,7 @@ export const ArtistProfile = () => {
       {studios && studios.length > 0 && (
         <div className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white border-2 border-black rounded-xl p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Studio Information</h2>
               <div className="space-y-4">
                 {studios.map((studioArtist) => {
@@ -560,7 +560,7 @@ export const ArtistProfile = () => {
           <div className="xl:col-span-2 space-y-6">
             {/* Artist Messages */}
             {artist.messages && artist.messages.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white border-2 border-black rounded-xl p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                   <MessageCircle className="w-5 h-5 mr-2 text-purple-600" />
                   Community Updates from {artist.user.firstName}
@@ -571,7 +571,7 @@ export const ArtistProfile = () => {
 
             {/* Bio */}
             {artist.bio && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white border-2 border-black rounded-xl p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">About</h2>
                 <p className="text-gray-700 leading-relaxed">{artist.bio}</p>
               </div>
@@ -579,7 +579,7 @@ export const ArtistProfile = () => {
 
             {/* Specialties */}
             {artist.specialties && artist.specialties.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white border-2 border-black rounded-xl p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Specialties</h2>
                 <div className="flex flex-wrap gap-2">
                   {artist.specialties.map((specialty) => (
@@ -596,7 +596,7 @@ export const ArtistProfile = () => {
 
             {/* Flash Items */}
             {artist.flash && artist.flash.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white border-2 border-black rounded-xl p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Available Flash Designs</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {artist.flash.map((flashItem) => (
@@ -649,7 +649,7 @@ export const ArtistProfile = () => {
 
             {/* Tattoo Gallery */}
             {artist.gallery && artist.gallery.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white border-2 border-black rounded-xl p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Tattoo Portfolio</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {artist.gallery.map((galleryItem) => (
@@ -698,7 +698,7 @@ export const ArtistProfile = () => {
             )}
 
             {/* Reviews (detailed) */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white border-2 border-black rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Reviews</h2>
                 <button
@@ -841,7 +841,7 @@ export const ArtistProfile = () => {
           {/* Right Column - Sidebar */}
           <div className="xl:col-span-1 space-y-6">
             {/* Contact Information */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white border-2 border-black rounded-xl p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
                 <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
                 Contact Information
@@ -1018,23 +1018,25 @@ export const ArtistProfile = () => {
                     ) : (
                       <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                         <div className="flex items-center flex-1 min-w-0 overflow-hidden">
-                          <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                            <Calendar className="w-5 h-5 text-green-600" />
+                          <div className="flex items-center space-x-3">
+                            <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                              <Calendar className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                              <p className="text-sm font-medium text-green-900">Online booking available</p>
+                              <p className="text-xs text-green-700 break-words">Schedule directly with {artist.user.firstName}</p>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0 overflow-hidden">
-                            <p className="text-sm font-medium text-green-900">Online booking available</p>
-                            <p className="text-xs text-green-700 break-words">Schedule directly with {artist.user.firstName}</p>
-                          </div>
+                          <button
+                            onClick={() => {
+                              setSignupPromptType('calendly')
+                              setShowSignupPrompt(true)
+                            }}
+                            className="text-green-600 hover:text-green-800 font-medium text-sm px-3 py-1 rounded-md border border-green-300 hover:bg-green-100 transition-colors flex-shrink-0 ml-2"
+                          >
+                            Sign up to book
+                          </button>
                         </div>
-                        <button
-                          onClick={() => {
-                            setSignupPromptType('calendly')
-                            setShowSignupPrompt(true)
-                          }}
-                          className="text-green-600 hover:text-green-800 font-medium text-sm px-3 py-1 rounded-md border border-green-300 hover:bg-green-100 transition-colors flex-shrink-0 ml-2"
-                        >
-                          Sign up to book
-                        </button>
                       </div>
                     )}
                   </>
@@ -1077,7 +1079,7 @@ export const ArtistProfile = () => {
             </div>
 
             {/* Services & Pricing */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white border-2 border-black rounded-xl p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
                 Services & Pricing
