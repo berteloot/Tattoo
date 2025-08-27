@@ -155,27 +155,40 @@ export const Favorites = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {favorites.map((favorite) => (
-              <div key={favorite.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+              <div key={favorite.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow group">
                 {/* Header Image */}
-                <div className="relative h-48 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700">
-                  {favorite.artist.isFeatured && (
-                    <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
-                      <Star className="w-4 h-4 mr-1" />
-                      Featured
+                <div className="relative h-48 overflow-hidden">
+                  {favorite.artist.profilePictureUrl ? (
+                    <img
+                      src={favorite.artist.profilePictureUrl}
+                      alt={`${favorite.artist.user.firstName} ${favorite.artist.user.lastName}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                      <div className="text-gray-400 text-6xl font-bold">
+                        {favorite.artist.user.firstName[0]}{favorite.artist.user.lastName[0]}
+                      </div>
                     </div>
                   )}
+                  
+                  {/* Featured Badge */}
+                  {favorite.artist.isFeatured && (
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                        FEATURED
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Verified Badge */}
                   {favorite.artist.isVerified && (
-                    <div className="absolute top-4 right-4 bg-blue-500 text-white p-2 rounded-full">
+                    <div className="absolute top-3 right-3 bg-blue-500 text-white p-2 rounded-full shadow-sm">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
                   )}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-white text-6xl font-bold opacity-20">
-                      {favorite.artist.user.firstName[0]}{favorite.artist.user.lastName[0]}
-                    </div>
-                  </div>
                 </div>
 
                 <div className="p-6">

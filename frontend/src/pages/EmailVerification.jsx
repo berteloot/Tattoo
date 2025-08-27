@@ -35,12 +35,18 @@ const EmailVerification = () => {
       console.log('🧪 Testing API call...');
       console.log('🌐 API URL:', getApiUrl());
       
-      const testResponse = await axios.get(`${getApiUrl()}/health`, {
-        withCredentials: true
+      const testResponse = await fetch(`${getApiUrl()}/health`, {
+        credentials: 'include'
       });
       
-      console.log('✅ Health check response:', testResponse.data);
-      return true;
+      if (testResponse.ok) {
+        const data = await testResponse.json();
+        console.log('✅ Health check response:', data);
+        return true;
+      } else {
+        console.error('❌ Health check failed:', testResponse.status);
+        return false;
+      }
     } catch (error) {
       console.error('❌ Health check failed:', error);
       return false;
