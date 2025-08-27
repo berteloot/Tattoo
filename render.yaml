@@ -7,61 +7,8 @@ services:
     name: tattooed-world-app
     env: node
     plan: starter
-    buildCommand: |
-      echo "=== Starting standardized build process ==="
-      pwd
-      ls -la
-      
-      echo "=== Frontend build FIRST ==="
-      npm --prefix frontend ci
-      echo "Setting VITE_API_URL for build..."
-      export VITE_API_URL="https://tattooedworld.org/api"
-      echo "VITE_API_URL set to: $VITE_API_URL"
-      echo "Running frontend build..."
-      VITE_API_URL="https://tattooedworld.org/api" npm --prefix frontend run build
-      echo "Frontend build completed. Checking results..."
-      ls -la frontend/
-      if [ -d "frontend/dist" ]; then
-        echo "✅ Frontend dist directory created successfully"
-        ls -la frontend/dist/
-        if [ -d "frontend/dist/assets" ]; then
-          echo "✅ Assets directory found"
-          ls -la frontend/dist/assets/
-          echo "📊 Assets count: $(ls frontend/dist/assets/ | wc -l)"
-        else
-          echo "❌ No assets directory found in dist"
-          exit 1
-        fi
-      else
-        echo "❌ Frontend dist directory NOT created"
-        echo "Build failed - checking for errors..."
-        exit 1
-      fi
-      
-      echo "=== Backend setup AFTER frontend build ==="
-      npm --prefix backend ci
-      npx --prefix backend prisma generate
-      npx --prefix backend prisma migrate deploy
-      node backend/scripts/deploy-migrations.js
-      echo "=== Fixing missing AdminAction table ==="
-      node backend/scripts/fix-admin-actions-table.js
-      
-      echo "=== Copying frontend build to backend/public ==="
-      rm -rf backend/public
-      mkdir -p backend/public
-      cp -R frontend/dist/* backend/public/
-      echo "✅ Frontend build copied to backend/public"
-      ls -la backend/public/
-      if [ -f "backend/public/index.html" ]; then
-        echo "✅ index.html found in backend/public"
-        echo "📊 Files in backend/public: $(ls backend/public/ | wc -l)"
-      else
-        echo "❌ index.html NOT found in backend/public"
-        exit 1
-      fi
-      
-      echo "✅ Standardized build process completed successfully!"
-    startCommand: cd backend && npm run start:prod
+    buildCommand: echo "=== Install root deps ===" && npm ci && echo "=== Install backend deps ===" && npm --prefix backend ci && echo "=== Build frontend ===" && npm --prefix frontend ci && npm --prefix frontend run build && echo "=== Copy frontend to backend/public ===" && rm -rf backend/public && mkdir -p backend/public && cp -R frontend/dist/* backend/public/ && ls -la backend/public/ && [ -f backend/public/index.html ] && echo "✅ index.html present"
+    startCommand: npm --prefix backend run start:prod
     envVars:
       - key: NODE_ENV
         value: production
