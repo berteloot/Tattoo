@@ -220,8 +220,8 @@ export const Home = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {featuredArtists.map((artist) => (
-                <div key={artist.id} className="card group border-2 border-black">
-                  <div className="card__media bg-gray-100 flex items-center justify-center">
+                <div key={artist.id} className="card group border-2 border-black p-6">
+                  <div className="card__media bg-gray-100 flex items-center justify-center mb-4">
                     {artist.profilePictureUrl ? (
                       <img
                         src={artist.profilePictureUrl}
@@ -232,13 +232,13 @@ export const Home = () => {
                       <Users className="w-16 h-16 text-gray-400" />
                     )}
                   </div>
-                  <div className="card__category">
+                  <div className="card__category mb-3">
                     <span className="tag tag--blue">FEATURED</span>
                   </div>
-                  <div className="card__title">
+                  <div className="card__title mb-3">
                     {artist.user.firstName} {artist.user.lastName}
                   </div>
-                  <div className="card__meta">
+                  <div className="card__meta mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Star className="w-4 h-4 text-yellow-500 fill-current" />
                       <span>{artist.averageRating} ({artist.reviewCount} reviews)</span>
@@ -248,8 +248,8 @@ export const Home = () => {
                       {artist.city}, {artist.state}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-3">{artist.bio}</p>
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <p className="text-sm text-gray-600 line-clamp-3 mb-4">{artist.bio}</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {artist.specialties.slice(0, 3).map((specialty, index) => (
                       <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
                         {specialty.name}
@@ -258,7 +258,7 @@ export const Home = () => {
                   </div>
                   <Link 
                     to={`/artists/${artist.id}`} 
-                    className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-800"
+                    className="mt-auto inline-block text-sm font-semibold text-blue-600 hover:text-blue-800"
                   >
                     VIEW PROFILE →
                   </Link>

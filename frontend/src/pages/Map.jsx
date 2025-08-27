@@ -201,7 +201,7 @@ const Map = () => {
 
       {/* Map Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="border-2 border-black p-4">
           <StudioMap 
             searchTerm={searchTerm} 
             filterFeatured={filterFeatured} 
@@ -210,127 +210,6 @@ const Map = () => {
             cityFocusCoordinates={cityFocusCoordinates}
             onStudioClick={(studio) => setSelectedStudio(studio)}
           />
-        </div>
-        
-        {/* Search Results Info */}
-        {searchTerm && (
-          <div className="mt-6 bg-blue-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-blue-900 mb-2">🔍 Search Results</h3>
-            <p className="text-blue-800">
-              Showing studios matching "<strong>{searchTerm}</strong>"
-              {filterFeatured && " (Featured only)"}
-            </p>
-            <p className="text-sm text-blue-700 mt-1">
-              Use the filters above to narrow down your search results
-            </p>
-          </div>
-        )}
-
-        {/* Map Legend */}
-        <div className="mt-6 bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Map Legend</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-600 rounded-full"></div>
-              <span className="text-sm text-gray-600">Your Location</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-600 rounded-full border-2 border-white"></div>
-              <span className="text-sm text-gray-600">Tattoo Studios</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-600 rounded-full border-2 border-white"></div>
-              <span className="text-sm text-gray-600">Artist Locations</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-400 rounded-full border-2 border-white"></div>
-              <span className="text-sm text-gray-600">Needs Geocoding</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Tips */}
-        <div className="mt-6 bg-blue-50 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">💡 Tips</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• <strong>Search:</strong> Type studio name, city, or address to find specific studios</li>
-            <li>• <strong>Filters:</strong> Use the checkbox to show only featured studios</li>
-            <li>• <strong>Map Navigation:</strong> Click on any studio marker to see details and get directions</li>
-            <li>• <strong>Directions:</strong> Use the "Get Directions" feature to find the best route</li>
-            <li>• <strong>Studio Focus:</strong> Click the map pin on a studio page to focus on that studio</li>
-            <li>• <strong>Coordinates:</strong> Studios with coordinates are shown on the map</li>
-            <li>• <strong>Status Badges:</strong> Verified studios have green badges, featured studios have purple badges</li>
-            <li>• <strong>Clear Search:</strong> Click the X button to clear your search and see all studios</li>
-          </ul>
-        </div>
-
-        {/* Studio Info Card */}
-        <div className="bg-white border-2 border-black overflow-hidden">
-          <div className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedStudio?.name}</h3>
-                <div className="flex items-center space-x-2 text-gray-600 mb-2">
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-sm">{selectedStudio?.address}</span>
-                </div>
-                {selectedStudio?.city && (
-                  <p className="text-sm text-gray-700">{selectedStudio.city}, {selectedStudio.state}</p>
-                )}
-              </div>
-              <button
-                onClick={() => setSelectedStudio(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Contact Info */}
-            <div className="space-y-3 mb-4">
-              {selectedStudio?.phoneNumber && (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Phone className="w-4 h-4" />
-                  <span>{selectedStudio.phoneNumber}</span>
-                </div>
-              )}
-              {selectedStudio?.email && (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Mail className="w-4 h-4" />
-                  <span>{selectedStudio.email}</span>
-                </div>
-              )}
-              {selectedStudio?.website && (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <ExternalLink className="w-4 h-4" />
-                  <a
-                    href={selectedStudio.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 hover:underline"
-                  >
-                    Visit Website
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-3">
-              <Link
-                to={`/studios/${selectedStudio?.id}`}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-medium text-sm"
-              >
-                View Details
-              </Link>
-              <button
-                onClick={() => handleGetDirections(selectedStudio)}
-                className="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-              >
-                Directions
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
