@@ -349,7 +349,7 @@ export const FlashGallery = () => {
       <section className="section">
         <div className="container">
           {/* Filters and Controls */}
-          <div className="border border-gray-200 p-4 sm:p-6 mb-8 md:mb-12 rounded-lg">
+          <div className="border-2 border-black p-4 sm:p-6 mb-8 md:mb-12 rounded-lg">
             <div className="space-y-4 sm:space-y-6">
               {/* Search */}
               <div className="flex-1">
@@ -513,7 +513,7 @@ export const FlashGallery = () => {
 
           {/* Empty State */}
           {filteredAndSortedItems.length === 0 && (
-            <div className="text-center py-16">
+            <div className="border-2 border-black bg-white rounded-lg p-8 text-center">
               <div className="text-gray-400 text-8xl mb-6">🎨</div>
               <h3 className="text-2xl font-semibold text-gray-900 mb-4">No flash designs found</h3>
               <p className="text-gray-600 text-lg mb-8">
@@ -539,7 +539,7 @@ export const FlashGallery = () => {
 }
 
 const FlashCard = ({ item }) => (
-  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-100">
+  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border-2 border-black">
     {/* Image */}
     <div className="relative group">
       <img
@@ -590,11 +590,6 @@ const FlashCard = ({ item }) => (
       {/* Artist Info and Status */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-3 min-w-0 flex-1">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-sm">
-              {item.artist.user.firstName[0]}{item.artist.user.lastName[0]}
-            </span>
-          </div>
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-gray-900 truncate">
               <Link
