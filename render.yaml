@@ -12,25 +12,18 @@ services:
       pwd
       ls -la
       npm ci
-      echo "=== Backend setup ==="
-      cd backend && npm ci && npx prisma generate && npx prisma migrate deploy && node scripts/deploy-migrations.js
-      echo "=== Fixing missing AdminAction table ==="
-      node scripts/fix-admin-actions-table.js
-      echo "=== Frontend build ==="
-      cd ../frontend
+      
+      echo "=== Frontend build FIRST ==="
+      cd frontend
       pwd
       ls -la
       npm ci
       echo "Setting VITE_API_URL for build..."
       export VITE_API_URL="https://tattooedworld.org/api"
       echo "VITE_API_URL set to: $VITE_API_URL"
-      echo "Verifying environment variable is available..."
-      echo "VITE_API_URL from env: $VITE_API_URL"
-      echo "Environment variables before build:"
-      env | grep VITE
-      echo "Running npm run build with explicit env..."
+      echo "Running frontend build..."
       VITE_API_URL="https://tattooedworld.org/api" npm run build
-      echo "Build command completed. Checking results..."
+      echo "Frontend build completed. Checking results..."
       ls -la
       if [ -d "dist" ]; then
         echo "✅ Frontend dist directory created successfully"
@@ -41,17 +34,27 @@ services:
           echo "📊 Assets count: $(ls dist/assets/ | wc -l)"
         else
           echo "❌ No assets directory found in dist"
+          exit 1
         fi
       else
         echo "❌ Frontend dist directory NOT created"
         echo "Build failed - checking for errors..."
         exit 1
       fi
+      cd ..
+      
+      echo "=== Backend setup AFTER frontend build ==="
+      cd backend && npm ci && npx prisma generate && npx prisma migrate deploy && node scripts/deploy-migrations.js
+      echo "=== Fixing missing AdminAction table ==="
+      node scripts/fix-admin-actions-table.js
+      cd ..
       
       echo "🔍 Testing frontend build with verification script..."
-      cd ../backend
+      cd backend
       node scripts/test-frontend-build.js
       cd ..
+      
+      echo "✅ Build process completed successfully!"
     startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV

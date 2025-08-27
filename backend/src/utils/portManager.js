@@ -68,6 +68,26 @@ const killProcessOnPort = async (port) => {
 // Safely start server on specified port
 const startServerSafely = async (app, desiredPort) => {
   try {
+    // In production (Render), just use the assigned port - no port management needed
+    if (process.env.NODE_ENV === 'production') {
+      const port = process.env.PORT || desiredPort;
+      console.log(`🚀 Production mode: Using port ${port} from environment`);
+      
+      return new Promise((resolve, reject) => {
+        const server = app.listen(port, () => {
+          console.log(`🚀 Server started successfully on port ${port}`);
+          resolve({ server, port });
+        });
+        
+        server.on('error', (error) => {
+          reject(error);
+        });
+      });
+    }
+    
+    // Development mode: Use the existing port management logic
+    console.log(`🔧 Development mode: Managing port ${desiredPort}`);
+    
     // First, try to kill any existing processes on the port
     await killProcessOnPort(desiredPort);
     
@@ -101,7 +121,7 @@ const startServerSafely = async (app, desiredPort) => {
       });
     });
   } catch (error) {
-    console.error('❌ Failed to start server safely:', error);
+    console.error(`❌ Failed to start server: ${error.message}`);
     throw error;
   }
 };

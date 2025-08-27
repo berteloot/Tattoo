@@ -121,6 +121,15 @@ app.get('/test-frontend', (req, res) => {
   }
 });
 
+// Favicon route to prevent 404 errors
+app.get('/favicon.ico', (req, res) => {
+  // Return a simple 1x1 transparent PNG as favicon
+  const transparentPixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+  res.setHeader('Content-Type', 'image/png');
+  res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+  res.send(transparentPixel);
+});
+
 // Debug endpoint to check file system in production
 app.get('/debug-paths', (req, res) => {
   try {
