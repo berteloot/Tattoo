@@ -407,81 +407,37 @@ app.get('/', (req, res) => {
 // 404 handler for API routes only - this should come after all API routes
 app.use('/api/*', notFound);
 
-// Serve static files from the React app build directory
-// Enhanced path detection with multiple fallbacks for different environments
-const possiblePaths = [
-  path.join(__dirname, '../frontend/dist'),           // ../frontend/dist from backend/src
-  path.join(__dirname, '../../frontend/dist'),        // ../../frontend/dist from backend/src  
-  path.join(process.cwd(), 'frontend/dist'),          // frontend/dist from current working directory
-  path.join(process.cwd(), '../frontend/dist'),       // ../frontend/dist from current working directory
-  path.join(process.cwd(), '../../frontend/dist'),    // ../../frontend/dist from current working directory
-  '/opt/render/project/src/frontend/dist',            // Absolute path for Render production
-  '/opt/render/project/frontend/dist'                 // Alternative absolute path
-];
+// Serve static files from the standardized backend/public directory
+// This is guaranteed to exist after the build process copies frontend/dist/* to backend/public
+const FRONTEND_DIR = path.resolve(__dirname, "../public");
+const INDEX_HTML = path.join(FRONTEND_DIR, "index.html");
 
-console.log('🔍 Frontend build path detection:');
-console.log('  - __dirname:', __dirname);
-console.log('  - process.cwd():', process.cwd());
-console.log('  - NODE_ENV:', process.env.NODE_ENV);
-
-// Find the first valid frontend build path
-let frontendBuildPath = null;
-for (const testPath of possiblePaths) {
-  console.log(`  - Testing path: ${testPath}`);
-  if (fs.existsSync(testPath)) {
-    const indexPath = path.join(testPath, 'index.html');
-    const assetsPath = path.join(testPath, 'assets');
-    
-    if (fs.existsSync(indexPath) && fs.existsSync(assetsPath)) {
-      console.log(`✅ Found valid frontend build at: ${testPath}`);
-      frontendBuildPath = testPath;
-      break;
-    } else {
-      console.log(`⚠️ Path exists but incomplete: ${testPath}`);
-      console.log(`  - index.html exists: ${fs.existsSync(indexPath)}`);
-      console.log(`  - assets directory exists: ${fs.existsSync(assetsPath)}`);
-    }
-  } else {
-    console.log(`  - Path not found: ${testPath}`);
+// Fail-fast in production if the build is missing
+if (process.env.NODE_ENV === "production") {
+  if (!fs.existsSync(FRONTEND_DIR)) {
+    console.error("❌ Frontend directory not found at:", FRONTEND_DIR);
+    process.exit(1);
   }
-}
-
-// Fallback to default path if none found
-if (!frontendBuildPath) {
-  frontendBuildPath = path.join(__dirname, '../frontend/dist');
-  console.log(`⚠️ No valid path found, using fallback: ${frontendBuildPath}`);
+  if (!fs.existsSync(INDEX_HTML)) {
+    console.error("❌ index.html not found at:", INDEX_HTML);
+    process.exit(1);
+  }
+  console.log("✅ Frontend build found at:", FRONTEND_DIR);
+  console.log("✅ index.html found at:", INDEX_HTML);
 }
 
 // Enhanced check for frontend build with better logging
-const frontendExists = fs.existsSync(frontendBuildPath);
-const indexHtmlPath = path.join(frontendBuildPath, 'index.html');
+const frontendExists = fs.existsSync(FRONTEND_DIR);
+const frontendBuildPath = FRONTEND_DIR;
+const indexHtmlPath = INDEX_HTML;
 
 // Function to get fresh frontend build info (no caching)
 function getFreshFrontendBuildInfo() {
-  // Use the same path detection logic as above
-  for (const testPath of possiblePaths) {
-    if (fs.existsSync(testPath)) {
-      const indexPath = path.join(testPath, 'index.html');
-      const assetsPath = path.join(testPath, 'assets');
-      
-      if (fs.existsSync(indexPath) && fs.existsSync(assetsPath)) {
-        return {
-          path: testPath,
-          indexPath: indexPath,
-          exists: true,
-          indexExists: true,
-          timestamp: new Date().toISOString()
-        };
-      }
-    }
-  }
-  
-  // Fallback to the current frontendBuildPath
   return {
-    path: frontendBuildPath,
-    indexPath: path.join(frontendBuildPath, 'index.html'),
-    exists: fs.existsSync(frontendBuildPath),
-    indexExists: fs.existsSync(path.join(frontendBuildPath, 'index.html')),
+    path: FRONTEND_DIR,
+    indexPath: INDEX_HTML,
+    exists: fs.existsSync(FRONTEND_DIR),
+    indexExists: fs.existsSync(INDEX_HTML),
     timestamp: new Date().toISOString()
   };
 }
@@ -547,152 +503,21 @@ if (frontendExists) {
 }
 
 if (!frontendExists) {
-  console.warn('⚠️ Frontend build not found at:', frontendBuildPath);
-  console.warn('⚠️ This might be a development environment or build issue');
-  
-  // Serve a simple fallback page for non-API routes, but NOT for asset requests
-  app.get('*', (req, res) => {
-    // Don't serve HTML for asset requests - return 404 instead
-    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
-      return res.status(404).json({ 
-        error: 'Asset not found', 
-        message: 'Frontend build is not available',
-        path: req.path 
-      });
-    }
-    
-    // Only serve HTML for actual page requests
-    res.status(200).send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Tattooed World - Backend Only</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
-            .container { max-width: 600px; margin: 0 auto; }
-            .api-link { display: inline-block; margin: 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>🎨 Tattooed World</h1>
-            <p>Backend API is running successfully!</p>
-            <p>Frontend build files are not available. This might be a deployment issue.</p>
-            <br>
-            <a href="/health" class="api-link">Health Check</a>
-            <a href="/api" class="api-link">API Info</a>
-            <a href="/api/artists" class="api-link">Artists API</a>
-            <br><br>
-            <p><small>If you're seeing this, the frontend build process may have failed during deployment.</small></p>
-          </div>
-        </body>
-      </html>
-    `);
-  });
+  console.error('❌ Frontend build not found at:', frontendBuildPath);
+  console.error('❌ This should not happen in production - build process failed');
+  process.exit(1);
 } else {
   console.log('✅ Frontend build found at:', frontendBuildPath);
   
-  // Enhanced static file serving with proper MIME types and priority
-  // This MUST come before the catch-all route to ensure assets are served correctly
-  app.use(express.static(frontendBuildPath, {
+  // Serve static files (CSS, JS, images, etc.)
+  app.use(express.static(FRONTEND_DIR, {
+    index: "index.html",
     maxAge: '1y', // Cache static assets for 1 year
     etag: true,
-    lastModified: true,
-    setHeaders: (res, filePath) => {
-      // Ensure proper MIME types for critical assets
-      const ext = path.extname(filePath).toLowerCase();
-      switch (ext) {
-        case '.js':
-          res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-          break;
-        case '.css':
-          res.setHeader('Content-Type', 'text/css; charset=utf-8');
-          break;
-        case '.html':
-          res.setHeader('Content-Type', 'text/html; charset=utf-8');
-          break;
-        case '.json':
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          break;
-        case '.png':
-          res.setHeader('Content-Type', 'image/png');
-          break;
-        case '.jpg':
-        case '.jpeg':
-          res.setHeader('Content-Type', 'image/jpeg');
-          break;
-        case '.svg':
-          res.setHeader('Content-Type', 'image/svg+xml');
-          break;
-        case '.ico':
-          res.setHeader('Content-Type', 'image/x-icon');
-          break;
-        case '.woff':
-          res.setHeader('Content-Type', 'font/woff');
-          break;
-        case '.woff2':
-          res.setHeader('Content-Type', 'font/woff2');
-          break;
-        case '.ttf':
-          res.setHeader('Content-Type', 'font/ttf');
-          break;
-        case '.eot':
-          res.setHeader('Content-Type', 'application/vnd.ms-fontobject');
-          break;
-      }
-    }
+    lastModified: true
   }));
 
-  // Debug endpoint to check asset availability (development only)
-  app.get('/debug-assets', (req, res) => {
-    // Block this endpoint in production for security
-    if (process.env.NODE_ENV === 'production') {
-      return res.status(404).json({
-        success: false,
-        error: 'Endpoint not found'
-      });
-    }
 
-    const assetsDir = path.join(frontendBuildPath, 'assets');
-    try {
-      if (fs.existsSync(assetsDir)) {
-        const assets = fs.readdirSync(assetsDir);
-        const assetDetails = assets.map(asset => {
-          const fullPath = path.join(assetsDir, asset);
-          const stats = fs.statSync(fullPath);
-          return {
-            name: asset,
-            size: stats.size,
-            path: fullPath,
-            exists: true
-          };
-        });
-        
-        res.json({
-          success: true,
-          assetsDir,
-          assets: assetDetails,
-          totalAssets: assets.length
-        });
-      } else {
-        res.json({
-          success: false,
-          error: 'Assets directory not found',
-          assetsDir,
-          frontendBuildPath,
-          currentDir: __dirname
-        });
-      }
-    } catch (error) {
-      res.json({
-        success: false,
-        error: error.message,
-        assetsDir,
-        frontendBuildPath,
-        currentDir: __dirname
-      });
-    }
-  });
 
   // Comprehensive asset debugging endpoint (development only)
   app.get('/debug-build', (req, res) => {
@@ -885,27 +710,10 @@ if (!frontendExists) {
     }
   });
 
-  // React catch-all route for SPA routing (excluding API routes)
-  app.get('*', (req, res) => {
-    // Skip API routes
-    if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ error: 'API endpoint not found' });
-    }
-    
-    // Skip root path (already handled above)
-    if (req.path === '/') {
-      return res.status(404).json({ error: 'Root path already handled' });
-    }
-    
-    // Check if index.html exists
-    if (!fs.existsSync(indexHtmlPath)) {
-      console.error('❌ index.html not found at:', indexHtmlPath);
-      return res.status(500).json({ error: 'Frontend build incomplete' });
-    }
-    
-    // Serve React app for all other non-API routes (SPA routing)
-    console.log(`🎨 Serving React app for SPA route: ${req.path}`);
-    res.sendFile(indexHtmlPath);
+  // SPA fallback (only if not /api)
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(INDEX_HTML);
   });
 }
 

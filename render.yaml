@@ -8,30 +8,26 @@ services:
     env: node
     plan: starter
     buildCommand: |
-      echo "=== Starting build process ==="
+      echo "=== Starting standardized build process ==="
       pwd
       ls -la
-      npm ci
       
       echo "=== Frontend build FIRST ==="
-      cd frontend
-      pwd
-      ls -la
-      npm ci
+      npm --prefix frontend ci
       echo "Setting VITE_API_URL for build..."
       export VITE_API_URL="https://tattooedworld.org/api"
       echo "VITE_API_URL set to: $VITE_API_URL"
       echo "Running frontend build..."
-      VITE_API_URL="https://tattooedworld.org/api" npm run build
+      VITE_API_URL="https://tattooedworld.org/api" npm --prefix frontend run build
       echo "Frontend build completed. Checking results..."
-      ls -la
-      if [ -d "dist" ]; then
+      ls -la frontend/
+      if [ -d "frontend/dist" ]; then
         echo "✅ Frontend dist directory created successfully"
-        ls -la dist/
-        if [ -d "dist/assets" ]; then
+        ls -la frontend/dist/
+        if [ -d "frontend/dist/assets" ]; then
           echo "✅ Assets directory found"
-          ls -la dist/assets/
-          echo "📊 Assets count: $(ls dist/assets/ | wc -l)"
+          ls -la frontend/dist/assets/
+          echo "📊 Assets count: $(ls frontend/dist/assets/ | wc -l)"
         else
           echo "❌ No assets directory found in dist"
           exit 1
@@ -41,20 +37,30 @@ services:
         echo "Build failed - checking for errors..."
         exit 1
       fi
-      cd ..
       
       echo "=== Backend setup AFTER frontend build ==="
-      cd backend && npm ci && npx prisma generate && npx prisma migrate deploy && node scripts/deploy-migrations.js
+      npm --prefix backend ci
+      npx --prefix backend prisma generate
+      npx --prefix backend prisma migrate deploy
+      node backend/scripts/deploy-migrations.js
       echo "=== Fixing missing AdminAction table ==="
-      node scripts/fix-admin-actions-table.js
-      cd ..
+      node backend/scripts/fix-admin-actions-table.js
       
-      echo "🔍 Testing frontend build with verification script..."
-      cd backend
-      node scripts/test-frontend-build.js
-      cd ..
+      echo "=== Copying frontend build to backend/public ==="
+      rm -rf backend/public
+      mkdir -p backend/public
+      cp -R frontend/dist/* backend/public/
+      echo "✅ Frontend build copied to backend/public"
+      ls -la backend/public/
+      if [ -f "backend/public/index.html" ]; then
+        echo "✅ index.html found in backend/public"
+        echo "📊 Files in backend/public: $(ls backend/public/ | wc -l)"
+      else
+        echo "❌ index.html NOT found in backend/public"
+        exit 1
+      fi
       
-      echo "✅ Build process completed successfully!"
+      echo "✅ Standardized build process completed successfully!"
     startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
