@@ -49,6 +49,16 @@ export const Favorites = () => {
     setFavorites(prev => prev.filter(fav => fav.artistId !== artistId))
   }
 
+  const handleRemoveFavorite = async (favoriteId) => {
+    try {
+      await favoritesAPI.remove(favoriteId)
+      setFavorites(prev => prev.filter(fav => fav.id !== favoriteId))
+    } catch (err) {
+      console.error('Error removing favorite:', err)
+      showError('Error', 'Failed to remove favorite')
+    }
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -158,11 +168,19 @@ export const Favorites = () => {
               <div key={favorite.id} className="bg-white border-2 border-black overflow-hidden hover:shadow-xl transition-shadow group">
                 {/* Image */}
                 <div className="relative aspect-square overflow-hidden">
-                  <img
-                    src={favorite.imageUrl}
-                    alt={favorite.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  {favorite.artist?.profilePictureUrl ? (
+                    <img
+                      src={favorite.artist.profilePictureUrl}
+                      alt={`${favorite.artist.user?.firstName || 'Artist'} ${favorite.artist.user?.lastName || ''}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+                      <span className="text-white font-bold text-4xl">
+                        {favorite.artist?.user?.firstName?.[0] || 'A'}{favorite.artist?.user?.lastName?.[0] || 'A'}
+                      </span>
+                    </div>
+                  )}
                   
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
