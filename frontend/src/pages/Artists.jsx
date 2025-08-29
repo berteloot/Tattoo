@@ -301,24 +301,42 @@ export const Artists = () => {
                   {/* Artist Image */}
                   <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-48 h-48 flex-shrink-0' : 'aspect-square'}`}>
                     {(() => {
-                      const imageSrc = getSafeImageSource(artist.profilePictureUrl, artist.user);
+                      const imageSrc = getArtistImageSource(artist.profilePictureUrl, artist.user);
                       console.log('Artist card image debug:', {
                         artistId: artist.id,
                         artistName: `${artist.user.firstName} ${artist.user.lastName}`,
                         profilePictureUrl: artist.profilePictureUrl,
-                        finalImageSrc: imageSrc
+                        finalImageSrc: imageSrc,
+                        hasProfilePicture: !!artist.profilePictureUrl
                       });
                       return (
-                        <img
-                          src={imageSrc}
-                          alt={`${artist.user.firstName} ${artist.user.lastName}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            console.log('Image failed to load for artist:', artist.user.firstName, artist.user.lastName);
-                            // Fallback to a different placeholder if needed
-                            e.target.src = 'https://via.placeholder.com/400x400/3B82F6/FFFFFF?text=Artist';
-                          }}
-                        />
+                        <>
+                          <img
+                            src={imageSrc}
+                            alt={`${artist.user.firstName} ${artist.user.lastName}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              console.log('Image failed to load for artist:', artist.user.firstName, artist.user.lastName);
+                              // Try multiple fallback placeholders
+                              const fallbacks = [
+                                'https://via.placeholder.com/400x400/3B82F6/FFFFFF?text=Artist',
+                                'https://via.placeholder.com/400x400/6366F1/FFFFFF?text=Profile',
+                                'https://via.placeholder.com/400x400/8B5CF6/FFFFFF?text=Tattoo'
+                              ];
+                              const currentSrc = e.target.src;
+                              const currentIndex = fallbacks.indexOf(currentSrc);
+                              const nextIndex = (currentIndex + 1) % fallbacks.length;
+                              e.target.src = fallbacks[nextIndex];
+                            }}
+                          />
+                          {/* Fallback initials display - always ready */}
+                          <div 
+                            className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-4xl opacity-0 hover:opacity-100 transition-opacity duration-300"
+                            style={{ display: artist.profilePictureUrl ? 'none' : 'flex' }}
+                          >
+                            {artist.user.firstName?.[0]}{artist.user.lastName?.[0]}
+                          </div>
+                        </>
                       );
                     })()}
                     
