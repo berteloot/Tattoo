@@ -1560,6 +1560,34 @@ export const ArtistDashboard = () => {
                 </div>
               </div>
 
+              {/* Services */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Services</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {(services || []).map((service) => (
+                    <label key={service.id} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.selectedServices.includes(service.id)}
+                        onChange={() => handleServiceChange(service.id)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">{service.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Service Pricing Management */}
+              {profile?.id && (
+                <div className="mb-6">
+                  <ArtistServicesManager 
+                    artistId={profile.id} 
+                    onServicesUpdated={fetchArtistServices}
+                  />
+                </div>
+              )}
+
               {/* Specialties */}
               <div className="mb-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Specialties</h3>
@@ -1604,33 +1632,7 @@ export const ArtistDashboard = () => {
                 </div>
               </div>
 
-              {/* Services */}
-              <div className="mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Services</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {(services || []).map((service) => (
-                    <label key={service.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formData.selectedServices.includes(service.id)}
-                        onChange={() => handleServiceChange(service.id)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">{service.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
 
-              {/* Service Pricing Management */}
-              {profile?.id && (
-                <div className="mb-6">
-                  <ArtistServicesManager 
-                    artistId={profile.id} 
-                    onServicesUpdated={fetchArtistServices}
-                  />
-                </div>
-              )}
 
               {/* Save Profile Button */}
               <div className="flex justify-end pt-4 border-t border-gray-200">
