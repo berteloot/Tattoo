@@ -231,6 +231,24 @@ export const ArtistDashboard = () => {
     return artistService?.customPrice ?? null;
   };
 
+  // Calculate profile completion percentage
+  const calculateProfileCompletion = () => {
+    if (!profile?.id) return 0;
+    
+    const requiredFields = [
+      'bio', 'studioName', 'address', 'city', 'state', 
+      'hourlyRate', 'minPrice', 'maxPrice'
+    ];
+    
+    const completedFields = requiredFields.filter(field => {
+      const value = profile[field];
+      return value && value.toString().trim() !== '';
+    });
+    
+    const completionPercentage = Math.round((completedFields.length / requiredFields.length) * 100);
+    return Math.min(completionPercentage, 100);
+  };
+
   const getServiceDuration = (serviceId) => {
     if (!serviceId || !Array.isArray(artistServices)) return null;
     const artistService = artistServices.find(as => as?.serviceId === serviceId);
@@ -744,40 +762,109 @@ export const ArtistDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header with Progress Indicator */}
         <div className="mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Artist Dashboard</h1>
-            <p className="text-gray-600">
-              {profile.id ? 'Edit your artist profile' : 'Create your artist profile'}
-            </p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Artist Dashboard</h1>
+              <p className="text-gray-600">
+                {profile.id ? 'Edit your artist profile' : 'Create your artist profile'}
+              </p>
+            </div>
+            
+            {/* Profile Completion Progress */}
+            {profile?.id && (
+              <div className="text-right">
+                <div className="text-sm text-gray-600 mb-1">Profile Completion</div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${calculateProfileCompletion()}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">
+                    {calculateProfileCompletion()}%
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
+          
+          {/* Quick Stats Cards */}
+          {profile?.id && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                <div className="flex items-center">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Eye className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-500">Profile Views</p>
+                    <p className="text-2xl font-bold text-gray-900">{profile.profileViews || 0}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                <div className="flex items-center">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Star className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-500">Total Reviews</p>
+                    <p className="text-2xl font-bold text-gray-900">{reviews?.length || 0}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                <div className="flex items-center">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Image className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-500">Flash Items</p>
+                    <p className="text-2xl font-bold text-gray-900">{flash?.length || 0}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-                 {/* Flash Gallery - Moved to top for easy access */}
-         <div className="mb-6">
-           <div className="bg-white rounded-lg shadow p-6">
-             <div className="flex items-center justify-between mb-4">
-               <h2 className="text-xl font-semibold text-gray-900">FLASH GALLERY</h2>
+                 {/* Flash Gallery - Enhanced Design */}
+         <div className="mb-8">
+           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+             <div className="flex items-center justify-between mb-6">
+               <div className="flex items-center space-x-3">
+                 <div className="p-2 bg-green-100 rounded-lg">
+                   <Image className="h-6 w-6 text-green-600" />
+                 </div>
+                 <div>
+                   <h2 className="text-xl font-semibold text-gray-900">Flash Gallery</h2>
+                   <p className="text-sm text-gray-500">Manage your flash designs and portfolio</p>
+                 </div>
+               </div>
                <div className="flex items-center space-x-3">
                  {/* Upload Mode Toggle */}
-                 <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                 <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
                    <button
                      onClick={() => setFlashUploadMode('single')}
-                     className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                     className={`px-3 py-2 text-sm rounded-md transition-all duration-200 font-medium ${
                        flashUploadMode === 'single'
-                         ? 'bg-white text-gray-900 shadow-sm'
-                         : 'text-gray-600 hover:text-gray-900'
+                         ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
+                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                        }`}
                    >
                      Single
                    </button>
                    <button
                      onClick={() => setFlashUploadMode('batch')}
-                     className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                     className={`px-3 py-2 text-sm rounded-md transition-all duration-200 font-medium ${
                        flashUploadMode === 'batch'
-                         ? 'bg-white text-gray-900 shadow-sm'
-                         : 'text-gray-600 hover:text-gray-900'
+                         ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
+                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                        }`}
                    >
                      Batch
@@ -786,7 +873,7 @@ export const ArtistDashboard = () => {
                  
                  <button 
                    onClick={() => setShowFlashForm(true)}
-                   className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                   className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                  >
                    {flashUploadMode === 'batch' ? (
                      <Upload className="h-4 w-4 mr-2" />
@@ -799,34 +886,50 @@ export const ArtistDashboard = () => {
              </div>
              
              {Array.isArray(flash) && flash.length > 0 ? (
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                  {flash.map((item) => {
                    if (!item?.id) return null; // Skip invalid items
                    
                    return (
-                     <div key={item.id} className="border border-gray-200 rounded-lg p-4">
-                       <img 
-                         src={item.imageUrl} 
-                         alt={item.title || 'Flash Design'}
-                         className="w-full h-32 object-cover rounded-lg mb-3"
-                       />
-                       <h3 className="font-medium text-gray-900 mb-1">{item.title || 'Untitled'}</h3>
-                       <p className="text-sm text-gray-600 mb-2">{item.description || 'No description'}</p>
-                       <div className="flex items-center justify-between">
-                         <span className="text-lg font-bold text-green-600">${item.basePrice || 'N/A'}</span>
-                         <div className="flex space-x-2">
+                     <div key={item.id} className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200 hover:border-gray-300">
+                       <div className="relative">
+                         <img 
+                           src={item.imageUrl} 
+                           alt={item.title || 'Flash Design'}
+                           className="w-full h-48 object-cover transition-transform duration-200 group-hover:scale-105"
+                         />
+                         <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                            <button 
                              onClick={() => handleEditFlash(item)}
-                             className="text-blue-600 hover:text-blue-800"
+                             className="p-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition-colors"
+                             title="Edit Flash"
                            >
-                             <Edit3 className="h-4 w-4" />
+                             <Edit3 className="h-4 w-4 text-blue-600" />
                            </button>
                            <button 
                              onClick={() => handleDeleteFlash(item.id)}
-                             className="text-red-600 hover:text-red-800"
+                             className="p-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition-colors"
+                             title="Delete Flash"
                            >
-                             <Trash2 className="h-4 w-4" />
+                             <Trash2 className="h-4 w-4 text-red-600" />
                            </button>
+                         </div>
+                       </div>
+                       <div className="p-4">
+                         <h3 className="font-semibold text-gray-900 mb-2 text-lg">{item.title || 'Untitled'}</h3>
+                         <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description || 'No description'}</p>
+                         <div className="flex items-center justify-between">
+                           <div className="flex items-center space-x-2">
+                             <span className="text-2xl font-bold text-green-600">${item.basePrice || 'N/A'}</span>
+                             {item.complexity && (
+                               <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
+                                 {item.complexity}
+                               </span>
+                             )}
+                           </div>
+                           <div className="text-sm text-gray-500">
+                             {item.timeEstimate ? `${item.timeEstimate} min` : 'No time estimate'}
+                           </div>
                          </div>
                        </div>
                      </div>
@@ -834,10 +937,21 @@ export const ArtistDashboard = () => {
                  })}
                </div>
              ) : (
-               <div className="text-center py-8">
-                 <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                 <p className="text-gray-500">No flash items yet</p>
-                 <p className="text-sm text-gray-400">Add some flash designs to showcase your work</p>
+               <div className="text-center py-12">
+                 <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                   <Image className="h-12 w-12 text-gray-400" />
+                 </div>
+                 <h3 className="text-lg font-medium text-gray-900 mb-2">No flash designs yet</h3>
+                 <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                   Start building your portfolio by adding flash designs. Showcase your style and attract more clients.
+                 </p>
+                 <button
+                   onClick={() => setShowFlashForm(true)}
+                   className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm hover:shadow-md"
+                 >
+                   <Plus className="h-5 w-5 mr-2" />
+                   Add Your First Flash Design
+                 </button>
                </div>
              )}
            </div>
@@ -1316,13 +1430,21 @@ export const ArtistDashboard = () => {
           {/* Main Content */}
           <div className="space-y-6">
             {/* Profile Form */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Artist Profile</h2>
-                <div className="flex space-x-2">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-blue-100 rounded-xl">
+                    <User className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Artist Profile</h2>
+                    <p className="text-gray-500">Complete your profile to attract more clients</p>
+                  </div>
+                </div>
+                <div className="flex space-x-3">
                   <button
                     onClick={() => navigate('/dashboard/gallery')}
-                    className="flex items-center px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
+                    className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                   >
                     <Image className="h-4 w-4 mr-2" />
                     Tattoo Gallery
@@ -1330,7 +1452,7 @@ export const ArtistDashboard = () => {
                   
                   <button
                     onClick={() => navigate('/flash')}
-                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                    className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Flash Gallery
@@ -1634,8 +1756,16 @@ export const ArtistDashboard = () => {
 
 
 
-              {/* Save Profile Button */}
-              <div className="flex justify-end pt-4 border-t border-gray-200">
+              {/* Save Profile Button with Status */}
+              <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+                <div className="flex items-center space-x-3">
+                  {profile?.id && (
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Profile saved</span>
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={async () => {
@@ -2386,6 +2516,35 @@ export const ArtistDashboard = () => {
 
 
 
+        </div>
+      </div>
+      
+      {/* Floating Quick Actions Bar */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <div className="bg-white rounded-full shadow-lg border border-gray-200 p-2">
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowFlashForm(true)}
+              className="p-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              title="Add Flash Design"
+            >
+              <Plus className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => navigate('/dashboard/gallery')}
+              className="p-3 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              title="Manage Gallery"
+            >
+              <Image className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => navigate('/artists')}
+              className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              title="Browse Artists"
+            >
+              <Users className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
