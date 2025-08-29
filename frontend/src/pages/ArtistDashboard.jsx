@@ -1288,6 +1288,30 @@ export const ArtistDashboard = () => {
            </div>
          </div>
 
+         {/* Message Panel */}
+         {profile.id ? (
+           <div className="mb-6">
+             <div className="bg-white rounded-lg shadow p-6">
+               <div className="mb-4">
+                 <h3 className="text-lg font-medium text-gray-900">Message Panel</h3>
+                 <p className="text-sm text-gray-600">
+                   Create and manage messages that appear on your artist profile and cards
+                 </p>
+               </div>
+               <MessageManagement />
+             </div>
+           </div>
+         ) : (
+           <div className="mb-6">
+             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+               <p className="mb-4">Create your artist profile first to manage messages.</p>
+               <p className="text-sm text-gray-500">
+                 You need ARTIST or ARTIST_ADMIN role to manage messages.
+               </p>
+             </div>
+           </div>
+         )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -1693,25 +1717,7 @@ export const ArtistDashboard = () => {
 
 
 
-            {/* Message Management */}
-            {profile.id ? (
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Message Panel</h3>
-                  <p className="text-sm text-gray-600">
-                    Create and manage messages that appear on your artist profile and cards
-                  </p>
-                </div>
-                <MessageManagement />
-              </div>
-            ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <p className="mb-4">Create your artist profile first to manage messages.</p>
-                <p className="text-sm text-gray-500">
-                  You need ARTIST or ARTIST_ADMIN role to manage messages.
-                </p>
-              </div>
-            )}
+
 
 
 
