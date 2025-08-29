@@ -97,7 +97,7 @@ const BatchFlashUpload = ({
     }
 
     // Add files to upload queue
-    const newQueue = validFiles.map(file => ({
+    const newQueue = validFiles.map((file, index) => ({
       id: `file-${Date.now()}-${index}`,
       file,
       status: 'pending', // pending, uploading, success, error
