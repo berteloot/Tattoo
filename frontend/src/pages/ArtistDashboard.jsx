@@ -754,94 +754,539 @@ export const ArtistDashboard = () => {
           </div>
         </div>
 
-        {/* Flash Gallery - Moved to top for easy access */}
-        <div className="mb-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">FLASH GALLERY</h2>
-              <div className="flex items-center space-x-3">
-                {/* Upload Mode Toggle */}
-                <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
-                  <button
-                    onClick={() => setFlashUploadMode('single')}
-                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                      flashUploadMode === 'single'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Single
-                  </button>
-                  <button
-                    onClick={() => setFlashUploadMode('batch')}
-                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                      flashUploadMode === 'batch'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Batch
-                  </button>
-                </div>
-                
-                <button 
-                  onClick={() => setShowFlashForm(true)}
-                  className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
-                >
-                  {flashUploadMode === 'batch' ? (
-                    <Upload className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Plus className="h-4 w-4 mr-2" />
-                  )}
-                  {flashUploadMode === 'batch' ? 'Batch Upload' : '+ Add Flash'}
-                </button>
-              </div>
-            </div>
-            
-            {Array.isArray(flash) && flash.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {flash.map((item) => {
-                  if (!item?.id) return null; // Skip invalid items
-                  
-                  return (
-                    <div key={item.id} className="border border-gray-200 rounded-lg p-4">
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.title || 'Flash Design'}
-                        className="w-full h-32 object-cover rounded-lg mb-3"
-                      />
-                      <h3 className="font-medium text-gray-900 mb-1">{item.title || 'Untitled'}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{item.description || 'No description'}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-green-600">${item.basePrice || 'N/A'}</span>
-                        <div className="flex space-x-2">
-                          <button 
-                            onClick={() => handleEditFlash(item)}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteFlash(item.id)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No flash items yet</p>
-                <p className="text-sm text-gray-400">Add some flash designs to showcase your work</p>
-              </div>
-            )}
-          </div>
-        </div>
+                 {/* Flash Gallery - Moved to top for easy access */}
+         <div className="mb-6">
+           <div className="bg-white rounded-lg shadow p-6">
+             <div className="flex items-center justify-between mb-4">
+               <h2 className="text-xl font-semibold text-gray-900">FLASH GALLERY</h2>
+               <div className="flex items-center space-x-3">
+                 {/* Upload Mode Toggle */}
+                 <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                   <button
+                     onClick={() => setFlashUploadMode('single')}
+                     className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                       flashUploadMode === 'single'
+                         ? 'bg-white text-gray-900 shadow-sm'
+                         : 'text-gray-600 hover:text-gray-900'
+                       }`}
+                   >
+                     Single
+                   </button>
+                   <button
+                     onClick={() => setFlashUploadMode('batch')}
+                     className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                       flashUploadMode === 'batch'
+                         ? 'bg-white text-gray-900 shadow-sm'
+                         : 'text-gray-600 hover:text-gray-900'
+                       }`}
+                   >
+                     Batch
+                   </button>
+                 </div>
+                 
+                 <button 
+                   onClick={() => setShowFlashForm(true)}
+                   className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                 >
+                   {flashUploadMode === 'batch' ? (
+                     <Upload className="h-4 w-4 mr-2" />
+                   ) : (
+                     <Plus className="h-4 w-4 mr-2" />
+                   )}
+                   {flashUploadMode === 'batch' ? 'Batch Upload' : '+ Add Flash'}
+                 </button>
+               </div>
+             </div>
+             
+             {Array.isArray(flash) && flash.length > 0 ? (
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 {flash.map((item) => {
+                   if (!item?.id) return null; // Skip invalid items
+                   
+                   return (
+                     <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                       <img 
+                         src={item.imageUrl} 
+                         alt={item.title || 'Flash Design'}
+                         className="w-full h-32 object-cover rounded-lg mb-3"
+                       />
+                       <h3 className="font-medium text-gray-900 mb-1">{item.title || 'Untitled'}</h3>
+                       <p className="text-sm text-gray-600 mb-2">{item.description || 'No description'}</p>
+                       <div className="flex items-center justify-between">
+                         <span className="text-lg font-bold text-green-600">${item.basePrice || 'N/A'}</span>
+                         <div className="flex space-x-2">
+                           <button 
+                             onClick={() => handleEditFlash(item)}
+                             className="text-blue-600 hover:text-blue-800"
+                           >
+                             <Edit3 className="h-4 w-4" />
+                           </button>
+                           <button 
+                             onClick={() => handleDeleteFlash(item.id)}
+                             className="text-red-600 hover:text-red-800"
+                           >
+                             <Trash2 className="h-4 w-4" />
+                           </button>
+                         </div>
+                       </div>
+                     </div>
+                   );
+                 })}
+               </div>
+             ) : (
+               <div className="text-center py-8">
+                 <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                 <p className="text-gray-500">No flash items yet</p>
+                 <p className="text-sm text-gray-400">Add some flash designs to showcase your work</p>
+               </div>
+             )}
+           </div>
+         </div>
+
+         {/* Reviews Management */}
+         {profile.id && (
+           <div className="mb-6">
+             <div className="bg-white rounded-lg shadow p-6">
+               <div className="flex items-center justify-between mb-4">
+                 <h2 className="text-xl font-semibold text-gray-900">Reviews Management</h2>
+                 <div className="flex items-center space-x-2">
+                   <span className="text-sm text-gray-600">
+                     {allReviewsLoading ? 'Loading...' : `${allReviewsCount} total reviews`}
+                   </span>
+                   {allReviewsCount > 0 && (
+                     <div className="flex items-center space-x-2">
+                       <div className="flex items-center space-x-1">
+                         {[...Array(5)].map((_, i) => (
+                           <Star 
+                             key={i} 
+                             className={`h-4 w-4 ${
+                               i < (allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / Math.max(allReviews.length, 1))
+                                 ? 'text-yellow-400 fill-current'
+                                 : 'text-gray-300'
+                             }`}
+                           />
+                         ))}
+                       </div>
+                       <span className="text-sm font-medium text-gray-700">
+                         {allReviewsCount > 0 
+                           ? (allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviews.length).toFixed(1)
+                           : '0.0'
+                         }
+                       </span>
+                     </div>
+                   )}
+                 </div>
+               </div>
+               
+               {!allReviewsLoading && allReviewsCount === 0 ? (
+                 <div className="text-gray-500 text-center py-8">
+                   <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                   <p>No reviews yet</p>
+                 </div>
+               ) : (
+                 <div className="overflow-x-auto">
+                   <table className="min-w-full divide-y divide-gray-200">
+                     <thead className="bg-gray-50">
+                       <tr>
+                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                           Client
+                         </th>
+                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                           Rating
+                         </th>
+                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                           Review
+                         </th>
+                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                           Date
+                         </th>
+                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                           Status
+                         </th>
+                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                           Actions
+                         </th>
+                       </tr>
+                     </thead>
+                     <tbody className="bg-white divide-y divide-gray-200">
+                       {allReviews.map((review) => {
+                         if (!review?.id) return null;
+                         
+                         return (
+                           <tr key={review.id} className="hover:bg-gray-50 transition-colors">
+                             {/* Client Column */}
+                             <td className="px-6 py-4 whitespace-nowrap">
+                               <div className="flex items-center space-x-3">
+                                 {review.author?.avatar ? (
+                                   <img
+                                     src={review.author.avatar}
+                                     alt={`${review.author.firstName} ${review.author.lastName}`}
+                                     className="w-10 h-10 rounded-full object-cover"
+                                   />
+                                 ) : (
+                                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
+                                     <span className="text-white font-bold text-sm">
+                                       {review.author?.firstName?.[0] || 'C'}{review.author?.lastName?.[0] || 'L'}
+                                     </span>
+                                   </div>
+                                 )}
+                                 <div>
+                                   <div className="text-sm font-medium text-gray-900">
+                                     {review.author?.firstName} {review.author?.lastName}
+                                   </div>
+                                   <div className="text-sm text-gray-500">
+                                     {review.author?.email || 'No email'}
+                                   </div>
+                                 </div>
+                               </div>
+                             </td>
+                             
+                             {/* Rating Column */}
+                             <td className="px-6 py-4 whitespace-nowrap">
+                               <div className="flex items-center space-x-1">
+                                 {[...Array(5)].map((_, i) => (
+                                   <Star 
+                                     key={i} 
+                                     className={`h-4 w-4 ${
+                                       i < (review.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                     }`}
+                                   />
+                                 ))}
+                                 <span className="ml-2 text-sm font-medium text-gray-900">
+                                   {review.rating}/5
+                                 </span>
+                               </div>
+                             </td>
+                             
+                             {/* Review Column */}
+                             <td className="px-6 py-4">
+                               <div className="max-w-xs">
+                                 <p className="text-sm text-gray-900 line-clamp-2">
+                                   {review.comment || 'No comment provided'}
+                                 </p>
+                                 {review.imageUrl && (
+                                   <div className="mt-2">
+                                     <img
+                                       src={review.imageUrl}
+                                       alt="Review image"
+                                       className="w-16 h-16 object-cover rounded border border-gray-200"
+                                     />
+                                   </div>
+                                 )}
+                               </div>
+                             </td>
+                             
+                             {/* Date Column */}
+                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                               <div>
+                                 <div>Posted: {new Date(review.createdAt).toLocaleDateString()}</div>
+                                 {review.updatedAt && review.updatedAt !== review.createdAt && (
+                                   <div className="text-xs text-gray-400">
+                                     Updated: {new Date(review.updatedAt).toLocaleDateString()}
+                                   </div>
+                                 )}
+                               </div>
+                             </td>
+                             
+                             {/* Status Column */}
+                             <td className="px-6 py-4 whitespace-nowrap">
+                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                 review.isHidden 
+                                   ? 'bg-red-100 text-red-800' 
+                                   : 'bg-green-100 text-green-800'
+                               }`}>
+                                 {review.isHidden ? 'Hidden' : 'Visible'}
+                               </span>
+                             </td>
+                             
+                             {/* Actions Column */}
+                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                               <div className="flex items-center space-x-2">
+                                 <button
+                                   onClick={() => {
+                                     setSelectedReview(review);
+                                     setShowReviewModal(true);
+                                   }}
+                                   className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-md transition-colors"
+                                   title="View Details"
+                                 >
+                                   <Eye className="h-4 w-4" />
+                                 </button>
+                                 <button
+                                   onClick={() => navigate(`/artists/${profile.id}#reviews`)}
+                                   className="text-green-600 hover:text-green-800 p-2 hover:bg-green-50 rounded-md transition-colors"
+                                   title="View on Profile"
+                                 >
+                                   <Globe className="h-4 w-4" />
+                                 </button>
+                               </div>
+                             </td>
+                           </tr>
+                         );
+                       })}
+                     </tbody>
+                   </table>
+                 </div>
+               )}
+             </div>
+           </div>
+         )}
+
+         {/* Favorites Management */}
+         {profile.id && (
+           <div className="mb-6">
+             <div className="bg-white rounded-lg shadow p-6">
+               <div className="flex items-center justify-between mb-4">
+                 <h2 className="text-xl font-semibold text-gray-900">Favorites Management</h2>
+                 <div className="flex items-center space-x-2">
+                   <span className="text-sm text-gray-600">
+                     {favoriteClients.length} client{favoriteClients.length !== 1 ? 's' : ''} favorited you
+                   </span>
+                   {favoriteClients.length > 0 && (
+                     <button
+                       onClick={() => {
+                         setEmailFormData(prev => ({ ...prev, sendToAll: false }));
+                         setSelectedClients([]);
+                         setShowEmailModal(true);
+                       }}
+                       className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                     >
+                       <Mail className="h-4 w-4 mr-2" />
+                       Email Clients
+                     </button>
+                   )}
+                 </div>
+               </div>
+               
+               {favoriteClients.length > 0 ? (
+                 <div className="space-y-4">
+                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                     <div className="flex items-center space-x-3">
+                       <input
+                         type="checkbox"
+                         checked={selectedClients.length === favoriteClients.length}
+                         onChange={handleSelectAllClients}
+                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                       />
+                       <span className="text-sm font-medium text-gray-700">
+                         Select All ({selectedClients.length}/{favoriteClients.length})
+                       </span>
+                     </div>
+                     <button
+                       onClick={() => {
+                         setEmailFormData(prev => ({ ...prev, sendToAll: true }));
+                         setSelectedClients([]);
+                         setShowEmailModal(true);
+                       }}
+                       className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                     >
+                       Email All
+                     </button>
+                   </div>
+                   
+                   {/* Favorites Table */}
+                   <div className="overflow-x-auto">
+                     <table className="min-w-full bg-white border border-gray-200">
+                       <thead className="bg-gray-50">
+                         <tr>
+                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                             <input
+                               type="checkbox"
+                               checked={selectedClients.length === favoriteClients.length}
+                               onChange={handleSelectAllClients}
+                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                             />
+                           </th>
+                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                             CLIENT
+                           </th>
+                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                             EMAIL
+                           </th>
+                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                             FAVORITED
+                           </th>
+                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                             MEMBER SINCE
+                           </th>
+                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                             ACTIVITY
+                           </th>
+                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                             ACTIONS
+                           </th>
+                         </tr>
+                       </thead>
+                       <tbody className="bg-white divide-y divide-gray-200">
+                         {favoriteClients.map((favorite) => {
+                           const client = favorite.client;
+                           if (!client?.id) return null;
+                           
+                           return (
+                             <tr key={favorite.id} className="hover:bg-gray-50">
+                               <td className="px-4 py-4 whitespace-nowrap">
+                                 <input
+                                   type="checkbox"
+                                   checked={selectedClients.includes(client.id)}
+                                   onChange={() => handleClientSelection(client.id)}
+                                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                 />
+                               </td>
+                               <td className="px-4 py-4 whitespace-nowrap">
+                                 <div className="flex items-center">
+                                   {client.avatar ? (
+                                     <img
+                                       src={client.avatar}
+                                       alt={`${client.firstName} ${client.lastName}`}
+                                       className="w-10 h-10 rounded-full object-cover mr-3"
+                                     />
+                                   ) : (
+                                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center mr-3">
+                                       <span className="text-white font-bold text-sm">
+                                         {client.firstName?.[0] || 'C'}{client.lastName?.[0] || 'L'}
+                                       </span>
+                                     </div>
+                                   )}
+                                   <div>
+                                     <div className="text-sm font-medium text-gray-900">
+                                       {client.firstName} {client.lastName}
+                                     </div>
+                                   </div>
+                                 </div>
+                               </td>
+                               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                 {client.email}
+                               </td>
+                               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                 {new Date(favorite.favoritedAt).toLocaleDateString()}
+                               </td>
+                               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                 {new Date(client.createdAt).toLocaleDateString()}
+                               </td>
+                               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                 <div className="flex items-center gap-3">
+                                   <span className="flex items-center gap-1">
+                                     <Star className="h-3 w-3 text-yellow-400" />
+                                     {client.averageRating || 0}
+                                   </span>
+                                   <span className="flex items-center gap-1">
+                                     <MessageSquare className="h-3 w-3 text-blue-400" />
+                                     {client.reviewCount || 0}
+                                   </span>
+                                 </div>
+                               </td>
+                               <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                                 <button
+                                   onClick={() => {
+                                     setEmailFormData(prev => ({
+                                       ...prev,
+                                       clientIds: [client.id],
+                                       sendToAll: false
+                                     }));
+                                     setSelectedClients([client.id]);
+                                     setShowEmailModal(true);
+                                   }}
+                                   className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200 transition-colors flex items-center gap-1"
+                                 >
+                                   <Mail className="h-3 w-3" />
+                                   Email
+                                 </button>
+                               </td>
+                             </tr>
+                           );
+                         })}
+                       </tbody>
+                     </table>
+                   </div>
+                 </div>
+               ) : (
+                 <div className="text-center py-8">
+                   <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                   <p className="text-gray-500">No clients have favorited you yet</p>
+                   <p className="text-sm text-gray-400">Keep building your portfolio to attract more clients</p>
+                 </div>
+               )}
+             </div>
+           </div>
+         )}
+
+         {/* Tattoo Gallery */}
+         <div className="mb-6">
+           <div className="bg-white rounded-lg shadow p-6">
+             <div className="flex items-center justify-between mb-4">
+               <h2 className="text-xl font-semibold text-gray-900">Tattoo Gallery</h2>
+               <button 
+                 onClick={() => navigate('/dashboard/gallery')}
+                 className="flex items-center px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
+               >
+                 <Image className="h-4 w-4 mr-2" />
+                 Add Tattoo
+               </button>
+             </div>
+             
+             {Array.isArray(tattoos) && tattoos.length > 0 ? (
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 {tattoos.map((tattoo) => {
+                   if (!tattoo?.id) return null; // Skip invalid items
+                   
+                   return (
+                     <div key={tattoo.id} className="border border-gray-200 rounded-lg p-4">
+                       <img 
+                         src={tattoo.imageUrl} 
+                         alt={tattoo.title || 'Tattoo Design'}
+                         className="w-full h-32 object-cover rounded-lg mb-3"
+                       />
+                       <h3 className="font-medium text-gray-900 mb-1">{tattoo.title || 'Untitled'}</h3>
+                       <p className="text-sm text-gray-600 mb-2">{tattoo.description || 'No description'}</p>
+                       <div className="flex items-center justify-between">
+                         <div className="flex items-center space-x-2 text-sm text-gray-500">
+                           {tattoo.tattooStyle && (
+                             <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                               {tattoo.tattooStyle}
+                             </span>
+                           )}
+                           {tattoo.bodyLocation && (
+                             <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                               {tattoo.bodyLocation}
+                             </span>
+                           )}
+                         </div>
+                         <div className="flex items-center space-x-2">
+                           <button
+                             onClick={() => navigate(`/dashboard/gallery/edit/${tattoo.id}`)}
+                             className="text-blue-600 hover:text-blue-800"
+                             title="Edit Tattoo"
+                           >
+                             <Edit3 className="h-4 w-4" />
+                           </button>
+                           <button
+                             onClick={() => navigate(`/gallery/${tattoo.id}`)}
+                             className="text-green-600 hover:text-green-800"
+                             title="View Tattoo"
+                           >
+                             <Eye className="h-4 w-4" />
+                           </button>
+                         </div>
+                       </div>
+                     </div>
+                   );
+                 })}
+               </div>
+             ) : (
+               <div className="text-center py-8">
+                 <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                 <p className="text-gray-500">No tattoos yet</p>
+                 <p className="text-sm text-gray-400 mb-4">Start building your portfolio by adding your first tattoo design</p>
+                 <button 
+                   onClick={() => navigate('/dashboard/gallery')}
+                   className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                 >
+                   Add Your First Tattoo
+                 </button>
+               </div>
+             )}
+           </div>
+         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
@@ -1242,444 +1687,11 @@ export const ArtistDashboard = () => {
               </div>
             </div>
 
-            {/* Reviews Management */}
-            {profile.id && (
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">Reviews Management</h2>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">
-                      {allReviewsLoading ? 'Loading...' : `${allReviewsCount} total reviews`}
-                    </span>
-                    {allReviewsCount > 0 && (
-                      <div className="flex items-center space-x-2">
-                        <div className="flex items-center space-x-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i} 
-                              className={`h-4 w-4 ${
-                                i < (allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / Math.max(allReviews.length, 1))
-                                  ? 'text-yellow-400 fill-current'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">
-                          {allReviewsCount > 0 
-                            ? (allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviews.length).toFixed(1)
-                            : '0.0'
-                          }
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {!allReviewsLoading && allReviewsCount === 0 ? (
-                  <div className="text-gray-500 text-center py-8">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p>No reviews yet</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Client
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Rating
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Review
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {allReviews.map((review) => {
-                          if (!review?.id) return null;
-                          
-                          return (
-                            <tr key={review.id} className="hover:bg-gray-50 transition-colors">
-                              {/* Client Column */}
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center space-x-3">
-                                  {review.author?.avatar ? (
-                                    <img
-                                      src={review.author.avatar}
-                                      alt={`${review.author.firstName} ${review.author.lastName}`}
-                                      className="w-10 h-10 rounded-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
-                                      <span className="text-white font-bold text-sm">
-                                        {review.author?.firstName?.[0] || 'C'}{review.author?.lastName?.[0] || 'L'}
-                                      </span>
-                                    </div>
-                                  )}
-                                  <div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {review.author?.firstName} {review.author?.lastName}
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                      {review.author?.email || 'No email'}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                              
-                              {/* Rating Column */}
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center space-x-1">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star 
-                                      key={i} 
-                                      className={`h-4 w-4 ${
-                                        i < (review.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                                      }`}
-                                    />
-                                  ))}
-                                  <span className="ml-2 text-sm font-medium text-gray-900">
-                                    {review.rating}/5
-                                  </span>
-                                </div>
-                              </td>
-                              
-                              {/* Review Column */}
-                              <td className="px-6 py-4">
-                                <div className="max-w-xs">
-                                  <p className="text-sm text-gray-900 line-clamp-2">
-                                    {review.comment || 'No comment provided'}
-                                  </p>
-                                  {review.imageUrl && (
-                                    <div className="mt-2">
-                                      <img
-                                        src={review.imageUrl}
-                                        alt="Review image"
-                                        className="w-16 h-16 object-cover rounded border border-gray-200"
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              
-                              {/* Date Column */}
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <div>
-                                  <div>Posted: {new Date(review.createdAt).toLocaleDateString()}</div>
-                                  {review.updatedAt && review.updatedAt !== review.createdAt && (
-                                    <div className="text-xs text-gray-400">
-                                      Updated: {new Date(review.updatedAt).toLocaleDateString()}
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              
-                              {/* Status Column */}
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  review.isHidden 
-                                    ? 'bg-red-100 text-red-800' 
-                                    : 'bg-green-100 text-green-800'
-                                }`}>
-                                  {review.isHidden ? 'Hidden' : 'Visible'}
-                                </span>
-                              </td>
-                              
-                              {/* Actions Column */}
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div className="flex items-center space-x-2">
-                                  <button
-                                    onClick={() => {
-                                      setSelectedReview(review);
-                                      setShowReviewModal(true);
-                                    }}
-                                    className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-md transition-colors"
-                                    title="View Details"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => navigate(`/artists/${profile.id}#reviews`)}
-                                    className="text-green-600 hover:text-green-800 p-2 hover:bg-green-50 rounded-md transition-colors"
-                                    title="View on Profile"
-                                  >
-                                    <Globe className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
 
-            {/* Favorites Management */}
-            {profile.id && (
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">Favorites Management</h2>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">
-                      {favoriteClients.length} client{favoriteClients.length !== 1 ? 's' : ''} favorited you
-                    </span>
-                    {favoriteClients.length > 0 && (
-                      <button
-                        onClick={() => {
-                          setEmailFormData(prev => ({ ...prev, sendToAll: false }));
-                          setSelectedClients([]);
-                          setShowEmailModal(true);
-                        }}
-                        className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-                      >
-                        <Mail className="h-4 w-4 mr-2" />
-                        Email Clients
-                      </button>
-                    )}
-                  </div>
-                </div>
-                
-                {favoriteClients.length > 0 ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedClients.length === favoriteClients.length}
-                          onChange={handleSelectAllClients}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <span className="text-sm font-medium text-gray-700">
-                          Select All ({selectedClients.length}/{favoriteClients.length})
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setEmailFormData(prev => ({ ...prev, sendToAll: true }));
-                          setSelectedClients([]);
-                          setShowEmailModal(true);
-                        }}
-                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        Email All
-                      </button>
-                    </div>
-                    
-                    {/* Favorites Table */}
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full bg-white border border-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              <input
-                                type="checkbox"
-                                checked={selectedClients.length === favoriteClients.length}
-                                onChange={handleSelectAllClients}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                              />
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              CLIENT
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              EMAIL
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              FAVORITED
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              MEMBER SINCE
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              ACTIVITY
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              ACTIONS
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {favoriteClients.map((favorite) => {
-                            const client = favorite.client;
-                            if (!client?.id) return null;
-                            
-                            return (
-                              <tr key={favorite.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-4 whitespace-nowrap">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedClients.includes(client.id)}
-                                    onChange={() => handleClientSelection(client.id)}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                  />
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap">
-                                  <div className="flex items-center">
-                                    {client.avatar ? (
-                                      <img
-                                        src={client.avatar}
-                                        alt={`${client.firstName} ${client.lastName}`}
-                                        className="w-10 h-10 rounded-full object-cover mr-3"
-                                      />
-                                    ) : (
-                                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center mr-3">
-                                        <span className="text-white font-bold text-sm">
-                                          {client.firstName?.[0] || 'C'}{client.lastName?.[0] || 'L'}
-                                        </span>
-                                      </div>
-                                    )}
-                                    <div>
-                                      <div className="text-sm font-medium text-gray-900">
-                                        {client.firstName} {client.lastName}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {client.email}
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {new Date(favorite.favoritedAt).toLocaleDateString()}
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {new Date(client.createdAt).toLocaleDateString()}
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  <div className="flex items-center gap-3">
-                                    <span className="flex items-center gap-1">
-                                      <Star className="h-3 w-3 text-yellow-400" />
-                                      {client.averageRating || 0}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <MessageSquare className="h-3 w-3 text-blue-400" />
-                                      {client.reviewCount || 0}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                                  <button
-                                    onClick={() => {
-                                      setEmailFormData(prev => ({
-                                        ...prev,
-                                        clientIds: [client.id],
-                                        sendToAll: false
-                                      }));
-                                      setSelectedClients([client.id]);
-                                      setShowEmailModal(true);
-                                    }}
-                                    className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200 transition-colors flex items-center gap-1"
-                                  >
-                                    <Mail className="h-3 w-3" />
-                                    Email
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No clients have favorited you yet</p>
-                    <p className="text-sm text-gray-400">Keep building your portfolio to attract more clients</p>
-                  </div>
-                )}
-              </div>
-            )}
 
-            {/* Tattoo Gallery */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Tattoo Gallery</h2>
-                <button 
-                  onClick={() => navigate('/dashboard/gallery')}
-                  className="flex items-center px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
-                >
-                  <Image className="h-4 w-4 mr-2" />
-                  Add Tattoo
-                </button>
-              </div>
-              
-              {Array.isArray(tattoos) && tattoos.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {tattoos.map((tattoo) => {
-                    if (!tattoo?.id) return null; // Skip invalid items
-                    
-                    return (
-                      <div key={tattoo.id} className="border border-gray-200 rounded-lg p-4">
-                        <img 
-                          src={tattoo.imageUrl} 
-                          alt={tattoo.title || 'Tattoo Design'}
-                          className="w-full h-32 object-cover rounded-lg mb-3"
-                        />
-                        <h3 className="font-medium text-gray-900 mb-1">{tattoo.title || 'Untitled'}</h3>
-                        <p className="text-sm text-gray-600 mb-2">{tattoo.description || 'No description'}</p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2 text-sm text-gray-500">
-                            {tattoo.tattooStyle && (
-                              <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
-                                {tattoo.tattooStyle}
-                              </span>
-                            )}
-                            {tattoo.bodyLocation && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                {tattoo.bodyLocation}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => navigate(`/dashboard/gallery/edit/${tattoo.id}`)}
-                              className="text-blue-600 hover:text-blue-800"
-                              title="Edit Tattoo"
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => navigate(`/gallery/${tattoo.id}`)}
-                              className="text-green-600 hover:text-green-800"
-                              title="View Tattoo"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No tattoos yet</p>
-                  <p className="text-sm text-gray-400 mb-4">Start building your portfolio by adding your first tattoo design</p>
-                  <button 
-                    onClick={() => navigate('/dashboard/gallery')}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-                  >
-                    Add Your First Tattoo
-                  </button>
-                </div>
-              )}
-            </div>
+
+
+
 
             {/* Message Management */}
             {profile.id ? (
