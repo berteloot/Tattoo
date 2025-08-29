@@ -5,7 +5,7 @@ const cors = require("cors");
 const allowedOrigins = [
   "https://tattooedworld.org",
   "https://www.tattooedworld.org",
-  "https://api.tattooedworld.org"
+  "https://tattooedworld.org/api"
 ];
 
 const corsMiddleware = cors({
