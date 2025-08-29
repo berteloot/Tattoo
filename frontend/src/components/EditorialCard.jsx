@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, MapPin } from 'lucide-react';
+import { getArtistImageSource } from '../utils/placeholderImage';
 
 export const EditorialCard = ({ 
   artist,
@@ -11,15 +12,11 @@ export const EditorialCard = ({
   return (
     <div className="editorial-card cursor-pointer group" onClick={onClick}>
       <div className="editorial-card-image bg-gradient-to-br from-editorial-500 to-editorial-700 flex items-center justify-center overflow-hidden">
-        {artist.profilePictureUrl ? (
-          <img 
-            src={artist.profilePictureUrl} 
-            alt={`${artist.user?.firstName} ${artist.user?.lastName}`}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          />
-        ) : (
-          <span className="text-white text-6xl">🎨</span>
-        )}
+        <img 
+          src={getArtistImageSource(artist.profilePictureUrl, artist.user)}
+          alt={`${artist.user?.firstName} ${artist.user?.lastName}`}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+        />
       </div>
       <div className="editorial-card-content">
         <div className="flex items-center gap-2 mb-3">

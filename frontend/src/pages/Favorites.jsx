@@ -6,6 +6,7 @@ import { useToast } from '../contexts/ToastContext'
 import { favoritesAPI } from '../services/api'
 import { LoadingSpinner } from '../components/UXComponents'
 import { FavoriteButton } from '../components/FavoriteButton'
+import { getArtistImageSource } from '../utils/placeholderImage'
 
 export const Favorites = () => {
   const { user, isAuthenticated } = useAuth()
@@ -170,7 +171,7 @@ export const Favorites = () => {
                 <div className="relative aspect-square overflow-hidden">
                   {favorite.artist?.profilePictureUrl ? (
                     <img
-                      src={favorite.artist.profilePictureUrl}
+                      src={getArtistImageSource(favorite.artist.profilePictureUrl, favorite.artist.user)}
                       alt={`${favorite.artist.user?.firstName || 'Artist'} ${favorite.artist.user?.lastName || ''}`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

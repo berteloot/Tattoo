@@ -5,6 +5,7 @@ import { FavoriteButton } from '../components/FavoriteButton'
 import { artistsAPI, specialtiesAPI } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import { ArtistMessages } from '../components/ArtistMessage'
+import { getArtistImageSource } from '../utils/placeholderImage'
 
 export const Artists = () => {
   console.log('Artists component rendering')
@@ -300,7 +301,7 @@ export const Artists = () => {
                   {/* Artist Image */}
                   <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-48 h-48 flex-shrink-0' : 'aspect-square'}`}>
                     <img
-                      src={artist.profilePictureUrl || '/default-artist.jpg'}
+                      src={getArtistImageSource(artist.profilePictureUrl, artist.user)}
                       alt={`${artist.user.firstName} ${artist.user.lastName}`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

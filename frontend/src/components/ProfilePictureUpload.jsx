@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon, AlertCircle, User, Camera, RotateCcw } from 'lucide-react';
 import { getAuthorizationHeader } from '../utils/tokenManager';
+import { getPlaceholderImage } from '../utils/placeholderImage';
 
 const ProfilePictureUpload = ({ 
   onImageUpload, 
@@ -247,11 +248,17 @@ const ProfilePictureUpload = ({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="w-32 h-32 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
+            <div className="w-32 h-32 mx-auto rounded-full overflow-hidden">
               {isUploading ? (
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
+                </div>
               ) : (
-                <User className="w-12 h-12 text-gray-400" />
+                <img
+                  src={getPlaceholderImage()}
+                  alt="Default profile placeholder"
+                  className="w-full h-full object-cover"
+                />
               )}
             </div>
             

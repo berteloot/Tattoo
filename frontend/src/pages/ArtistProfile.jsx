@@ -29,6 +29,7 @@ import { ArtistMessages } from '../components/ArtistMessage'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import SignupPromptModal from '../components/SignupPromptModal'
+import { getArtistImageSource } from '../utils/placeholderImage'
 
 export const ArtistProfile = () => {
   const { id } = useParams()
@@ -236,18 +237,12 @@ export const ArtistProfile = () => {
             <div className="bg-white border-2 border-black p-6">
               <div className="flex items-start space-x-6">
                 {/* Profile Picture */}
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
-                  {artist.profilePictureUrl ? (
-                    <img
-                      src={artist.profilePictureUrl}
-                      alt={`${artist.user.firstName} ${artist.user.lastName}`}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-white font-bold text-2xl">
-                      {artist.user.firstName[0]}{artist.user.lastName[0]}
-                    </span>
-                  )}
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <img
+                    src={getArtistImageSource(artist.profilePictureUrl, artist.user)}
+                    alt={`${artist.user.firstName} ${artist.user.lastName}`}
+                    className="w-full h-full rounded-full object-cover"
+                  />
                 </div>
 
                 {/* Profile Details */}
