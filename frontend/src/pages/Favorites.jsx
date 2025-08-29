@@ -6,7 +6,7 @@ import { useToast } from '../contexts/ToastContext'
 import { favoritesAPI } from '../services/api'
 import { LoadingSpinner } from '../components/UXComponents'
 import { FavoriteButton } from '../components/FavoriteButton'
-import { getArtistImageSource } from '../utils/placeholderImage'
+import { getSafeImageSource } from '../utils/placeholderImage'
 
 export const Favorites = () => {
   const { user, isAuthenticated } = useAuth()
@@ -169,19 +169,15 @@ export const Favorites = () => {
               <div key={favorite.id} className="bg-white border-2 border-black overflow-hidden hover:shadow-xl transition-shadow group">
                 {/* Image */}
                 <div className="relative aspect-square overflow-hidden">
-                  {favorite.artist?.profilePictureUrl ? (
-                    <img
-                      src={getArtistImageSource(favorite.artist.profilePictureUrl, favorite.artist.user)}
-                      alt={`${favorite.artist.user?.firstName || 'Artist'} ${favorite.artist.user?.lastName || ''}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-                      <span className="text-white font-bold text-4xl">
-                        {favorite.artist?.user?.firstName?.[0] || 'A'}{favorite.artist?.user?.lastName?.[0] || 'A'}
-                      </span>
-                    </div>
-                  )}
+                  <img
+                    src={getSafeImageSource(favorite.artist.profilePictureUrl, favorite.artist.user)}
+                    alt={`${favorite.artist.user?.firstName || 'Artist'} ${favorite.artist.user?.lastName || ''}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      console.log('Favorites image failed to load for artist:', favorite.artist.user?.firstName, favorite.artist.user?.lastName);
+                      e.target.src = 'https://via.placeholder.com/400x400/3B82F6/FFFFFF?text=Artist';
+                    }}
+                  />
                   
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">

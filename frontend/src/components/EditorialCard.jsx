@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, MapPin } from 'lucide-react';
-import { getArtistImageSource } from '../utils/placeholderImage';
+import { getSafeImageSource } from '../utils/placeholderImage';
 
 export const EditorialCard = ({ 
   artist,
@@ -13,9 +13,13 @@ export const EditorialCard = ({
     <div className="editorial-card cursor-pointer group" onClick={onClick}>
       <div className="editorial-card-image bg-gradient-to-br from-editorial-500 to-editorial-700 flex items-center justify-center overflow-hidden">
         <img 
-          src={getArtistImageSource(artist.profilePictureUrl, artist.user)}
+          src={getSafeImageSource(artist.profilePictureUrl, artist.user)}
           alt={`${artist.user?.firstName} ${artist.user?.lastName}`}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+          onError={(e) => {
+            console.log('Editorial card image failed to load for artist:', artist.user?.firstName, artist.user?.lastName);
+            e.target.src = 'https://via.placeholder.com/400x400/3B82F6/FFFFFF?text=Artist';
+          }}
         />
       </div>
       <div className="editorial-card-content">

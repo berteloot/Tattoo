@@ -5,7 +5,7 @@ import { FavoriteButton } from '../components/FavoriteButton'
 import { artistsAPI, specialtiesAPI } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import { ArtistMessages } from '../components/ArtistMessage'
-import { getArtistImageSource } from '../utils/placeholderImage'
+import { getSafeImageSource } from '../utils/placeholderImage'
 
 export const Artists = () => {
   console.log('Artists component rendering')
@@ -300,11 +300,27 @@ export const Artists = () => {
                 <div key={artist.id} className={`bg-white border-2 border-black overflow-hidden group ${viewMode === 'list' ? 'flex' : ''}`}>
                   {/* Artist Image */}
                   <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-48 h-48 flex-shrink-0' : 'aspect-square'}`}>
-                    <img
-                      src={getArtistImageSource(artist.profilePictureUrl, artist.user)}
-                      alt={`${artist.user.firstName} ${artist.user.lastName}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                    {(() => {
+                      const imageSrc = getSafeImageSource(artist.profilePictureUrl, artist.user);
+                      console.log('Artist card image debug:', {
+                        artistId: artist.id,
+                        artistName: `${artist.user.firstName} ${artist.user.lastName}`,
+                        profilePictureUrl: artist.profilePictureUrl,
+                        finalImageSrc: imageSrc
+                      });
+                      return (
+                        <img
+                          src={imageSrc}
+                          alt={`${artist.user.firstName} ${artist.user.lastName}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            console.log('Image failed to load for artist:', artist.user.firstName, artist.user.lastName);
+                            // Fallback to a different placeholder if needed
+                            e.target.src = 'https://via.placeholder.com/400x400/3B82F6/FFFFFF?text=Artist';
+                          }}
+                        />
+                      );
+                    })()}
                     
                     {/* Verification Badge */}
                     {artist.verificationStatus === 'APPROVED' && (

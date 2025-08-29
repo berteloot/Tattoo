@@ -75,6 +75,27 @@ export const isValidImageUrl = (url) => {
 };
 
 /**
+ * Get a safe image source with fallback
+ * @param {string} profilePictureUrl - The artist's profile picture URL
+ * @param {Object} user - The artist's user object
+ * @returns {string} A safe image source URL
+ */
+export const getSafeImageSource = (profilePictureUrl, user) => {
+  try {
+    // If artist has a valid profile picture, use it
+    if (profilePictureUrl && isValidImageUrl(profilePictureUrl)) {
+      return profilePictureUrl;
+    }
+    
+    // Otherwise use placeholder
+    return PLACEHOLDER_IMAGE_URL;
+  } catch (error) {
+    console.error('Error getting image source:', error);
+    return PLACEHOLDER_IMAGE_URL;
+  }
+};
+
+/**
  * Get a consistent placeholder image for any missing artist images
  * @returns {string} The placeholder image URL
  */
