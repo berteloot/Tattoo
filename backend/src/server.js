@@ -357,7 +357,7 @@ app.use('/api/*', notFound);
 
 // Serve static files from the standardized backend/public directory
 // This is guaranteed to exist after the build process copies frontend/dist/* to backend/public
-const FRONTEND_DIR = path.resolve(__dirname, "../public");
+const FRONTEND_DIR = path.resolve(__dirname, "../frontend/dist");
 const INDEX_HTML = path.join(FRONTEND_DIR, "index.html");
 
 // Fail-fast in production if the build is missing
