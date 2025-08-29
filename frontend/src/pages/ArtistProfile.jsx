@@ -238,11 +238,34 @@ export const ArtistProfile = () => {
               <div className="flex items-start space-x-6">
                 {/* Profile Picture */}
                 <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  <img
-                    src={getArtistImageSource(artist.profilePictureUrl, artist.user)}
-                    alt={`${artist.user.firstName} ${artist.user.lastName}`}
-                    className="w-full h-full rounded-full object-cover"
-                  />
+                  {(() => {
+                    const imageSrc = getArtistImageSource(artist.profilePictureUrl, artist.user);
+                    console.log('Profile picture debug:', {
+                      profilePictureUrl: artist.profilePictureUrl,
+                      user: artist.user,
+                      finalImageSrc: imageSrc,
+                      hasProfilePicture: !!artist.profilePictureUrl
+                    });
+                    return (
+                      <img
+                        src={imageSrc}
+                        alt={`${artist.user.firstName} ${artist.user.lastName}`}
+                        className="w-full h-full rounded-full object-cover"
+                        onError={(e) => {
+                          console.log('Image failed to load, falling back to initials');
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    );
+                  })()}
+                  {/* Fallback initials display */}
+                  <div 
+                    className="w-full h-full rounded-full flex items-center justify-center text-white font-bold text-2xl"
+                    style={{ display: artist.profilePictureUrl ? 'none' : 'flex' }}
+                  >
+                    {artist.user.firstName?.[0]}{artist.user.lastName?.[0]}
+                  </div>
                 </div>
 
                 {/* Profile Details */}

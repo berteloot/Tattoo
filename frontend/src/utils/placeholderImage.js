@@ -4,6 +4,13 @@
 // The placeholder image URL from the user's request
 const PLACEHOLDER_IMAGE_URL = 'https://cdn.zappy.app/2e848430c26afdc6d3ef89f37e722a2e.jpeg';
 
+// Fallback placeholder URLs in case the primary one fails
+const FALLBACK_PLACEHOLDER_URLS = [
+  'https://cdn.zappy.app/2e848430c26afdc6d3ef89f37e722a2e.jpeg',
+  'https://via.placeholder.com/400x400/3B82F6/FFFFFF?text=Artist',
+  'https://via.placeholder.com/400x400/6366F1/FFFFFF?text=Profile'
+];
+
 /**
  * Get the appropriate image source for an artist
  * @param {string} profilePictureUrl - The artist's profile picture URL
@@ -12,11 +19,15 @@ const PLACEHOLDER_IMAGE_URL = 'https://cdn.zappy.app/2e848430c26afdc6d3ef89f37e7
  * @returns {string} The image source URL
  */
 export const getArtistImageSource = (profilePictureUrl, user, fallbackType = 'placeholder') => {
+  // If artist has a profile picture, use it
   if (profilePictureUrl && profilePictureUrl.trim() !== '') {
+    console.log('Using artist profile picture:', profilePictureUrl);
     return profilePictureUrl;
   }
   
+  // If no profile picture, use placeholder
   if (fallbackType === 'placeholder') {
+    console.log('Using placeholder image for artist:', user?.firstName, user?.lastName);
     return PLACEHOLDER_IMAGE_URL;
   }
   
