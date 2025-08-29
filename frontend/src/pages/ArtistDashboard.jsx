@@ -754,6 +754,95 @@ export const ArtistDashboard = () => {
           </div>
         </div>
 
+        {/* Flash Gallery - Moved to top for easy access */}
+        <div className="mb-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">FLASH GALLERY</h2>
+              <div className="flex items-center space-x-3">
+                {/* Upload Mode Toggle */}
+                <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setFlashUploadMode('single')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      flashUploadMode === 'single'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Single
+                  </button>
+                  <button
+                    onClick={() => setFlashUploadMode('batch')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      flashUploadMode === 'batch'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Batch
+                  </button>
+                </div>
+                
+                <button 
+                  onClick={() => setShowFlashForm(true)}
+                  className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                >
+                  {flashUploadMode === 'batch' ? (
+                    <Upload className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
+                  {flashUploadMode === 'batch' ? 'Batch Upload' : '+ Add Flash'}
+                </button>
+              </div>
+            </div>
+            
+            {Array.isArray(flash) && flash.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {flash.map((item) => {
+                  if (!item?.id) return null; // Skip invalid items
+                  
+                  return (
+                    <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.title || 'Flash Design'}
+                        className="w-full h-32 object-cover rounded-lg mb-3"
+                      />
+                      <h3 className="font-medium text-gray-900 mb-1">{item.title || 'Untitled'}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{item.description || 'No description'}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-bold text-green-600">${item.basePrice || 'N/A'}</span>
+                        <div className="flex space-x-2">
+                          <button 
+                            onClick={() => handleEditFlash(item)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteFlash(item.id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No flash items yet</p>
+                <p className="text-sm text-gray-400">Add some flash designs to showcase your work</p>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -1612,92 +1701,7 @@ export const ArtistDashboard = () => {
               </div>
             )}
 
-            {/* Flash Gallery */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Flash Gallery</h2>
-                <div className="flex items-center space-x-3">
-                  {/* Upload Mode Toggle */}
-                  <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
-                    <button
-                      onClick={() => setFlashUploadMode('single')}
-                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                        flashUploadMode === 'single'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      Single
-                    </button>
-                    <button
-                      onClick={() => setFlashUploadMode('batch')}
-                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                        flashUploadMode === 'batch'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      Batch
-                    </button>
-                  </div>
-                  
-                  <button 
-                    onClick={() => setShowFlashForm(true)}
-                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
-                  >
-                    {flashUploadMode === 'batch' ? (
-                      <Upload className="h-4 w-4 mr-2" />
-                    ) : (
-                      <Plus className="h-4 w-4 mr-2" />
-                    )}
-                    {flashUploadMode === 'batch' ? 'Batch Upload' : 'Add Flash'}
-                  </button>
-                </div>
-              </div>
-              
-              {Array.isArray(flash) && flash.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {flash.map((item) => {
-                    if (!item?.id) return null; // Skip invalid items
-                    
-                    return (
-                      <div key={item.id} className="border border-gray-200 rounded-lg p-4">
-                        <img 
-                          src={item.imageUrl} 
-                          alt={item.title || 'Flash Design'}
-                          className="w-full h-32 object-cover rounded-lg mb-3"
-                        />
-                        <h3 className="font-medium text-gray-900 mb-1">{item.title || 'Untitled'}</h3>
-                        <p className="text-sm text-gray-600 mb-2">{item.description || 'No description'}</p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-green-600">${item.basePrice || 'N/A'}</span>
-                          <div className="flex space-x-2">
-                            <button 
-                              onClick={() => handleEditFlash(item)}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteFlash(item.id)}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No flash items yet</p>
-                  <p className="text-sm text-gray-400">Add some flash designs to showcase your work</p>
-                </div>
-              )}
-            </div>
+
 
 
 
