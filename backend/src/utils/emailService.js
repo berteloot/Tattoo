@@ -284,7 +284,13 @@ class EmailService {
 
   // Password reset email
   async sendPasswordResetEmail(user, resetToken) {
+    // Debug logging for environment variables
+    console.log('🔍 Email Service Debug:')
+    console.log('  NODE_ENV:', process.env.NODE_ENV)
+    console.log('  FRONTEND_URL:', process.env.FRONTEND_URL)
+    
     const resetUrl = `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooedworld.org')}/reset-password?token=${resetToken}`
+    console.log('  Generated resetUrl:', resetUrl)
     const subject = 'Reset Your Password - Tattooed World'
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
