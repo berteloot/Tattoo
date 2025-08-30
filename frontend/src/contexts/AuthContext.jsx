@@ -387,7 +387,7 @@ export const AuthProvider = ({ children }) => {
 
   // Helper function to handle authentication failure
   const handleAuthFailure = () => {
-    console.log('Authentication failed, clearing state and redirecting to login')
+    console.log('Authentication failed, clearing state')
     
     // Clear token from tokenManager
     clearAccessToken()
@@ -400,8 +400,46 @@ export const AuthProvider = ({ children }) => {
     // Clear API headers
     delete api.defaults.headers.common['Authorization']
     
-    // Redirect to login page
-    navigate('/login')
+    // Define public routes that don't require authentication
+    const publicRoutes = [
+      '/',
+      '/editorial',
+      '/login',
+      '/register',
+      '/forgot-password',
+      '/reset-password',
+      '/verify-email',
+      '/artists',
+      '/flash',
+      '/studios',
+      '/map',
+      '/gallery',
+      '/privacy-policy',
+      '/terms-of-service',
+      '/cookie-policy',
+      '/contact-us'
+    ]
+    
+    // Get current path
+    const currentPath = window.location.pathname
+    
+    // Check if current path is public (exact match or starts with public path)
+    const isPublicRoute = publicRoutes.some(route => 
+      currentPath === route || 
+      currentPath.startsWith(route + '/') ||
+      currentPath.startsWith('/artists/') ||
+      currentPath.startsWith('/flash/') ||
+      currentPath.startsWith('/studios/') ||
+      currentPath.startsWith('/gallery/')
+    )
+    
+    // Only redirect to login if on a protected route
+    if (!isPublicRoute) {
+      console.log('On protected route, redirecting to login')
+      navigate('/login')
+    } else {
+      console.log('On public route, staying on current page')
+    }
   }
 
   const value = {
