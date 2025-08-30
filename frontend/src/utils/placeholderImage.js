@@ -1,12 +1,12 @@
 // Utility functions for handling placeholder images
 // Best practice: Use a consistent placeholder system across the app
 
-// The placeholder image URL from the user's request
-const PLACEHOLDER_IMAGE_URL = 'https://cdn.zappy.app/2e848430c26afdc6d3ef89f37e722a2e.jpeg';
+// The placeholder image URL - now using local SVG
+const PLACEHOLDER_IMAGE_URL = '/placeholder-artist.svg';
 
 // Fallback placeholder URLs in case the primary one fails
 const FALLBACK_PLACEHOLDER_URLS = [
-  'https://cdn.zappy.app/2e848430c26afdc6d3ef89f37e722a2e.jpeg',
+  '/placeholder-artist.svg',
   'https://via.placeholder.com/400x400/3B82F6/FFFFFF?text=Artist',
   'https://via.placeholder.com/400x400/6366F1/FFFFFF?text=Profile'
 ];

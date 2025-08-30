@@ -34,11 +34,17 @@ const getCSPConfig = () => {
       "data:",
       "blob:",
       `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}`,
-      `https://*.cloudinary.com`
+      `https://*.cloudinary.com`,
+      "https://via.placeholder.com"
     ];
   } else {
     // Fallback for when Cloudinary is not configured
-    baseCSP.imgSrc = ["'self'", "data:", "blob:"];
+    baseCSP.imgSrc = [
+      "'self'", 
+      "data:", 
+      "blob:",
+      "https://via.placeholder.com"
+    ];
   }
 
   // Add Google Maps support only if API key is configured
@@ -104,7 +110,8 @@ const getCSPConfig = () => {
 
   baseCSP.imgSrc = [
     ...baseCSP.imgSrc,
-    "https://assets.calendly.com"
+    "https://assets.calendly.com",
+    "https://via.placeholder.com"
   ];
 
   // Add frame-src for Calendly iframes
