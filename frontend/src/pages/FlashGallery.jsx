@@ -553,7 +553,7 @@ const FlashCard = ({ item }) => (
       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex space-x-4">
           <button
-            onClick={() => navigate(`/artists/${item.artist.id}`)}
+            onClick={() => navigate(`/flash/${item.id}`)}
             className="bg-white text-gray-800 px-4 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors"
           >
             View Details
