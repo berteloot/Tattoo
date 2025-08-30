@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../contexts/ToastContext'
-import { api } from '../services/api'
+import { authAPI } from '../services/api'
 import { Eye, EyeOff, Mail, ArrowLeft } from 'lucide-react'
 
 export const ForgotPassword = () => {
@@ -35,7 +35,7 @@ export const ForgotPassword = () => {
     setIsLoading(true)
     
     try {
-      const response = await api.post('/auth/forgot-password', { email })
+      const response = await authAPI.forgotPassword(email)
       
       if (response.data.success) {
         setIsSubmitted(true)

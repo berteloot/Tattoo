@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useToast } from '../contexts/ToastContext'
-import { api } from '../services/api'
+import { authAPI } from '../services/api'
 import { Eye, EyeOff, Lock, CheckCircle, ArrowLeft } from 'lucide-react'
 
 export const ResetPassword = () => {
@@ -56,10 +56,7 @@ export const ResetPassword = () => {
     setIsLoading(true)
     
     try {
-      const response = await api.post('/auth/reset-password', {
-        token,
-        password
-      })
+      const response = await authAPI.resetPassword(token, password)
       
       if (response.data.success) {
         setIsSuccess(true)
