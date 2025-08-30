@@ -69,22 +69,10 @@ class EmailService {
   // Email verification email
   async sendEmailVerificationEmail(user, verificationToken) {
     try {
-      // More robust URL construction with fallback
-      let frontendUrl;
-      
-      if (process.env.NODE_ENV === 'development') {
-        frontendUrl = 'http://localhost:5173';
-      } else if (process.env.FRONTEND_URL) {
-        frontendUrl = process.env.FRONTEND_URL;
-      } else {
-        // Hardcoded fallback for production
-        frontendUrl = 'https://tattooedworld.org';
-      }
-      
-      // Use the correct production URL
-      if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) {
-        frontendUrl = 'https://tattooedworld.org';
-      }
+      // Force the correct domain for production - same fix as password reset
+      const frontendUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5173' 
+        : 'https://tattooedworld.org'  // Force correct domain regardless of FRONTEND_URL env var
       
       const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`
       
@@ -192,7 +180,7 @@ class EmailService {
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooedworld.org')}/artists" 
+              <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : 'https://tattooedworld.org'}/artists" 
                  style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
                 Start Exploring Artists
               </a>
@@ -250,7 +238,7 @@ class EmailService {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-                          <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooedworld.org')}/artists/${artistProfile.id}" 
+                          <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : 'https://tattooedworld.org'}/artists/${artistProfile.id}" 
                style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View Your Profile
             </a>
@@ -353,7 +341,7 @@ class EmailService {
     // Use the correct production URL
     const frontendUrl = process.env.NODE_ENV === 'development' 
       ? 'http://localhost:5173' 
-      : (process.env.FRONTEND_URL || 'https://tattooedworld.org');
+      : 'https://tattooedworld.org';
     
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
