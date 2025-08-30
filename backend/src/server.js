@@ -53,6 +53,13 @@ if (missingEnvVars.length > 0) {
 
 console.log('✅ All required environment variables are configured');
 
+// Debug environment variables
+console.log('🔍 Environment Variables Debug:');
+console.log('  NODE_ENV:', process.env.NODE_ENV);
+console.log('  FRONTEND_URL:', process.env.FRONTEND_URL);
+console.log('  PORT:', process.env.PORT);
+console.log('  CORS_ORIGIN:', process.env.CORS_ORIGIN);
+
 // Force server restart to pick up new Prisma client with profile picture fields
 console.log('🔄 Server restarting to load updated Prisma client...');
 
@@ -355,9 +362,9 @@ app.get('/', (req, res) => {
 // 404 handler for API routes only - this should come after all API routes
 app.use('/api/*', notFound);
 
-// Serve static files from the standardized backend/public directory
-// This is guaranteed to exist after the build process copies frontend/dist/* to backend/public
-const FRONTEND_DIR = path.resolve(__dirname, "../frontend/dist");
+// Serve static files from the backend/public directory
+// This is where the build process copies frontend/dist/* to backend/public
+const FRONTEND_DIR = path.resolve(__dirname, "../public");
 const INDEX_HTML = path.join(FRONTEND_DIR, "index.html");
 
 // Fail-fast in production if the build is missing
