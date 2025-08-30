@@ -5,7 +5,7 @@ import { FavoriteButton } from '../components/FavoriteButton'
 import { artistsAPI, specialtiesAPI } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
 import { ArtistMessages } from '../components/ArtistMessage'
-import { getSafeImageSource } from '../utils/placeholderImage'
+import { getArtistImageSource } from '../utils/placeholderImage'
 
 export const Artists = () => {
   console.log('Artists component rendering')

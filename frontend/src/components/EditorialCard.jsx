@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, MapPin } from 'lucide-react';
-import { getSafeImageSource } from '../utils/placeholderImage';
+import { getArtistImageSource } from '../utils/placeholderImage';
 
 export const EditorialCard = ({ 
   artist,
@@ -13,7 +13,7 @@ export const EditorialCard = ({
     <div className="editorial-card cursor-pointer group" onClick={onClick}>
       <div className="editorial-card-image bg-gradient-to-br from-editorial-500 to-editorial-700 flex items-center justify-center overflow-hidden">
         <img 
-          src={getSafeImageSource(artist.profilePictureUrl, artist.user)}
+          src={getArtistImageSource(artist.profilePictureUrl, artist.user)}
           alt={`${artist.user?.firstName} ${artist.user?.lastName}`}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
           onError={(e) => {

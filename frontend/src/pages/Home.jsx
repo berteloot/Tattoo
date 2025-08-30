@@ -4,7 +4,7 @@ import { StudioMap } from '../components/StudioMap'
 import { useState, useEffect } from 'react'
 import { api } from '../services/api'
 import { apiCallWithFallback, checkApiHealth } from '../utils/apiHealth'
-import { getSafeImageSource } from '../utils/placeholderImage'
+import { getArtistImageSource } from '../utils/placeholderImage'
 
 export const Home = () => {
   console.log('Home component rendering')
@@ -224,7 +224,7 @@ export const Home = () => {
                 <div key={artist.id} className="card group border-2 border-black p-6">
                   <div className="card__media bg-gray-100 flex items-center justify-center mb-4">
                     <img
-                      src={getSafeImageSource(artist.profilePictureUrl, artist.user)}
+                      src={getArtistImageSource(artist.profilePictureUrl, artist.user)}
                       alt={`${artist.user.firstName} ${artist.user.lastName}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
