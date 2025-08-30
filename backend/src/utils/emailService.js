@@ -289,7 +289,12 @@ class EmailService {
     console.log('  NODE_ENV:', process.env.NODE_ENV)
     console.log('  FRONTEND_URL:', process.env.FRONTEND_URL)
     
-    const resetUrl = `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : (process.env.FRONTEND_URL || 'https://tattooedworld.org')}/reset-password?token=${resetToken}`
+    // Force the correct domain for production - temporary fix for environment variable override
+    const frontendUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5173' 
+      : 'https://tattooedworld.org'  // Force correct domain regardless of FRONTEND_URL env var
+    
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`
     console.log('  Generated resetUrl:', resetUrl)
     const subject = 'Reset Your Password - Tattooed World'
     const htmlContent = `
