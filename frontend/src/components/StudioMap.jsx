@@ -346,7 +346,20 @@ export const StudioMap = ({ searchTerm = '', filterFeatured = false, focusStudio
       }
     } catch (error) {
       console.error('Error getting directions:', error)
-      showError('Directions Error', 'Failed to get directions. Please try again.')
+      
+      // Handle specific Google Maps errors
+      if (error.code === 'ZERO_RESULTS') {
+        showError(
+          'No Route Found', 
+          'No driving route could be found between the specified address and this studio. This may be because they are in different countries or separated by water. Try a closer starting location or different transportation mode.'
+        )
+      } else if (error.code === 'OVER_QUERY_LIMIT') {
+        showError('Service Limit Reached', 'Too many requests. Please try again in a moment.')
+      } else if (error.code === 'REQUEST_DENIED') {
+        showError('Service Unavailable', 'Directions service is currently unavailable.')
+      } else {
+        showError('Directions Error', 'Failed to get directions. Please try again.')
+      }
     } finally {
       setIsGettingDirections(false)
     }
@@ -406,7 +419,20 @@ export const StudioMap = ({ searchTerm = '', filterFeatured = false, focusStudio
       }
     } catch (error) {
       console.error('Error getting directions from current location:', error)
-      showError('Directions Error', 'Failed to get directions from your location')
+      
+      // Handle specific Google Maps errors
+      if (error.code === 'ZERO_RESULTS') {
+        showError(
+          'No Route Found', 
+          'No driving route could be found between your location and this studio. This may be because they are in different countries or separated by water. Try searching for flights or other transportation options.'
+        )
+      } else if (error.code === 'OVER_QUERY_LIMIT') {
+        showError('Service Limit Reached', 'Too many requests. Please try again in a moment.')
+      } else if (error.code === 'REQUEST_DENIED') {
+        showError('Service Unavailable', 'Directions service is currently unavailable.')
+      } else {
+        showError('Directions Error', 'Failed to get directions from your location. Please try again.')
+      }
     } finally {
       setIsGettingDirections(false)
     }
@@ -417,6 +443,13 @@ export const StudioMap = ({ searchTerm = '', filterFeatured = false, focusStudio
     setDirectionsInfo(null)
     if (directionsRenderer.current) {
       directionsRenderer.current.setMap(null)
+    }
+  }
+
+  const openInGoogleMaps = (studio) => {
+    if (studio.latitude && studio.longitude) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${studio.latitude},${studio.longitude}`
+      window.open(url, '_blank')
     }
   }
 
@@ -590,17 +623,27 @@ export const StudioMap = ({ searchTerm = '', filterFeatured = false, focusStudio
                   </Link>
                   
                   {studio.latitude && studio.longitude && (
-                    <button
-                      onClick={() => {
-                        setSelectedStudio(studio)
-                        setShowDirectionsForm(true)
-                        setFromAddress('')
-                      }}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
-                    >
-                      <Navigation className="w-4 h-4" />
-                      Directions
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          setSelectedStudio(studio)
+                          setShowDirectionsForm(true)
+                          setFromAddress('')
+                        }}
+                        className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Navigation className="w-4 h-4" />
+                        Directions
+                      </button>
+                      
+                      <button
+                        onClick={() => openInGoogleMaps(studio)}
+                        className="px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
+                        title="Open in Google Maps"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                   
                   {studio.website && (
@@ -1029,16 +1072,26 @@ export const StudioMap = ({ searchTerm = '', filterFeatured = false, focusStudio
                       </div>
 
                       <div className="flex flex-col space-y-2">
-                        <button
-                          onClick={() => {
-                            setShowDirectionsForm(true)
-                            setFromAddress('')
-                          }}
-                          className="w-full px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition-colors flex items-center justify-center space-x-1"
-                        >
-                          <Navigation className="w-3 h-3" />
-                          <span>Get Directions</span>
-                        </button>
+                        <div className="flex space-x-1">
+                          <button
+                            onClick={() => {
+                              setShowDirectionsForm(true)
+                              setFromAddress('')
+                            }}
+                            className="flex-1 px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition-colors flex items-center justify-center space-x-1"
+                          >
+                            <Navigation className="w-3 h-3" />
+                            <span>Directions</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => openInGoogleMaps(selectedStudio)}
+                            className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200 transition-colors flex items-center justify-center"
+                            title="Open in Google Maps"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
+                        </div>
                         
                         <Link
                           to={`/studios/${selectedStudio.id}`}
