@@ -498,14 +498,14 @@ export const FlashGallery = () => {
           {viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
               {filteredAndSortedItems.map((item) => (
-                <FlashCard key={item.id} item={item} />
+                <FlashCard key={item.id} item={item} navigate={navigate} />
               ))}
             </div>
           ) : (
             <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 sm:gap-6 lg:gap-8">
               {filteredAndSortedItems.map((item) => (
                 <div key={item.id} className="break-inside-avoid mb-4 sm:mb-6 lg:mb-8">
-                  <FlashCard key={item.id} item={item} />
+                  <FlashCard key={item.id} item={item} navigate={navigate} />
                 </div>
               ))}
             </div>
@@ -538,7 +538,7 @@ export const FlashGallery = () => {
   )
 }
 
-const FlashCard = ({ item }) => (
+const FlashCard = ({ item, navigate }) => (
   <div className="bg-white shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border-2 border-black">
     {/* Image */}
     <div className="relative group">
