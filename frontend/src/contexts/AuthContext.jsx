@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { api, authAPI } from '../services/api'
 import { useToast } from './ToastContext'
 import { setAccessToken, clearAccessToken, getAccessToken } from '../utils/tokenManager'
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }) => {
   const [refreshAttempts, setRefreshAttempts] = useState(0) // Track refresh attempts
   const [lastRefreshTime, setLastRefreshTime] = useState(0) // Track last refresh time
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { success: showSuccessToast, error: showErrorToast } = useToast()
 
   // Check if user is logged in on app start using session endpoint
@@ -96,6 +98,10 @@ export const AuthProvider = ({ children }) => {
         if (sessionResponse.data && sessionResponse.data.success) {
           setAuth({ user: sessionResponse.data.data.user, status: 'auth' })
         }
+        
+        // Invalidate all queries to fetch fresh data for the authenticated user
+        queryClient.invalidateQueries()
+        console.log('🔄 All queries invalidated after successful login')
         
         showSuccessToast('Login successful!')
         navigate('/')
@@ -178,6 +184,10 @@ export const AuthProvider = ({ children }) => {
         
         // Reset refresh attempts on success
         setRefreshAttempts(0)
+        
+        // Invalidate queries to refetch with new token
+        queryClient.invalidateQueries()
+        console.log('🔄 All queries invalidated after token refresh')
         
         // Fetch user profile with new token
         await fetchUser()
@@ -399,6 +409,10 @@ export const AuthProvider = ({ children }) => {
     
     // Clear API headers
     delete api.defaults.headers.common['Authorization']
+    
+    // Invalidate all queries to prevent stale data
+    queryClient.invalidateQueries()
+    console.log('🗑️ All queries invalidated due to authentication failure')
     
     // Define public routes that don't require authentication
     const publicRoutes = [

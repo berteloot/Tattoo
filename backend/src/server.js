@@ -345,11 +345,13 @@ app.get('/', (req, res) => {
       process.exit(1);
     }
     
-    res.status(500).json({
-      error: 'Frontend build not available',
-      message: 'This should not happen in production',
-      frontendDir: FRONTEND_DIR,
-      indexHtml: INDEX_HTML
+    // In development, redirect to Vite dev server
+    console.log('ℹ️ Development mode: Redirecting to Vite dev server');
+    res.json({
+      message: 'API server running - Frontend available at Vite dev server',
+      api: 'http://localhost:3001/api',
+      frontend: 'http://localhost:5173',
+      status: 'development'
     });
   }
 });
@@ -428,8 +430,12 @@ if (frontendExists) {
 
 if (!frontendExists) {
   console.error('❌ Frontend build not found at:', frontendBuildPath);
-  console.error('❌ This should not happen in production - build process failed');
-  process.exit(1);
+  if (process.env.NODE_ENV === 'production') {
+    console.error('❌ This should not happen in production - build process failed');
+    process.exit(1);
+  } else {
+    console.log('ℹ️ Development mode: Frontend build not required (using Vite dev server)');
+  }
 } else {
   console.log('✅ Frontend build found at:', frontendBuildPath);
   

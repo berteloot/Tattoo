@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, X, Image as ImageIcon, AlertCircle, Edit3, Save, Trash2, CheckCircle } from 'lucide-react';
-import { getAuthorizationHeader } from '../utils/tokenManager';
+import { getAuthorizationHeader, hasValidAccessToken } from '../utils/tokenManager';
 
 const BatchFlashUpload = ({ 
   onFlashCreated,
@@ -125,15 +125,25 @@ const BatchFlashUpload = ({
     ));
 
     try {
+      // Get fresh authorization header
+      const authHeader = getAuthorizationHeader();
+      
+      // Check if we have a valid token
+      if (!authHeader) {
+        throw new Error('No authentication token available. Please refresh the page and try again.');
+      }
+
       // Create FormData
       const formData = new FormData();
       formData.append('image', file);
+
+      console.log('🔍 Uploading file with auth header:', authHeader ? 'Present' : 'Missing');
 
       // Upload to server
       const response = await fetch(uploadEndpoint, {
         method: 'POST',
         headers: {
-          'Authorization': getAuthorizationHeader() || ''
+          'Authorization': authHeader
         },
         body: formData
       });
@@ -177,6 +187,13 @@ const BatchFlashUpload = ({
   };
 
   const processUploadQueue = async () => {
+    // Check authentication before starting uploads
+    if (!hasValidAccessToken()) {
+      setErrors(['Authentication expired. Please refresh the page and try again.']);
+      setIsProcessing(false);
+      return;
+    }
+    
     setIsProcessing(true);
     
     // Upload files sequentially to avoid overwhelming the server
@@ -224,6 +241,12 @@ const BatchFlashUpload = ({
   };
 
   const saveAllFlash = async () => {
+    // Check authentication before starting flash creation
+    if (!hasValidAccessToken()) {
+      setErrors(['Authentication expired. Please refresh the page and try again.']);
+      return;
+    }
+    
     setIsProcessing(true);
     const results = [];
     const newErrors = [];
@@ -239,11 +262,20 @@ const BatchFlashUpload = ({
         }
 
         try {
+          // Get fresh authorization header for each flash creation
+          const authHeader = getAuthorizationHeader();
+          
+          if (!authHeader) {
+            throw new Error('No authentication token available. Please refresh the page and try again.');
+          }
+
+          console.log('🔍 Creating flash item with auth header:', authHeader ? 'Present' : 'Missing');
+
           const response = await fetch('/api/flash', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': getAuthorizationHeader() || ''
+              'Authorization': authHeader
             },
             body: JSON.stringify(flashData)
           });

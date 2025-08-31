@@ -1,8 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
 
 // Custom hook for admin dashboard stats
 export const useAdminStats = () => {
+  const { isAuthenticated, isAdmin } = useAuth();
+  
   return useQuery({
     queryKey: ['admin', 'stats'],
     queryFn: async () => {
@@ -17,23 +20,40 @@ export const useAdminStats = () => {
         return stats;
       } catch (error) {
         console.error('❌ Error fetching admin stats:', error);
+        
+        // Handle authentication errors
+        if (error.response?.status === 401) {
+          console.log('🔄 Admin stats: Token expired, will be handled by AuthContext');
+          // Let AuthContext handle the token refresh
+          throw new Error('Authentication required');
+        }
+        
         throw error;
       }
     },
-    // Only fetch if user is authenticated
-    enabled: true,
+    // Only fetch if user is authenticated and is admin
+    enabled: isAuthenticated && isAdmin,
     // Prevent refetching for 30 seconds
     staleTime: 30 * 1000,
     // Cache for 5 minutes
     gcTime: 5 * 60 * 1000,
-    // Retry failed requests
-    retry: 3,
+    // Retry failed requests, but not auth errors
+    retry: (failureCount, error) => {
+      // Don't retry authentication errors
+      if (error.response?.status === 401) {
+        return false;
+      }
+      // Retry other errors up to 3 times
+      return failureCount < 3;
+    },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 }
 
 // Custom hook for admin actions
 export const useAdminActions = (limit = 5) => {
+  const { isAuthenticated, isAdmin } = useAuth();
+  
   return useQuery({
     queryKey: ['admin', 'actions', limit],
     queryFn: async () => {
@@ -48,13 +68,30 @@ export const useAdminActions = (limit = 5) => {
         return actions;
       } catch (error) {
         console.error('❌ Error fetching admin actions:', error);
+        
+        // Handle authentication errors
+        if (error.response?.status === 401) {
+          console.log('🔄 Admin actions: Token expired, will be handled by AuthContext');
+          // Let AuthContext handle the token refresh
+          throw new Error('Authentication required');
+        }
+        
         throw error;
       }
     },
-    enabled: true,
+    // Only fetch if user is authenticated and is admin
+    enabled: isAuthenticated && isAdmin,
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
-    retry: 3,
+    // Retry failed requests, but not auth errors
+    retry: (failureCount, error) => {
+      // Don't retry authentication errors
+      if (error.response?.status === 401) {
+        return false;
+      }
+      // Retry other errors up to 3 times
+      return failureCount < 3;
+    },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 }

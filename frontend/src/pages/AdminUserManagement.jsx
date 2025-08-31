@@ -4,7 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 import { api } from '../services/api';
 
 const AdminUserManagement = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isAdmin } = useAuth();
   const toast = useToast();
   
   // Add debugging to check if toast functions exist
@@ -60,7 +60,13 @@ const AdminUserManagement = () => {
       setUsers(response.data.data.users);
       setPagination(response.data.data.pagination);
     } catch (error) {
-      showError('Error fetching users');
+      // Handle authentication errors specifically
+      if (error.response?.status === 401) {
+        console.log('🔄 Users fetch: Token expired, will be handled by AuthContext');
+        showError('Session expired. Please refresh the page if the issue persists.');
+      } else {
+        showError('Error fetching users');
+      }
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
@@ -157,13 +163,14 @@ const AdminUserManagement = () => {
     setFilters(prev => ({ ...prev, page }));
   };
 
-  // Initialize
+  // Initialize - only fetch users if authenticated and admin
   useEffect(() => {
-    fetchUsers();
-  }, [filters]);
+    if (isAuthenticated && isAdmin) {
+      fetchUsers();
+    }
+  }, [filters, isAuthenticated, isAdmin]);
 
   // Check if current user is admin
-  const { isAdmin } = useAuth();
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
