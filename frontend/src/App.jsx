@@ -28,6 +28,7 @@ import AdminStudioUpload from './pages/AdminStudioUpload'
 import AdminStudioManagement from './pages/AdminStudioManagement'
 import AdminGeocoding from './pages/AdminGeocoding'
 import AdminContent from './pages/AdminContent'
+import EmailTemplates from './pages/EmailTemplates'
 import { Favorites } from './pages/Favorites'
 import Studios from './pages/Studios'
 import StudioDetail from './pages/StudioDetail'
@@ -142,6 +143,11 @@ function App() {
                 <Route path="/admin/content" element={
                   <ProtectedRoute requiredRole="ADMIN">
                     <AdminContent />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/email-templates" element={
+                  <ProtectedRoute requiredRole="ADMIN">
+                    <EmailTemplates />
                   </ProtectedRoute>
                 } />
                 <Route path="/admin" element={

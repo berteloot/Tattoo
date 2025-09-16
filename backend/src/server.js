@@ -32,6 +32,7 @@ const geocodingRoutes = require('./routes/geocoding-simple');
 const galleryRoutes = require('./routes/gallery');
 const messagesRoutes = require('./routes/messages');
 const healthRoutes = require('./routes/health');
+const emailTemplateRoutes = require('./routes/emailTemplates');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorHandler');
@@ -294,6 +295,7 @@ app.use('/api/studios', studioRoutes);
 app.use('/api/geocoding', geocodingRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/messages', messagesRoutes);
+app.use('/api/email-templates', emailTemplateRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {

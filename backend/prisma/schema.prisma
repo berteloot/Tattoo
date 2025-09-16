@@ -197,6 +197,39 @@ model AdminAction {
   @@map("admin_actions")
 }
 
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  type        EmailTemplateType
+  subject     String
+  htmlContent String
+  textContent String?
+  variables   String[] // Array of variable names like ["firstName", "lastName", "verificationUrl"]
+  isActive    Boolean  @default(true)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  updatedBy   String?
+
+  @@map("email_templates")
+}
+
+enum EmailTemplateType {
+  EMAIL_VERIFICATION
+  WELCOME
+  PASSWORD_RESET
+  INCOMPLETE_PROFILE_REMINDER
+  ARTIST_VERIFICATION
+  REVIEW_NOTIFICATION
+  BOOKING_CONFIRMATION
+  ARTIST_TO_CLIENT
+  CLIENT_TO_ARTIST
+  CLIENT_TO_STUDIO
+  STUDIO_JOIN_REQUEST
+  STUDIO_JOIN_RESPONSE
+}
+
 model Studio {
   id                 String              @id @default(dbgenerated("(gen_random_uuid())::text"))
   title              String
