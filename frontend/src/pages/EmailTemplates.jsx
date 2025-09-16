@@ -4,7 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 import { api } from '../services/api';
 
 const EmailTemplates = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isAdmin } = useAuth();
   const { success, error } = useToast();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,21 +42,32 @@ const EmailTemplates = () => {
   ];
 
   useEffect(() => {
-    if (user?.role === 'ADMIN') {
+    if (isAuthenticated && isAdmin) {
       fetchTemplates();
     }
-  }, [user]);
+  }, [isAuthenticated, isAdmin]);
 
   const fetchTemplates = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Fetching email templates...');
       const response = await api.get('/email-templates');
+      console.log('✅ Email templates response:', response.data);
+      
       if (response.data.success) {
         setTemplates(response.data.data);
+        console.log('📧 Loaded templates:', response.data.data.length);
       }
     } catch (error) {
-      console.error('Error fetching templates:', error);
-      error('Error', 'Failed to fetch email templates');
+      console.error('❌ Error fetching templates:', error);
+      
+      // Handle authentication errors specifically
+      if (error.response?.status === 401) {
+        console.log('🔄 Templates fetch: Token expired, will be handled by AuthContext');
+        error('Session Expired', 'Your session has expired. Please refresh the page if the issue persists.');
+      } else {
+        error('Error', 'Failed to fetch email templates');
+      }
     } finally {
       setLoading(false);
     }
@@ -189,7 +200,7 @@ const EmailTemplates = () => {
     });
   };
 
-  if (user?.role !== 'ADMIN') {
+  if (!isAuthenticated || !isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
