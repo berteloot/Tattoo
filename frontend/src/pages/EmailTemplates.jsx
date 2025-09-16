@@ -5,7 +5,7 @@ import { api } from '../services/api';
 
 const EmailTemplates = () => {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { success, error } = useToast();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -56,7 +56,7 @@ const EmailTemplates = () => {
       }
     } catch (error) {
       console.error('Error fetching templates:', error);
-      showToast('Failed to fetch email templates', 'error');
+      error('Error', 'Failed to fetch email templates');
     } finally {
       setLoading(false);
     }
@@ -99,14 +99,14 @@ const EmailTemplates = () => {
       if (isCreating) {
         const response = await api.post('/email-templates', formData);
         if (response.data.success) {
-          showToast('Email template created successfully', 'success');
+          success('Success', 'Email template created successfully');
           fetchTemplates();
           setIsCreating(false);
         }
       } else {
         const response = await api.put(`/email-templates/${selectedTemplate.id}`, formData);
         if (response.data.success) {
-          showToast('Email template updated successfully', 'success');
+          success('Success', 'Email template updated successfully');
           fetchTemplates();
           setIsEditing(false);
           setSelectedTemplate(null);
@@ -114,7 +114,7 @@ const EmailTemplates = () => {
       }
     } catch (error) {
       console.error('Error saving template:', error);
-      showToast(error.response?.data?.error || 'Failed to save template', 'error');
+      error('Error', error.response?.data?.error || 'Failed to save template');
     }
   };
 
@@ -124,12 +124,12 @@ const EmailTemplates = () => {
     try {
       const response = await api.delete(`/email-templates/${templateId}`);
       if (response.data.success) {
-        showToast('Email template deleted successfully', 'success');
+        success('Success', 'Email template deleted successfully');
         fetchTemplates();
       }
     } catch (error) {
       console.error('Error deleting template:', error);
-      showToast('Failed to delete template', 'error');
+      error('Error', 'Failed to delete template');
     }
   };
 
@@ -146,13 +146,13 @@ const EmailTemplates = () => {
       }
     } catch (error) {
       console.error('Error previewing template:', error);
-      showToast('Failed to preview template', 'error');
+      error('Error', 'Failed to preview template');
     }
   };
 
   const handleTestTemplate = async (template) => {
     if (!testEmail) {
-      showToast('Please enter a test email address', 'error');
+      error('Error', 'Please enter a test email address');
       return;
     }
 
@@ -162,13 +162,13 @@ const EmailTemplates = () => {
         variables: previewData
       });
       if (response.data.success) {
-        showToast('Test email sent successfully', 'success');
+        success('Success', 'Test email sent successfully');
       } else {
-        showToast('Failed to send test email', 'error');
+        error('Error', 'Failed to send test email');
       }
     } catch (error) {
       console.error('Error sending test email:', error);
-      showToast('Failed to send test email', 'error');
+      error('Error', 'Failed to send test email');
     }
   };
 
