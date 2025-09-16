@@ -77,6 +77,7 @@ model ArtistProfile {
   profilePictureHeight   Int?
   profilePictureFormat   String?
   profilePictureBytes    Int?
+  incompleteProfileReminderSentAt DateTime?
   messages               ArtistMessage[]
   user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites              Favorite[]          @relation("FavoriteArtist")

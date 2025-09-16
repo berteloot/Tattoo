@@ -9,7 +9,7 @@ if (process.env.SENDGRID_API_KEY) {
 
 class EmailService {
   constructor() {
-    this.fromEmail = process.env.FROM_EMAIL || 'stan@berteloot.org'
+    this.fromEmail = process.env.FROM_EMAIL || 'violette@tattooedworld.org'
     this.fromName = 'Tattooed World'
     this.version = '2.0.0' // Version identifier for debugging
     
@@ -761,6 +761,78 @@ class EmailService {
       return await this.sendEmail(to, subjectLine, htmlContent)
     } catch (error) {
       console.error('Error sending studio join request response email:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Incomplete profile reminder email for artists
+  async sendIncompleteProfileReminderEmail(user) {
+    try {
+      const subject = 'Your TattooedWorld profile isn\'t live yet'
+      const frontendUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5173' 
+        : 'https://tattooedworld.org'
+      
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 28px;">Complete Your Profile</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">TattooedWorld</p>
+          </div>
+          
+          <div style="padding: 40px; background: white;">
+            <h2 style="color: #333; margin-bottom: 20px;">Hey ${user.firstName},</h2>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              Thanks for signing up with TattooedWorld. Right now, you're in the system — but your artist profile isn't visible yet.
+            </p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">At the minimum, you only need 2 quick steps to get listed as an artist:</h3>
+              <ol style="color: #666; line-height: 1.8; margin: 0; padding-left: 20px;">
+                <li>Go to your <strong>Dashboard</strong> (top right).</li>
+                <li>In <strong>Basic Info</strong>, write a short bio (10 characters or more) and search for your studio. If you're the owner, click <strong>Claim</strong>.</li>
+              </ol>
+              <p style="color: #333; margin: 15px 0 0 0; font-weight: bold;">That's it — you'll show up on the map as an artist.</p>
+            </div>
+            
+            <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">Want a complete profile? Go further:</h3>
+              <ul style="color: #666; line-height: 1.8; margin: 0; padding-left: 20px;">
+                <li>Add some of your work (healed tattoos, flash, etc.)</li>
+                <li>Drop in your IG and other links</li>
+                <li>Select your style and specialties</li>
+              </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${frontendUrl}/dashboard" 
+                 style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                Complete Your Profile
+              </a>
+            </div>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              We built TattooedWorld to put artists on the map — literally. If you hit a snag or have ideas, reply to this email. 
+              Your feedback helps us make it better for everyone.
+            </p>
+            
+            <p style="color: #666; line-height: 1.6;">
+              Respect,<br>
+              The TattooedWorld Team
+            </p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px;">
+            <p>© 2025 TattooedWorld. All rights reserved.</p>
+            <p>This email was sent to ${user.email}</p>
+          </div>
+        </div>
+      `
+
+      return await this.sendEmail(user.email, subject, htmlContent)
+    } catch (error) {
+      console.error('Error in sendIncompleteProfileReminderEmail:', error)
       return { success: false, error: error.message }
     }
   }

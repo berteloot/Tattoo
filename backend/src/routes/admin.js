@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const { protect, adminOnly } = require('../middleware/auth');
 const { prisma } = require('../utils/prisma');
+const emailService = require('../utils/emailService');
 
 // All admin routes require authentication and admin role
 router.use(protect);
@@ -3026,6 +3027,194 @@ router.post('/test-csv-mapping', protect, adminOnly, async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/admin/incomplete-profiles
+ * @desc    Get artists with incomplete profiles (missing bio or studio)
+ * @access  Admin only
+ */
+router.get('/incomplete-profiles', async (req, res) => {
+  try {
+    console.log('🔍 Fetching artists with incomplete profiles');
+    
+    // Find artists who signed up 1+ days ago but haven't completed their profile
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    
+    const incompleteProfiles = await prisma.user.findMany({
+      where: {
+        role: { in: ['ARTIST', 'ARTIST_ADMIN'] },
+        createdAt: { lte: oneDayAgo },
+        artistProfile: {
+          OR: [
+            { bio: null },
+            { bio: '' },
+            { studioName: null },
+            { studioName: '' }
+          ]
+        }
+      },
+      include: {
+        artistProfile: true
+      },
+      orderBy: {
+        createdAt: 'asc'
+      }
+    });
 
+    console.log(`📊 Found ${incompleteProfiles.length} artists with incomplete profiles`);
+
+    res.json({
+      success: true,
+      data: {
+        count: incompleteProfiles.length,
+        artists: incompleteProfiles.map(user => ({
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          createdAt: user.createdAt,
+          hasBio: !!user.artistProfile?.bio,
+          hasStudio: !!user.artistProfile?.studioName,
+          reminderSentAt: user.artistProfile?.incompleteProfileReminderSentAt
+        }))
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching incomplete profiles:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch incomplete profiles',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/send-incomplete-profile-reminders
+ * @desc    Send reminder emails to artists with incomplete profiles
+ * @access  Admin only
+ */
+router.post('/send-incomplete-profile-reminders', async (req, res) => {
+  try {
+    console.log('📧 Sending incomplete profile reminder emails');
+    
+    // Find artists who signed up 1+ days ago but haven't completed their profile
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    
+    const incompleteProfiles = await prisma.user.findMany({
+      where: {
+        role: { in: ['ARTIST', 'ARTIST_ADMIN'] },
+        createdAt: { lte: oneDayAgo },
+        artistProfile: {
+          AND: [
+            {
+              OR: [
+                { bio: null },
+                { bio: '' },
+                { studioName: null },
+                { studioName: '' }
+              ]
+            },
+            {
+              incompleteProfileReminderSentAt: null
+            }
+          ]
+        }
+      },
+      include: {
+        artistProfile: true
+      }
+    });
+
+    console.log(`📊 Found ${incompleteProfiles.length} artists to send reminders to`);
+
+    const results = {
+      total: incompleteProfiles.length,
+      sent: 0,
+      failed: 0,
+      errors: []
+    };
+
+    // Send emails to each artist
+    for (const user of incompleteProfiles) {
+      try {
+        const emailResult = await emailService.sendIncompleteProfileReminderEmail(user);
+        
+        if (emailResult.success) {
+          // Update the artist profile to mark reminder as sent
+          await prisma.artistProfile.update({
+            where: { userId: user.id },
+            data: { incompleteProfileReminderSentAt: new Date() }
+          });
+          
+          results.sent++;
+          console.log(`✅ Reminder sent to ${user.email}`);
+        } else {
+          results.failed++;
+          results.errors.push({
+            email: user.email,
+            error: emailResult.error
+          });
+          console.log(`❌ Failed to send reminder to ${user.email}:`, emailResult.error);
+        }
+      } catch (error) {
+        results.failed++;
+        results.errors.push({
+          email: user.email,
+          error: error.message
+        });
+        console.error(`❌ Error sending reminder to ${user.email}:`, error);
+      }
+    }
+
+    console.log(`📧 Reminder email results: ${results.sent} sent, ${results.failed} failed`);
+
+    res.json({
+      success: true,
+      data: results
+    });
+
+  } catch (error) {
+    console.error('Error sending incomplete profile reminders:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send reminder emails',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/trigger-reminders
+ * @desc    Trigger incomplete profile reminders (no auth required for testing)
+ * @access  Public (for testing from Render)
+ */
+router.post('/trigger-reminders', async (req, res) => {
+  try {
+    console.log('🚀 Triggering incomplete profile reminders from API...');
+    
+    // Import and run the reminder function
+    const { sendIncompleteProfileReminders } = require('../scripts/send-incomplete-profile-reminders.js');
+    
+    // Run the reminders
+    await sendIncompleteProfileReminders();
+    
+    res.json({
+      success: true,
+      message: 'Incomplete profile reminders triggered successfully',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error triggering reminders:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to trigger reminders',
+      details: error.message
+    });
+  }
+});
 
 module.exports = router; 
