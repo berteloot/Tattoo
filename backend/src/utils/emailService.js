@@ -1,4 +1,5 @@
 const sgMail = require('@sendgrid/mail')
+const templateEmailService = require('./templateEmailService')
 
 // Configure SendGrid
 if (process.env.SENDGRID_API_KEY) {
@@ -68,6 +69,11 @@ class EmailService {
 
   // Email verification email
   async sendEmailVerificationEmail(user, verificationToken) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendEmailVerificationEmail(user, verificationToken)
+      if (result && result.success) return result
+    } catch (_) {}
     try {
       // Force the correct domain for production - same fix as password reset
       const frontendUrl = process.env.NODE_ENV === 'development' 
@@ -153,6 +159,11 @@ class EmailService {
 
   // Welcome email for verified users
   async sendWelcomeEmail(user) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendWelcomeEmail(user)
+      if (result && result.success) return result
+    } catch (_) {}
     try {
       const subject = 'Welcome to Tattooed World! 🎨'
       const htmlContent = `
@@ -212,6 +223,11 @@ class EmailService {
 
   // Artist profile verification email
   async sendArtistVerificationEmail(user, artistProfile) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendArtistVerificationEmail(user, artistProfile)
+      if (result && result.success) return result
+    } catch (_) {}
     const subject = 'Your Artist Profile is Live! 🎨'
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -272,6 +288,11 @@ class EmailService {
 
   // Password reset email
   async sendPasswordResetEmail(user, resetToken) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendPasswordResetEmail(user, resetToken)
+      if (result && result.success) return result
+    } catch (_) {}
     // Debug logging for environment variables
     console.log('🔍 Email Service Debug:')
     console.log('  NODE_ENV:', process.env.NODE_ENV)
@@ -336,6 +357,11 @@ class EmailService {
 
   // New review notification
   async sendReviewNotification({ to, artistName, reviewerName, rating, title, comment }) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendReviewNotification({ to, artistName, reviewerName, rating, title, comment })
+      if (result && result.success) return result
+    } catch (_) {}
     const subject = 'New Review on Your Profile! ⭐'
     
     // Use the correct production URL
@@ -393,6 +419,11 @@ class EmailService {
 
   // Booking confirmation email
   async sendBookingConfirmation(booking, artist, client) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendBookingConfirmation(booking, artist, client)
+      if (result && result.success) return result
+    } catch (_) {}
     const subject = 'Booking Confirmation - Tattoo Session'
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -455,6 +486,11 @@ class EmailService {
 
   // Artist to client email (for favorite clients)
   async sendArtistToClientEmail({ to, clientName, artistName, artistEmail, subject, message, studioName }) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendArtistToClientEmail({ to, clientName, artistName, artistEmail, subject, message, studioName })
+      if (result && result.success) return result
+    } catch (_) {}
     const emailSubject = subject || `Message from ${artistName} - Tattooed World`
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -515,6 +551,11 @@ class EmailService {
 
   // Client to artist email
   async sendClientToArtistEmail({ to, artistName, clientName, clientEmail, clientPhone, subject, message, studioName }) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendClientToArtistEmail({ to, artistName, clientName, clientEmail, clientPhone, subject, message, studioName })
+      if (result && result.success) return result
+    } catch (_) {}
     const emailSubject = subject || `New message from ${clientName} - Tattooed World`
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -579,6 +620,11 @@ class EmailService {
 
   // Client to studio email
   async sendClientToStudioEmail({ to, studioName, clientName, clientEmail, clientPhone, subject, message, studioAddress }) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendClientToStudioEmail({ to, studioName, clientName, clientEmail, clientPhone, subject, message, studioAddress })
+      if (result && result.success) return result
+    } catch (_) {}
     const emailSubject = subject || `New message from ${clientName} - Tattooed World`
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -652,6 +698,11 @@ class EmailService {
 
   // Send studio join request email to studio owners/managers
   async sendStudioJoinRequestEmail({ to, studioOwnerName, artistName, studioName, message, requestId }) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendStudioJoinRequestEmail({ to, studioOwnerName, artistName, studioName, message, requestId })
+      if (result && result.success) return result
+    } catch (_) {}
     try {
       const subjectLine = `Artist ${artistName} wants to join ${studioName}`
       const htmlContent = `
@@ -707,6 +758,11 @@ class EmailService {
 
   // Send studio join request response email to artist
   async sendStudioJoinRequestResponseEmail({ to, artistName, studioName, responderName, action, message }) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendStudioJoinRequestResponseEmail({ to, artistName, studioName, responderName, action, message })
+      if (result && result.success) return result
+    } catch (_) {}
     try {
       const subjectLine = `Your request to join ${studioName} has been ${action.toLowerCase()}d`
       const actionColor = action === 'APPROVE' ? '#28a745' : '#dc3545'
@@ -767,6 +823,11 @@ class EmailService {
 
   // Incomplete profile reminder email for artists
   async sendIncompleteProfileReminderEmail(user) {
+    // Try DB-backed template first, then gracefully fallback to legacy content
+    try {
+      const result = await templateEmailService.sendIncompleteProfileReminderEmail(user)
+      if (result && result.success) return result
+    } catch (_) {}
     try {
       const subject = 'Your TattooedWorld profile isn\'t live yet'
       const frontendUrl = process.env.NODE_ENV === 'development' 
