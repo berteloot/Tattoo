@@ -5,7 +5,7 @@ import { api } from '../services/api';
 
 const EmailTemplates = () => {
   const { user, isAuthenticated, isAdmin } = useAuth();
-  const { success, error } = useToast();
+  const { success: toastSuccess, error: toastError } = useToast();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -58,15 +58,15 @@ const EmailTemplates = () => {
         setTemplates(response.data.data);
         console.log('📧 Loaded templates:', response.data.data.length);
       }
-    } catch (error) {
-      console.error('❌ Error fetching templates:', error);
+    } catch (err) {
+      console.error('❌ Error fetching templates:', err);
       
       // Handle authentication errors specifically
-      if (error.response?.status === 401) {
+      if (err.response?.status === 401) {
         console.log('🔄 Templates fetch: Token expired, will be handled by AuthContext');
-        error('Session Expired', 'Your session has expired. Please refresh the page if the issue persists.');
+        toastError('Session Expired', 'Your session has expired. Please refresh the page if the issue persists.');
       } else {
-        error('Error', 'Failed to fetch email templates');
+        toastError('Error', 'Failed to fetch email templates');
       }
     } finally {
       setLoading(false);
@@ -110,22 +110,22 @@ const EmailTemplates = () => {
       if (isCreating) {
         const response = await api.post('/email-templates', formData);
         if (response.data.success) {
-          success('Success', 'Email template created successfully');
+          toastSuccess('Success', 'Email template created successfully');
           fetchTemplates();
           setIsCreating(false);
         }
       } else {
         const response = await api.put(`/email-templates/${selectedTemplate.id}`, formData);
         if (response.data.success) {
-          success('Success', 'Email template updated successfully');
+          toastSuccess('Success', 'Email template updated successfully');
           fetchTemplates();
           setIsEditing(false);
           setSelectedTemplate(null);
         }
       }
-    } catch (error) {
-      console.error('Error saving template:', error);
-      error('Error', error.response?.data?.error || 'Failed to save template');
+    } catch (err) {
+      console.error('Error saving template:', err);
+      toastError('Error', err.response?.data?.error || 'Failed to save template');
     }
   };
 
@@ -135,12 +135,12 @@ const EmailTemplates = () => {
     try {
       const response = await api.delete(`/email-templates/${templateId}`);
       if (response.data.success) {
-        success('Success', 'Email template deleted successfully');
+        toastSuccess('Success', 'Email template deleted successfully');
         fetchTemplates();
       }
-    } catch (error) {
-      console.error('Error deleting template:', error);
-      error('Error', 'Failed to delete template');
+    } catch (err) {
+      console.error('Error deleting template:', err);
+      toastError('Error', 'Failed to delete template');
     }
   };
 
@@ -155,15 +155,15 @@ const EmailTemplates = () => {
         previewWindow.document.write(response.data.data.htmlContent);
         previewWindow.document.close();
       }
-    } catch (error) {
-      console.error('Error previewing template:', error);
-      error('Error', 'Failed to preview template');
+    } catch (err) {
+      console.error('Error previewing template:', err);
+      toastError('Error', 'Failed to preview template');
     }
   };
 
   const handleTestTemplate = async (template) => {
     if (!testEmail) {
-      error('Error', 'Please enter a test email address');
+      toastError('Error', 'Please enter a test email address');
       return;
     }
 
@@ -173,13 +173,13 @@ const EmailTemplates = () => {
         variables: previewData
       });
       if (response.data.success) {
-        success('Success', 'Test email sent successfully');
+        toastSuccess('Success', 'Test email sent successfully');
       } else {
-        error('Error', 'Failed to send test email');
+        toastError('Error', 'Failed to send test email');
       }
-    } catch (error) {
-      console.error('Error sending test email:', error);
-      error('Error', 'Failed to send test email');
+    } catch (err) {
+      console.error('Error sending test email:', err);
+      toastError('Error', 'Failed to send test email');
     }
   };
 
